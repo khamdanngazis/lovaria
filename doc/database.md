@@ -67,7 +67,7 @@ lovoria migrate version
 ```
 
 Lokal: `make migrate-up`, `make migrate-down`, `make migrate-status`.
-Railway: `lovoria migrate up` dijalankan sebagai **pre-deploy command** (`railway.toml`); bila gagal, deploy dibatalkan dan versi lama tetap jalan.
+Railway: `lovoria migrate up` dijalankan sebagai **pre-deploy step** (setelan service, lihat README bagian Deploy); bila gagal, deploy dibatalkan dan versi lama tetap jalan.
 
 ## sqlc
 
