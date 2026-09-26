@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Deploy
+- Hapus `railway.toml`: Railway sudah tidak membaca Config as Code. Setelan deploy (start `lovoria serve`, pre-deploy `lovoria migrate up`, healthcheck `/healthz`, `DATABASE_URL`) kini disimpan di service Railway dan didokumentasikan di README.
+
 ### T02 — Database foundation & migrations
 - `src/platform/db`: pool `pgxpool` (setelan dari env `DB_*`), `WithTx` (commit/rollback/panic, nested → savepoint), `NewID()` UUIDv7, checker DB untuk `/readyz`.
 - `/readyz` → 503 bila DB tidak bisa dihubungi; detail error hanya ke log, tidak ke response.

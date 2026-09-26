@@ -49,10 +49,27 @@ Semua lewat environment variable (lihat [`.env.example`](.env.example)), dibaca 
 
 ## Deploy (Railway)
 
-1. Buat project Railway → **Deploy from GitHub repo** (repo ini). Railway membaca [`railway.toml`](railway.toml) dan build pakai [`Dockerfile`](Dockerfile).
-2. Tambahkan service **PostgreSQL**, lalu di service app set `DATABASE_URL=${{Postgres.DATABASE_URL}}`.
-3. Set `APP_ENV=production` dan `BASE_URL` sesuai domain.
-4. Setiap deploy menjalankan **pre-deploy** `lovoria migrate up`; gagal → deploy dibatalkan.
-5. Healthcheck deploy memakai `GET /healthz`; `GET /readyz` → 503 bila DB tidak bisa dihubungi.
+Production: https://lovaria-production.up.railway.app — project `affectionate-grace`, environment `production`, service `lovaria` + `Postgres`. Setiap push/merge ke `main` otomatis di-build dari [`Dockerfile`](Dockerfile).
+
+Railway sudah tidak membaca `railway.toml` (Config as Code deprecated), jadi setelan disimpan langsung di service `lovaria` → **Settings**:
+
+| Setelan | Nilai |
+|---|---|
+| Source | repo GitHub ini, branch `main` |
+| Builder | Dockerfile (terdeteksi otomatis) |
+| Custom Start Command | `lovoria serve` |
+| Pre-deploy step | `lovoria migrate up` — gagal → deploy dibatalkan, versi lama tetap jalan |
+| Healthcheck Path | `/healthz` |
+| Networking | domain Railway, target port `8080` |
+
+Variabel service `lovaria` (tab **Variables**):
+
+| Variabel | Nilai |
+|---|---|
+| `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` (reference ke service `Postgres`) |
+| `APP_ENV` | tidak perlu diisi — Dockerfile sudah men-set `production` |
+| `BASE_URL` | isi saat domain final sudah ada |
+
+Catatan: perubahan setelan/variabel di dashboard masuk sebagai *staged changes* — klik **Deploy / Apply changes** supaya berlaku. `GET /readyz` → 503 bila DB tidak bisa dihubungi.
 
 CI GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)): templ/sqlc generate check, build, vet, lint-tenant, test unit + integration (service Postgres), migration up/down/up lewat binary, golangci-lint, build image Docker (cek < 50 MB) + smoke test `/healthz`.
