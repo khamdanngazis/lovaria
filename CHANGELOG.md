@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### T04 — Wedding core & setup wizard
+- Migration `00003_create_weddings.sql`: `weddings` (akar tenant; slug citext unik + CHECK `[a-z0-9-]`, status `draft|published|wedding_day|memory|archived`, `theme_id` default `elegant`) dan `couples` (`wedding_id` unik).
+- Modul `wedding` (sqlc `weddingdb`): `CreateWedding`, `GetWedding`, `GetWeddingForOwner`, `GetWeddingBySlug`, `GetCouple`, `UpdateWeddingInfo`, `UpdateCouple`, `ListWeddingsByOwner`; interface baca-saja `wedding.Reader` untuk modul lain.
+- Slug otomatis dari nama pasangan (`khamdan-sarah`, diakritik dibuang), suffix `-2`, `-3`… bila bentrok, retry saat race; `ValidateSlug` + daftar kata terlarang (dipakai T14).
+- `RequireWeddingOwner` + `wedding.OwnerGroup`: wedding milik orang lain / ID tidak valid → 404; `wedding_id` tersedia di `web.WeddingID(ctx)`.
+- Setup wizard 3 langkah (htmx, stateless, tombol Kembali, tanpa JS tetap jalan); halaman ringkasan, edit info wedding, edit pasangan (URL foto; upload di T06).
+- `/dashboard` → wizard (belum punya wedding), langsung ke wedding (1), atau daftar (>1).
+- Method override global (`_method`) untuk `PATCH` dari form tanpa JS; komponen form `templates/ui`; `web.FormatDateID`.
+- Diuji di browser headless 375px: wizard sampai selesai, halaman edit, tanpa scroll horizontal.
+
 ### Fix
 - `lovoria create-admin`: prompt password tidak lagi macet lewat `railway ssh` (Enter dikirim sebagai `\r`), input disembunyikan di terminal, dan password bisa diberikan lewat env `LOVORIA_ADMIN_PASSWORD`.
 

@@ -1,0 +1,122 @@
+// Package ui berisi komponen form dashboard yang dipakai lintas modul.
+package ui
+
+// Field mendeskripsikan satu input form.
+type Field struct {
+	ID           string // id unik di halaman, mis. "wedding-title"
+	Name         string
+	Label        string
+	Type         string // text | email | date | url | password
+	Value        string
+	Error        string
+	Hint         string
+	Placeholder  string
+	Autocomplete string
+	Required     bool
+	MaxLength    int
+}
+
+const inputClass = "mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+
+templ Input(f Field) {
+	<div>
+		<label for={ f.ID } class="block text-sm font-medium text-slate-800">
+			{ f.Label }
+			if !f.Required {
+				<span class="font-normal text-slate-400">(opsional)</span>
+			}
+		</label>
+		<input
+			id={ f.ID }
+			name={ f.Name }
+			type={ f.Type }
+			value={ f.Value }
+			if f.Placeholder != "" {
+				placeholder={ f.Placeholder }
+			}
+			if f.Autocomplete != "" {
+				autocomplete={ f.Autocomplete }
+			}
+			if f.MaxLength > 0 {
+				maxlength={ f.MaxLength }
+			}
+			required?={ f.Required }
+			if f.Error != "" {
+				aria-invalid="true"
+			}
+			aria-describedby={ f.ID + "-error" }
+			class={ inputClass }
+		/>
+		@hintAndError(f)
+	</div>
+}
+
+templ TextArea(f Field, rows int) {
+	<div>
+		<label for={ f.ID } class="block text-sm font-medium text-slate-800">
+			{ f.Label }
+			if !f.Required {
+				<span class="font-normal text-slate-400">(opsional)</span>
+			}
+		</label>
+		<textarea
+			id={ f.ID }
+			name={ f.Name }
+			rows={ rows }
+			if f.Placeholder != "" {
+				placeholder={ f.Placeholder }
+			}
+			if f.MaxLength > 0 {
+				maxlength={ f.MaxLength }
+			}
+			required?={ f.Required }
+			if f.Error != "" {
+				aria-invalid="true"
+			}
+			aria-describedby={ f.ID + "-error" }
+			class={ inputClass }
+		>{ f.Value }</textarea>
+		@hintAndError(f)
+	</div>
+}
+
+templ hintAndError(f Field) {
+	if f.Hint != "" && f.Error == "" {
+		<p class="mt-1 text-xs text-slate-500">{ f.Hint }</p>
+	}
+	<p id={ f.ID + "-error" } class="mt-1 text-sm text-red-600">{ f.Error }</p>
+}
+
+// Alert menampilkan pesan error umum form.
+templ Alert(msg string) {
+	if msg != "" {
+		<p class="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{ msg }</p>
+	}
+}
+
+// Notice menampilkan pesan sukses.
+templ Notice(msg string) {
+	if msg != "" {
+		<p class="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700" role="status">{ msg }</p>
+	}
+}
+
+templ PrimaryButton(label string) {
+	<button type="submit" class="w-full rounded-lg bg-primary px-4 py-2.5 font-medium text-white hover:opacity-90 disabled:opacity-60 sm:w-auto">
+		{ label }
+	</button>
+}
+
+// SecondaryButton adalah tombol submit sekunder dengan name/value (mis. "Kembali").
+templ SecondaryButton(label, name, value string) {
+	<button type="submit" name={ name } value={ value } formnovalidate class="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-50 sm:w-auto">
+		{ label }
+	</button>
+}
+
+// Card membungkus konten dalam panel putih.
+templ Card() {
+	<div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5 sm:p-6">
+		{ children... }
+	</div>
+}
