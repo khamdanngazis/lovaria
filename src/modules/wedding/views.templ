@@ -1,0 +1,290 @@
+package wedding
+
+import (
+	"fmt"
+
+	"github.com/khamdanngazis/lovaria/src/platform/web"
+	"github.com/khamdanngazis/lovaria/src/templates/layouts"
+	"github.com/khamdanngazis/lovaria/src/templates/ui"
+)
+
+// form menampung nilai & error input untuk dirender ulang.
+type form struct {
+	Values  map[string]string
+	Errors  map[string]string
+	Message string
+	Notice  string
+}
+
+func (f form) v(k string) string { return f.Values[k] }
+func (f form) e(k string) string { return f.Errors[k] }
+
+func weddingURL(w Wedding, suffix string) string {
+	return "/dashboard/weddings/" + w.ID.String() + suffix
+}
+
+func deref(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}
+
+var statusLabel = map[string]string{
+	StatusDraft: "Draft", StatusPublished: "Terbit", StatusWeddingDay: "Hari H",
+	StatusMemory: "Kenangan", StatusArchived: "Diarsipkan",
+}
+
+// ---------- Setup wizard ----------
+
+const wizardSteps = 3
+
+var stepTitles = [...]string{"", "Nama pasangan", "Judul & tanggal", "Cerita singkat"}
+
+templ newPage(step int, f form) {
+	@layouts.Dashboard(layouts.Meta{Title: "Buat website pernikahan"}) {
+		<div class="mx-auto max-w-lg">
+			<h1 class="text-2xl font-semibold">Buat website pernikahan</h1>
+			<p class="mt-1 text-slate-600">Tiga langkah singkat — semuanya bisa diubah nanti.</p>
+			<div class="mt-6">
+				@wizardStep(step, f)
+			</div>
+		</div>
+	}
+}
+
+templ wizardProgress(step int) {
+	<ol class="mb-5 flex gap-2" aria-label="Langkah">
+		for i := 1; i <= wizardSteps; i++ {
+			<li class="flex-1">
+				<span
+					class={ "block h-1.5 rounded-full", templ.KV("bg-primary", i <= step), templ.KV("bg-slate-200", i > step) }
+					if i == step {
+						aria-current="step"
+					}
+				></span>
+				<span class={ "mt-1 block text-xs", templ.KV("text-slate-900 font-medium", i == step), templ.KV("text-slate-400", i != step) }>
+					{ fmt.Sprintf("%d. %s", i, stepTitles[i]) }
+				</span>
+			</li>
+		}
+	</ol>
+}
+
+// hiddenExcept membawa nilai langkah lain di form (wizard stateless).
+templ hiddenExcept(f form, visible ...string) {
+	for _, k := range []string{"groom_name", "bride_name", "title", "wedding_date", "description"} {
+		if !contains(visible, k) {
+			<input type="hidden" name={ k } value={ f.v(k) }/>
+		}
+	}
+}
+
+func contains(list []string, s string) bool {
+	for _, x := range list {
+		if x == s {
+			return true
+		}
+	}
+	return false
+}
+
+templ wizardStep(step int, f form) {
+	<div id="wizard-step">
+		@ui.Card() {
+			@wizardProgress(step)
+			<form
+				method="post"
+				if step < wizardSteps {
+					action={ templ.SafeURL(fmt.Sprintf("/dashboard/weddings/new/steps/%d", step)) }
+					hx-post={ fmt.Sprintf("/dashboard/weddings/new/steps/%d", step) }
+				} else {
+					action="/dashboard/weddings"
+					hx-post="/dashboard/weddings"
+				}
+				hx-target="#wizard-step"
+				hx-swap="outerHTML"
+				hx-disabled-elt="find button"
+				class="space-y-4"
+			>
+				@layouts.CSRFField()
+				@ui.Alert(f.Message)
+				switch step {
+					case 1:
+						@hiddenExcept(f, "groom_name", "bride_name")
+						@ui.Input(ui.Field{ID: "wedding-groom-name", Name: "groom_name", Label: "Nama mempelai pria", Type: "text", Value: f.v("groom_name"), Error: f.e("groom_name"), Placeholder: "Khamdan", Required: true, MaxLength: 100, Autocomplete: "off"})
+						@ui.Input(ui.Field{ID: "wedding-bride-name", Name: "bride_name", Label: "Nama mempelai wanita", Type: "text", Value: f.v("bride_name"), Error: f.e("bride_name"), Placeholder: "Sarah", Required: true, MaxLength: 100, Autocomplete: "off"})
+					case 2:
+						@hiddenExcept(f, "title", "wedding_date")
+						@ui.Input(ui.Field{ID: "wedding-title", Name: "title", Label: "Judul website", Type: "text", Value: f.v("title"), Error: f.e("title"), Required: true, MaxLength: 150, Hint: "Tampil sebagai judul utama undangan."})
+						@ui.Input(ui.Field{ID: "wedding-date", Name: "wedding_date", Label: "Tanggal pernikahan", Type: "date", Value: f.v("wedding_date"), Error: f.e("wedding_date"), Required: true})
+					default:
+						@hiddenExcept(f, "description")
+						@ui.TextArea(ui.Field{ID: "wedding-description", Name: "description", Label: "Deskripsi singkat", Value: f.v("description"), Error: f.e("description"), MaxLength: 2000, Placeholder: "Dengan penuh syukur, kami mengundang Anda…"}, 4)
+				}
+				<div class="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-between">
+					if step > 1 {
+						@ui.SecondaryButton("Kembali", "back", "1")
+					} else {
+						<span></span>
+					}
+					if step < wizardSteps {
+						@ui.PrimaryButton("Lanjut")
+					} else {
+						@ui.PrimaryButton("Selesai & buat website")
+					}
+				</div>
+			</form>
+		}
+	</div>
+}
+
+// ---------- Daftar ----------
+templ listPage(weddings []Wedding) {
+	@layouts.Dashboard(layouts.Meta{Title: "Wedding saya"}) {
+		<div class="flex items-center justify-between gap-4">
+			<h1 class="text-2xl font-semibold">Wedding saya</h1>
+			<a href="/dashboard/weddings/new" class="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white">+ Buat baru</a>
+		</div>
+		<ul class="mt-6 grid gap-4 sm:grid-cols-2">
+			for _, w := range weddings {
+				<li>
+					<a href={ templ.SafeURL(weddingURL(w, "")) } class="block rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5 hover:ring-primary">
+						<p class="font-semibold">{ w.Title }</p>
+						<p class="mt-1 text-sm text-slate-600">{ web.FormatDateID(w.WeddingDate) }</p>
+						<p class="mt-2 text-xs text-slate-400">{ statusLabel[w.Status] } · /w/{ w.Slug }</p>
+					</a>
+				</li>
+			}
+		</ul>
+	}
+}
+
+// ---------- Halaman wedding ----------
+templ weddingShell(w Wedding, active string) {
+	@layouts.Dashboard(layouts.Meta{Title: w.Title}) {
+		<div class="min-w-0">
+			<p class="text-sm text-slate-500"><a href="/dashboard/weddings" class="hover:underline">Wedding saya</a></p>
+			<h1 class="mt-1 break-words text-2xl font-semibold">{ w.Title }</h1>
+			<nav class="-mx-4 mt-4 overflow-x-auto border-b border-slate-200 px-4" aria-label="Menu wedding">
+				<ul class="flex gap-5 whitespace-nowrap text-sm">
+					@tab(w, "", "Ringkasan", active)
+					@tab(w, "/info", "Info wedding", active)
+					@tab(w, "/couple", "Pasangan", active)
+				</ul>
+			</nav>
+			<div class="mt-6">
+				{ children... }
+			</div>
+		</div>
+	}
+}
+
+templ tab(w Wedding, suffix, label, active string) {
+	<li>
+		<a
+			href={ templ.SafeURL(weddingURL(w, suffix)) }
+			class={ "-mb-px block border-b-2 pb-2", templ.KV("border-primary font-medium text-slate-900", active == suffix), templ.KV("border-transparent text-slate-500 hover:text-slate-800", active != suffix) }
+			if active == suffix {
+				aria-current="page"
+			}
+		>{ label }</a>
+	</li>
+}
+
+templ overviewPage(w Wedding, c Couple, welcome bool) {
+	@weddingShell(w, "") {
+		if welcome {
+			<div class="mb-4">
+				@ui.Notice("Website pernikahanmu sudah dibuat sebagai draft. Lengkapi info lalu terbitkan saat siap.")
+			</div>
+		}
+		<div class="grid gap-4 sm:grid-cols-2">
+			@ui.Card() {
+				<p class="text-xs uppercase tracking-wide text-slate-400">Pasangan</p>
+				<p class="mt-1 font-heading text-xl text-primary">{ c.GroomName } &amp; { c.BrideName }</p>
+				<a href={ templ.SafeURL(weddingURL(w, "/couple")) } class="mt-3 inline-block text-sm text-primary hover:underline">Ubah data pasangan</a>
+			}
+			@ui.Card() {
+				<p class="text-xs uppercase tracking-wide text-slate-400">Tanggal</p>
+				<p class="mt-1 font-medium">{ web.FormatDateID(w.WeddingDate) }</p>
+				<p class="mt-3 text-xs uppercase tracking-wide text-slate-400">Status</p>
+				<p class="mt-1"><span class="rounded-full bg-slate-100 px-2 py-0.5 text-sm">{ statusLabel[w.Status] }</span></p>
+				<p class="mt-3 text-xs uppercase tracking-wide text-slate-400">Alamat website</p>
+				<p class="mt-1 break-all text-sm text-slate-700">/w/{ w.Slug }</p>
+			}
+		</div>
+	}
+}
+
+templ infoPage(w Wedding, f form) {
+	@weddingShell(w, "/info") {
+		@infoForm(w, f)
+	}
+}
+
+templ infoForm(w Wedding, f form) {
+	@ui.Card() {
+		<form
+			method="post"
+			action={ templ.SafeURL(weddingURL(w, "/info")) }
+			hx-patch={ weddingURL(w, "/info") }
+			hx-target="this"
+			hx-swap="outerHTML"
+			hx-disabled-elt="find button"
+			class="space-y-4"
+		>
+			@layouts.CSRFField()
+			<input type="hidden" name="_method" value="PATCH"/>
+			@ui.Notice(f.Notice)
+			@ui.Alert(f.Message)
+			@ui.Input(ui.Field{ID: "info-title", Name: "title", Label: "Judul website", Type: "text", Value: f.v("title"), Error: f.e("title"), Required: true, MaxLength: 150})
+			@ui.Input(ui.Field{ID: "info-date", Name: "wedding_date", Label: "Tanggal pernikahan", Type: "date", Value: f.v("wedding_date"), Error: f.e("wedding_date"), Required: true})
+			@ui.TextArea(ui.Field{ID: "info-description", Name: "description", Label: "Deskripsi", Value: f.v("description"), Error: f.e("description"), MaxLength: 2000}, 5)
+			@ui.Input(ui.Field{ID: "info-photo", Name: "main_photo_url", Label: "URL foto utama", Type: "url", Value: f.v("main_photo_url"), Error: f.e("main_photo_url"), Placeholder: "https://…", Hint: "Upload foto langsung akan tersedia segera."})
+			@ui.PrimaryButton("Simpan")
+		</form>
+	}
+}
+
+templ couplePage(w Wedding, f form) {
+	@weddingShell(w, "/couple") {
+		@coupleForm(w, f)
+	}
+}
+
+templ coupleForm(w Wedding, f form) {
+	<form
+		method="post"
+		action={ templ.SafeURL(weddingURL(w, "/couple")) }
+		hx-patch={ weddingURL(w, "/couple") }
+		hx-target="this"
+		hx-swap="outerHTML"
+		hx-disabled-elt="find button"
+		class="space-y-4"
+	>
+		@layouts.CSRFField()
+		<input type="hidden" name="_method" value="PATCH"/>
+		@ui.Notice(f.Notice)
+		@ui.Alert(f.Message)
+		<div class="grid gap-4 md:grid-cols-2">
+			@ui.Card() {
+				<h2 class="font-semibold">Mempelai pria</h2>
+				<div class="mt-3 space-y-4">
+					@ui.Input(ui.Field{ID: "couple-groom-name", Name: "groom_name", Label: "Nama", Type: "text", Value: f.v("groom_name"), Error: f.e("groom_name"), Required: true, MaxLength: 100})
+					@ui.Input(ui.Field{ID: "couple-groom-photo", Name: "groom_photo_url", Label: "URL foto", Type: "url", Value: f.v("groom_photo_url"), Error: f.e("groom_photo_url"), Placeholder: "https://…"})
+					@ui.TextArea(ui.Field{ID: "couple-groom-desc", Name: "groom_description", Label: "Deskripsi", Value: f.v("groom_description"), Error: f.e("groom_description"), MaxLength: 1000, Placeholder: "Putra dari Bapak … & Ibu …"}, 3)
+				</div>
+			}
+			@ui.Card() {
+				<h2 class="font-semibold">Mempelai wanita</h2>
+				<div class="mt-3 space-y-4">
+					@ui.Input(ui.Field{ID: "couple-bride-name", Name: "bride_name", Label: "Nama", Type: "text", Value: f.v("bride_name"), Error: f.e("bride_name"), Required: true, MaxLength: 100})
+					@ui.Input(ui.Field{ID: "couple-bride-photo", Name: "bride_photo_url", Label: "URL foto", Type: "url", Value: f.v("bride_photo_url"), Error: f.e("bride_photo_url"), Placeholder: "https://…"})
+					@ui.TextArea(ui.Field{ID: "couple-bride-desc", Name: "bride_description", Label: "Deskripsi", Value: f.v("bride_description"), Error: f.e("bride_description"), MaxLength: 1000, Placeholder: "Putri dari Bapak … & Ibu …"}, 3)
+				</div>
+			}
+		</div>
+		@ui.PrimaryButton("Simpan")
+	</form>
+}

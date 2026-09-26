@@ -7,6 +7,8 @@ Tidak memakai ORM — semua query adalah SQL eksplisit.
 
 Shared database, isolasi per wedding lewat kolom `wedding_id` (Arsitektur §4).
 
+Tabel `weddings` adalah **akar tenant**: `id`-nya menjadi `wedding_id` di semua tabel lain, dan kepemilikannya lewat `owner_user_id`. Tabel akun (`users`, `sessions`, `password_reset_tokens`) bersifat global, bukan milik wedding.
+
 - **Setiap tabel milik wedding wajib punya `wedding_id uuid NOT NULL REFERENCES weddings (id) ON DELETE CASCADE`.**
 - **Setiap `wedding_id` wajib ter-index** — lewat `CREATE INDEX ... (wedding_id)` atau `UNIQUE`/`PRIMARY KEY` yang *diawali* `wedding_id`.
 - **Setiap query sqlc ke tabel tenant wajib memfilter `wedding_id` di `WHERE`** (INSERT wajib mengisi `wedding_id`). Parameter `wedding_id` datang dari konteks request yang sudah diotorisasi, bukan dari input bebas user.
@@ -81,6 +83,8 @@ src/modules/<m>/db/*.go            ← hasil generate, package <m>db (mis. guest
 Daftarkan modul di `sqlc.yaml` (salin template entry di file itu), lalu `make sqlc`. Schema dibaca langsung dari `migrations/`. Override tipe global: `uuid` → `uuid.UUID`, `timestamptz` → `time.Time`, `citext` → `string`; kolom nullable → pointer.
 
 Hanya `repository.go` modul pemilik yang boleh mengimpor package `<m>db`. Modul lain memanggil service-nya (aturan wajib #1).
+
+Catatan: sqlc membuat struct model untuk **semua** tabel di setiap package (schema dibaca dari seluruh `migrations/`), jadi misalnya `authdb.Wedding` ikut ter-generate. Abaikan struct tabel milik modul lain — query di `queries/*.sql` hanya boleh menyentuh tabel modul sendiri.
 
 ## Transaksi
 

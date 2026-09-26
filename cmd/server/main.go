@@ -28,6 +28,7 @@ import (
 	"github.com/khamdanngazis/lovaria/src/modules/admin"
 	"github.com/khamdanngazis/lovaria/src/modules/auth"
 	"github.com/khamdanngazis/lovaria/src/modules/example"
+	"github.com/khamdanngazis/lovaria/src/modules/wedding"
 	"github.com/khamdanngazis/lovaria/src/platform/config"
 	"github.com/khamdanngazis/lovaria/src/platform/db"
 	"github.com/khamdanngazis/lovaria/src/platform/health"
@@ -58,10 +59,11 @@ func main() {
 
 // app berisi dependency yang dipakai bersama oleh semua subcommand.
 type app struct {
-	cfg  config.Config
-	log  *slog.Logger
-	pool *pgxpool.Pool
-	auth *auth.Service
+	cfg      config.Config
+	log      *slog.Logger
+	pool     *pgxpool.Pool
+	auth     *auth.Service
+	weddings *wedding.Service
 }
 
 func run(args []string) error {
@@ -94,10 +96,11 @@ func run(args []string) error {
 		return err
 	}
 	a := &app{
-		cfg:  cfg,
-		log:  log,
-		pool: pool,
-		auth: auth.NewService(auth.NewRepository(pool), mailer, cfg.BaseURL, log),
+		cfg:      cfg,
+		log:      log,
+		pool:     pool,
+		auth:     auth.NewService(auth.NewRepository(pool), mailer, cfg.BaseURL, log),
+		weddings: wedding.NewService(wedding.NewRepository(pool)),
 	}
 
 	switch cmd {
@@ -212,7 +215,9 @@ func (a *app) serve(ctx context.Context) error {
 			Service: example.NewService(example.NewMemoryRepository()),
 		})
 	}
-	dashboard.Register(e.Group("/dashboard", authMW.RequireAuth), dashboard.Deps{})
+	dash := e.Group("/dashboard", authMW.RequireAuth)
+	dashboard.Register(dash, dashboard.Deps{Weddings: a.weddings})
+	wedding.Register(dash.Group("/weddings"), wedding.Deps{Service: a.weddings})
 	admin.Register(e.Group("/admin", authMW.RequireAuth, authMW.RequireRole(auth.RoleAdmin)), admin.Deps{})
 	publicsite.Register(e, publicsite.Deps{})
 

@@ -29,6 +29,15 @@ overrides:
         go_type:
           type: time.Time
           pointer: true
+      - db_type: date
+        go_type: time.Time
+      - db_type: date
+        nullable: true
+        go_type:
+          type: time.Time
+          pointer: true
+      - db_type: pg_catalog.date
+        go_type: time.Time
       - db_type: citext
         go_type: string
       - db_type: citext
@@ -45,6 +54,16 @@ sql:
       go:
         package: authdb
         out: src/modules/auth/db
+        sql_package: pgx/v5
+        emit_empty_slices: true
+        emit_pointers_for_null_types: true
+  - engine: postgresql
+    schema: migrations
+    queries: src/modules/wedding/db/queries
+    gen:
+      go:
+        package: weddingdb
+        out: src/modules/wedding/db
         sql_package: pgx/v5
         emit_empty_slices: true
         emit_pointers_for_null_types: true

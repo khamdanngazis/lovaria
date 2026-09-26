@@ -27,11 +27,12 @@ src/platform/          infrastruktur lintas modul (bukan fitur)
   logger/              slog JSON
   server/              Echo + middleware global + graceful shutdown
   health/              /healthz (proses hidup) & /readyz (dependency, mis. DB)
-  web/                 helper HTTP (Render, Redirect, IsHTMX) + user & token CSRF di context
+  web/                 helper HTTP (Render, Redirect, IsHTMX, FormatDateID) + user, wedding_id & token CSRF di context
   mail/                interface Mailer (log | smtp | resend)
 src/modules/<nama>/    modul bisnis: auth, wedding, guest, gallery, guestbook, gift, theme, domain, admin
 src/templates/
   layouts/             layout dasar Public & Dashboard (<html data-theme="...">)
+  ui/                  komponen form dashboard (Input, TextArea, Card, Alert, tombol)
   themes/<tema>/       layout .templ per tema (T08)
   shared/              komponen lintas tema: RSVP form, guestbook, gift
 src/public-site/       routing & rendering website wedding (package publicsite)
@@ -74,6 +75,25 @@ Bila modul butuh modul lain, suntikkan **service**-nya lewat `Deps` (bukan repos
 - User yang login: `auth.CurrentUser(ctx)` / `web.CurrentUser(ctx)` (di template: `web.CurrentUser(ctx)`). Modul lain cukup mengimpor `platform/web`, bukan modul `auth`.
 - Semua request non-GET dilindungi CSRF secara global. Form htmx otomatis mengirim header `X-CSRF-Token` (dari `hx-headers` di `<body>`); form biasa wajib menyertakan `@layouts.CSRFField()`.
 - Validasi gagal → status **422** + fragment form berisi pesan (htmx dikonfigurasi men-swap 422). Sukses → `web.Redirect(c, url)` (otomatis `HX-Redirect` untuk htmx, 303 untuk form biasa).
+
+### Route dashboard per wedding
+
+Semua halaman dashboard milik satu wedding berada di `/dashboard/weddings/:weddingID/...` dan **wajib** dipasang lewat `wedding.OwnerGroup(...)`, yang menjalankan `RequireWeddingOwner`:
+
+```go
+w := wedding.OwnerGroup(dash.Group("/weddings"), weddingSvc)
+events.Register(w.Group("/events"), events.Deps{...})
+```
+
+- Wedding milik user lain, ID tidak valid, atau tidak ada → **404** (bukan 403), supaya keberadaan ID tidak bocor.
+- Handler membaca `wedding_id` dari `web.WeddingID(ctx)` — **jangan** dari `c.Param("weddingID")`.
+- Test wajib mencakup kasus "user A mengakses wedding user B → 404" untuk route baru.
+
+### Komponen form & method
+
+- Komponen form dashboard: `src/templates/ui` (`ui.Input`, `ui.TextArea`, `ui.Card`, `ui.Alert`, `ui.Notice`, tombol).
+- Update memakai `PATCH`/`DELETE`: htmx langsung `hx-patch`; form tanpa JS memakai `method="post"` + `<input type="hidden" name="_method" value="PATCH">` (method override global).
+- Tanggal untuk tampilan: `web.FormatDateID(t)` → "Sabtu, 12 Desember 2026".
 
 ### Route "API-shaped"
 

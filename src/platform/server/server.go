@@ -37,6 +37,11 @@ func New(cfg config.Config, log *slog.Logger) *echo.Echo {
 	e.Pre(middleware.RemoveTrailingSlashWithConfig(middleware.TrailingSlashConfig{
 		RedirectCode: http.StatusMovedPermanently,
 	}))
+	// Form HTML hanya bisa GET/POST: field _method=PATCH|PUT|DELETE pada POST
+	// menjadikannya method tersebut (htmx memakai hx-patch langsung).
+	e.Pre(middleware.MethodOverrideWithConfig(middleware.MethodOverrideConfig{
+		Getter: middleware.MethodFromForm("_method"),
+	}))
 	e.Use(middleware.RequestID())
 	e.Use(requestLogger(log))
 	e.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{
