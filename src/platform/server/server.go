@@ -14,6 +14,13 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 
 	"github.com/khamdanngazis/lovaria/src/platform/config"
+	"github.com/khamdanngazis/lovaria/src/platform/web"
+)
+
+const (
+	// CSRFHeader dan CSRFField adalah tempat token CSRF dikirim (htmx: header, form biasa: field).
+	CSRFHeader = "X-CSRF-Token"
+	CSRFField  = "_csrf"
 )
 
 // New membuat Echo dengan middleware standar: request ID, recover, request log (slog JSON).
@@ -48,8 +55,41 @@ func New(cfg config.Config, log *slog.Logger) *echo.Echo {
 		XFrameOptions:      "SAMEORIGIN",
 		ReferrerPolicy:     "strict-origin-when-cross-origin",
 	}))
+	e.Use(csrf(cfg))
 
 	return e
+}
+
+// csrf melindungi semua request non-GET. Browser modern lolos lewat header
+// Sec-Fetch-Site (same-origin); selain itu wajib token (double-submit cookie)
+// di header X-CSRF-Token atau field form _csrf. Gagal → 403.
+func csrf(cfg config.Config) echo.MiddlewareFunc {
+	protect := middleware.CSRFWithConfig(middleware.CSRFConfig{
+		Skipper:        skipInfra,
+		TokenLookup:    "header:" + CSRFHeader + ",form:" + CSRFField,
+		CookieName:     "lovoria_csrf",
+		CookiePath:     "/",
+		CookieHTTPOnly: true,
+		CookieSecure:   cfg.CookieSecure(),
+		CookieSameSite: http.SameSiteLaxMode,
+		ErrorHandler: func(_ error, _ echo.Context) error {
+			return echo.NewHTTPError(http.StatusForbidden, "CSRF token tidak valid")
+		},
+	})
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return protect(func(c echo.Context) error {
+			if tok, ok := c.Get("csrf").(string); ok {
+				r := c.Request()
+				c.SetRequest(r.WithContext(web.WithCSRFToken(r.Context(), tok)))
+			}
+			return next(c)
+		})
+	}
+}
+
+func skipInfra(c echo.Context) bool {
+	p := c.Request().URL.Path
+	return p == "/healthz" || p == "/readyz" || strings.HasPrefix(p, "/static/")
 }
 
 func requestLogger(log *slog.Logger) echo.MiddlewareFunc {

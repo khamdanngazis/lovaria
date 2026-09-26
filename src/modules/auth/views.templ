@@ -1,0 +1,190 @@
+package auth
+
+import "github.com/khamdanngazis/lovaria/src/templates/layouts"
+
+// form menampung nilai input & pesan error untuk dirender ulang.
+type form struct {
+	Values  map[string]string
+	Errors  map[string]string
+	Message string // error umum (mis. kredensial salah)
+	Next    string
+}
+
+func (f form) v(name string) string { return f.Values[name] }
+func (f form) e(name string) string { return f.Errors[name] }
+
+type fieldSpec struct {
+	Form         string // prefix id, mis. "register"
+	Name         string
+	Label        string
+	Type         string
+	Autocomplete string
+	Validate     bool // validasi inline saat blur
+}
+
+templ authShell(title string) {
+	@layouts.Public(layouts.Meta{Title: title}) {
+		<div class="mx-auto w-full max-w-sm py-6">
+			<a href="/" class="block text-center font-heading text-3xl text-primary">Lovoria</a>
+			<div class="mt-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5">
+				<h1 class="text-xl font-semibold">{ title }</h1>
+				{ children... }
+			</div>
+		</div>
+	}
+}
+
+templ field(f form, s fieldSpec) {
+	<div>
+		<label for={ s.Form + "-" + s.Name } class="block text-sm font-medium">{ s.Label }</label>
+		<input
+			id={ s.Form + "-" + s.Name }
+			name={ s.Name }
+			type={ s.Type }
+			autocomplete={ s.Autocomplete }
+			if s.Type != "password" {
+				value={ f.v(s.Name) }
+			}
+			required
+			class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-base focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+			if f.e(s.Name) != "" {
+				aria-invalid="true"
+			}
+			aria-describedby={ s.Form + "-" + s.Name + "-error" }
+			if s.Validate {
+				hx-post={ "/" + s.Form + "/validate" }
+				hx-vals={ `{"field":"` + s.Name + `"}` }
+				hx-trigger="blur changed"
+				hx-target={ "#" + s.Form + "-" + s.Name + "-error" }
+				hx-swap="outerHTML"
+				hx-sync="closest form:abort"
+			}
+		/>
+		@fieldError(s.Form, s.Name, f.e(s.Name))
+	</div>
+}
+
+templ fieldError(formID, name, msg string) {
+	<p id={ formID + "-" + name + "-error" } class="mt-1 min-h-5 text-sm text-red-600">{ msg }</p>
+}
+
+templ formMessage(msg string) {
+	if msg != "" {
+		<p class="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{ msg }</p>
+	}
+}
+
+templ submitButton(label string) {
+	<button type="submit" class="w-full rounded-lg bg-primary px-4 py-2.5 font-medium text-white hover:opacity-90 disabled:opacity-60">
+		{ label }
+	</button>
+}
+
+// ---------- Login ----------
+templ loginPage(f form, notice string) {
+	@authShell("Masuk") {
+		if notice != "" {
+			<p class="mt-4 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700" role="status">{ notice }</p>
+		}
+		@loginForm(f)
+		<div class="mt-4 space-y-1 text-center text-sm text-slate-600">
+			<p><a href="/forgot-password" class="text-primary hover:underline">Lupa password?</a></p>
+			<p>Belum punya akun? <a href="/register" class="text-primary hover:underline">Daftar</a></p>
+		</div>
+	}
+}
+
+templ loginForm(f form) {
+	<form method="post" action="/login" hx-post="/login" hx-target="this" hx-swap="outerHTML" hx-disabled-elt="find button" class="mt-4 space-y-3">
+		@layouts.CSRFField()
+		<input type="hidden" name="next" value={ f.Next }/>
+		@formMessage(f.Message)
+		@field(f, fieldSpec{Form: "login", Name: "email", Label: "Email", Type: "email", Autocomplete: "email"})
+		@field(f, fieldSpec{Form: "login", Name: "password", Label: "Password", Type: "password", Autocomplete: "current-password"})
+		@submitButton("Masuk")
+	</form>
+}
+
+// ---------- Register ----------
+templ registerPage(f form) {
+	@authShell("Buat akun") {
+		@registerForm(f)
+		<p class="mt-4 text-center text-sm text-slate-600">
+			Sudah punya akun? <a href="/login" class="text-primary hover:underline">Masuk</a>
+		</p>
+	}
+}
+
+templ registerForm(f form) {
+	<form method="post" action="/register" hx-post="/register" hx-target="this" hx-swap="outerHTML" hx-disabled-elt="find button" class="mt-4 space-y-3">
+		@layouts.CSRFField()
+		@formMessage(f.Message)
+		@field(f, fieldSpec{Form: "register", Name: "name", Label: "Nama", Type: "text", Autocomplete: "name", Validate: true})
+		@field(f, fieldSpec{Form: "register", Name: "email", Label: "Email", Type: "email", Autocomplete: "email", Validate: true})
+		@field(f, fieldSpec{Form: "register", Name: "password", Label: "Password (min. 8 karakter)", Type: "password", Autocomplete: "new-password", Validate: true})
+		@submitButton("Daftar")
+	</form>
+}
+
+// ---------- Lupa password ----------
+templ forgotPage(f form) {
+	@authShell("Lupa password") {
+		@forgotForm(f)
+		<p class="mt-4 text-center text-sm text-slate-600">
+			<a href="/login" class="text-primary hover:underline">Kembali ke halaman masuk</a>
+		</p>
+	}
+}
+
+templ forgotForm(f form) {
+	<form method="post" action="/forgot-password" hx-post="/forgot-password" hx-target="this" hx-swap="outerHTML" hx-disabled-elt="find button" class="mt-4 space-y-3">
+		@layouts.CSRFField()
+		<p class="text-sm text-slate-600">Masukkan email akunmu. Kami kirim link untuk membuat password baru.</p>
+		@formMessage(f.Message)
+		@field(f, fieldSpec{Form: "forgot", Name: "email", Label: "Email", Type: "email", Autocomplete: "email"})
+		@submitButton("Kirim link reset")
+	</form>
+}
+
+templ forgotSent() {
+	<div class="mt-4 rounded-lg bg-green-50 px-3 py-3 text-sm text-green-700" role="status">
+		Jika email tersebut terdaftar, link reset password sudah dikirim. Link berlaku 1 jam.
+	</div>
+}
+
+templ forgotSentPage() {
+	@authShell("Lupa password") {
+		@forgotSent()
+		<p class="mt-4 text-center text-sm"><a href="/login" class="text-primary hover:underline">Kembali ke halaman masuk</a></p>
+	}
+}
+
+// ---------- Reset password ----------
+templ resetPage(f form, token string) {
+	@authShell("Buat password baru") {
+		@resetForm(f, token)
+	}
+}
+
+templ resetForm(f form, token string) {
+	<form method="post" action="/reset-password" hx-post="/reset-password" hx-target="this" hx-swap="outerHTML" hx-disabled-elt="find button" class="mt-4 space-y-3">
+		@layouts.CSRFField()
+		<input type="hidden" name="token" value={ token }/>
+		@formMessage(f.Message)
+		@field(f, fieldSpec{Form: "reset", Name: "password", Label: "Password baru (min. 8 karakter)", Type: "password", Autocomplete: "new-password"})
+		@submitButton("Simpan password")
+	</form>
+}
+
+templ resetInvalidPage() {
+	@authShell("Link tidak valid") {
+		<p class="mt-4 text-sm text-slate-600">Link reset password tidak valid atau sudah kedaluwarsa.</p>
+		<p class="mt-4 text-sm"><a href="/forgot-password" class="text-primary hover:underline">Minta link baru</a></p>
+	}
+}
+
+templ tooManyRequests() {
+	<p class="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800" role="alert">
+		Terlalu banyak percobaan. Coba lagi dalam beberapa menit.
+	</p>
+}

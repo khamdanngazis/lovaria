@@ -1,0 +1,51 @@
+package web
+
+import (
+	"context"
+	"encoding/json"
+
+	"github.com/google/uuid"
+)
+
+type ctxKey int
+
+const (
+	userKey ctxKey = iota
+	csrfKey
+)
+
+// User adalah identitas user yang sedang login, disimpan di context request oleh
+// middleware auth. Dipakai template & modul lain tanpa mengimpor modul auth.
+type User struct {
+	ID    uuid.UUID
+	Email string
+	Name  string
+	Role  string
+}
+
+func WithUser(ctx context.Context, u User) context.Context {
+	return context.WithValue(ctx, userKey, u)
+}
+
+// CurrentUser mengembalikan user yang login, bila ada.
+func CurrentUser(ctx context.Context) (User, bool) {
+	u, ok := ctx.Value(userKey).(User)
+	return u, ok
+}
+
+func WithCSRFToken(ctx context.Context, token string) context.Context {
+	return context.WithValue(ctx, csrfKey, token)
+}
+
+// CSRFToken mengembalikan token CSRF untuk dirender di form (field _csrf).
+func CSRFToken(ctx context.Context) string {
+	t, _ := ctx.Value(csrfKey).(string)
+	return t
+}
+
+// HXHeaders mengembalikan nilai atribut hx-headers yang menyertakan token CSRF
+// di setiap request htmx.
+func HXHeaders(ctx context.Context) string {
+	b, _ := json.Marshal(map[string]string{"X-CSRF-Token": CSRFToken(ctx)})
+	return string(b)
+}

@@ -1,10 +1,19 @@
 package dashboard
 
-import "github.com/khamdanngazis/lovaria/src/templates/layouts"
+import (
+	"github.com/khamdanngazis/lovaria/src/platform/web"
+	"github.com/khamdanngazis/lovaria/src/templates/layouts"
+)
 
 templ homePage() {
 	@layouts.Dashboard(layouts.Meta{Title: "Dashboard"}) {
-		<h1 class="text-2xl font-semibold">Dashboard</h1>
-		<p class="mt-2 text-slate-600">Segera hadir.</p>
+		<h1 class="text-2xl font-semibold">
+			if u, ok := web.CurrentUser(ctx); ok {
+				Halo, { u.Name }
+			} else {
+				Dashboard
+			}
+		</h1>
+		<p class="mt-2 text-slate-600">Segera hadir: buat website pernikahanmu di sini.</p>
 	}
 }

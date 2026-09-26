@@ -61,6 +61,30 @@ func TestLoadProduction(t *testing.T) {
 	}
 }
 
+func TestBaseURLFromRailway(t *testing.T) {
+	cfg, err := LoadFrom(envFrom(map[string]string{"DATABASE_URL": "x", "RAILWAY_PUBLIC_DOMAIN": "app.up.railway.app"}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.BaseURL != "https://app.up.railway.app" || !cfg.CookieSecure() {
+		t.Errorf("BaseURL = %q, CookieSecure = %v", cfg.BaseURL, cfg.CookieSecure())
+	}
+	cfg, _ = LoadFrom(envFrom(map[string]string{"DATABASE_URL": "x", "RAILWAY_PUBLIC_DOMAIN": "a", "BASE_URL": "https://lovoria.com"}))
+	if cfg.BaseURL != "https://lovoria.com" {
+		t.Errorf("BASE_URL harus menang, dapat %q", cfg.BaseURL)
+	}
+}
+
+func TestMailDefaultsToLog(t *testing.T) {
+	cfg, err := LoadFrom(envFrom(map[string]string{"DATABASE_URL": "x"}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Mail.Driver != "log" || cfg.Mail.SMTPPort != 587 || cfg.CookieSecure() {
+		t.Errorf("unexpected: %+v secure=%v", cfg.Mail, cfg.CookieSecure())
+	}
+}
+
 func TestDatabaseURLOptionalInTest(t *testing.T) {
 	if _, err := LoadFrom(envFrom(map[string]string{"APP_ENV": "test"})); err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -79,6 +103,10 @@ func TestLoadInvalid(t *testing.T) {
 		"level":    {"LOG_LEVEL": "loud"},
 		"timeout":  {"SHUTDOWN_TIMEOUT": "-1s"},
 		"static":   {"STATIC_FROM_DISK": "maybe"},
+		"mail":     {"MAIL_DRIVER": "pigeon"},
+		"smtp":     {"MAIL_DRIVER": "smtp"},
+		"resend":   {"MAIL_DRIVER": "resend"},
+		"smtpPort": {"SMTP_PORT": "x"},
 	}
 	for name, env := range cases {
 		t.Run(name, func(t *testing.T) {

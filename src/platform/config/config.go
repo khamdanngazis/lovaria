@@ -24,11 +24,14 @@ type Config struct {
 	// Port tempat HTTP server listen (PORT; Railway mengisi ini otomatis).
 	Port int
 	// BaseURL adalah URL publik utama aplikasi, mis. https://lovoria.com (BASE_URL).
+	// Bila kosong dan berjalan di Railway, diambil dari RAILWAY_PUBLIC_DOMAIN.
 	BaseURL string
 	// LogLevel: debug | info | warn | error (LOG_LEVEL).
 	LogLevel slog.Level
 	// DB berisi koneksi & setelan pool Postgres.
 	DB DB
+	// Mail berisi setelan pengiriman email.
+	Mail Mail
 	// ShutdownTimeout batas waktu graceful shutdown (SHUTDOWN_TIMEOUT, format Go duration).
 	ShutdownTimeout time.Duration
 	// StaticFromDisk: true → /static dibaca dari folder ./static (hot reload saat dev);
@@ -52,8 +55,28 @@ type DB struct {
 	ConnectTimeout time.Duration
 }
 
+// Mail adalah setelan pengirim email (lihat src/platform/mail).
+type Mail struct {
+	// Driver: log | smtp | resend (MAIL_DRIVER). "log" hanya menulis email ke log.
+	Driver string
+	// From alamat pengirim, mis. "Lovoria <no-reply@lovoria.com>" (MAIL_FROM).
+	From string
+	// SMTP (SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD). Port 587 + STARTTLS.
+	SMTPHost     string
+	SMTPPort     int
+	SMTPUsername string
+	SMTPPassword string
+	// ResendAPIKey untuk driver resend (RESEND_API_KEY).
+	ResendAPIKey string
+}
+
 func (c Config) IsDevelopment() bool { return c.Env == EnvDevelopment }
 func (c Config) IsProduction() bool  { return c.Env == EnvProduction }
+
+// CookieSecure true bila cookie harus diberi atribut Secure (HTTPS).
+func (c Config) CookieSecure() bool {
+	return c.IsProduction() || strings.HasPrefix(c.BaseURL, "https://")
+}
 
 // Addr mengembalikan alamat listen HTTP server.
 func (c Config) Addr() string { return fmt.Sprintf(":%d", c.Port) }
@@ -72,11 +95,24 @@ func LoadFrom(getenv func(string) string) (Config, error) {
 		return def
 	}
 
+	defaultBaseURL := "http://localhost:8080"
+	if d := strings.TrimSpace(getenv("RAILWAY_PUBLIC_DOMAIN")); d != "" {
+		defaultBaseURL = "https://" + d
+	}
+
 	var errs []error
 	cfg := Config{
 		Env:     get("APP_ENV", EnvDevelopment),
-		BaseURL: strings.TrimRight(get("BASE_URL", "http://localhost:8080"), "/"),
+		BaseURL: strings.TrimRight(get("BASE_URL", defaultBaseURL), "/"),
 		DB:      DB{URL: get("DATABASE_URL", "")},
+		Mail: Mail{
+			Driver:       get("MAIL_DRIVER", "log"),
+			From:         get("MAIL_FROM", "Lovoria <no-reply@lovoria.local>"),
+			SMTPHost:     get("SMTP_HOST", ""),
+			SMTPUsername: get("SMTP_USERNAME", ""),
+			SMTPPassword: getenv("SMTP_PASSWORD"),
+			ResendAPIKey: get("RESEND_API_KEY", ""),
+		},
 	}
 
 	switch cfg.Env {
@@ -103,6 +139,24 @@ func LoadFrom(getenv func(string) string) (Config, error) {
 	cfg.StaticFromDisk, err = strconv.ParseBool(get("STATIC_FROM_DISK", strconv.FormatBool(cfg.IsDevelopment())))
 	if err != nil {
 		errs = append(errs, fmt.Errorf("STATIC_FROM_DISK: %w", err))
+	}
+
+	cfg.Mail.SMTPPort, err = strconv.Atoi(get("SMTP_PORT", "587"))
+	if err != nil {
+		errs = append(errs, fmt.Errorf("SMTP_PORT: nilai tidak valid %q", getenv("SMTP_PORT")))
+	}
+	switch cfg.Mail.Driver {
+	case "log":
+	case "smtp":
+		if cfg.Mail.SMTPHost == "" {
+			errs = append(errs, errors.New("SMTP_HOST: wajib diisi untuk MAIL_DRIVER=smtp"))
+		}
+	case "resend":
+		if cfg.Mail.ResendAPIKey == "" {
+			errs = append(errs, errors.New("RESEND_API_KEY: wajib diisi untuk MAIL_DRIVER=resend"))
+		}
+	default:
+		errs = append(errs, fmt.Errorf("MAIL_DRIVER: nilai tidak valid %q (log | smtp | resend)", cfg.Mail.Driver))
 	}
 
 	if cfg.DB.URL == "" && cfg.Env != EnvTest {
