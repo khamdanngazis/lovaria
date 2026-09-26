@@ -23,8 +23,10 @@ Satu binary untuk semua perintah:
 lovoria [serve]              # HTTP server
 lovoria migrate up|down|status|version|redo
 lovoria seed                 # data contoh (ditolak di production)
-lovoria create-admin --email ops@lovoria.com [--name Ops]   # password dibaca dari stdin
+lovoria create-admin --email ops@lovoria.com [--name Ops]   # password: prompt tersembunyi / env LOVORIA_ADMIN_PASSWORD
 ```
+
+Admin production: `railway ssh --service lovaria -- lovoria create-admin --email <email>` lalu ketik password + Enter.
 
 Akun dev dari `make seed`: `couple@lovoria.test` dan `admin@lovoria.test`, password `password123`.
 
