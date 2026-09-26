@@ -30,6 +30,7 @@ import (
 	"github.com/khamdanngazis/lovaria/src/modules/auth"
 	"github.com/khamdanngazis/lovaria/src/modules/example"
 	"github.com/khamdanngazis/lovaria/src/modules/gallery"
+	"github.com/khamdanngazis/lovaria/src/modules/guest"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding/event"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding/story"
@@ -251,6 +252,7 @@ func (a *app) routes() *echo.Echo {
 		Service:  gallery.NewService(gallery.NewRepository(a.pool), a.store, a.weddings, cfg.Storage.QuotaBytes, log),
 		Weddings: a.weddings,
 	})
+	guest.Register(owned, guest.Deps{Service: guest.NewService(guest.NewRepository(a.pool), cfg.BaseURL)})
 	admin.Register(e.Group("/admin", authMW.RequireAuth, authMW.RequireRole(auth.RoleAdmin)), admin.Deps{})
 	publicsite.Register(e, publicsite.Deps{})
 	return e

@@ -1,0 +1,434 @@
+package guest
+
+import (
+	"fmt"
+	"net/url"
+	"strconv"
+
+	"github.com/google/uuid"
+
+	"github.com/khamdanngazis/lovaria/src/modules/wedding"
+	"github.com/khamdanngazis/lovaria/src/templates/layouts"
+	"github.com/khamdanngazis/lovaria/src/templates/ui"
+)
+
+type form struct {
+	Values map[string]string
+	Errors map[string]string
+}
+
+func (f form) v(k string) string { return f.Values[k] }
+func (f form) e(k string) string { return f.Errors[k] }
+
+type listState struct {
+	W        wedding.Wedding
+	Filter   Filter
+	Page     Page
+	Stats    Stats
+	Groups   []string
+	Notice   string
+	LinkBase string // basis link undangan, mis. https://lovoria.com/i/
+}
+
+func base(w wedding.Wedding) string { return w.DashboardURL("/guests") }
+
+func guestURL(w wedding.Wedding, id uuid.UUID, suffix string) string {
+	return base(w) + "/" + id.String() + suffix
+}
+
+func formID(id uuid.UUID) string {
+	if id == uuid.Nil {
+		return "guest-form-new"
+	}
+	return "guest-form-" + id.String()
+}
+
+// query membentuk URL daftar dengan filter (dan halaman) tertentu.
+func (s listState) query(page int) string {
+	v := url.Values{}
+	if s.Filter.Q != "" {
+		v.Set("q", s.Filter.Q)
+	}
+	if s.Filter.Status != "" {
+		v.Set("status", s.Filter.Status)
+	}
+	if s.Filter.Group != "" {
+		v.Set("group", s.Filter.Group)
+	}
+	if page > 1 {
+		v.Set("page", strconv.Itoa(page))
+	}
+	if len(v) == 0 {
+		return base(s.W)
+	}
+	return base(s.W) + "?" + v.Encode()
+}
+
+func displayPhone(p string) string {
+	if p == "" {
+		return ""
+	}
+	return "+" + p
+}
+
+func statusClass(s string) string {
+	switch s {
+	case StatusAttending:
+		return "bg-green-100 text-green-800"
+	case StatusDeclined:
+		return "bg-red-100 text-red-700"
+	default:
+		return "bg-slate-100 text-slate-600"
+	}
+}
+
+templ page(s listState, editor templ.Component) {
+	@wedding.Shell(s.W, "/guests") {
+		<div class="space-y-4">
+			@stats(s, false)
+			<div class="flex gap-2 overflow-x-auto whitespace-nowrap scrollbar-none">
+				<a href={ templ.SafeURL(base(s.W) + "/new") } hx-get={ base(s.W) + "/new" } hx-target="#guest-editor" hx-swap="innerHTML" class="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white">+ Tambah tamu</a>
+				<a href={ templ.SafeURL(base(s.W) + "/import") } class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-50">Import CSV</a>
+				<a href={ templ.SafeURL(base(s.W) + "/export") } class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-50" download>Export CSV</a>
+			</div>
+			<div id="guest-editor">
+				if editor != nil {
+					@editor
+				}
+			</div>
+			@filters(s)
+			@list(s)
+		</div>
+	}
+}
+
+templ stats(s listState, oob bool) {
+	<div
+		id="guest-stats"
+		if oob {
+			hx-swap-oob="true"
+		}
+		class="grid grid-cols-2 gap-3 sm:grid-cols-4"
+	>
+		@statCard("Total tamu", s.Stats.Total, fmt.Sprintf("%d orang diundang", s.Stats.PaxInvited))
+		@statCard("Hadir", s.Stats.Attending, fmt.Sprintf("%d orang", s.Stats.PaxAttending))
+		@statCard("Tidak hadir", s.Stats.Declined, "")
+		@statCard("Belum konfirmasi", s.Stats.Pending, fmt.Sprintf("%d sudah buka undangan", s.Stats.Opened))
+	</div>
+}
+
+templ statCard(label string, n int, sub string) {
+	<div class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
+		<p class="text-xs text-slate-500">{ label }</p>
+		<p class="mt-1 text-2xl font-semibold">{ strconv.Itoa(n) }</p>
+		if sub != "" {
+			<p class="text-xs text-slate-500">{ sub }</p>
+		}
+	</div>
+}
+
+// filters berada di luar #guests supaya input pencarian tidak kehilangan fokus.
+templ filters(s listState) {
+	<form id="guest-filters" method="get" action={ templ.SafeURL(base(s.W)) } hx-get={ base(s.W) } hx-target="#guests" hx-swap="outerHTML" hx-push-url="true" hx-trigger="input changed delay:300ms from:input[name=q], change from:select, submit" class="grid gap-2 sm:grid-cols-[1fr_auto_auto]">
+		<input type="search" name="q" value={ s.Filter.Q } placeholder="Cari nama, HP, email, atau kode…" aria-label="Cari tamu" class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-base"/>
+		<select name="status" aria-label="Filter status" class="rounded-lg border border-slate-300 bg-white px-3 py-2">
+			<option value="">Semua status</option>
+			for _, st := range Statuses {
+				<option value={ st.ID } selected?={ st.ID == s.Filter.Status }>{ st.Label }</option>
+			}
+		</select>
+		@groupSelect(s, false)
+		<noscript><button type="submit" class="rounded-lg border px-3 py-2">Terapkan</button></noscript>
+	</form>
+}
+
+templ groupSelect(s listState, oob bool) {
+	<select
+		id="guest-group-filter"
+		name="group"
+		aria-label="Filter grup"
+		if oob {
+			hx-swap-oob="true"
+		}
+		class="rounded-lg border border-slate-300 bg-white px-3 py-2"
+	>
+		<option value="">Semua grup</option>
+		for _, g := range s.Groups {
+			<option value={ g } selected?={ g == s.Filter.Group }>{ g }</option>
+		}
+	</select>
+}
+
+// list adalah fragment yang di-swap (plus statistik & grup lewat out-of-band).
+templ list(s listState) {
+	<section id="guests" class="space-y-3" x-data="{ selected: [] }">
+		if s.Notice != "" {
+			@ui.Notice(s.Notice)
+		}
+		if len(s.Page.Guests) == 0 {
+			<div class="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-slate-500">
+				if s.Stats.Total == 0 {
+					Belum ada tamu. Tambahkan satu per satu atau import dari CSV.
+				} else {
+					Tidak ada tamu yang cocok dengan pencarian.
+				}
+			</div>
+		} else {
+			<form method="post" action={ templ.SafeURL(base(s.W)) } hx-delete={ base(s.W) } hx-target="#guests" hx-swap="outerHTML" hx-confirm="Hapus tamu yang dipilih?" hx-include="#guest-filters">
+				@layouts.CSRFField()
+				<input type="hidden" name="_method" value="DELETE"/>
+				<div class="flex items-center justify-between gap-2 text-sm">
+					<label class="flex items-center gap-2 text-slate-600">
+						<input type="checkbox" class="h-4 w-4" @change={ fmt.Sprintf("selected = $event.target.checked ? %s : []", idsJSON(s.Page.Guests)) } :checked={ fmt.Sprintf("selected.length === %d", len(s.Page.Guests)) }/>
+						Pilih semua
+					</label>
+					<button type="submit" x-show="selected.length" x-cloak class="rounded-lg bg-red-600 px-3 py-1.5 text-white" x-text="'Hapus ' + selected.length + ' tamu'">Hapus terpilih</button>
+				</div>
+				<ul class="mt-2 space-y-2">
+					for _, g := range s.Page.Guests {
+						@row(s, g)
+					}
+				</ul>
+			</form>
+			@pagination(s)
+		}
+		@stats(s, true)
+		@groupSelect(s, true)
+		<datalist id="guest-groups" hx-swap-oob="true">
+			for _, g := range s.Groups {
+				<option value={ g }></option>
+			}
+		</datalist>
+	</section>
+}
+
+func idsJSON(gs []Guest) string {
+	out := "["
+	for i, g := range gs {
+		if i > 0 {
+			out += ","
+		}
+		out += `'` + g.ID.String() + `'`
+	}
+	return out + "]"
+}
+
+templ row(s listState, g Guest) {
+	<li id={ "guest-" + g.ID.String() } class="flex gap-3 rounded-xl bg-white p-3 shadow-sm ring-1 ring-black/5">
+		<input type="checkbox" name="ids" value={ g.ID.String() } x-model="selected" aria-label={ "Pilih " + g.Name } class="mt-1 h-4 w-4 flex-none"/>
+		<div class="min-w-0 flex-1">
+			<div class="flex flex-wrap items-center gap-2">
+				<span class="break-words font-medium">{ g.Name }</span>
+				<span class={ "rounded-full px-2 py-0.5 text-xs", statusClass(g.RSVPStatus) }>
+					{ StatusLabel(g.RSVPStatus) }
+					if g.RSVPStatus == StatusAttending {
+						· { strconv.Itoa(g.RSVPPax) } org
+					}
+				</span>
+			</div>
+			<p class="mt-0.5 text-sm text-slate-600">
+				if g.GroupName != "" {
+					{ g.GroupName } ·
+				}
+				maks. { strconv.Itoa(g.MaxPax) } org
+				if g.Phone != "" {
+					· { displayPhone(g.Phone) }
+				}
+			</p>
+			<p class="mt-0.5 font-mono text-xs text-slate-500">{ g.InvitationCode }</p>
+			if g.RSVPMessage != "" {
+				<p class="mt-1 break-words text-sm italic text-slate-600">“{ g.RSVPMessage }”</p>
+			}
+		</div>
+		<div class="flex flex-none flex-col items-end gap-1 text-sm">
+			<a href={ templ.SafeURL(guestURL(s.W, g.ID, "/edit")) } hx-get={ guestURL(s.W, g.ID, "/edit") } hx-target="#guest-editor" hx-swap="innerHTML" class="text-primary hover:underline">Ubah</a>
+			<button type="button" hx-delete={ guestURL(s.W, g.ID, "") } hx-include="#guest-filters" hx-target="#guests" hx-swap="outerHTML" hx-confirm={ "Hapus " + g.Name + "?" } class="text-red-600 hover:underline">Hapus</button>
+		</div>
+	</li>
+}
+
+templ pagination(s listState) {
+	if s.Page.Pages() > 1 {
+		<nav class="flex items-center justify-between text-sm" aria-label="Halaman">
+			if s.Page.Page > 1 {
+				<a href={ templ.SafeURL(s.query(s.Page.Page - 1)) } hx-get={ s.query(s.Page.Page - 1) } hx-target="#guests" hx-swap="outerHTML" hx-push-url="true" class="rounded-lg border border-slate-300 bg-white px-3 py-1.5">‹ Sebelumnya</a>
+			} else {
+				<span></span>
+			}
+			<span class="text-slate-500">Halaman { strconv.Itoa(s.Page.Page) } dari { strconv.Itoa(s.Page.Pages()) } · { strconv.Itoa(s.Page.Total) } tamu</span>
+			if s.Page.Page < s.Page.Pages() {
+				<a href={ templ.SafeURL(s.query(s.Page.Page + 1)) } hx-get={ s.query(s.Page.Page + 1) } hx-target="#guests" hx-swap="outerHTML" hx-push-url="true" class="rounded-lg border border-slate-300 bg-white px-3 py-1.5">Berikutnya ›</a>
+			} else {
+				<span></span>
+			}
+		</nav>
+	}
+}
+
+// editor adalah form tambah (id == Nil) atau ubah tamu.
+templ editor(w wedding.Wedding, id uuid.UUID, g Guest, f form, link string) {
+	<form
+		id={ formID(id) }
+		method="post"
+		if id == uuid.Nil {
+			action={ templ.SafeURL(base(w)) }
+			hx-post={ base(w) }
+		} else {
+			action={ templ.SafeURL(guestURL(w, id, "")) }
+			hx-patch={ guestURL(w, id, "") }
+		}
+		hx-target="#guests"
+		hx-swap="outerHTML"
+		hx-include="#guest-filters"
+		hx-disabled-elt="find button"
+		x-data
+		x-init="$el.scrollIntoView({ behavior: 'smooth', block: 'start' })"
+		class="scroll-mt-4 space-y-4 rounded-2xl bg-white p-4 shadow-sm ring-2 ring-primary/40 sm:p-5"
+	>
+		@layouts.CSRFField()
+		if id != uuid.Nil {
+			<input type="hidden" name="_method" value="PATCH"/>
+		}
+		<h3 class="font-semibold">
+			if id == uuid.Nil {
+				Tambah tamu
+			} else {
+				Ubah tamu
+			}
+		</h3>
+		if link != "" {
+			<p class="break-all rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">Link undangan: <span class="font-mono">{ link }</span></p>
+		}
+		@ui.Input(ui.Field{ID: formID(id) + "-name", Name: "name", Label: "Nama", Type: "text", Value: f.v("name"), Error: f.e("name"), Placeholder: "Bapak Budi & Keluarga", Required: true, MaxLength: 100})
+		<div class="grid gap-4 sm:grid-cols-2">
+			@ui.Input(ui.Field{ID: formID(id) + "-phone", Name: "phone", Label: "No. HP / WhatsApp", Type: "tel", Value: f.v("phone"), Error: f.e("phone"), Placeholder: "0812-3456-7890"})
+			@ui.Input(ui.Field{ID: formID(id) + "-email", Name: "email", Label: "Email", Type: "email", Value: f.v("email"), Error: f.e("email")})
+		</div>
+		<div class="grid grid-cols-[1fr_7rem] gap-4">
+			<div>
+				<label for={ formID(id) + "-group" } class="block text-sm font-medium text-slate-800">Grup <span class="font-normal text-slate-400">(opsional)</span></label>
+				<input id={ formID(id) + "-group" } name="group_name" type="text" list="guest-groups" value={ f.v("group_name") } maxlength="50" placeholder="Keluarga, Kantor…" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base"/>
+				<p class="mt-1 text-sm text-red-600">{ f.e("group_name") }</p>
+			</div>
+			@ui.Input(ui.Field{ID: formID(id) + "-pax", Name: "max_pax", Label: "Maks. orang", Type: "number", Value: f.v("max_pax"), Error: f.e("max_pax"), Required: true})
+		</div>
+		@ui.TextArea(ui.Field{ID: formID(id) + "-notes", Name: "notes", Label: "Catatan", Value: f.v("notes"), Error: f.e("notes"), MaxLength: 500}, 2)
+		<div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+			<button type="button" onclick="this.closest('#guest-editor').innerHTML = ''" class="rounded-lg border border-slate-300 px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-50">Batal</button>
+			@ui.PrimaryButton("Simpan")
+		</div>
+	</form>
+}
+
+// ---------- Import ----------
+templ importPage(w wedding.Wedding, errMsg string) {
+	@wedding.Shell(w, "/guests") {
+		<div class="mx-auto max-w-2xl space-y-4">
+			<p><a href={ templ.SafeURL(base(w)) } class="text-sm text-slate-500 hover:underline">‹ Kembali ke daftar tamu</a></p>
+			@ui.Card() {
+				<h2 class="text-lg font-semibold">Import tamu dari CSV</h2>
+				<p class="mt-1 text-sm text-slate-600">
+					Baris pertama berisi judul kolom: <span class="font-mono">name, phone, email, group, max_pax</span>
+					(boleh juga <span class="font-mono">nama, hp, grup, jumlah</span>). Hanya kolom nama yang wajib. Pemisah koma atau titik koma (Excel).
+				</p>
+				<pre class="mt-3 overflow-x-auto rounded-lg bg-slate-50 p-3 text-xs">
+					name,phone,email,group,max_pax
+					Budi Santoso,0812-3456-7890,budi@email.com,Keluarga,2
+					Sari,,,Kantor,1
+				</pre>
+				<form method="post" action={ templ.SafeURL(base(w) + "/import") } enctype="multipart/form-data" class="mt-4 space-y-3">
+					@layouts.CSRFField()
+					@ui.Alert(errMsg)
+					<input type="file" name="file" accept=".csv,text/csv" required class="block w-full text-sm"/>
+					@ui.PrimaryButton("Lihat pratinjau")
+				</form>
+			}
+		</div>
+	}
+}
+
+templ previewPage(w wedding.Wedding, p ImportPreview) {
+	@wedding.Shell(w, "/guests") {
+		<div class="mx-auto max-w-3xl space-y-4">
+			<p><a href={ templ.SafeURL(base(w) + "/import") } class="text-sm text-slate-500 hover:underline">‹ Pilih file lain</a></p>
+			@ui.Card() {
+				<h2 class="text-lg font-semibold">Pratinjau import</h2>
+				<p class="mt-1 text-sm">
+					<span class="font-medium text-green-700">{ strconv.Itoa(len(p.Valid())) } baris siap diimport</span>
+					if len(p.Invalid()) > 0 {
+						· <span class="font-medium text-red-700">{ strconv.Itoa(len(p.Invalid())) } baris bermasalah (akan dilewati)</span>
+					}
+				</p>
+				if len(p.Invalid()) > 0 {
+					<ul class="mt-3 max-h-64 space-y-1 overflow-y-auto rounded-lg bg-red-50 p-3 text-sm text-red-800">
+						for _, r := range p.Invalid() {
+							<li><span class="font-medium">{ rowLabel(r) }:</span> { errorList(r.Errors) }</li>
+						}
+					</ul>
+				}
+				if len(p.Valid()) > 0 {
+					<div class="mt-3 max-h-80 overflow-auto rounded-lg ring-1 ring-slate-200">
+						<table class="w-full text-left text-sm">
+							<thead class="sticky top-0 bg-slate-50 text-xs text-slate-500">
+								<tr><th class="px-3 py-2">Nama</th><th class="px-3 py-2">HP</th><th class="px-3 py-2">Grup</th><th class="px-3 py-2">Maks.</th></tr>
+							</thead>
+							<tbody>
+								for i, r := range p.Valid() {
+									if i < 100 {
+										<tr class="border-t border-slate-100">
+											<td class="px-3 py-1.5">{ r.Input.Name }</td>
+											<td class="px-3 py-1.5">{ r.Input.Phone }</td>
+											<td class="px-3 py-1.5">{ r.Input.GroupName }</td>
+											<td class="px-3 py-1.5">{ orOne(r.Input.MaxPax) }</td>
+										</tr>
+									}
+								}
+							</tbody>
+						</table>
+						if len(p.Valid()) > 100 {
+							<p class="bg-slate-50 px-3 py-2 text-xs text-slate-500">… dan { strconv.Itoa(len(p.Valid()) - 100) } baris lainnya</p>
+						}
+					</div>
+					<form method="post" action={ templ.SafeURL(base(w) + "/import/confirm") } class="mt-4">
+						@layouts.CSRFField()
+						<input type="hidden" name="rows" value={ EncodeRows(p.Valid()) }/>
+						@ui.PrimaryButton(fmt.Sprintf("Import %d tamu", len(p.Valid())))
+					</form>
+				}
+			}
+		</div>
+	}
+}
+
+func rowLabel(r ImportRow) string {
+	if r.Input.Name != "" {
+		return fmt.Sprintf("Baris %d (%s)", r.Line, r.Input.Name)
+	}
+	return fmt.Sprintf("Baris %d", r.Line)
+}
+
+func orOne(s string) string {
+	if s == "" {
+		return "1"
+	}
+	return s
+}
+
+func errorList(v ValidationError) string {
+	order := []string{"name", "phone", "email", "group_name", "max_pax", "notes"}
+	out := ""
+	for _, k := range order {
+		if m, ok := v[k]; ok {
+			if out != "" {
+				out += "; "
+			}
+			out += m
+		}
+	}
+	return out
+}
+
+// clearEditor menutup form tambah/ubah setelah berhasil disimpan (out-of-band).
+templ clearEditor() {
+	<div id="guest-editor" hx-swap-oob="true"></div>
+}

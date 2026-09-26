@@ -25,6 +25,8 @@ linters:
         - G104
   exclusions:
     generated: strict
+    paths:
+      - tmp
     rules:
       - path: _test\.go
         linters: [gosec, bodyclose]

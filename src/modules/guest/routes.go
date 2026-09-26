@@ -1,0 +1,27 @@
+package guest
+
+import (
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+)
+
+type Deps struct {
+	Service *Service
+}
+
+// Register memasang route tamu di group /dashboard/weddings/:weddingID
+// (sudah RequireAuth + RequireWeddingOwner).
+func Register(w *echo.Group, deps Deps) {
+	h := NewHandler(deps.Service)
+	w.GET("/guests", h.List)
+	w.POST("/guests", h.Create)
+	w.DELETE("/guests", h.BulkDelete)
+	w.GET("/guests/new", h.New)
+	w.GET("/guests/export", h.Export)
+	w.GET("/guests/import", h.ImportPage)
+	w.POST("/guests/import", h.ImportPreview, middleware.BodyLimit("3M"))
+	w.POST("/guests/import/confirm", h.ImportConfirm, middleware.BodyLimit("3M"))
+	w.GET("/guests/:guestID/edit", h.Edit)
+	w.PATCH("/guests/:guestID", h.Update)
+	w.DELETE("/guests/:guestID", h.Delete)
+}

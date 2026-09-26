@@ -60,6 +60,26 @@ type GalleryItem struct {
 	UpdatedAt time.Time
 }
 
+type Guest struct {
+	ID               uuid.UUID
+	WeddingID        uuid.UUID
+	Name             string
+	Phone            string
+	Email            *string
+	GroupName        string
+	MaxPax           int16
+	InvitationCode   string
+	RsvpStatus       string
+	RsvpPax          int16
+	RsvpMessage      string
+	RsvpAt           *time.Time
+	AttendanceStatus *string
+	Notes            string
+	LastOpenedAt     *time.Time
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+}
+
 type LoveStory struct {
 	ID          uuid.UUID
 	WeddingID   uuid.UUID

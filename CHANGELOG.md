@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### T07 — Guest management
+- Migration `00006_create_guests.sql`: tabel `guests` (HP ternormalisasi `62…`, grup, `max_pax` 1–20, `invitation_code` unik global + CHECK format, data RSVP, `attendance_status`, `last_opened_at`).
+- Modul `guest` (sqlc `guestdb`): tambah/ubah/hapus, hapus massal, daftar dengan pencarian (nama, HP format lokal/internasional, email, kode; wildcard diperlakukan literal), filter status & grup, pagination 25/halaman; `GetByCode` (lintas wedding, untuk T09), `UpdateRSVP` (T10), `Stats` (T13), `MarkOpened`.
+- Kode undangan 7 karakter tanpa `0 O 1 I L`, crypto-random, retry bila bentrok.
+- Import CSV: pemisah `,` atau `;`, BOM, nama kolom Indonesia (`nama`, `hp`, `grup`, `jumlah`), pratinjau dengan nomor baris error, konfirmasi stateless yang divalidasi ulang di server, insert lewat `COPY` (500 baris ±30 ms). Maks. 2000 baris / 2 MB.
+- Export CSV UTF-8 BOM dengan link undangan lengkap; nilai diawali `= + - @` dinetralkan (formula injection).
+- Dashboard Tamu (htmx): kartu statistik tamu & pax, pencarian tanpa kehilangan fokus (filter di luar area swap, statistik & grup lewat out-of-band swap), tambah/ubah, hapus satu & massal, import/export. Diuji di Chrome 375px.
+
 ### T06 — R2 storage & gallery
 - `platform/storage`: interface `Storage { Put, Delete, PublicURL }`, driver R2 (aws-sdk-go-v2, `Cache-Control: immutable`) dan `local` untuk dev (disajikan di `/media/*`, URL relatif). Config menolak `STORAGE_DRIVER=local` di production.
 - `platform/imageproc`: MIME dari magic bytes (JPEG/PNG/WebP; HEIC ditolak dengan pesan), maks. 10 MB & 40 MP (dicek sebelum decode), orientasi EXIF diterapkan lalu EXIF/GPS dibuang, resize 2048px + thumbnail 480px (JPEG), resize area-averaging hemat memori, maks. 2 proses bersamaan.
