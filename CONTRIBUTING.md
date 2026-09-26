@@ -102,6 +102,10 @@ event.Register(owned, event.Deps{...}) // → /dashboard/weddings/:weddingID/eve
 - Key objek: `weddings/{wedding_id}/{category}/{uuid}.jpg` (+ `_thumb.jpg`).
 - Kolom milik modul lain diubah lewat service-nya (mis. kuota `weddings.storage_used_bytes` via `wedding.Service.ReserveStorage`).
 
+### Data lintas wedding
+
+Hanya ada satu lookup yang sengaja tidak difilter `wedding_id`: `guest.Service.GetByCode` (kode undangan unik global, dipakai resolver public site). Query-nya ditandai `-- tenant:ignore` beserta alasannya. Tambahan pengecualian seperti ini wajib didiskusikan di PR.
+
 ### Komponen form & method
 
 - Komponen form dashboard: `src/templates/ui` (`ui.Input`, `ui.TextArea`, `ui.Card`, `ui.Alert`, `ui.Notice`, tombol).
