@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"golang.org/x/term"
 
 	"github.com/khamdanngazis/lovaria/src/dashboard"
 	"github.com/khamdanngazis/lovaria/src/modules/admin"
@@ -46,7 +47,7 @@ const usage = `Usage:
   lovoria migrate <cmd>      cmd: up | down | status | version | redo
   lovoria seed               isi data contoh (development)
   lovoria create-admin --email <email> [--name <nama>] [--password <pw>]
-                             password dibaca dari stdin bila --password kosong`
+                             tanpa --password: env LOVORIA_ADMIN_PASSWORD, lalu prompt stdin`
 
 func main() {
 	if err := run(os.Args[1:]); err != nil {
@@ -130,7 +131,7 @@ func (a *app) createAdmin(ctx context.Context, args []string, stdin io.Reader) e
 	fs := flag.NewFlagSet("create-admin", flag.ContinueOnError)
 	email := fs.String("email", "", "email admin (wajib)")
 	name := fs.String("name", "Admin", "nama admin")
-	password := fs.String("password", "", "password (kosong → dibaca dari stdin)")
+	password := fs.String("password", "", "password (kosong → env LOVORIA_ADMIN_PASSWORD, lalu stdin)")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
@@ -138,12 +139,14 @@ func (a *app) createAdmin(ctx context.Context, args []string, stdin io.Reader) e
 		return errors.New("create-admin: --email wajib diisi")
 	}
 	if *password == "" {
-		fmt.Fprint(os.Stderr, "Password: ")
-		line, err := bufio.NewReader(stdin).ReadString('\n')
-		if err != nil && !errors.Is(err, io.EOF) {
-			return err
+		*password = os.Getenv("LOVORIA_ADMIN_PASSWORD")
+	}
+	if *password == "" {
+		pw, err := promptPassword(stdin, os.Stderr)
+		if err != nil {
+			return fmt.Errorf("create-admin: baca password: %w", err)
 		}
-		*password = strings.TrimRight(line, "\r\n")
+		*password = pw
 	}
 
 	u, err := a.auth.CreateAdmin(ctx, auth.RegisterInput{Name: *name, Email: *email, Password: *password})
@@ -152,6 +155,38 @@ func (a *app) createAdmin(ctx context.Context, args []string, stdin io.Reader) e
 	}
 	fmt.Printf("admin dibuat: %s (%s)\n", u.Email, u.ID)
 	return nil
+}
+
+// promptPassword membaca password dari stdin. Di terminal sungguhan input tidak
+// ditampilkan (x/term). Selain itu dibaca sampai \r, \n, atau EOF — `railway ssh`
+// dengan perintah langsung mengirim Enter sebagai \r, bukan \n.
+func promptPassword(stdin io.Reader, prompt io.Writer) (string, error) {
+	fmt.Fprint(prompt, "Password: ")
+	if f, ok := stdin.(*os.File); ok && term.IsTerminal(int(f.Fd())) { //nolint:gosec // G115: fd selalu kecil
+		b, err := term.ReadPassword(int(f.Fd())) //nolint:gosec // G115: fd selalu kecil
+		fmt.Fprintln(prompt)
+		return string(b), err
+	}
+	return readLine(stdin)
+}
+
+// readLine membaca satu baris yang diakhiri \r, \n, atau EOF.
+func readLine(r io.Reader) (string, error) {
+	br := bufio.NewReader(r)
+	var sb strings.Builder
+	for {
+		c, err := br.ReadByte()
+		if errors.Is(err, io.EOF) {
+			return sb.String(), nil
+		}
+		if err != nil {
+			return "", err
+		}
+		if c == '\r' || c == '\n' {
+			return sb.String(), nil
+		}
+		sb.WriteByte(c)
+	}
 }
 
 func (a *app) serve(ctx context.Context) error {

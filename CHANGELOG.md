@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Fix
+- `lovoria create-admin`: prompt password tidak lagi macet lewat `railway ssh` (Enter dikirim sebagai `\r`), input disembunyikan di terminal, dan password bisa diberikan lewat env `LOVORIA_ADMIN_PASSWORD`.
+
 ### T03 — Authentication & session
 - Migration `00002_create_auth.sql`: `users` (email citext unique, role `couple|admin`, `email_verified_at`), `sessions`, `password_reset_tokens`. Token disimpan sebagai sha256, nilai mentah hanya di cookie/email.
 - Modul `auth` (sqlc `authdb`): register (auto login), login (pesan error generik + dummy hash anti-timing), logout, lupa & reset password (token sekali pakai, 1 jam, semua session dihapus setelah reset).
