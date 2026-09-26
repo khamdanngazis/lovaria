@@ -16,13 +16,11 @@ RUN case "${TARGETARCH:-amd64}" in \
 
 ENV GOTOOLCHAIN=auto
 COPY go.mod go.sum ./
-RUN --mount=type=cache,target=/go/pkg/mod go mod download
+RUN go mod download
 
 COPY . .
 ARG VERSION=dev
-RUN --mount=type=cache,target=/go/pkg/mod \
-    --mount=type=cache,target=/root/.cache/go-build \
-    go tool templ generate && \
+RUN go tool templ generate && \
     tailwindcss -i src/styles/app.css -o static/css/app.css --minify && \
     CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -X main.version=${VERSION}" -o /out/server ./cmd/server
 
