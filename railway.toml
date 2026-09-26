@@ -4,6 +4,8 @@ builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
 
 [deploy]
+# Migration dijalankan sebelum versi baru menerima trafik; gagal → deploy dibatalkan.
+preDeployCommand = ["lovoria migrate up"]
 healthcheckPath = "/healthz"
 healthcheckTimeout = 30
 restartPolicyType = "ON_FAILURE"

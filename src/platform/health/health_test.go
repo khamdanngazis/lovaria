@@ -41,7 +41,7 @@ func TestReadyzFailing(t *testing.T) {
 	if rec.Code != http.StatusServiceUnavailable {
 		t.Fatalf("status = %d", rec.Code)
 	}
-	if !strings.Contains(rec.Body.String(), `"db":"down"`) {
+	if !strings.Contains(rec.Body.String(), `"db":"unavailable"`) || strings.Contains(rec.Body.String(), "down") {
 		t.Errorf("body = %s", rec.Body)
 	}
 }

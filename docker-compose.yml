@@ -1,0 +1,20 @@
+# Postgres lokal untuk dev & integration test: `make db-up`.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: lovoria
+      POSTGRES_PASSWORD: lovoria
+      POSTGRES_DB: lovoria
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lovoria"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  pgdata:

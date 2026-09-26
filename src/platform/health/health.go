@@ -3,6 +3,7 @@ package health
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -52,8 +53,10 @@ func (h *Handler) Readyz(c echo.Context) error {
 	checks := make(map[string]string, len(h.checkers))
 	for _, ch := range h.checkers {
 		if err := ch.Check(ctx); err != nil {
+			// Detail error hanya ke log; endpoint ini publik.
+			slog.WarnContext(ctx, "readiness check failed", slog.String("check", ch.Name()), slog.String("error", err.Error()))
 			status = http.StatusServiceUnavailable
-			checks[ch.Name()] = err.Error()
+			checks[ch.Name()] = "unavailable"
 			continue
 		}
 		checks[ch.Name()] = "ok"

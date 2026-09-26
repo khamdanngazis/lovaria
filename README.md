@@ -4,15 +4,25 @@ Wedding invitation service — undangan pernikahan digital (modular monolith Go,
 
 **Stack:** Go 1.25 · Echo v4 · templ · htmx 2 + Alpine.js 3 · Tailwind CSS v4 (standalone) · PostgreSQL 16 (pgx/sqlc/goose) · Cloudflare R2 · Railway.
 
-Dokumen: [arsitektur](doc/Lovoria-Architecture-Document.md) · [task breakdown](doc/lovoria-tasks/00-README.md) · [konvensi & aturan wajib](CONTRIBUTING.md).
+Dokumen: [arsitektur](doc/Lovoria-Architecture-Document.md) · [task breakdown](doc/lovoria-tasks/00-README.md) · [konvensi & aturan wajib](CONTRIBUTING.md) · [konvensi database](doc/database.md).
 
 ## Quick Start
 
-Prasyarat: Go ≥ 1.25 (atau Go lebih lama dengan `GOTOOLCHAIN=auto`), `make`, `curl`.
+Prasyarat: Go ≥ 1.25 (atau Go lebih lama dengan `GOTOOLCHAIN=auto`), `make`, `curl`, Docker (untuk Postgres lokal).
 
 ```bash
 cp .env.example .env
+make db-up          # Postgres 16 lokal di port 5433
+make migrate-up
 make dev            # buka http://localhost:8090 (hot reload templ & tailwind)
+```
+
+Satu binary untuk semua perintah:
+
+```bash
+lovoria [serve]              # HTTP server
+lovoria migrate up|down|status|version|redo
+lovoria seed                 # data contoh (ditolak di production)
 ```
 
 Endpoint dasar: `GET /healthz` (proses hidup), `GET /readyz` (dependency siap), `/` (landing), `/dashboard`.
@@ -29,7 +39,11 @@ Semua lewat environment variable (lihat [`.env.example`](.env.example)), dibaca 
 | `PORT` | `8080` | Diisi otomatis oleh Railway |
 | `BASE_URL` | `http://localhost:8080` | URL publik utama |
 | `LOG_LEVEL` | `info` | `debug` \| `info` \| `warn` \| `error` |
-| `DATABASE_URL` | — | Wajib mulai T02 |
+| `DATABASE_URL` | — | Wajib (kecuali `APP_ENV=test`) |
+| `DB_MAX_CONNS` / `DB_MIN_CONNS` | `10` / `0` | Ukuran pool pgx |
+| `DB_MAX_CONN_LIFETIME` / `DB_MAX_CONN_IDLE_TIME` | `30m` / `5m` | Umur koneksi pool |
+| `DB_CONNECT_TIMEOUT` | `5s` | Timeout membuka koneksi |
+| `DATABASE_URL_TEST` | — | Hanya untuk integration test (user harus boleh `CREATE DATABASE`) |
 | `SHUTDOWN_TIMEOUT` | `10s` | Batas graceful shutdown |
 | `STATIC_FROM_DISK` | `true` di dev | `false` → aset dari embed binary |
 
@@ -38,6 +52,7 @@ Semua lewat environment variable (lihat [`.env.example`](.env.example)), dibaca 
 1. Buat project Railway → **Deploy from GitHub repo** (repo ini). Railway membaca [`railway.toml`](railway.toml) dan build pakai [`Dockerfile`](Dockerfile).
 2. Tambahkan service **PostgreSQL**, lalu di service app set `DATABASE_URL=${{Postgres.DATABASE_URL}}`.
 3. Set `APP_ENV=production` dan `BASE_URL` sesuai domain.
-4. Healthcheck deploy memakai `GET /healthz`.
+4. Setiap deploy menjalankan **pre-deploy** `lovoria migrate up`; gagal → deploy dibatalkan.
+5. Healthcheck deploy memakai `GET /healthz`; `GET /readyz` → 503 bila DB tidak bisa dihubungi.
 
-CI GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)): templ generate check, build, vet, test (race), golangci-lint, build image Docker (cek < 50 MB) + smoke test `/healthz`.
+CI GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)): templ/sqlc generate check, build, vet, lint-tenant, test unit + integration (service Postgres), migration up/down/up lewat binary, golangci-lint, build image Docker (cek < 50 MB) + smoke test `/healthz`.

@@ -1,0 +1,51 @@
+# sqlc: satu entry per modul (lihat doc/database.md).
+#   query  → src/modules/<m>/db/queries/*.sql
+#   output → src/modules/<m>/db (package <m>db, mis. authdb)
+# Tambah entry baru dengan menyalin template di bawah. Jalankan: make sqlc
+version: "2"
+
+overrides:
+  go:
+    overrides:
+      - db_type: uuid
+        go_type: github.com/google/uuid.UUID
+      - db_type: uuid
+        nullable: true
+        go_type:
+          import: github.com/google/uuid
+          type: UUID
+          pointer: true
+      - db_type: timestamptz
+        go_type: time.Time
+      - db_type: timestamptz
+        nullable: true
+        go_type:
+          type: time.Time
+          pointer: true
+      - db_type: pg_catalog.timestamptz
+        go_type: time.Time
+      - db_type: pg_catalog.timestamptz
+        nullable: true
+        go_type:
+          type: time.Time
+          pointer: true
+      - db_type: citext
+        go_type: string
+      - db_type: citext
+        nullable: true
+        go_type:
+          type: string
+          pointer: true
+
+sql: []
+# Template entry modul:
+#  - engine: postgresql
+#    schema: migrations
+#    queries: src/modules/<m>/db/queries
+#    gen:
+#      go:
+#        package: <m>db
+#        out: src/modules/<m>/db
+#        sql_package: pgx/v5
+#        emit_empty_slices: true
+#        emit_pointers_for_null_types: true
