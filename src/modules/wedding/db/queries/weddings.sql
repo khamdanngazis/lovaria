@@ -24,3 +24,18 @@ UPDATE weddings
 SET title = $2, wedding_date = $3, description = $4, main_photo_url = $5, timezone = $6
 WHERE id = $1
 RETURNING *;
+
+-- name: ReserveStorage :one
+-- Atomik: tambah pemakaian hanya bila tidak melewati batas.
+UPDATE weddings
+SET storage_used_bytes = storage_used_bytes + sqlc.arg(bytes)::bigint
+WHERE id = sqlc.arg(id) AND storage_used_bytes + sqlc.arg(bytes)::bigint <= sqlc.arg(quota)::bigint
+RETURNING storage_used_bytes;
+
+-- name: ReleaseStorage :exec
+UPDATE weddings
+SET storage_used_bytes = GREATEST(0, storage_used_bytes - sqlc.arg(bytes)::bigint)
+WHERE id = sqlc.arg(id);
+
+-- name: SetMainPhotoURL :exec
+UPDATE weddings SET main_photo_url = $2 WHERE id = $1;

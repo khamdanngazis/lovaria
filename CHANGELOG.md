@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### T06 — R2 storage & gallery
+- `platform/storage`: interface `Storage { Put, Delete, PublicURL }`, driver R2 (aws-sdk-go-v2, `Cache-Control: immutable`) dan `local` untuk dev (disajikan di `/media/*`, URL relatif). Config menolak `STORAGE_DRIVER=local` di production.
+- `platform/imageproc`: MIME dari magic bytes (JPEG/PNG/WebP; HEIC ditolak dengan pesan), maks. 10 MB & 40 MP (dicek sebelum decode), orientasi EXIF diterapkan lalu EXIF/GPS dibuang, resize 2048px + thumbnail 480px (JPEG), resize area-averaging hemat memori, maks. 2 proses bersamaan.
+- Migration `00005_create_gallery.sql`: `weddings.storage_used_bytes`, tabel `gallery_items`.
+- Modul `gallery`: upload (kompensasi: objek dihapus & kuota dikembalikan bila gagal), hapus (objek R2 ikut terhapus, kuota berkurang), ubah keterangan/kategori, geser urutan, jadikan foto utama; `ListGallery`, `StorageUsage`.
+- Kuota per wedding (`STORAGE_QUOTA_MB`, default 500) lewat `wedding.Service.ReserveStorage` (atomik).
+- Dashboard Galeri: multi-upload (maks. 2 bersamaan, progress per file), filter kategori, grid, menu aksi; komponen `ui.ImageUpload` dipakai untuk foto utama, foto pasangan, dan foto cerita.
+- Batas body global 12 MB (sebelum middleware yang membaca form); upload 11 MB per request.
+- `newApp()` + `routes()` dipisah dari `serve` dan diuji end-to-end (`cmd/server/wiring_test.go`).
+- `GOMEMLIMIT=256MiB` di image Docker. Diuji: 10 foto 12 MP sekaligus di viewport 375px → selesai ±12 dtk, RAM puncak ±170 MB.
+
 ### T05 — Events & love story
 - Migration `00004_create_events_love_stories.sql`: kolom `weddings.timezone` (default `Asia/Jakarta`, pilihan WIB/WITA/WIT di form info wedding), tabel `events` (jenis `akad|reception|engagement|other`, tanggal + jam lokal, maps, lat/lng) dan `love_stories` (tanggal boleh hanya tahun / tahun+bulan).
 - Sub-modul `wedding/event` & `wedding/story` (sqlc `eventdb`, `storydb`): CRUD, `MoveX` (naik/turun), `SortXByDate`, `ListEvents` / `ListStories` untuk public site (T09). Semua query memfilter `wedding_id`.

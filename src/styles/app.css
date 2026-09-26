@@ -23,3 +23,11 @@
 [x-cloak] {
   display: none !important;
 }
+
+/* Scroll horizontal tanpa scrollbar terlihat (tab menu di mobile). */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

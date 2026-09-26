@@ -17,6 +17,9 @@ import (
 	"github.com/khamdanngazis/lovaria/src/platform/web"
 )
 
+// MaxBodySize adalah batas ukuran body request global.
+const MaxBodySize = "12M"
+
 const (
 	// CSRFHeader dan CSRFField adalah tempat token CSRF dikirim (htmx: header, form biasa: field).
 	CSRFHeader = "X-CSRF-Token"
@@ -34,6 +37,10 @@ func New(cfg config.Config, log *slog.Logger) *echo.Echo {
 	e.Server.WriteTimeout = 60 * time.Second
 	e.Server.IdleTimeout = 120 * time.Second
 
+	// Batas body global dipasang paling awal: MethodOverride & CSRF membaca form
+	// sebelum middleware per route, jadi tanpa ini body raksasa sempat dibaca
+	// (dan bisa tumpah ke file temp di disk). Upload foto memakai batas 11 MB sendiri.
+	e.Pre(middleware.BodyLimit(MaxBodySize))
 	e.Pre(middleware.RemoveTrailingSlashWithConfig(middleware.TrailingSlashConfig{
 		RedirectCode: http.StatusMovedPermanently,
 	}))

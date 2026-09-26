@@ -15,8 +15,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
-	"github.com/khamdanngazis/lovaria/src/modules/wedding/internal/order"
 	"github.com/khamdanngazis/lovaria/src/platform/db"
+	"github.com/khamdanngazis/lovaria/src/platform/order"
 
 	storydb "github.com/khamdanngazis/lovaria/src/modules/wedding/story/db"
 )

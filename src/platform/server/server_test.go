@@ -99,6 +99,19 @@ func TestCSRF(t *testing.T) {
 	}
 }
 
+func TestGlobalBodyLimit(t *testing.T) {
+	e := New(testConfig(t), slog.New(slog.NewJSONHandler(io.Discard, nil)))
+	e.POST("/x", func(c echo.Context) error { return c.NoContent(http.StatusNoContent) })
+	req := httptest.NewRequest(http.MethodPost, "/x", strings.NewReader(strings.Repeat("a", 13<<20)))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
+	req.Header.Set("Sec-Fetch-Site", "same-origin")
+	rec := httptest.NewRecorder()
+	e.ServeHTTP(rec, req)
+	if rec.Code != http.StatusRequestEntityTooLarge {
+		t.Errorf("body 13 MB: %d, want 413", rec.Code)
+	}
+}
+
 func TestRecoverFromPanic(t *testing.T) {
 	var buf bytes.Buffer
 	e := New(testConfig(t), slog.New(slog.NewJSONHandler(&buf, nil)))

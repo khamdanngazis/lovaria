@@ -1,5 +1,5 @@
-// Package order berisi logika urutan manual (sort_order) yang dipakai bersama
-// oleh event dan love story.
+// Package order berisi logika urutan manual (sort_order) yang dipakai lintas
+// modul (event, love story, gallery).
 package order
 
 import "github.com/google/uuid"

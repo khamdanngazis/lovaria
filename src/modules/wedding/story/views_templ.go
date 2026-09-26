@@ -803,7 +803,7 @@ func editor(w wedding.Wedding, id uuid.UUID, f form) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = ui.Input(ui.Field{ID: formID(id) + "-photo", Name: "photo_url", Label: "URL foto", Type: "url", Value: f.v("photo_url"), Error: f.e("photo_url"), Placeholder: "https://…", Hint: "Upload foto langsung akan tersedia segera."}).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = ui.ImageUpload(ui.Field{ID: formID(id) + "-photo", Name: "photo_url", Label: "Foto", Value: f.v("photo_url"), Error: f.e("photo_url")}, w.DashboardURL("/gallery/items"), "prewedding").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

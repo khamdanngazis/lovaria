@@ -31,6 +31,7 @@ RUN apk add --no-cache ca-certificates tzdata && \
     adduser -D -H -u 10001 lovoria
 COPY --from=build /out/lovoria /usr/local/bin/lovoria
 ENV APP_ENV=production \
+    GOMEMLIMIT=256MiB \
     PORT=8080
 EXPOSE 8080
 USER lovoria

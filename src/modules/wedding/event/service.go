@@ -14,8 +14,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 
-	"github.com/khamdanngazis/lovaria/src/modules/wedding/internal/order"
 	"github.com/khamdanngazis/lovaria/src/platform/db"
+	"github.com/khamdanngazis/lovaria/src/platform/order"
 
 	eventdb "github.com/khamdanngazis/lovaria/src/modules/wedding/event/db"
 )

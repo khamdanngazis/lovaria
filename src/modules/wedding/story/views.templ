@@ -193,7 +193,7 @@ templ editor(w wedding.Wedding, id uuid.UUID, f form) {
 		</fieldset>
 		@ui.Input(ui.Field{ID: formID(id) + "-title", Name: "title", Label: "Judul", Type: "text", Value: f.v("title"), Error: f.e("title"), Placeholder: "Pertama bertemu", Required: true, MaxLength: 150})
 		@ui.TextArea(ui.Field{ID: formID(id) + "-description", Name: "description", Label: "Cerita", Value: f.v("description"), Error: f.e("description"), MaxLength: 2000}, 4)
-		@ui.Input(ui.Field{ID: formID(id) + "-photo", Name: "photo_url", Label: "URL foto", Type: "url", Value: f.v("photo_url"), Error: f.e("photo_url"), Placeholder: "https://…", Hint: "Upload foto langsung akan tersedia segera."})
+		@ui.ImageUpload(ui.Field{ID: formID(id) + "-photo", Name: "photo_url", Label: "Foto", Value: f.v("photo_url"), Error: f.e("photo_url")}, w.DashboardURL("/gallery/items"), "prewedding")
 		<div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
 			<a href={ templ.SafeURL(base(w)) } hx-get={ base(w) } hx-target="#stories" hx-swap="outerHTML" class="rounded-lg border border-slate-300 px-4 py-2.5 text-center font-medium text-slate-700 hover:bg-slate-50">Batal</a>
 			@ui.PrimaryButton("Simpan")

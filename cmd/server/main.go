@@ -22,12 +22,14 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/labstack/echo/v4"
 	"golang.org/x/term"
 
 	"github.com/khamdanngazis/lovaria/src/dashboard"
 	"github.com/khamdanngazis/lovaria/src/modules/admin"
 	"github.com/khamdanngazis/lovaria/src/modules/auth"
 	"github.com/khamdanngazis/lovaria/src/modules/example"
+	"github.com/khamdanngazis/lovaria/src/modules/gallery"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding/event"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding/story"
@@ -38,6 +40,7 @@ import (
 	"github.com/khamdanngazis/lovaria/src/platform/mail"
 	"github.com/khamdanngazis/lovaria/src/platform/seed"
 	"github.com/khamdanngazis/lovaria/src/platform/server"
+	"github.com/khamdanngazis/lovaria/src/platform/storage"
 	publicsite "github.com/khamdanngazis/lovaria/src/public-site"
 	"github.com/khamdanngazis/lovaria/static"
 )
@@ -64,6 +67,7 @@ type app struct {
 	cfg      config.Config
 	log      *slog.Logger
 	pool     *pgxpool.Pool
+	store    storage.Storage
 	auth     *auth.Service
 	weddings *wedding.Service
 }
@@ -93,16 +97,9 @@ func run(args []string) error {
 	}
 	defer pool.Close()
 
-	mailer, err := mail.New(cfg.Mail, log)
+	a, err := newApp(ctx, cfg, log, pool)
 	if err != nil {
 		return err
-	}
-	a := &app{
-		cfg:      cfg,
-		log:      log,
-		pool:     pool,
-		auth:     auth.NewService(auth.NewRepository(pool), mailer, cfg.BaseURL, log),
-		weddings: wedding.NewService(wedding.NewRepository(pool)),
 	}
 
 	switch cmd {
@@ -123,6 +120,26 @@ func run(args []string) error {
 	default:
 		return fmt.Errorf("perintah tidak dikenal %q\n%s", cmd, usage)
 	}
+}
+
+// newApp menyusun dependency bersama (dipakai run & test wiring).
+func newApp(ctx context.Context, cfg config.Config, log *slog.Logger, pool *pgxpool.Pool) (*app, error) {
+	mailer, err := mail.New(cfg.Mail, log)
+	if err != nil {
+		return nil, err
+	}
+	store, err := storage.New(ctx, cfg.Storage)
+	if err != nil {
+		return nil, err
+	}
+	return &app{
+		cfg:      cfg,
+		log:      log,
+		pool:     pool,
+		store:    store,
+		auth:     auth.NewService(auth.NewRepository(pool), mailer, cfg.BaseURL, log),
+		weddings: wedding.NewService(wedding.NewRepository(pool)),
+	}, nil
 }
 
 // seeders mendaftarkan seeder modul untuk `lovoria seed`.
@@ -195,17 +212,25 @@ func readLine(r io.Reader) (string, error) {
 }
 
 func (a *app) serve(ctx context.Context) error {
+	a.log.Info("starting lovoria", slog.String("version", version), slog.String("base_url", a.cfg.BaseURL))
+	static.Configure(a.cfg.StaticFromDisk, "static")
+	go a.auth.RunCleanup(ctx, time.Hour)
+	return server.Run(ctx, a.routes(), a.cfg, a.log)
+}
+
+// routes merakit seluruh HTTP handler aplikasi (dipakai serve & test wiring).
+func (a *app) routes() *echo.Echo {
 	cfg, log := a.cfg, a.log
-	log.Info("starting lovoria", slog.String("version", version), slog.String("base_url", cfg.BaseURL))
 
 	// --- Infrastruktur ---
-	static.Configure(cfg.StaticFromDisk, "static")
-	go a.auth.RunCleanup(ctx, time.Hour)
-
-	// --- HTTP ---
 	e := server.New(cfg, log)
 	health.NewHandler(db.Checker(a.pool)).Register(e)
 	static.Register(e)
+	if local, ok := a.store.(*storage.Local); ok {
+		// Hanya dev: config menolak STORAGE_DRIVER=local di production.
+		log.Warn("storage: memakai disk lokal (hanya development)", slog.String("dir", cfg.Storage.LocalDir))
+		local.Register(e)
+	}
 
 	authMW := auth.NewMiddleware(a.auth, cfg.CookieSecure(), log)
 	e.Use(authMW.LoadSession)
@@ -222,8 +247,11 @@ func (a *app) serve(ctx context.Context) error {
 	owned := wedding.Register(dash.Group("/weddings"), wedding.Deps{Service: a.weddings})
 	event.Register(owned, event.Deps{Service: event.NewService(event.NewRepository(a.pool))})
 	story.Register(owned, story.Deps{Service: story.NewService(story.NewRepository(a.pool))})
+	gallery.Register(owned, gallery.Deps{
+		Service:  gallery.NewService(gallery.NewRepository(a.pool), a.store, a.weddings, cfg.Storage.QuotaBytes, log),
+		Weddings: a.weddings,
+	})
 	admin.Register(e.Group("/admin", authMW.RequireAuth, authMW.RequireRole(auth.RoleAdmin)), admin.Deps{})
 	publicsite.Register(e, publicsite.Deps{})
-
-	return server.Run(ctx, e, cfg, log)
+	return e
 }
