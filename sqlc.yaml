@@ -37,7 +37,17 @@ overrides:
           type: string
           pointer: true
 
-sql: []
+sql:
+  - engine: postgresql
+    schema: migrations
+    queries: src/modules/auth/db/queries
+    gen:
+      go:
+        package: authdb
+        out: src/modules/auth/db
+        sql_package: pgx/v5
+        emit_empty_slices: true
+        emit_pointers_for_null_types: true
 # Template entry modul:
 #  - engine: postgresql
 #    schema: migrations

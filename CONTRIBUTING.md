@@ -27,7 +27,8 @@ src/platform/          infrastruktur lintas modul (bukan fitur)
   logger/              slog JSON
   server/              Echo + middleware global + graceful shutdown
   health/              /healthz (proses hidup) & /readyz (dependency, mis. DB)
-  web/                 helper HTTP (Render templ, IsHTMX)
+  web/                 helper HTTP (Render, Redirect, IsHTMX) + user & token CSRF di context
+  mail/                interface Mailer (log | smtp | resend)
 src/modules/<nama>/    modul bisnis: auth, wedding, guest, gallery, guestbook, gift, theme, domain, admin
 src/templates/
   layouts/             layout dasar Public & Dashboard (<html data-theme="...">)
@@ -66,6 +67,13 @@ wedding.Register(e.Group("/dashboard/wedding"), wedding.Deps{Service: svc})
 ```
 
 Bila modul butuh modul lain, suntikkan **service**-nya lewat `Deps` (bukan repository/pool DB-nya).
+
+### Auth & CSRF
+
+- Route couple dipasang di group `/dashboard` (sudah `RequireAuth`); route admin di `/admin` (`RequireAuth` + `RequireRole(admin)`). Jangan cek login manual di handler.
+- User yang login: `auth.CurrentUser(ctx)` / `web.CurrentUser(ctx)` (di template: `web.CurrentUser(ctx)`). Modul lain cukup mengimpor `platform/web`, bukan modul `auth`.
+- Semua request non-GET dilindungi CSRF secara global. Form htmx otomatis mengirim header `X-CSRF-Token` (dari `hx-headers` di `<body>`); form biasa wajib menyertakan `@layouts.CSRFField()`.
+- Validasi gagal → status **422** + fragment form berisi pesan (htmx dikonfigurasi men-swap 422). Sukses → `web.Redirect(c, url)` (otomatis `HX-Redirect` untuk htmx, 303 untuk form biasa).
 
 ### Route "API-shaped"
 

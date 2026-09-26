@@ -23,7 +23,10 @@ Satu binary untuk semua perintah:
 lovoria [serve]              # HTTP server
 lovoria migrate up|down|status|version|redo
 lovoria seed                 # data contoh (ditolak di production)
+lovoria create-admin --email ops@lovoria.com [--name Ops]   # password dibaca dari stdin
 ```
+
+Akun dev dari `make seed`: `couple@lovoria.test` dan `admin@lovoria.test`, password `password123`.
 
 Endpoint dasar: `GET /healthz` (proses hidup), `GET /readyz` (dependency siap), `/` (landing), `/dashboard`.
 
@@ -37,12 +40,16 @@ Semua lewat environment variable (lihat [`.env.example`](.env.example)), dibaca 
 |---|---|---|
 | `APP_ENV` | `development` | `development` \| `production` \| `test` |
 | `PORT` | `8080` | Diisi otomatis oleh Railway |
-| `BASE_URL` | `http://localhost:8080` | URL publik utama |
+| `BASE_URL` | `http://localhost:8080` | URL publik utama (link di email). Kosong + di Railway → `https://$RAILWAY_PUBLIC_DOMAIN` |
 | `LOG_LEVEL` | `info` | `debug` \| `info` \| `warn` \| `error` |
 | `DATABASE_URL` | — | Wajib (kecuali `APP_ENV=test`) |
 | `DB_MAX_CONNS` / `DB_MIN_CONNS` | `10` / `0` | Ukuran pool pgx |
 | `DB_MAX_CONN_LIFETIME` / `DB_MAX_CONN_IDLE_TIME` | `30m` / `5m` | Umur koneksi pool |
 | `DB_CONNECT_TIMEOUT` | `5s` | Timeout membuka koneksi |
+| `MAIL_DRIVER` | `log` | `log` (tulis ke log) \| `smtp` \| `resend` |
+| `MAIL_FROM` | `Lovoria <no-reply@lovoria.local>` | Alamat pengirim |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USERNAME` / `SMTP_PASSWORD` | — / `587` | Untuk `MAIL_DRIVER=smtp` (STARTTLS) |
+| `RESEND_API_KEY` | — | Untuk `MAIL_DRIVER=resend` |
 | `DATABASE_URL_TEST` | — | Hanya untuk integration test (user harus boleh `CREATE DATABASE`) |
 | `SHUTDOWN_TIMEOUT` | `10s` | Batas graceful shutdown |
 | `STATIC_FROM_DISK` | `true` di dev | `false` → aset dari embed binary |
@@ -68,7 +75,8 @@ Variabel service `lovaria` (tab **Variables**):
 |---|---|
 | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` (reference ke service `Postgres`) |
 | `APP_ENV` | tidak perlu diisi — Dockerfile sudah men-set `production` |
-| `BASE_URL` | isi saat domain final sudah ada |
+| `BASE_URL` | kosong → otomatis `https://$RAILWAY_PUBLIC_DOMAIN`; isi saat domain final sudah ada |
+| `MAIL_DRIVER` + kredensial | isi (`resend`/`smtp`) supaya email reset password benar-benar terkirim; default `log` |
 
 Catatan: perubahan setelan/variabel di dashboard masuk sebagai *staged changes* — klik **Deploy / Apply changes** supaya berlaku. `GET /readyz` → 503 bila DB tidak bisa dihubungi.
 

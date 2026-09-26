@@ -126,7 +126,8 @@ test-integration: db-up ## Jalankan semua test termasuk integration test Postgre
 
 .PHONY: lint
 lint: lint-tenant ## gofmt, templ fmt, go vet, golangci-lint, lint-tenant
-	@test -z "$$(gofmt -l $$(git ls-files '*.go' | grep -v '_templ.go$$'))" || (gofmt -l . && echo "jalankan: gofmt -w ." && exit 1)
+	@files=$$(find . -name '*.go' -not -name '*_templ.go' -not -path './bin/*' -not -path './tmp/*'); \
+	test -z "$$(gofmt -l $$files)" || (gofmt -l $$files && echo "jalankan: gofmt -w ." && exit 1)
 	$(TEMPL) fmt -fail .
 	go vet ./...
 	$(GOLANGCI) run

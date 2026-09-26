@@ -1,0 +1,10 @@
+package admin
+
+import "github.com/khamdanngazis/lovaria/src/templates/layouts"
+
+templ homePage() {
+	@layouts.Dashboard(layouts.Meta{Title: "Admin"}) {
+		<h1 class="text-2xl font-semibold">Panel admin</h1>
+		<p class="mt-2 text-slate-600">Segera hadir (T16).</p>
+	}
+}

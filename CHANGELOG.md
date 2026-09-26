@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### T03 — Authentication & session
+- Migration `00002_create_auth.sql`: `users` (email citext unique, role `couple|admin`, `email_verified_at`), `sessions`, `password_reset_tokens`. Token disimpan sebagai sha256, nilai mentah hanya di cookie/email.
+- Modul `auth` (sqlc `authdb`): register (auto login), login (pesan error generik + dummy hash anti-timing), logout, lupa & reset password (token sekali pakai, 1 jam, semua session dihapus setelah reset).
+- Password argon2id (PHC, parameter OWASP, rehash otomatis bila parameter berubah).
+- Session server-side, cookie `HttpOnly` + `Secure` (production) + `SameSite=Lax`, rolling expiry 30 hari (diperpanjang maks. 1x/hari); cleanup session kedaluwarsa tiap jam.
+- Middleware `LoadSession`, `RequireAuth` (redirect ke `/login?next=`, `HX-Redirect` untuk htmx), `RequireRole` (403), `CurrentUser(ctx)`. `/dashboard/*` & `/admin/*` terlindungi.
+- CSRF global (Echo: `Sec-Fetch-Site` + fallback token double-submit, header `X-CSRF-Token` / field `_csrf`), gagal → 403.
+- Rate limit per IP (in-memory) untuk login, register, lupa/reset password → 429.
+- Form login/register/lupa/reset password (templ + htmx, validasi inline saat blur, tetap jalan tanpa JS), dicek di viewport 375px.
+- `platform/mail`: interface `Mailer` dengan driver `log` (default), `smtp`, `resend`.
+- CLI `lovoria create-admin`; seeder dev `couple@lovoria.test` / `admin@lovoria.test`.
+- `BASE_URL` otomatis dari `RAILWAY_PUBLIC_DOMAIN` bila kosong.
+
 ### Deploy
 - Hapus `railway.toml`: Railway sudah tidak membaca Config as Code. Setelan deploy (start `lovoria serve`, pre-deploy `lovoria migrate up`, healthcheck `/healthz`, `DATABASE_URL`) kini disimpan di service Railway dan didokumentasikan di README.
 

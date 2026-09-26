@@ -16,6 +16,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/khamdanngazis/lovaria/src/platform/config"
+	"github.com/khamdanngazis/lovaria/src/platform/web"
 )
 
 func testConfig(t *testing.T) config.Config {
@@ -50,6 +51,51 @@ func TestMiddlewareRequestIDAndLogging(t *testing.T) {
 	}
 	if !strings.Contains(buf.String(), rid) || !strings.Contains(buf.String(), `"uri":"/ping"`) {
 		t.Errorf("log tidak memuat request: %s", buf.String())
+	}
+}
+
+func TestCSRF(t *testing.T) {
+	e := New(testConfig(t), slog.New(slog.NewJSONHandler(io.Discard, nil)))
+	e.GET("/form", func(c echo.Context) error { return c.String(http.StatusOK, web.CSRFToken(c.Request().Context())) })
+	e.POST("/form", func(c echo.Context) error { return c.NoContent(http.StatusNoContent) })
+
+	post := func(mod func(*http.Request)) int {
+		req := httptest.NewRequest(http.MethodPost, "/form", strings.NewReader(""))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
+		mod(req)
+		rec := httptest.NewRecorder()
+		e.ServeHTTP(rec, req)
+		return rec.Code
+	}
+
+	// Ambil token + cookie lewat GET.
+	rec := httptest.NewRecorder()
+	e.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/form", nil))
+	token := rec.Body.String()
+	cookies := rec.Result().Cookies()
+	if token == "" || len(cookies) == 0 {
+		t.Fatalf("token/cookie tidak di-set: %q %v", token, cookies)
+	}
+	withCookie := func(r *http.Request) {
+		for _, ck := range cookies {
+			r.AddCookie(ck)
+		}
+	}
+
+	if code := post(func(*http.Request) {}); code != http.StatusForbidden {
+		t.Errorf("tanpa token: %d, want 403", code)
+	}
+	if code := post(func(r *http.Request) { withCookie(r); r.Header.Set(CSRFHeader, "salah") }); code != http.StatusForbidden {
+		t.Errorf("token salah: %d, want 403", code)
+	}
+	if code := post(func(r *http.Request) { r.Header.Set("Sec-Fetch-Site", "cross-site") }); code != http.StatusForbidden {
+		t.Errorf("cross-site: %d, want 403", code)
+	}
+	if code := post(func(r *http.Request) { withCookie(r); r.Header.Set(CSRFHeader, token) }); code != http.StatusNoContent {
+		t.Errorf("token header benar: %d, want 204", code)
+	}
+	if code := post(func(r *http.Request) { r.Header.Set("Sec-Fetch-Site", "same-origin") }); code != http.StatusNoContent {
+		t.Errorf("same-origin browser: %d, want 204", code)
 	}
 }
 
