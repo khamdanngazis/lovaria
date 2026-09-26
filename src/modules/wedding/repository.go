@@ -51,6 +51,7 @@ func toWedding(w weddingdb.Wedding) Wedding {
 		MainPhotoURL: w.MainPhotoUrl,
 		Status:       w.Status,
 		ThemeID:      w.ThemeID,
+		Timezone:     w.Timezone,
 		CreatedAt:    w.CreatedAt,
 		UpdatedAt:    w.UpdatedAt,
 	}

@@ -28,7 +28,7 @@ func (f form) v(k string) string { return f.Values[k] }
 func (f form) e(k string) string { return f.Errors[k] }
 
 func weddingURL(w Wedding, suffix string) string {
-	return "/dashboard/weddings/" + w.ID.String() + suffix
+	return w.DashboardURL(suffix)
 }
 
 func deref(s *string) string {
@@ -41,6 +41,14 @@ func deref(s *string) string {
 var statusLabel = map[string]string{
 	StatusDraft: "Draft", StatusPublished: "Terbit", StatusWeddingDay: "Hari H",
 	StatusMemory: "Kenangan", StatusArchived: "Diarsipkan",
+}
+
+func timezoneOptions() []ui.Option {
+	out := make([]ui.Option, len(Timezones))
+	for i, tz := range Timezones {
+		out[i] = ui.Option{Value: tz.ID, Label: tz.Label}
+	}
+	return out
 }
 
 // ---------- Setup wizard ----------
@@ -191,7 +199,7 @@ func wizardProgress(step int) templ.Component {
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d. %s", i, stepTitles[i]))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 67, Col: 46}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 75, Col: 46}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -241,7 +249,7 @@ func hiddenExcept(f form, visible ...string) templ.Component {
 				var templ_7745c5c3_Var10 string
 				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.ResolveAttributeValue(k)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 78, Col: 32}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 86, Col: 32}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10)
 				if templ_7745c5c3_Err != nil {
@@ -254,7 +262,7 @@ func hiddenExcept(f form, visible ...string) templ.Component {
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.ResolveAttributeValue(f.v(k))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 78, Col: 49}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 86, Col: 49}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
 				if templ_7745c5c3_Err != nil {
@@ -332,7 +340,7 @@ func wizardStep(step int, f form) templ.Component {
 				var templ_7745c5c3_Var14 templ.SafeURL
 				templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("/dashboard/weddings/new/steps/%d", step)))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 99, Col: 82}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 107, Col: 82}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 				if templ_7745c5c3_Err != nil {
@@ -345,7 +353,7 @@ func wizardStep(step int, f form) templ.Component {
 				var templ_7745c5c3_Var15 string
 				templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.ResolveAttributeValue(fmt.Sprintf("/dashboard/weddings/new/steps/%d", step))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 100, Col: 68}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 108, Col: 68}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var15)
 				if templ_7745c5c3_Err != nil {
@@ -520,7 +528,7 @@ func listPage(weddings []Wedding) templ.Component {
 				var templ_7745c5c3_Var18 templ.SafeURL
 				templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(weddingURL(w, "")))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 152, Col: 47}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 160, Col: 47}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 				if templ_7745c5c3_Err != nil {
@@ -533,7 +541,7 @@ func listPage(weddings []Wedding) templ.Component {
 				var templ_7745c5c3_Var19 string
 				templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(w.Title)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 153, Col: 40}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 161, Col: 40}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 				if templ_7745c5c3_Err != nil {
@@ -546,7 +554,7 @@ func listPage(weddings []Wedding) templ.Component {
 				var templ_7745c5c3_Var20 string
 				templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(web.FormatDateID(w.WeddingDate))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 154, Col: 78}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 162, Col: 78}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 				if templ_7745c5c3_Err != nil {
@@ -559,7 +567,7 @@ func listPage(weddings []Wedding) templ.Component {
 				var templ_7745c5c3_Var21 string
 				templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(statusLabel[w.Status])
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 155, Col: 68}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 163, Col: 68}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 				if templ_7745c5c3_Err != nil {
@@ -572,7 +580,7 @@ func listPage(weddings []Wedding) templ.Component {
 				var templ_7745c5c3_Var22 string
 				templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(w.Slug)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 155, Col: 85}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 163, Col: 85}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 				if templ_7745c5c3_Err != nil {
@@ -598,7 +606,9 @@ func listPage(weddings []Wedding) templ.Component {
 }
 
 // ---------- Halaman wedding ----------
-func weddingShell(w Wedding, active string) templ.Component {
+// Shell adalah kerangka halaman dashboard satu wedding (judul + tab menu).
+// Dipakai juga oleh sub-paket (event, story, ...). active = suffix URL tab aktif.
+func Shell(w Wedding, active string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -638,7 +648,7 @@ func weddingShell(w Wedding, active string) templ.Component {
 			var templ_7745c5c3_Var25 string
 			templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(w.Title)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 168, Col: 64}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 178, Col: 64}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 			if templ_7745c5c3_Err != nil {
@@ -652,11 +662,19 @@ func weddingShell(w Wedding, active string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = tab(w, "/info", "Info wedding", active).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = tab(w, "/info", "Info", active).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			templ_7745c5c3_Err = tab(w, "/couple", "Pasangan", active).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = tab(w, "/events", "Acara", active).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = tab(w, "/stories", "Cerita", active).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -719,7 +737,7 @@ func tab(w Wedding, suffix, label, active string) templ.Component {
 		var templ_7745c5c3_Var28 templ.SafeURL
 		templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(weddingURL(w, suffix)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 186, Col: 46}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 198, Col: 46}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 		if templ_7745c5c3_Err != nil {
@@ -743,7 +761,7 @@ func tab(w Wedding, suffix, label, active string) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if active == suffix {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, " aria-current=\"page\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, " aria-current=\"page\" x-data x-init=\"$el.scrollIntoView({ block: 'nearest', inline: 'center' })\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -755,7 +773,7 @@ func tab(w Wedding, suffix, label, active string) templ.Component {
 		var templ_7745c5c3_Var30 string
 		templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(label)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 191, Col: 10}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 205, Col: 10}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 		if templ_7745c5c3_Err != nil {
@@ -839,7 +857,7 @@ func overviewPage(w Wedding, c Couple, welcome bool) templ.Component {
 				var templ_7745c5c3_Var34 string
 				templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(c.GroomName)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 205, Col: 67}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 219, Col: 67}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 				if templ_7745c5c3_Err != nil {
@@ -852,7 +870,7 @@ func overviewPage(w Wedding, c Couple, welcome bool) templ.Component {
 				var templ_7745c5c3_Var35 string
 				templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(c.BrideName)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 205, Col: 89}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 219, Col: 89}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
 				if templ_7745c5c3_Err != nil {
@@ -865,7 +883,7 @@ func overviewPage(w Wedding, c Couple, welcome bool) templ.Component {
 				var templ_7745c5c3_Var36 templ.SafeURL
 				templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(weddingURL(w, "/couple")))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 206, Col: 53}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 220, Col: 53}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
 				if templ_7745c5c3_Err != nil {
@@ -900,7 +918,7 @@ func overviewPage(w Wedding, c Couple, welcome bool) templ.Component {
 				var templ_7745c5c3_Var38 string
 				templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(web.FormatDateID(w.WeddingDate))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 210, Col: 65}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 224, Col: 65}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
 				if templ_7745c5c3_Err != nil {
@@ -913,7 +931,7 @@ func overviewPage(w Wedding, c Couple, welcome bool) templ.Component {
 				var templ_7745c5c3_Var39 string
 				templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs(statusLabel[w.Status])
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 212, Col: 103}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 226, Col: 103}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var39))
 				if templ_7745c5c3_Err != nil {
@@ -926,7 +944,7 @@ func overviewPage(w Wedding, c Couple, welcome bool) templ.Component {
 				var templ_7745c5c3_Var40 string
 				templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.JoinStringErrs(w.Slug)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 214, Col: 64}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 228, Col: 64}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var40))
 				if templ_7745c5c3_Err != nil {
@@ -948,7 +966,7 @@ func overviewPage(w Wedding, c Couple, welcome bool) templ.Component {
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = weddingShell(w, "").Render(templ.WithChildren(ctx, templ_7745c5c3_Var32), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Shell(w, "").Render(templ.WithChildren(ctx, templ_7745c5c3_Var32), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -995,7 +1013,7 @@ func infoPage(w Wedding, f form) templ.Component {
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = weddingShell(w, "/info").Render(templ.WithChildren(ctx, templ_7745c5c3_Var42), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Shell(w, "/info").Render(templ.WithChildren(ctx, templ_7745c5c3_Var42), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1043,7 +1061,7 @@ func infoForm(w Wedding, f form) templ.Component {
 			var templ_7745c5c3_Var45 templ.SafeURL
 			templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(weddingURL(w, "/info")))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 230, Col: 49}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 244, Col: 49}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var45))
 			if templ_7745c5c3_Err != nil {
@@ -1056,7 +1074,7 @@ func infoForm(w Wedding, f form) templ.Component {
 			var templ_7745c5c3_Var46 string
 			templ_7745c5c3_Var46, templ_7745c5c3_Err = templ.ResolveAttributeValue(weddingURL(w, "/info"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 231, Col: 36}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 245, Col: 36}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var46)
 			if templ_7745c5c3_Err != nil {
@@ -1087,6 +1105,10 @@ func infoForm(w Wedding, f form) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			templ_7745c5c3_Err = ui.Input(ui.Field{ID: "info-date", Name: "wedding_date", Label: "Tanggal pernikahan", Type: "date", Value: f.v("wedding_date"), Error: f.e("wedding_date"), Required: true}).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = ui.Select(ui.Field{ID: "info-timezone", Name: "timezone", Label: "Zona waktu acara", Value: f.v("timezone"), Error: f.e("timezone"), Required: true}, timezoneOptions()).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1155,7 +1177,7 @@ func couplePage(w Wedding, f form) templ.Component {
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = weddingShell(w, "/couple").Render(templ.WithChildren(ctx, templ_7745c5c3_Var48), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Shell(w, "/couple").Render(templ.WithChildren(ctx, templ_7745c5c3_Var48), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1191,7 +1213,7 @@ func coupleForm(w Wedding, f form) templ.Component {
 		var templ_7745c5c3_Var50 templ.SafeURL
 		templ_7745c5c3_Var50, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(weddingURL(w, "/couple")))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 259, Col: 50}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 274, Col: 50}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var50))
 		if templ_7745c5c3_Err != nil {
@@ -1204,7 +1226,7 @@ func coupleForm(w Wedding, f form) templ.Component {
 		var templ_7745c5c3_Var51 string
 		templ_7745c5c3_Var51, templ_7745c5c3_Err = templ.ResolveAttributeValue(weddingURL(w, "/couple"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 260, Col: 37}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/wedding/views.templ`, Line: 275, Col: 37}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var51)
 		if templ_7745c5c3_Err != nil {

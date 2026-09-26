@@ -81,13 +81,17 @@ Bila modul butuh modul lain, suntikkan **service**-nya lewat `Deps` (bukan repos
 Semua halaman dashboard milik satu wedding berada di `/dashboard/weddings/:weddingID/...` dan **wajib** dipasang lewat `wedding.OwnerGroup(...)`, yang menjalankan `RequireWeddingOwner`:
 
 ```go
-w := wedding.OwnerGroup(dash.Group("/weddings"), weddingSvc)
-events.Register(w.Group("/events"), events.Deps{...})
+owned := wedding.Register(dash.Group("/weddings"), wedding.Deps{Service: weddingSvc})
+event.Register(owned, event.Deps{...}) // → /dashboard/weddings/:weddingID/events
 ```
 
 - Wedding milik user lain, ID tidak valid, atau tidak ada → **404** (bukan 403), supaya keberadaan ID tidak bocor.
 - Handler membaca `wedding_id` dari `web.WeddingID(ctx)` — **jangan** dari `c.Param("weddingID")`.
 - Test wajib mencakup kasus "user A mengakses wedding user B → 404" untuk route baru.
+
+- Halaman per wedding memakai `wedding.Shell(w, "/suffix")` (judul + tab). Tab baru ditambahkan di `wedding/views.templ`.
+- Pola CRUD daftar (lihat `wedding/event`): satu fragment `<section id="...">` yang di-swap ulang setelah setiap perubahan; validasi gagal → 422 + `web.Retarget(c, "#form-id")` supaya hanya form yang dirender ulang; tanpa JS → redirect 303 ke daftar.
+- Urutan manual (`sort_order`): pakai `wedding/internal/order` dan transaksi `... FOR UPDATE` (lihat `ListEventsForUpdate`).
 
 ### Komponen form & method
 

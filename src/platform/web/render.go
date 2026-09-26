@@ -29,3 +29,10 @@ func Redirect(c echo.Context, url string) error {
 	}
 	return c.Redirect(http.StatusSeeOther, url)
 }
+
+// Retarget mengarahkan swap htmx respons ini ke selector lain (mis. form yang
+// gagal validasi, sementara hx-target default-nya daftar).
+func Retarget(c echo.Context, selector string) {
+	c.Response().Header().Set("HX-Retarget", selector)
+	c.Response().Header().Set("HX-Reswap", "outerHTML")
+}

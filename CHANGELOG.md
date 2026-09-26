@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### T05 — Events & love story
+- Migration `00004_create_events_love_stories.sql`: kolom `weddings.timezone` (default `Asia/Jakarta`, pilihan WIB/WITA/WIT di form info wedding), tabel `events` (jenis `akad|reception|engagement|other`, tanggal + jam lokal, maps, lat/lng) dan `love_stories` (tanggal boleh hanya tahun / tahun+bulan).
+- Sub-modul `wedding/event` & `wedding/story` (sqlc `eventdb`, `storydb`): CRUD, `MoveX` (naik/turun), `SortXByDate`, `ListEvents` / `ListStories` untuk public site (T09). Semua query memfilter `wedding_id`.
+- Urutan: item baru disisipkan kronologis tanpa mengubah urutan manual lain; reorder dalam transaksi `FOR UPDATE`, `sort_order` selalu 0..n-1.
+- Validasi link Google Maps (maps.google.*, google.*/maps, maps.app.goo.gl, goo.gl/maps) + ambil koordinat dari `!3d!4d`, `@lat,lng`, `q=`, `query=`, `ll=`.
+- UI dashboard htmx: tambah & ubah inline, hapus dengan konfirmasi, ▲/▼, "Urutkan per tanggal"; tanpa JS tetap jalan. Tab Acara & Cerita di halaman wedding (tab aktif otomatis terlihat di mobile).
+- `wedding.Register` mengembalikan group per wedding untuk sub-modul; `wedding.Shell` diekspor; `ui.Select`; `web.Retarget`.
+
 ### T04 — Wedding core & setup wizard
 - Migration `00003_create_weddings.sql`: `weddings` (akar tenant; slug citext unik + CHECK `[a-z0-9-]`, status `draft|published|wedding_day|memory|archived`, `theme_id` default `elegant`) dan `couples` (`wedding_id` unik).
 - Modul `wedding` (sqlc `weddingdb`): `CreateWedding`, `GetWedding`, `GetWeddingForOwner`, `GetWeddingBySlug`, `GetCouple`, `UpdateWeddingInfo`, `UpdateCouple`, `ListWeddingsByOwner`; interface baca-saja `wedding.Reader` untuk modul lain.

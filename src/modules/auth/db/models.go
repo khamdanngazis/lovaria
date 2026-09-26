@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Couple struct {
@@ -21,6 +22,39 @@ type Couple struct {
 	BrideDescription string
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
+}
+
+type Event struct {
+	ID          uuid.UUID
+	WeddingID   uuid.UUID
+	Name        string
+	Type        string
+	EventDate   time.Time
+	StartTime   pgtype.Time
+	EndTime     pgtype.Time
+	Venue       string
+	Address     string
+	MapsUrl     *string
+	Latitude    *float64
+	Longitude   *float64
+	Description string
+	SortOrder   int32
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
+type LoveStory struct {
+	ID          uuid.UUID
+	WeddingID   uuid.UUID
+	DateYear    int16
+	DateMonth   *int16
+	DateDay     *int16
+	Title       string
+	Description string
+	PhotoUrl    *string
+	SortOrder   int32
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 type PasswordResetToken struct {
@@ -64,4 +98,5 @@ type Wedding struct {
 	ThemeID      string
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
+	Timezone     string
 }

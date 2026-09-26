@@ -25,7 +25,8 @@ const (
 	StatusMemory     = "memory"
 	StatusArchived   = "archived"
 
-	DefaultThemeID = "elegant"
+	DefaultThemeID  = "elegant"
+	DefaultTimezone = "Asia/Jakarta"
 
 	dateLayout = "2006-01-02"
 )
@@ -54,8 +55,32 @@ type Wedding struct {
 	MainPhotoURL *string
 	Status       string
 	ThemeID      string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	// Timezone zona waktu IANA acara (jam event disimpan sebagai waktu lokal).
+	Timezone  string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+// DashboardURL mengembalikan URL dashboard wedding ini + suffix (mis. "/events").
+func (w Wedding) DashboardURL(suffix string) string {
+	return "/dashboard/weddings/" + w.ID.String() + suffix
+}
+
+// Timezones adalah zona waktu yang bisa dipilih, dengan singkatan tampilannya.
+var Timezones = []struct{ ID, Label, Abbr string }{
+	{"Asia/Jakarta", "WIB — Waktu Indonesia Barat", "WIB"},
+	{"Asia/Makassar", "WITA — Waktu Indonesia Tengah", "WITA"},
+	{"Asia/Jayapura", "WIT — Waktu Indonesia Timur", "WIT"},
+}
+
+// TimezoneAbbr mengembalikan singkatan zona waktu ("WIB"), atau ID-nya bila tidak dikenal.
+func TimezoneAbbr(id string) string {
+	for _, tz := range Timezones {
+		if tz.ID == id {
+			return tz.Abbr
+		}
+	}
+	return id
 }
 
 type Couple struct {
@@ -99,6 +124,7 @@ type InfoInput struct {
 	WeddingDate  string
 	Description  string
 	MainPhotoURL string
+	Timezone     string // kosong → DefaultTimezone
 }
 
 type CoupleInput struct {
@@ -143,6 +169,16 @@ func ValidateField(field, value string) string {
 		if d.Year() < 2000 || d.Year() > 2100 {
 			return "Tanggal harus antara tahun 2000 dan 2100"
 		}
+	case "timezone":
+		if v == "" {
+			return ""
+		}
+		for _, tz := range Timezones {
+			if tz.ID == v {
+				return ""
+			}
+		}
+		return "Zona waktu tidak dikenal"
 	case "main_photo_url", "groom_photo_url", "bride_photo_url":
 		if v == "" {
 			return ""
@@ -239,9 +275,14 @@ func (s *Service) CreateWedding(ctx context.Context, ownerID uuid.UUID, in Creat
 // Pemanggil wajib sudah memastikan kepemilikan (RequireWeddingOwner).
 func (s *Service) UpdateWeddingInfo(ctx context.Context, weddingID uuid.UUID, in InfoInput) (Wedding, error) {
 	if err := ValidateFields(map[string]string{
-		"title": in.Title, "wedding_date": in.WeddingDate, "description": in.Description, "main_photo_url": in.MainPhotoURL,
+		"title": in.Title, "wedding_date": in.WeddingDate, "description": in.Description,
+		"main_photo_url": in.MainPhotoURL, "timezone": in.Timezone,
 	}); err != nil {
 		return Wedding{}, err
+	}
+	tz := strings.TrimSpace(in.Timezone)
+	if tz == "" {
+		tz = DefaultTimezone
 	}
 	date, _ := time.Parse(dateLayout, strings.TrimSpace(in.WeddingDate))
 	w, err := s.repo.q.UpdateWeddingInfo(ctx, weddingdb.UpdateWeddingInfoParams{
@@ -250,6 +291,7 @@ func (s *Service) UpdateWeddingInfo(ctx context.Context, weddingID uuid.UUID, in
 		WeddingDate:  date,
 		Description:  strings.TrimSpace(in.Description),
 		MainPhotoUrl: optional(in.MainPhotoURL),
+		Timezone:     tz,
 	})
 	if err != nil {
 		return Wedding{}, mapErr(err)
