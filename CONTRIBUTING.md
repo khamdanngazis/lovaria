@@ -29,6 +29,9 @@ src/platform/          infrastruktur lintas modul (bukan fitur)
   health/              /healthz (proses hidup) & /readyz (dependency, mis. DB)
   web/                 helper HTTP (Render, Redirect, IsHTMX, FormatDateID) + user, wedding_id & token CSRF di context
   mail/                interface Mailer (log | smtp | resend)
+  storage/             interface Storage (r2 | local-dev): Put, Delete, PublicURL
+  imageproc/           validasi & proses foto (magic bytes, EXIF, resize, thumbnail)
+  order/               urutan manual (sort_order) lintas modul
 src/modules/<nama>/    modul bisnis: auth, wedding, guest, gallery, guestbook, gift, theme, domain, admin
 src/templates/
   layouts/             layout dasar Public & Dashboard (<html data-theme="...">)
@@ -92,6 +95,12 @@ event.Register(owned, event.Deps{...}) // → /dashboard/weddings/:weddingID/eve
 - Halaman per wedding memakai `wedding.Shell(w, "/suffix")` (judul + tab). Tab baru ditambahkan di `wedding/views.templ`.
 - Pola CRUD daftar (lihat `wedding/event`): satu fragment `<section id="...">` yang di-swap ulang setelah setiap perubahan; validasi gagal → 422 + `web.Retarget(c, "#form-id")` supaya hanya form yang dirender ulang; tanpa JS → redirect 303 ke daftar.
 - Urutan manual (`sort_order`): pakai `wedding/internal/order` dan transaksi `... FOR UPDATE` (lihat `ListEventsForUpdate`).
+
+### Foto & file
+
+- Semua foto lewat `gallery.Service.Upload` (atau endpoint `POST .../gallery/items`), **tidak pernah** ditulis ke disk aplikasi. Field foto di form memakai `ui.ImageUpload(field, uploadURL, kategori)`.
+- Key objek: `weddings/{wedding_id}/{category}/{uuid}.jpg` (+ `_thumb.jpg`).
+- Kolom milik modul lain diubah lewat service-nya (mis. kuota `weddings.storage_used_bytes` via `wedding.Service.ReserveStorage`).
 
 ### Komponen form & method
 

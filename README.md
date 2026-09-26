@@ -52,6 +52,12 @@ Semua lewat environment variable (lihat [`.env.example`](.env.example)), dibaca 
 | `MAIL_FROM` | `Lovoria <no-reply@lovoria.local>` | Alamat pengirim |
 | `SMTP_HOST` / `SMTP_PORT` / `SMTP_USERNAME` / `SMTP_PASSWORD` | — / `587` | Untuk `MAIL_DRIVER=smtp` (STARTTLS) |
 | `RESEND_API_KEY` | — | Untuk `MAIL_DRIVER=resend` |
+| `STORAGE_DRIVER` | `local` | `local` (disk, **hanya dev** — ditolak di production) \| `r2` |
+| `STORAGE_LOCAL_DIR` | `$TMPDIR/lovoria-media` | Folder driver `local` (disajikan di `/media/*`) |
+| `STORAGE_QUOTA_MB` | `500` | Kuota foto per wedding |
+| `R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` / `R2_BUCKET` | — | Wajib untuk `STORAGE_DRIVER=r2` |
+| `R2_PUBLIC_URL` | — | URL publik bucket, mis. `https://media.lovoria.com` atau `https://pub-xxx.r2.dev` |
+| `R2_ENDPOINT` | `https://<account>.r2.cloudflarestorage.com` | Override endpoint S3 (opsional) |
 | `DATABASE_URL_TEST` | — | Hanya untuk integration test (user harus boleh `CREATE DATABASE`) |
 | `SHUTDOWN_TIMEOUT` | `10s` | Batas graceful shutdown |
 | `STATIC_FROM_DISK` | `true` di dev | `false` → aset dari embed binary |
@@ -79,6 +85,16 @@ Variabel service `lovaria` (tab **Variables**):
 | `APP_ENV` | tidak perlu diisi — Dockerfile sudah men-set `production` |
 | `BASE_URL` | kosong → otomatis `https://$RAILWAY_PUBLIC_DOMAIN`; isi saat domain final sudah ada |
 | `MAIL_DRIVER` + kredensial | isi (`resend`/`smtp`) supaya email reset password benar-benar terkirim; default `log` |
+| `STORAGE_DRIVER=r2` + `R2_*` | **wajib** — tanpa ini aplikasi menolak start di production |
+
+### Cloudflare R2 (foto)
+
+1. R2 → **Create bucket** (mis. `lovoria-media`).
+2. Bucket → Settings → **Public access**: sambungkan custom domain (mis. `media.lovoria.com`, di balik CDN Cloudflare) atau aktifkan subdomain `r2.dev` untuk awal. Nilai ini = `R2_PUBLIC_URL`.
+3. R2 → **Manage R2 API Tokens** → Create API token, permission **Object Read & Write**, dibatasi ke bucket tersebut → `R2_ACCESS_KEY_ID` & `R2_SECRET_ACCESS_KEY`.
+4. `R2_ACCOUNT_ID` = ID akun (bagian depan `https://<account>.r2.cloudflarestorage.com`).
+
+Upload selalu lewat server (resize + strip EXIF), jadi bucket tidak butuh CORS. Objek bersifat immutable (key unik) dan disajikan dengan `Cache-Control: immutable`.
 
 Catatan: perubahan setelan/variabel di dashboard masuk sebagai *staged changes* — klik **Deploy / Apply changes** supaya berlaku. `GET /readyz` → 503 bila DB tidak bisa dihubungi.
 

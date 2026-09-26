@@ -15,7 +15,7 @@ import (
 const createWedding = `-- name: CreateWedding :one
 INSERT INTO weddings (id, owner_user_id, slug, title, wedding_date, description)
 VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone
+RETURNING id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone, storage_used_bytes
 `
 
 type CreateWeddingParams struct {
@@ -50,12 +50,13 @@ func (q *Queries) CreateWedding(ctx context.Context, arg CreateWeddingParams) (W
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Timezone,
+		&i.StorageUsedBytes,
 	)
 	return i, err
 }
 
 const getWedding = `-- name: GetWedding :one
-SELECT id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone FROM weddings WHERE id = $1
+SELECT id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone, storage_used_bytes FROM weddings WHERE id = $1
 `
 
 func (q *Queries) GetWedding(ctx context.Context, id uuid.UUID) (Wedding, error) {
@@ -74,12 +75,13 @@ func (q *Queries) GetWedding(ctx context.Context, id uuid.UUID) (Wedding, error)
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Timezone,
+		&i.StorageUsedBytes,
 	)
 	return i, err
 }
 
 const getWeddingBySlug = `-- name: GetWeddingBySlug :one
-SELECT id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone FROM weddings WHERE slug = $1
+SELECT id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone, storage_used_bytes FROM weddings WHERE slug = $1
 `
 
 func (q *Queries) GetWeddingBySlug(ctx context.Context, slug string) (Wedding, error) {
@@ -98,12 +100,13 @@ func (q *Queries) GetWeddingBySlug(ctx context.Context, slug string) (Wedding, e
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Timezone,
+		&i.StorageUsedBytes,
 	)
 	return i, err
 }
 
 const getWeddingForOwner = `-- name: GetWeddingForOwner :one
-SELECT id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone FROM weddings WHERE id = $1 AND owner_user_id = $2
+SELECT id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone, storage_used_bytes FROM weddings WHERE id = $1 AND owner_user_id = $2
 `
 
 type GetWeddingForOwnerParams struct {
@@ -127,6 +130,7 @@ func (q *Queries) GetWeddingForOwner(ctx context.Context, arg GetWeddingForOwner
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Timezone,
+		&i.StorageUsedBytes,
 	)
 	return i, err
 }
@@ -157,7 +161,7 @@ func (q *Queries) ListSlugsWithPrefix(ctx context.Context, base string) ([]strin
 }
 
 const listWeddingsByOwner = `-- name: ListWeddingsByOwner :many
-SELECT id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone FROM weddings WHERE owner_user_id = $1 ORDER BY created_at DESC, id DESC
+SELECT id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone, storage_used_bytes FROM weddings WHERE owner_user_id = $1 ORDER BY created_at DESC, id DESC
 `
 
 func (q *Queries) ListWeddingsByOwner(ctx context.Context, ownerUserID uuid.UUID) ([]Wedding, error) {
@@ -182,6 +186,7 @@ func (q *Queries) ListWeddingsByOwner(ctx context.Context, ownerUserID uuid.UUID
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.Timezone,
+			&i.StorageUsedBytes,
 		); err != nil {
 			return nil, err
 		}
@@ -193,11 +198,62 @@ func (q *Queries) ListWeddingsByOwner(ctx context.Context, ownerUserID uuid.UUID
 	return items, nil
 }
 
+const releaseStorage = `-- name: ReleaseStorage :exec
+UPDATE weddings
+SET storage_used_bytes = GREATEST(0, storage_used_bytes - $1::bigint)
+WHERE id = $2
+`
+
+type ReleaseStorageParams struct {
+	Bytes int64
+	ID    uuid.UUID
+}
+
+func (q *Queries) ReleaseStorage(ctx context.Context, arg ReleaseStorageParams) error {
+	_, err := q.db.Exec(ctx, releaseStorage, arg.Bytes, arg.ID)
+	return err
+}
+
+const reserveStorage = `-- name: ReserveStorage :one
+UPDATE weddings
+SET storage_used_bytes = storage_used_bytes + $1::bigint
+WHERE id = $2 AND storage_used_bytes + $1::bigint <= $3::bigint
+RETURNING storage_used_bytes
+`
+
+type ReserveStorageParams struct {
+	Bytes int64
+	ID    uuid.UUID
+	Quota int64
+}
+
+// Atomik: tambah pemakaian hanya bila tidak melewati batas.
+func (q *Queries) ReserveStorage(ctx context.Context, arg ReserveStorageParams) (int64, error) {
+	row := q.db.QueryRow(ctx, reserveStorage, arg.Bytes, arg.ID, arg.Quota)
+	var storage_used_bytes int64
+	err := row.Scan(&storage_used_bytes)
+	return storage_used_bytes, err
+}
+
+const setMainPhotoURL = `-- name: SetMainPhotoURL :exec
+UPDATE weddings SET main_photo_url = $2 WHERE id = $1
+`
+
+type SetMainPhotoURLParams struct {
+	ID           uuid.UUID
+	MainPhotoUrl *string
+}
+
+func (q *Queries) SetMainPhotoURL(ctx context.Context, arg SetMainPhotoURLParams) error {
+	_, err := q.db.Exec(ctx, setMainPhotoURL, arg.ID, arg.MainPhotoUrl)
+	return err
+}
+
 const updateWeddingInfo = `-- name: UpdateWeddingInfo :one
 UPDATE weddings
 SET title = $2, wedding_date = $3, description = $4, main_photo_url = $5, timezone = $6
 WHERE id = $1
-RETURNING id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone
+RETURNING id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone, storage_used_bytes
 `
 
 type UpdateWeddingInfoParams struct {
@@ -232,6 +288,7 @@ func (q *Queries) UpdateWeddingInfo(ctx context.Context, arg UpdateWeddingInfoPa
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Timezone,
+		&i.StorageUsedBytes,
 	)
 	return i, err
 }

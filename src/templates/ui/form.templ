@@ -152,3 +152,37 @@ templ Card() {
 		{ children... }
 	</div>
 }
+
+// ImageUpload adalah field satu foto: upload langsung ke gallery (UploadURL,
+// kategori Category) lalu URL hasilnya disimpan di input tersembunyi f.Name.
+// Butuh komponen Alpine imageUpload (static/js/lovoria.js).
+templ ImageUpload(f Field, uploadURL, category string) {
+	<div x-data={ templ.JSFuncCall("imageUpload", uploadURL, category, f.Value).CallInline }>
+		<span class="block text-sm font-medium text-slate-800">
+			{ f.Label }
+			if !f.Required {
+				<span class="font-normal text-slate-400">(opsional)</span>
+			}
+		</span>
+		<input type="hidden" name={ f.Name } value={ f.Value } :value="value"/>
+		<div class="mt-1 flex items-center gap-3">
+			<div class="flex h-20 w-20 flex-none items-center justify-center overflow-hidden rounded-xl bg-slate-100 text-xs text-slate-400">
+				<template x-if="value">
+					<img :src="value" alt="" class="h-full w-full object-cover"/>
+				</template>
+				<span x-show="!value">Belum ada</span>
+			</div>
+			<div class="min-w-0 space-y-1">
+				<label class="inline-flex cursor-pointer items-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium hover:bg-slate-50" :class="uploading && 'pointer-events-none opacity-60'">
+					<span x-text="uploading ? 'Mengunggah… ' + progress + '%' : (value ? 'Ganti foto' : 'Pilih foto')">Pilih foto</span>
+					<input id={ f.ID } type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" @change="pick($event)"/>
+				</label>
+				<button type="button" x-show="value && !uploading" @click="value = ''" class="block text-sm text-red-600 hover:underline">Hapus foto</button>
+			</div>
+		</div>
+		if f.Error != "" {
+			<p class="mt-1 text-sm text-red-600">{ f.Error }</p>
+		}
+		<p class="mt-1 text-sm text-red-600" x-show="error" x-text="error"></p>
+	</div>
+}

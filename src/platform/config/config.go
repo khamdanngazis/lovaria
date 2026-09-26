@@ -32,6 +32,8 @@ type Config struct {
 	DB DB
 	// Mail berisi setelan pengiriman email.
 	Mail Mail
+	// Storage berisi setelan penyimpanan foto (R2 / disk lokal dev).
+	Storage Storage
 	// ShutdownTimeout batas waktu graceful shutdown (SHUTDOWN_TIMEOUT, format Go duration).
 	ShutdownTimeout time.Duration
 	// StaticFromDisk: true → /static dibaca dari folder ./static (hot reload saat dev);
@@ -68,6 +70,25 @@ type Mail struct {
 	SMTPPassword string
 	// ResendAPIKey untuk driver resend (RESEND_API_KEY).
 	ResendAPIKey string
+}
+
+// Storage adalah setelan penyimpanan objek (lihat src/platform/storage).
+type Storage struct {
+	// Driver: local | r2 (STORAGE_DRIVER). local hanya boleh di luar production.
+	Driver string
+	// LocalDir folder penyimpanan driver local (STORAGE_LOCAL_DIR).
+	LocalDir string
+	// R2 / S3-compatible (R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET).
+	R2AccountID       string
+	R2AccessKeyID     string
+	R2SecretAccessKey string
+	R2Bucket          string
+	// R2Endpoint override endpoint S3 (R2_ENDPOINT); kosong → https://<account>.r2.cloudflarestorage.com.
+	R2Endpoint string
+	// PublicURL basis URL publik objek, mis. https://media.lovoria.com (R2_PUBLIC_URL).
+	PublicURL string
+	// QuotaBytes kuota penyimpanan per wedding (STORAGE_QUOTA_MB, default 500).
+	QuotaBytes int64
 }
 
 func (c Config) IsDevelopment() bool { return c.Env == EnvDevelopment }
@@ -139,6 +160,42 @@ func LoadFrom(getenv func(string) string) (Config, error) {
 	cfg.StaticFromDisk, err = strconv.ParseBool(get("STATIC_FROM_DISK", strconv.FormatBool(cfg.IsDevelopment())))
 	if err != nil {
 		errs = append(errs, fmt.Errorf("STATIC_FROM_DISK: %w", err))
+	}
+
+	cfg.Storage = Storage{
+		Driver:            get("STORAGE_DRIVER", "local"),
+		LocalDir:          get("STORAGE_LOCAL_DIR", os.TempDir()+"/lovoria-media"),
+		R2AccountID:       get("R2_ACCOUNT_ID", ""),
+		R2AccessKeyID:     get("R2_ACCESS_KEY_ID", ""),
+		R2SecretAccessKey: getenv("R2_SECRET_ACCESS_KEY"),
+		R2Bucket:          get("R2_BUCKET", ""),
+		R2Endpoint:        strings.TrimRight(get("R2_ENDPOINT", ""), "/"),
+		PublicURL:         strings.TrimRight(get("R2_PUBLIC_URL", ""), "/"),
+	}
+	quotaMB, err := strconv.ParseInt(get("STORAGE_QUOTA_MB", "500"), 10, 64)
+	if err != nil || quotaMB < 1 {
+		errs = append(errs, fmt.Errorf("STORAGE_QUOTA_MB: nilai tidak valid %q", getenv("STORAGE_QUOTA_MB")))
+	}
+	cfg.Storage.QuotaBytes = quotaMB * 1024 * 1024
+	switch cfg.Storage.Driver {
+	case "local":
+		if cfg.IsProduction() {
+			errs = append(errs, errors.New("STORAGE_DRIVER=local tidak boleh di production (foto wajib ke R2)"))
+		}
+	case "r2":
+		for k, v := range map[string]string{
+			"R2_ACCESS_KEY_ID": cfg.Storage.R2AccessKeyID, "R2_SECRET_ACCESS_KEY": cfg.Storage.R2SecretAccessKey,
+			"R2_BUCKET": cfg.Storage.R2Bucket, "R2_PUBLIC_URL": cfg.Storage.PublicURL,
+		} {
+			if v == "" {
+				errs = append(errs, fmt.Errorf("%s: wajib diisi untuk STORAGE_DRIVER=r2", k))
+			}
+		}
+		if cfg.Storage.R2AccountID == "" && cfg.Storage.R2Endpoint == "" {
+			errs = append(errs, errors.New("R2_ACCOUNT_ID atau R2_ENDPOINT: wajib diisi untuk STORAGE_DRIVER=r2"))
+		}
+	default:
+		errs = append(errs, fmt.Errorf("STORAGE_DRIVER: nilai tidak valid %q (local | r2)", cfg.Storage.Driver))
 	}
 
 	cfg.Mail.SMTPPort, err = strconv.Atoi(get("SMTP_PORT", "587"))

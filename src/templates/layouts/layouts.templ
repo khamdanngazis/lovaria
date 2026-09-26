@@ -45,8 +45,10 @@ templ base(meta Meta, bodyClass string) {
 				<meta name="description" content={ meta.Description }/>
 			}
 			<meta name="htmx-config" content={ htmxConfig }/>
+			<meta name="csrf-token" content={ web.CSRFToken(ctx) }/>
 			<link rel="stylesheet" href={ static.URL("css/app.css") }/>
 			<script src={ static.URL("js/htmx.min.js") } defer></script>
+			<script src={ static.URL("js/lovoria.js") } defer></script>
 			<script src={ static.URL("js/alpine.min.js") } defer></script>
 		</head>
 		<body class={ bodyClass } hx-headers={ web.HXHeaders(ctx) }>

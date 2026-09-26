@@ -35,14 +35,20 @@ func TestLoadDefaults(t *testing.T) {
 
 func TestLoadProduction(t *testing.T) {
 	cfg, err := LoadFrom(envFrom(map[string]string{
-		"APP_ENV":          "production",
-		"PORT":             "3000",
-		"BASE_URL":         "https://lovoria.com/",
-		"LOG_LEVEL":        "warn",
-		"DATABASE_URL":     "postgres://x",
-		"SHUTDOWN_TIMEOUT": "5s",
-		"DB_MAX_CONNS":     "20",
-		"DB_MIN_CONNS":     "2",
+		"STORAGE_DRIVER":       "r2",
+		"R2_ACCOUNT_ID":        "a",
+		"R2_ACCESS_KEY_ID":     "k",
+		"R2_SECRET_ACCESS_KEY": "s",
+		"R2_BUCKET":            "b",
+		"R2_PUBLIC_URL":        "https://m.x",
+		"APP_ENV":              "production",
+		"PORT":                 "3000",
+		"BASE_URL":             "https://lovoria.com/",
+		"LOG_LEVEL":            "warn",
+		"DATABASE_URL":         "postgres://x",
+		"SHUTDOWN_TIMEOUT":     "5s",
+		"DB_MAX_CONNS":         "20",
+		"DB_MIN_CONNS":         "2",
 	}))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -85,6 +91,38 @@ func TestMailDefaultsToLog(t *testing.T) {
 	}
 }
 
+func TestStorageConfig(t *testing.T) {
+	cfg, err := LoadFrom(envFrom(map[string]string{"DATABASE_URL": "x"}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Storage.Driver != "local" || cfg.Storage.QuotaBytes != 500*1024*1024 {
+		t.Errorf("default storage = %+v", cfg.Storage)
+	}
+
+	r2 := map[string]string{
+		"DATABASE_URL": "x", "APP_ENV": "production", "STORAGE_DRIVER": "r2",
+		"R2_ACCOUNT_ID": "acc", "R2_ACCESS_KEY_ID": "k", "R2_SECRET_ACCESS_KEY": "s",
+		"R2_BUCKET": "b", "R2_PUBLIC_URL": "https://media.lovoria.com/", "STORAGE_QUOTA_MB": "100",
+	}
+	cfg, err = LoadFrom(envFrom(r2))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Storage.PublicURL != "https://media.lovoria.com" || cfg.Storage.QuotaBytes != 100*1024*1024 {
+		t.Errorf("r2 = %+v", cfg.Storage)
+	}
+
+	// Production tanpa R2 (driver local) harus gagal: tidak ada file di disk Railway.
+	if _, err := LoadFrom(envFrom(map[string]string{"DATABASE_URL": "x", "APP_ENV": "production"})); err == nil {
+		t.Error("production + STORAGE_DRIVER=local harus error")
+	}
+	delete(r2, "R2_BUCKET")
+	if _, err := LoadFrom(envFrom(r2)); err == nil {
+		t.Error("r2 tanpa bucket harus error")
+	}
+}
+
 func TestDatabaseURLOptionalInTest(t *testing.T) {
 	if _, err := LoadFrom(envFrom(map[string]string{"APP_ENV": "test"})); err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -107,6 +145,8 @@ func TestLoadInvalid(t *testing.T) {
 		"smtp":     {"MAIL_DRIVER": "smtp"},
 		"resend":   {"MAIL_DRIVER": "resend"},
 		"smtpPort": {"SMTP_PORT": "x"},
+		"storDrv":  {"STORAGE_DRIVER": "ftp"},
+		"quota":    {"STORAGE_QUOTA_MB": "0"},
 	}
 	for name, env := range cases {
 		t.Run(name, func(t *testing.T) {

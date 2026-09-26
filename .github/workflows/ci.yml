@@ -89,6 +89,10 @@ jobs:
           test "$size" -lt $((50*1024*1024))
       - name: Smoke test /healthz
         run: |
-          docker run -d --name app -p 8080:8080 -e DATABASE_URL=postgres://x:y@127.0.0.1:1/x lovoria:ci
+          docker run -d --name app -p 8080:8080 \
+            -e DATABASE_URL=postgres://x:y@127.0.0.1:1/x \
+            -e STORAGE_DRIVER=r2 -e R2_ACCOUNT_ID=ci -e R2_ACCESS_KEY_ID=ci -e R2_SECRET_ACCESS_KEY=ci \
+            -e R2_BUCKET=ci -e R2_PUBLIC_URL=https://media.example.com \
+            lovoria:ci
           for i in $(seq 1 20); do curl -fsS localhost:8080/healthz && exit 0; sleep 1; done
           docker logs app; exit 1

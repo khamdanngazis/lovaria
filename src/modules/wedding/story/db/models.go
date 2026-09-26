@@ -43,6 +43,23 @@ type Event struct {
 	UpdatedAt   time.Time
 }
 
+type GalleryItem struct {
+	ID        uuid.UUID
+	WeddingID uuid.UUID
+	Category  string
+	ObjectKey string
+	ThumbKey  string
+	Url       string
+	ThumbUrl  string
+	Width     int32
+	Height    int32
+	SizeBytes int64
+	SortOrder int32
+	Caption   string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
 type LoveStory struct {
 	ID          uuid.UUID
 	WeddingID   uuid.UUID
@@ -87,16 +104,17 @@ type User struct {
 }
 
 type Wedding struct {
-	ID           uuid.UUID
-	OwnerUserID  uuid.UUID
-	Slug         string
-	Title        string
-	WeddingDate  time.Time
-	Description  string
-	MainPhotoUrl *string
-	Status       string
-	ThemeID      string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
-	Timezone     string
+	ID               uuid.UUID
+	OwnerUserID      uuid.UUID
+	Slug             string
+	Title            string
+	WeddingDate      time.Time
+	Description      string
+	MainPhotoUrl     *string
+	Status           string
+	ThemeID          string
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+	Timezone         string
+	StorageUsedBytes int64
 }

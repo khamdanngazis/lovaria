@@ -1,0 +1,269 @@
+package gallery
+
+import (
+	"fmt"
+
+	"github.com/google/uuid"
+
+	"github.com/khamdanngazis/lovaria/src/modules/wedding"
+	"github.com/khamdanngazis/lovaria/src/templates/layouts"
+)
+
+type pageState struct {
+	W         wedding.Wedding
+	Items     []Item
+	Usage     Usage
+	Category  string // filter; "" = semua
+	EditingID uuid.UUID
+	Error     string
+}
+
+func base(w wedding.Wedding) string { return w.DashboardURL("/gallery") }
+
+func itemURL(w wedding.Wedding, id uuid.UUID, suffix string) string {
+	return base(w) + "/items/" + id.String() + suffix
+}
+
+func listURL(s pageState) string {
+	if s.Category == "" {
+		return base(s.W)
+	}
+	return base(s.W) + "?category=" + s.Category
+}
+
+func (s pageState) visible() []Item {
+	if s.Category == "" {
+		return s.Items
+	}
+	var out []Item
+	for _, it := range s.Items {
+		if it.Category == s.Category {
+			out = append(out, it)
+		}
+	}
+	return out
+}
+
+func (s pageState) isCover(it Item) bool {
+	return s.W.MainPhotoURL != nil && *s.W.MainPhotoURL == it.URL
+}
+
+func humanBytes(n int64) string {
+	switch {
+	case n >= 1<<30:
+		return fmt.Sprintf("%.1f GB", float64(n)/(1<<30))
+	case n >= 1<<20:
+		return fmt.Sprintf("%.1f MB", float64(n)/(1<<20))
+	default:
+		return fmt.Sprintf("%d KB", (n+1023)/1024)
+	}
+}
+
+func percent(u Usage) int {
+	if u.QuotaBytes <= 0 {
+		return 0
+	}
+	return int(min(100, u.UsedBytes*100/u.QuotaBytes))
+}
+
+templ page(s pageState) {
+	@wedding.Shell(s.W, "/gallery") {
+		@uploader(s)
+		<div class="mt-6">
+			@section(s)
+		</div>
+	}
+}
+
+templ uploader(s pageState) {
+	<div
+		x-data={ templ.JSFuncCall("galleryUploader", base(s.W)+"/items", base(s.W)).CallInline }
+		class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 sm:p-5"
+	>
+		<div class="flex flex-col gap-3 sm:flex-row sm:items-end">
+			<label class="block flex-1 text-sm font-medium text-slate-800">
+				Kategori
+				<select x-model="category" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base">
+					for _, c := range Categories {
+						<option value={ c.ID }>{ c.Label }</option>
+					}
+				</select>
+			</label>
+			<label class="inline-flex cursor-pointer items-center justify-center rounded-lg bg-primary px-4 py-2.5 font-medium text-white hover:opacity-90">
+				+ Pilih foto
+				<input type="file" multiple accept="image/jpeg,image/png,image/webp" class="sr-only" @change="pick($event)"/>
+			</label>
+		</div>
+		<p class="mt-2 text-xs text-slate-500">JPG, PNG, atau WebP · maks. 10 MB per foto · bisa pilih banyak sekaligus.</p>
+		<ul class="mt-3 space-y-2" x-show="files.length" x-cloak>
+			<template x-for="(f, i) in files" :key="i">
+				<li class="text-sm">
+					<div class="flex justify-between gap-2">
+						<span class="truncate" x-text="f.name"></span>
+						<span class="flex-none" :class="{ 'text-red-600': f.status === 'error', 'text-green-700': f.status === 'done', 'text-slate-500': f.status !== 'error' && f.status !== 'done' }" x-text="f.status === 'done' ? 'Selesai' : f.status === 'error' ? 'Gagal' : f.status === 'waiting' ? 'Menunggu' : f.progress + '%'"></span>
+					</div>
+					<div class="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-100" x-show="f.status !== 'error'">
+						<div class="h-full bg-primary transition-all" :style="`width: ${f.progress}%`"></div>
+					</div>
+					<p class="text-xs text-red-600" x-show="f.error" x-text="f.error"></p>
+				</li>
+			</template>
+		</ul>
+		<button type="button" x-show="files.length && !busy" x-cloak @click="clearDone()" class="mt-2 text-sm text-slate-500 hover:underline">Bersihkan daftar</button>
+		<noscript>
+			<form method="post" action={ templ.SafeURL(base(s.W) + "/items") } enctype="multipart/form-data" class="mt-3 flex flex-wrap items-center gap-2">
+				@layouts.CSRFField()
+				<select name="category" class="rounded-lg border border-slate-300 px-2 py-2">
+					for _, c := range Categories {
+						<option value={ c.ID }>{ c.Label }</option>
+					}
+				</select>
+				<input type="file" name="file" accept="image/jpeg,image/png,image/webp" required/>
+				<button type="submit" class="rounded-lg bg-primary px-3 py-2 text-white">Unggah</button>
+			</form>
+		</noscript>
+	</div>
+}
+
+// section adalah fragment yang di-swap ulang (id="gallery").
+templ section(s pageState) {
+	<section id="gallery" class="space-y-4">
+		<div>
+			<div class="flex justify-between text-sm text-slate-600">
+				<span>Penyimpanan terpakai</span>
+				<span>{ humanBytes(s.Usage.UsedBytes) } / { humanBytes(s.Usage.QuotaBytes) }</span>
+			</div>
+			<div class="mt-1 h-2 overflow-hidden rounded-full bg-slate-200" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow={ fmt.Sprint(percent(s.Usage)) }>
+				<div class={ "h-full", templ.KV("bg-primary", percent(s.Usage) < 90), templ.KV("bg-red-500", percent(s.Usage) >= 90) } style={ fmt.Sprintf("width: %d%%", percent(s.Usage)) }></div>
+			</div>
+		</div>
+		if s.Error != "" {
+			<p class="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{ s.Error }</p>
+		}
+		<nav class="scrollbar-none -mx-4 overflow-x-auto px-4" aria-label="Filter kategori">
+			<ul class="flex gap-2 whitespace-nowrap text-sm">
+				@filterChip(s, "", "Semua")
+				for _, c := range Categories {
+					@filterChip(s, c.ID, c.Label)
+				}
+			</ul>
+		</nav>
+		if len(s.visible()) == 0 {
+			<div class="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-slate-500">
+				Belum ada foto
+				if s.Category != "" {
+					di kategori ini
+				}
+				.
+			</div>
+		} else {
+			<ul class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+				for i, it := range s.visible() {
+					@tile(s, it, i == 0, i == len(s.visible())-1)
+				}
+			</ul>
+		}
+	</section>
+}
+
+templ filterChip(s pageState, category, label string) {
+	<li>
+		<a
+			href={ templ.SafeURL(listURL(pageState{W: s.W, Category: category})) }
+			hx-get={ listURL(pageState{W: s.W, Category: category}) }
+			hx-target="#gallery"
+			hx-swap="outerHTML"
+			hx-push-url="true"
+			class={ "block rounded-full px-3 py-1", templ.KV("bg-slate-900 text-white", s.Category == category), templ.KV("bg-white text-slate-600 ring-1 ring-slate-200", s.Category != category) }
+		>{ label }</a>
+	</li>
+}
+
+templ tile(s pageState, it Item, first, last bool) {
+	<li id={ "photo-" + it.ID.String() } class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-black/5">
+		<a href={ templ.SafeURL(it.URL) } target="_blank" rel="noopener" class="relative block aspect-square bg-slate-100">
+			<img src={ it.ThumbURL } alt={ it.Caption } loading="lazy" class="h-full w-full object-cover"/>
+			if s.isCover(it) {
+				<span class="absolute left-2 top-2 rounded-full bg-primary px-2 py-0.5 text-xs text-white">Foto utama</span>
+			}
+		</a>
+		if it.ID == s.EditingID {
+			@editForm(s, it)
+		} else {
+			<div class="p-2">
+				<p class="text-xs text-slate-500">{ CategoryLabel(it.Category) }</p>
+				if it.Caption != "" {
+					<p class="truncate text-sm">{ it.Caption }</p>
+				}
+				<div class="mt-2 flex items-center justify-between gap-1">
+					if s.Category == "" {
+						<div class="flex gap-1">
+							@moveButton(s, it, "up", "◀", "Geser ke depan", first)
+							@moveButton(s, it, "down", "▶", "Geser ke belakang", last)
+						</div>
+					} else {
+						<span></span>
+					}
+					<div class="relative" x-data="{ open: false }" @click.outside="open = false">
+						<button type="button" @click="open = !open" aria-label="Aksi foto" class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">⋯</button>
+						<div x-show="open" x-cloak class="absolute bottom-9 right-0 z-10 w-44 rounded-lg bg-white p-1 text-sm shadow-lg ring-1 ring-black/10">
+							if !s.isCover(it) {
+								<form method="post" action={ templ.SafeURL(itemURL(s.W, it.ID, "/cover")) } hx-post={ itemURL(s.W, it.ID, "/cover") } hx-target="#gallery" hx-swap="outerHTML" hx-vals={ fmt.Sprintf(`{"category":%q}`, s.Category) }>
+									@layouts.CSRFField()
+									<button type="submit" class="block w-full rounded px-3 py-2 text-left hover:bg-slate-50">Jadikan foto utama</button>
+								</form>
+							}
+							<a
+								href={ templ.SafeURL(listURL(s) + editParam(s, it)) }
+								hx-get={ listURL(s) + editParam(s, it) }
+								hx-target="#gallery"
+								hx-swap="outerHTML"
+								class="block rounded px-3 py-2 hover:bg-slate-50"
+							>Ubah keterangan</a>
+							<form method="post" action={ templ.SafeURL(itemURL(s.W, it.ID, "")) } hx-delete={ itemURL(s.W, it.ID, "") } hx-target="#gallery" hx-swap="outerHTML" hx-confirm="Hapus foto ini?" hx-vals={ fmt.Sprintf(`{"category":%q}`, s.Category) }>
+								@layouts.CSRFField()
+								<input type="hidden" name="_method" value="DELETE"/>
+								<button type="submit" class="block w-full rounded px-3 py-2 text-left text-red-600 hover:bg-red-50">Hapus</button>
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
+		}
+	</li>
+}
+
+func editParam(s pageState, it Item) string {
+	sep := "?"
+	if s.Category != "" {
+		sep = "&"
+	}
+	return sep + "edit=" + it.ID.String()
+}
+
+templ moveButton(s pageState, it Item, dir, icon, label string, disabled bool) {
+	<form method="post" action={ templ.SafeURL(itemURL(s.W, it.ID, "/position")) } hx-patch={ itemURL(s.W, it.ID, "/position") } hx-target="#gallery" hx-swap="outerHTML">
+		@layouts.CSRFField()
+		<input type="hidden" name="_method" value="PATCH"/>
+		<input type="hidden" name="direction" value={ dir }/>
+		<button type="submit" disabled?={ disabled } aria-label={ label } title={ label } class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-xs text-slate-600 hover:bg-slate-50 disabled:opacity-30">{ icon }</button>
+	</form>
+}
+
+templ editForm(s pageState, it Item) {
+	<form method="post" action={ templ.SafeURL(itemURL(s.W, it.ID, "")) } hx-patch={ itemURL(s.W, it.ID, "") } hx-target="#gallery" hx-swap="outerHTML" class="space-y-2 p-2">
+		@layouts.CSRFField()
+		<input type="hidden" name="_method" value="PATCH"/>
+		<input type="hidden" name="filter" value={ s.Category }/>
+		<select name="category" aria-label="Kategori" class="block w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm">
+			for _, c := range Categories {
+				<option value={ c.ID } selected?={ c.ID == it.Category }>{ c.Label }</option>
+			}
+		</select>
+		<input type="text" name="caption" value={ it.Caption } maxlength="300" placeholder="Keterangan" aria-label="Keterangan" class="block w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm"/>
+		<div class="flex gap-2">
+			<button type="submit" class="flex-1 rounded-lg bg-primary px-2 py-1.5 text-sm text-white">Simpan</button>
+			<a href={ templ.SafeURL(listURL(s)) } hx-get={ listURL(s) } hx-target="#gallery" hx-swap="outerHTML" class="rounded-lg border border-slate-300 px-2 py-1.5 text-sm">Batal</a>
+		</div>
+	</form>
+}

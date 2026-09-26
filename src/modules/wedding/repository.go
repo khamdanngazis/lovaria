@@ -42,18 +42,19 @@ func mapErr(err error) error {
 
 func toWedding(w weddingdb.Wedding) Wedding {
 	return Wedding{
-		ID:           w.ID,
-		OwnerUserID:  w.OwnerUserID,
-		Slug:         w.Slug,
-		Title:        w.Title,
-		WeddingDate:  w.WeddingDate,
-		Description:  w.Description,
-		MainPhotoURL: w.MainPhotoUrl,
-		Status:       w.Status,
-		ThemeID:      w.ThemeID,
-		Timezone:     w.Timezone,
-		CreatedAt:    w.CreatedAt,
-		UpdatedAt:    w.UpdatedAt,
+		ID:               w.ID,
+		OwnerUserID:      w.OwnerUserID,
+		Slug:             w.Slug,
+		Title:            w.Title,
+		WeddingDate:      w.WeddingDate,
+		Description:      w.Description,
+		MainPhotoURL:     w.MainPhotoUrl,
+		Status:           w.Status,
+		ThemeID:          w.ThemeID,
+		Timezone:         w.Timezone,
+		StorageUsedBytes: w.StorageUsedBytes,
+		CreatedAt:        w.CreatedAt,
+		UpdatedAt:        w.UpdatedAt,
 	}
 }
 

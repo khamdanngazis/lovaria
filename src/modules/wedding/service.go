@@ -31,8 +31,12 @@ const (
 	dateLayout = "2006-01-02"
 )
 
-// ErrNotFound: wedding tidak ada ATAU bukan milik user (sengaja tidak dibedakan).
-var ErrNotFound = errors.New("wedding tidak ditemukan")
+var (
+	// ErrNotFound: wedding tidak ada ATAU bukan milik user (sengaja tidak dibedakan).
+	ErrNotFound = errors.New("wedding tidak ditemukan")
+	// ErrQuotaExceeded: upload akan melewati kuota penyimpanan wedding.
+	ErrQuotaExceeded = errors.New("kuota penyimpanan wedding sudah penuh")
+)
 
 // ValidationError memetakan nama field form ke pesan error.
 type ValidationError map[string]string
@@ -56,9 +60,11 @@ type Wedding struct {
 	Status       string
 	ThemeID      string
 	// Timezone zona waktu IANA acara (jam event disimpan sebagai waktu lokal).
-	Timezone  string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	Timezone string
+	// StorageUsedBytes total byte foto wedding di storage (lihat ReserveStorage).
+	StorageUsedBytes int64
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
 }
 
 // DashboardURL mengembalikan URL dashboard wedding ini + suffix (mis. "/events").
@@ -321,6 +327,41 @@ func (s *Service) UpdateCouple(ctx context.Context, weddingID uuid.UUID, in Coup
 		return Couple{}, mapErr(err)
 	}
 	return toCouple(c), nil
+}
+
+// ---------- Kuota penyimpanan & foto utama (dipakai modul gallery) ----------
+
+// ReserveStorage menambah pemakaian storage secara atomik; ErrQuotaExceeded bila
+// pemakaian baru melewati quota. Panggil ReleaseStorage bila upload batal.
+func (s *Service) ReserveStorage(ctx context.Context, weddingID uuid.UUID, bytes, quota int64) error {
+	_, err := s.repo.q.ReserveStorage(ctx, weddingdb.ReserveStorageParams{ID: weddingID, Bytes: bytes, Quota: quota})
+	if errors.Is(mapErr(err), ErrNotFound) {
+		// Tidak ada baris yang lolos syarat: wedding tidak ada atau kuota terlampaui.
+		if _, gerr := s.GetWedding(ctx, weddingID); gerr != nil {
+			return gerr
+		}
+		return ErrQuotaExceeded
+	}
+	return err
+}
+
+// ReleaseStorage mengurangi pemakaian storage (tidak pernah di bawah 0).
+func (s *Service) ReleaseStorage(ctx context.Context, weddingID uuid.UUID, bytes int64) error {
+	return s.repo.q.ReleaseStorage(ctx, weddingdb.ReleaseStorageParams{ID: weddingID, Bytes: bytes})
+}
+
+// StorageUsage mengembalikan byte yang terpakai wedding.
+func (s *Service) StorageUsage(ctx context.Context, weddingID uuid.UUID) (int64, error) {
+	w, err := s.GetWedding(ctx, weddingID)
+	if err != nil {
+		return 0, err
+	}
+	return w.StorageUsedBytes, nil
+}
+
+// SetMainPhotoURL menjadikan URL (mis. foto gallery) sebagai foto utama wedding.
+func (s *Service) SetMainPhotoURL(ctx context.Context, weddingID uuid.UUID, url string) error {
+	return s.repo.q.SetMainPhotoURL(ctx, weddingdb.SetMainPhotoURLParams{ID: weddingID, MainPhotoUrl: optional(url)})
 }
 
 // ---------- Baca ----------
