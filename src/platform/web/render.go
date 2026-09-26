@@ -1,0 +1,19 @@
+// Package web berisi helper HTTP yang dipakai lintas modul.
+package web
+
+import (
+	"github.com/a-h/templ"
+	"github.com/labstack/echo/v4"
+)
+
+// Render menulis komponen templ sebagai respons HTML.
+func Render(c echo.Context, status int, component templ.Component) error {
+	c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextHTMLCharsetUTF8)
+	c.Response().WriteHeader(status)
+	return component.Render(c.Request().Context(), c.Response().Writer)
+}
+
+// IsHTMX mengembalikan true bila request dikirim oleh htmx (header HX-Request).
+func IsHTMX(c echo.Context) bool {
+	return c.Request().Header.Get("HX-Request") == "true"
+}

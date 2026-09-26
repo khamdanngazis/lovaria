@@ -1,0 +1,12 @@
+# Build artefacts
+/bin/
+/tmp/
+/static/css/app.css
+
+# Env
+.env
+
+# Editor/OS
+.DS_Store
+.idea/
+*.swp
