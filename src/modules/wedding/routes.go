@@ -7,9 +7,9 @@ type Deps struct {
 }
 
 // Register memasang route dashboard wedding pada group /dashboard/weddings
-// (group wajib sudah dilindungi RequireAuth). Route per wedding dilindungi
-// RequireWeddingOwner; modul lain memasang route-nya di OwnerGroup.
-func Register(g *echo.Group, deps Deps) {
+// (group wajib sudah dilindungi RequireAuth) dan mengembalikan group per wedding
+// (/:weddingID, dilindungi RequireWeddingOwner) tempat sub-modul memasang route-nya.
+func Register(g *echo.Group, deps Deps) *echo.Group {
 	h := NewHandler(deps.Service)
 
 	g.GET("", h.List)
@@ -23,6 +23,7 @@ func Register(g *echo.Group, deps Deps) {
 	w.PATCH("/info", h.UpdateInfo)
 	w.GET("/couple", h.CouplePage)
 	w.PATCH("/couple", h.UpdateCouple)
+	return w
 }
 
 // OwnerGroup mengembalikan group /:weddingID yang dilindungi RequireWeddingOwner.

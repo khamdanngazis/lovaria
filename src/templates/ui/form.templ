@@ -80,6 +80,38 @@ templ TextArea(f Field, rows int) {
 	</div>
 }
 
+// Option adalah pilihan untuk Select.
+type Option struct {
+	Value string
+	Label string
+}
+
+templ Select(f Field, options []Option) {
+	<div>
+		<label for={ f.ID } class="block text-sm font-medium text-slate-800">
+			{ f.Label }
+			if !f.Required {
+				<span class="font-normal text-slate-400">(opsional)</span>
+			}
+		</label>
+		<select
+			id={ f.ID }
+			name={ f.Name }
+			required?={ f.Required }
+			if f.Error != "" {
+				aria-invalid="true"
+			}
+			aria-describedby={ f.ID + "-error" }
+			class={ inputClass }
+		>
+			for _, o := range options {
+				<option value={ o.Value } selected?={ o.Value == f.Value }>{ o.Label }</option>
+			}
+		</select>
+		@hintAndError(f)
+	</div>
+}
+
 templ hintAndError(f Field) {
 	if f.Hint != "" && f.Error == "" {
 		<p class="mt-1 text-xs text-slate-500">{ f.Hint }</p>

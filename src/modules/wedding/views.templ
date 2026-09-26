@@ -20,7 +20,7 @@ func (f form) v(k string) string { return f.Values[k] }
 func (f form) e(k string) string { return f.Errors[k] }
 
 func weddingURL(w Wedding, suffix string) string {
-	return "/dashboard/weddings/" + w.ID.String() + suffix
+	return w.DashboardURL(suffix)
 }
 
 func deref(s *string) string {
@@ -33,6 +33,14 @@ func deref(s *string) string {
 var statusLabel = map[string]string{
 	StatusDraft: "Draft", StatusPublished: "Terbit", StatusWeddingDay: "Hari H",
 	StatusMemory: "Kenangan", StatusArchived: "Diarsipkan",
+}
+
+func timezoneOptions() []ui.Option {
+	out := make([]ui.Option, len(Timezones))
+	for i, tz := range Timezones {
+		out[i] = ui.Option{Value: tz.ID, Label: tz.Label}
+	}
+	return out
 }
 
 // ---------- Setup wizard ----------
@@ -161,7 +169,9 @@ templ listPage(weddings []Wedding) {
 }
 
 // ---------- Halaman wedding ----------
-templ weddingShell(w Wedding, active string) {
+// Shell adalah kerangka halaman dashboard satu wedding (judul + tab menu).
+// Dipakai juga oleh sub-paket (event, story, ...). active = suffix URL tab aktif.
+templ Shell(w Wedding, active string) {
 	@layouts.Dashboard(layouts.Meta{Title: w.Title}) {
 		<div class="min-w-0">
 			<p class="text-sm text-slate-500"><a href="/dashboard/weddings" class="hover:underline">Wedding saya</a></p>
@@ -169,8 +179,10 @@ templ weddingShell(w Wedding, active string) {
 			<nav class="-mx-4 mt-4 overflow-x-auto border-b border-slate-200 px-4" aria-label="Menu wedding">
 				<ul class="flex gap-5 whitespace-nowrap text-sm">
 					@tab(w, "", "Ringkasan", active)
-					@tab(w, "/info", "Info wedding", active)
+					@tab(w, "/info", "Info", active)
 					@tab(w, "/couple", "Pasangan", active)
+					@tab(w, "/events", "Acara", active)
+					@tab(w, "/stories", "Cerita", active)
 				</ul>
 			</nav>
 			<div class="mt-6">
@@ -187,13 +199,15 @@ templ tab(w Wedding, suffix, label, active string) {
 			class={ "-mb-px block border-b-2 pb-2", templ.KV("border-primary font-medium text-slate-900", active == suffix), templ.KV("border-transparent text-slate-500 hover:text-slate-800", active != suffix) }
 			if active == suffix {
 				aria-current="page"
+				x-data
+				x-init="$el.scrollIntoView({ block: 'nearest', inline: 'center' })"
 			}
 		>{ label }</a>
 	</li>
 }
 
 templ overviewPage(w Wedding, c Couple, welcome bool) {
-	@weddingShell(w, "") {
+	@Shell(w, "") {
 		if welcome {
 			<div class="mb-4">
 				@ui.Notice("Website pernikahanmu sudah dibuat sebagai draft. Lengkapi info lalu terbitkan saat siap.")
@@ -218,7 +232,7 @@ templ overviewPage(w Wedding, c Couple, welcome bool) {
 }
 
 templ infoPage(w Wedding, f form) {
-	@weddingShell(w, "/info") {
+	@Shell(w, "/info") {
 		@infoForm(w, f)
 	}
 }
@@ -240,6 +254,7 @@ templ infoForm(w Wedding, f form) {
 			@ui.Alert(f.Message)
 			@ui.Input(ui.Field{ID: "info-title", Name: "title", Label: "Judul website", Type: "text", Value: f.v("title"), Error: f.e("title"), Required: true, MaxLength: 150})
 			@ui.Input(ui.Field{ID: "info-date", Name: "wedding_date", Label: "Tanggal pernikahan", Type: "date", Value: f.v("wedding_date"), Error: f.e("wedding_date"), Required: true})
+			@ui.Select(ui.Field{ID: "info-timezone", Name: "timezone", Label: "Zona waktu acara", Value: f.v("timezone"), Error: f.e("timezone"), Required: true}, timezoneOptions())
 			@ui.TextArea(ui.Field{ID: "info-description", Name: "description", Label: "Deskripsi", Value: f.v("description"), Error: f.e("description"), MaxLength: 2000}, 5)
 			@ui.Input(ui.Field{ID: "info-photo", Name: "main_photo_url", Label: "URL foto utama", Type: "url", Value: f.v("main_photo_url"), Error: f.e("main_photo_url"), Placeholder: "https://…", Hint: "Upload foto langsung akan tersedia segera."})
 			@ui.PrimaryButton("Simpan")
@@ -248,7 +263,7 @@ templ infoForm(w Wedding, f form) {
 }
 
 templ couplePage(w Wedding, f form) {
-	@weddingShell(w, "/couple") {
+	@Shell(w, "/couple") {
 		@coupleForm(w, f)
 	}
 }

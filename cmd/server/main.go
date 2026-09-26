@@ -29,6 +29,8 @@ import (
 	"github.com/khamdanngazis/lovaria/src/modules/auth"
 	"github.com/khamdanngazis/lovaria/src/modules/example"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding"
+	"github.com/khamdanngazis/lovaria/src/modules/wedding/event"
+	"github.com/khamdanngazis/lovaria/src/modules/wedding/story"
 	"github.com/khamdanngazis/lovaria/src/platform/config"
 	"github.com/khamdanngazis/lovaria/src/platform/db"
 	"github.com/khamdanngazis/lovaria/src/platform/health"
@@ -217,7 +219,9 @@ func (a *app) serve(ctx context.Context) error {
 	}
 	dash := e.Group("/dashboard", authMW.RequireAuth)
 	dashboard.Register(dash, dashboard.Deps{Weddings: a.weddings})
-	wedding.Register(dash.Group("/weddings"), wedding.Deps{Service: a.weddings})
+	owned := wedding.Register(dash.Group("/weddings"), wedding.Deps{Service: a.weddings})
+	event.Register(owned, event.Deps{Service: event.NewService(event.NewRepository(a.pool))})
+	story.Register(owned, story.Deps{Service: story.NewService(story.NewRepository(a.pool))})
 	admin.Register(e.Group("/admin", authMW.RequireAuth, authMW.RequireRole(auth.RoleAdmin)), admin.Deps{})
 	publicsite.Register(e, publicsite.Deps{})
 

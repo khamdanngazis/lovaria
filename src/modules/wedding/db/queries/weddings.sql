@@ -21,6 +21,6 @@ SELECT slug::text FROM weddings WHERE slug = sqlc.arg(base)::citext OR slug ~ ('
 
 -- name: UpdateWeddingInfo :one
 UPDATE weddings
-SET title = $2, wedding_date = $3, description = $4, main_photo_url = $5
+SET title = $2, wedding_date = $3, description = $4, main_photo_url = $5, timezone = $6
 WHERE id = $1
 RETURNING *;

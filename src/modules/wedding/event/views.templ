@@ -1,0 +1,220 @@
+package event
+
+import (
+	"strings"
+
+	"github.com/google/uuid"
+
+	"github.com/khamdanngazis/lovaria/src/modules/wedding"
+	"github.com/khamdanngazis/lovaria/src/platform/web"
+	"github.com/khamdanngazis/lovaria/src/templates/layouts"
+	"github.com/khamdanngazis/lovaria/src/templates/ui"
+)
+
+type form struct {
+	Values map[string]string
+	Errors map[string]string
+}
+
+func (f form) v(k string) string { return f.Values[k] }
+func (f form) e(k string) string { return f.Errors[k] }
+
+// pageState: Creating/EditingID menentukan form yang terbuka (dipakai juga tanpa JS).
+type pageState struct {
+	W         wedding.Wedding
+	Events    []Event
+	Creating  bool
+	EditingID uuid.UUID
+	Form      form
+}
+
+func base(w wedding.Wedding) string { return w.DashboardURL("/events") }
+
+func itemURL(w wedding.Wedding, id uuid.UUID, suffix string) string {
+	return base(w) + "/" + id.String() + suffix
+}
+
+func formID(id uuid.UUID) string {
+	if id == uuid.Nil {
+		return "event-form-new"
+	}
+	return "event-form-" + id.String()
+}
+
+func clock(s string) string { return strings.ReplaceAll(s, ":", ".") }
+
+func timeRange(w wedding.Wedding, e Event) string {
+	s := clock(e.StartTime)
+	if e.EndTime != "" {
+		s += "–" + clock(e.EndTime)
+	} else {
+		s += " – selesai"
+	}
+	return s + " " + wedding.TimezoneAbbr(w.Timezone)
+}
+
+func typeOptions() []ui.Option {
+	out := make([]ui.Option, len(Types))
+	for i, t := range Types {
+		out[i] = ui.Option{Value: t.ID, Label: t.Label}
+	}
+	return out
+}
+
+templ page(s pageState) {
+	@wedding.Shell(s.W, "/events") {
+		@section(s)
+	}
+}
+
+// section adalah fragment yang di-swap ulang setelah setiap perubahan.
+templ section(s pageState) {
+	<section id="events" class="space-y-4">
+		<div class="flex flex-wrap items-center justify-between gap-3">
+			<p class="text-sm text-slate-600">Detail acara yang tampil di undangan. Jam dalam { wedding.TimezoneAbbr(s.W.Timezone) }.</p>
+			<div class="flex gap-2">
+				if len(s.Events) > 1 {
+					<form method="post" action={ templ.SafeURL(base(s.W) + "/order") } hx-patch={ base(s.W) + "/order" } hx-target="#events" hx-swap="outerHTML">
+						@layouts.CSRFField()
+						<input type="hidden" name="_method" value="PATCH"/>
+						<input type="hidden" name="by" value="date"/>
+						<button type="submit" class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-50">Urutkan per tanggal</button>
+					</form>
+				}
+				if !s.Creating {
+					<a
+						href={ templ.SafeURL(base(s.W) + "/new") }
+						hx-get={ base(s.W) + "/new" }
+						hx-target="#event-editor"
+						hx-swap="innerHTML"
+						class="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white"
+					>+ Tambah acara</a>
+				}
+			</div>
+		</div>
+		<div id="event-editor">
+			if s.Creating {
+				@editor(s.W, uuid.Nil, s.Form)
+			}
+		</div>
+		if len(s.Events) == 0 && !s.Creating {
+			<div class="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-slate-500">
+				Belum ada acara. Tambahkan akad, resepsi, atau acara lain.
+			</div>
+		}
+		<ol class="space-y-3">
+			for i, e := range s.Events {
+				if e.ID == s.EditingID {
+					@editorItem(s.W, e.ID, s.Form)
+				} else {
+					@item(s.W, e, i == 0, i == len(s.Events)-1)
+				}
+			}
+		</ol>
+	</section>
+}
+
+templ item(w wedding.Wedding, e Event, first, last bool) {
+	<li id={ "event-" + e.ID.String() } class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 sm:p-5">
+		<div class="flex items-start gap-3">
+			<div class="min-w-0 flex-1">
+				<p class="text-xs font-medium uppercase tracking-wide text-primary">{ TypeLabel(e.Type) }</p>
+				<h3 class="mt-0.5 break-words text-lg font-semibold">{ e.Name }</h3>
+				<p class="mt-1 text-sm text-slate-700">{ web.FormatDateID(e.Date) }</p>
+				<p class="text-sm text-slate-700">{ timeRange(w, e) }</p>
+				<p class="mt-2 break-words text-sm font-medium">{ e.Venue }</p>
+				if e.Address != "" {
+					<p class="break-words text-sm text-slate-600">{ e.Address }</p>
+				}
+				if e.MapsURL != "" {
+					<a href={ templ.SafeURL(e.MapsURL) } target="_blank" rel="noopener noreferrer" class="mt-1 inline-block text-sm text-primary hover:underline">Buka di Google Maps ↗</a>
+				}
+				if e.Description != "" {
+					<p class="mt-2 whitespace-pre-line break-words text-sm text-slate-600">{ e.Description }</p>
+				}
+			</div>
+			@moveButtons(itemURL(w, e.ID, "/position"), first, last)
+		</div>
+		<div class="mt-3 flex gap-4 border-t border-slate-100 pt-3 text-sm">
+			<a
+				href={ templ.SafeURL(itemURL(w, e.ID, "/edit")) }
+				hx-get={ itemURL(w, e.ID, "/edit") }
+				hx-target={ "#event-" + e.ID.String() }
+				hx-swap="outerHTML"
+				class="font-medium text-primary hover:underline"
+			>Ubah</a>
+			<form method="post" action={ templ.SafeURL(itemURL(w, e.ID, "")) } hx-delete={ itemURL(w, e.ID, "") } hx-target="#events" hx-swap="outerHTML" hx-confirm={ "Hapus acara \"" + e.Name + "\"?" }>
+				@layouts.CSRFField()
+				<input type="hidden" name="_method" value="DELETE"/>
+				<button type="submit" class="text-red-600 hover:underline">Hapus</button>
+			</form>
+		</div>
+	</li>
+}
+
+// moveButtons: tombol naik/turun (PATCH .../position, direction=up|down).
+templ moveButtons(url string, first, last bool) {
+	<div class="flex flex-col gap-1">
+		for _, d := range []struct{ Dir, Label, Icon string; Disabled bool }{{"up", "Naikkan", "▲", first}, {"down", "Turunkan", "▼", last}} {
+			<form method="post" action={ templ.SafeURL(url) } hx-patch={ url } hx-target="#events" hx-swap="outerHTML">
+				@layouts.CSRFField()
+				<input type="hidden" name="_method" value="PATCH"/>
+				<input type="hidden" name="direction" value={ d.Dir }/>
+				<button type="submit" disabled?={ d.Disabled } aria-label={ d.Label } title={ d.Label } class="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-30">{ d.Icon }</button>
+			</form>
+		}
+	</div>
+}
+
+// editorItem membungkus editor sebagai <li> pengganti item saat edit inline.
+templ editorItem(w wedding.Wedding, id uuid.UUID, f form) {
+	<li id={ "event-" + id.String() }>
+		@editor(w, id, f)
+	</li>
+}
+
+// editor adalah form tambah (id == Nil) atau ubah acara.
+templ editor(w wedding.Wedding, id uuid.UUID, f form) {
+	<form
+		id={ formID(id) }
+		method="post"
+		if id == uuid.Nil {
+			action={ templ.SafeURL(base(w)) }
+			hx-post={ base(w) }
+		} else {
+			action={ templ.SafeURL(itemURL(w, id, "")) }
+			hx-patch={ itemURL(w, id, "") }
+		}
+		hx-target="#events"
+		hx-swap="outerHTML"
+		hx-disabled-elt="find button"
+		class="space-y-4 rounded-2xl bg-white p-4 shadow-sm ring-2 ring-primary/40 sm:p-5"
+	>
+		@layouts.CSRFField()
+		if id != uuid.Nil {
+			<input type="hidden" name="_method" value="PATCH"/>
+		}
+		<h3 class="font-semibold">
+			if id == uuid.Nil {
+				Tambah acara
+			} else {
+				Ubah acara
+			}
+		</h3>
+		@ui.Input(ui.Field{ID: formID(id) + "-name", Name: "name", Label: "Nama acara", Type: "text", Value: f.v("name"), Error: f.e("name"), Placeholder: "Akad Nikah", Required: true, MaxLength: 100})
+		@ui.Select(ui.Field{ID: formID(id) + "-type", Name: "type", Label: "Jenis", Value: f.v("type"), Error: f.e("type"), Required: true}, typeOptions())
+		@ui.Input(ui.Field{ID: formID(id) + "-date", Name: "date", Label: "Tanggal", Type: "date", Value: f.v("date"), Error: f.e("date"), Required: true})
+		<div class="grid grid-cols-2 gap-3">
+			@ui.Input(ui.Field{ID: formID(id) + "-start", Name: "start_time", Label: "Mulai", Type: "time", Value: f.v("start_time"), Error: f.e("start_time"), Required: true})
+			@ui.Input(ui.Field{ID: formID(id) + "-end", Name: "end_time", Label: "Selesai", Type: "time", Value: f.v("end_time"), Error: f.e("end_time")})
+		</div>
+		@ui.Input(ui.Field{ID: formID(id) + "-venue", Name: "venue", Label: "Tempat", Type: "text", Value: f.v("venue"), Error: f.e("venue"), Placeholder: "Gedung Serbaguna", Required: true, MaxLength: 150})
+		@ui.TextArea(ui.Field{ID: formID(id) + "-address", Name: "address", Label: "Alamat", Value: f.v("address"), Error: f.e("address"), MaxLength: 500}, 2)
+		@ui.Input(ui.Field{ID: formID(id) + "-maps", Name: "maps_url", Label: "Link Google Maps", Type: "url", Value: f.v("maps_url"), Error: f.e("maps_url"), Placeholder: "https://maps.app.goo.gl/…", Hint: "Salin dari tombol Bagikan di Google Maps."})
+		@ui.TextArea(ui.Field{ID: formID(id) + "-description", Name: "description", Label: "Keterangan", Value: f.v("description"), Error: f.e("description"), MaxLength: 1000, Placeholder: "Dress code, info parkir, dll."}, 2)
+		<div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+			<a href={ templ.SafeURL(base(w)) } hx-get={ base(w) } hx-target="#events" hx-swap="outerHTML" class="rounded-lg border border-slate-300 px-4 py-2.5 text-center font-medium text-slate-700 hover:bg-slate-50">Batal</a>
+			@ui.PrimaryButton("Simpan")
+		</div>
+	</form>
+}

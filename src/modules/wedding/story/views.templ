@@ -1,0 +1,202 @@
+package story
+
+import (
+	"strconv"
+
+	"github.com/google/uuid"
+
+	"github.com/khamdanngazis/lovaria/src/modules/wedding"
+	"github.com/khamdanngazis/lovaria/src/templates/layouts"
+	"github.com/khamdanngazis/lovaria/src/templates/ui"
+)
+
+type form struct {
+	Values map[string]string
+	Errors map[string]string
+}
+
+func (f form) v(k string) string { return f.Values[k] }
+func (f form) e(k string) string { return f.Errors[k] }
+
+// pageState: Creating/EditingID menentukan form yang terbuka (dipakai juga tanpa JS).
+type pageState struct {
+	W         wedding.Wedding
+	Stories   []Story
+	Creating  bool
+	EditingID uuid.UUID
+	Form      form
+}
+
+func base(w wedding.Wedding) string { return w.DashboardURL("/stories") }
+
+func itemURL(w wedding.Wedding, id uuid.UUID, suffix string) string {
+	return base(w) + "/" + id.String() + suffix
+}
+
+func formID(id uuid.UUID) string {
+	if id == uuid.Nil {
+		return "story-form-new"
+	}
+	return "story-form-" + id.String()
+}
+
+func monthOptions() []ui.Option {
+	out := []ui.Option{{Value: "", Label: "— tidak diisi —"}}
+	for m := 1; m <= 12; m++ {
+		out = append(out, ui.Option{Value: strconv.Itoa(m), Label: MonthName(m)})
+	}
+	return out
+}
+
+templ page(s pageState) {
+	@wedding.Shell(s.W, "/stories") {
+		@section(s)
+	}
+}
+
+// section adalah fragment yang di-swap ulang setelah setiap perubahan.
+templ section(s pageState) {
+	<section id="stories" class="space-y-4">
+		<div class="flex flex-wrap items-center justify-between gap-3">
+			<p class="text-sm text-slate-600">Perjalanan cerita kalian, dari pertama kenal sampai hari bahagia.</p>
+			<div class="flex gap-2">
+				if len(s.Stories) > 1 {
+					<form method="post" action={ templ.SafeURL(base(s.W) + "/order") } hx-patch={ base(s.W) + "/order" } hx-target="#stories" hx-swap="outerHTML">
+						@layouts.CSRFField()
+						<input type="hidden" name="_method" value="PATCH"/>
+						<input type="hidden" name="by" value="date"/>
+						<button type="submit" class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-50">Urutkan per tanggal</button>
+					</form>
+				}
+				if !s.Creating {
+					<a
+						href={ templ.SafeURL(base(s.W) + "/new") }
+						hx-get={ base(s.W) + "/new" }
+						hx-target="#story-editor"
+						hx-swap="innerHTML"
+						class="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white"
+					>+ Tambah cerita</a>
+				}
+			</div>
+		</div>
+		<div id="story-editor">
+			if s.Creating {
+				@editor(s.W, uuid.Nil, s.Form)
+			}
+		</div>
+		if len(s.Stories) == 0 && !s.Creating {
+			<div class="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-slate-500">
+				Belum ada cerita. Mulai dari momen pertama kalian bertemu.
+			</div>
+		}
+		<ol class="space-y-3">
+			for i, e := range s.Stories {
+				if e.ID == s.EditingID {
+					@editorItem(s.W, e.ID, s.Form)
+				} else {
+					@item(s.W, e, i == 0, i == len(s.Stories)-1)
+				}
+			}
+		</ol>
+	</section>
+}
+
+templ item(w wedding.Wedding, e Story, first, last bool) {
+	<li id={ "story-" + e.ID.String() } class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 sm:p-5">
+		<div class="flex items-start gap-3">
+			if e.PhotoURL != "" {
+				<img src={ e.PhotoURL } alt="" loading="lazy" class="h-16 w-16 flex-none rounded-xl object-cover"/>
+			}
+			<div class="min-w-0 flex-1">
+				<p class="text-xs font-medium uppercase tracking-wide text-primary">{ e.Date.String() }</p>
+				<h3 class="mt-0.5 break-words text-lg font-semibold">{ e.Title }</h3>
+				if e.Description != "" {
+					<p class="mt-1 line-clamp-3 whitespace-pre-line break-words text-sm text-slate-600">{ e.Description }</p>
+				}
+			</div>
+			@moveButtons(itemURL(w, e.ID, "/position"), first, last)
+		</div>
+		<div class="mt-3 flex gap-4 border-t border-slate-100 pt-3 text-sm">
+			<a
+				href={ templ.SafeURL(itemURL(w, e.ID, "/edit")) }
+				hx-get={ itemURL(w, e.ID, "/edit") }
+				hx-target={ "#story-" + e.ID.String() }
+				hx-swap="outerHTML"
+				class="font-medium text-primary hover:underline"
+			>Ubah</a>
+			<form method="post" action={ templ.SafeURL(itemURL(w, e.ID, "")) } hx-delete={ itemURL(w, e.ID, "") } hx-target="#stories" hx-swap="outerHTML" hx-confirm={ "Hapus cerita \"" + e.Title + "\"?" }>
+				@layouts.CSRFField()
+				<input type="hidden" name="_method" value="DELETE"/>
+				<button type="submit" class="text-red-600 hover:underline">Hapus</button>
+			</form>
+		</div>
+	</li>
+}
+
+// moveButtons: tombol naik/turun (PATCH .../position, direction=up|down).
+templ moveButtons(url string, first, last bool) {
+	<div class="flex flex-col gap-1">
+		for _, d := range []struct{ Dir, Label, Icon string; Disabled bool }{{"up", "Naikkan", "▲", first}, {"down", "Turunkan", "▼", last}} {
+			<form method="post" action={ templ.SafeURL(url) } hx-patch={ url } hx-target="#stories" hx-swap="outerHTML">
+				@layouts.CSRFField()
+				<input type="hidden" name="_method" value="PATCH"/>
+				<input type="hidden" name="direction" value={ d.Dir }/>
+				<button type="submit" disabled?={ d.Disabled } aria-label={ d.Label } title={ d.Label } class="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-30">{ d.Icon }</button>
+			</form>
+		}
+	</div>
+}
+
+// editorItem membungkus editor sebagai <li> pengganti item saat edit inline.
+templ editorItem(w wedding.Wedding, id uuid.UUID, f form) {
+	<li id={ "story-" + id.String() }>
+		@editor(w, id, f)
+	</li>
+}
+
+// editor adalah form tambah (id == Nil) atau ubah cerita.
+templ editor(w wedding.Wedding, id uuid.UUID, f form) {
+	<form
+		id={ formID(id) }
+		method="post"
+		if id == uuid.Nil {
+			action={ templ.SafeURL(base(w)) }
+			hx-post={ base(w) }
+		} else {
+			action={ templ.SafeURL(itemURL(w, id, "")) }
+			hx-patch={ itemURL(w, id, "") }
+		}
+		hx-target="#stories"
+		hx-swap="outerHTML"
+		hx-disabled-elt="find button"
+		class="space-y-4 rounded-2xl bg-white p-4 shadow-sm ring-2 ring-primary/40 sm:p-5"
+	>
+		@layouts.CSRFField()
+		if id != uuid.Nil {
+			<input type="hidden" name="_method" value="PATCH"/>
+		}
+		<h3 class="font-semibold">
+			if id == uuid.Nil {
+				Tambah cerita
+			} else {
+				Ubah cerita
+			}
+		</h3>
+		<fieldset>
+			<legend class="block text-sm font-medium text-slate-800">Kapan?</legend>
+			<p class="text-xs text-slate-500">Cukup tahun saja kalau lupa tanggal pastinya.</p>
+			<div class="mt-1 grid grid-cols-3 gap-3">
+				@ui.Input(ui.Field{ID: formID(id) + "-year", Name: "year", Label: "Tahun", Type: "number", Value: f.v("year"), Error: f.e("year"), Placeholder: "2019", Required: true})
+				@ui.Select(ui.Field{ID: formID(id) + "-month", Name: "month", Label: "Bulan", Value: f.v("month"), Error: f.e("month")}, monthOptions())
+				@ui.Input(ui.Field{ID: formID(id) + "-day", Name: "day", Label: "Tgl", Type: "number", Value: f.v("day"), Error: f.e("day")})
+			</div>
+		</fieldset>
+		@ui.Input(ui.Field{ID: formID(id) + "-title", Name: "title", Label: "Judul", Type: "text", Value: f.v("title"), Error: f.e("title"), Placeholder: "Pertama bertemu", Required: true, MaxLength: 150})
+		@ui.TextArea(ui.Field{ID: formID(id) + "-description", Name: "description", Label: "Cerita", Value: f.v("description"), Error: f.e("description"), MaxLength: 2000}, 4)
+		@ui.Input(ui.Field{ID: formID(id) + "-photo", Name: "photo_url", Label: "URL foto", Type: "url", Value: f.v("photo_url"), Error: f.e("photo_url"), Placeholder: "https://…", Hint: "Upload foto langsung akan tersedia segera."})
+		<div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+			<a href={ templ.SafeURL(base(w)) } hx-get={ base(w) } hx-target="#stories" hx-swap="outerHTML" class="rounded-lg border border-slate-300 px-4 py-2.5 text-center font-medium text-slate-700 hover:bg-slate-50">Batal</a>
+			@ui.PrimaryButton("Simpan")
+		</div>
+	</form>
+}

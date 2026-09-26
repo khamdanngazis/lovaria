@@ -23,7 +23,7 @@ func NewHandler(svc *Service) *Handler {
 var (
 	wizardFields = []string{"groom_name", "bride_name", "title", "wedding_date", "description"}
 	stepFields   = map[int][]string{1: {"groom_name", "bride_name"}, 2: {"title", "wedding_date"}, 3: {"description"}}
-	infoFields   = []string{"title", "wedding_date", "description", "main_photo_url"}
+	infoFields   = []string{"title", "wedding_date", "description", "main_photo_url", "timezone"}
 	coupleFields = []string{"groom_name", "bride_name", "groom_photo_url", "bride_photo_url", "groom_description", "bride_description"}
 )
 
@@ -165,7 +165,7 @@ func (h *Handler) Overview(c echo.Context) error {
 func infoValues(w Wedding) form {
 	return form{Errors: map[string]string{}, Values: map[string]string{
 		"title": w.Title, "wedding_date": w.WeddingDate.Format(dateLayout),
-		"description": w.Description, "main_photo_url": deref(w.MainPhotoURL),
+		"description": w.Description, "main_photo_url": deref(w.MainPhotoURL), "timezone": w.Timezone,
 	}}
 }
 
@@ -180,7 +180,8 @@ func (h *Handler) UpdateInfo(c echo.Context) error {
 	w := mustWedding(c)
 	f := formFrom(c, infoFields)
 	updated, err := h.svc.UpdateWeddingInfo(c.Request().Context(), w.ID, InfoInput{
-		Title: f.v("title"), WeddingDate: f.v("wedding_date"), Description: f.v("description"), MainPhotoURL: f.v("main_photo_url"),
+		Title: f.v("title"), WeddingDate: f.v("wedding_date"), Description: f.v("description"),
+		MainPhotoURL: f.v("main_photo_url"), Timezone: f.v("timezone"),
 	})
 	if f.applyErr(err) {
 		return render(c, http.StatusUnprocessableEntity, infoForm(w, f), infoPage(w, f))

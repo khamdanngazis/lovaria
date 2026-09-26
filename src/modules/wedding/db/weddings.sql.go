@@ -15,7 +15,7 @@ import (
 const createWedding = `-- name: CreateWedding :one
 INSERT INTO weddings (id, owner_user_id, slug, title, wedding_date, description)
 VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at
+RETURNING id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone
 `
 
 type CreateWeddingParams struct {
@@ -49,12 +49,13 @@ func (q *Queries) CreateWedding(ctx context.Context, arg CreateWeddingParams) (W
 		&i.ThemeID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Timezone,
 	)
 	return i, err
 }
 
 const getWedding = `-- name: GetWedding :one
-SELECT id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at FROM weddings WHERE id = $1
+SELECT id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone FROM weddings WHERE id = $1
 `
 
 func (q *Queries) GetWedding(ctx context.Context, id uuid.UUID) (Wedding, error) {
@@ -72,12 +73,13 @@ func (q *Queries) GetWedding(ctx context.Context, id uuid.UUID) (Wedding, error)
 		&i.ThemeID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Timezone,
 	)
 	return i, err
 }
 
 const getWeddingBySlug = `-- name: GetWeddingBySlug :one
-SELECT id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at FROM weddings WHERE slug = $1
+SELECT id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone FROM weddings WHERE slug = $1
 `
 
 func (q *Queries) GetWeddingBySlug(ctx context.Context, slug string) (Wedding, error) {
@@ -95,12 +97,13 @@ func (q *Queries) GetWeddingBySlug(ctx context.Context, slug string) (Wedding, e
 		&i.ThemeID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Timezone,
 	)
 	return i, err
 }
 
 const getWeddingForOwner = `-- name: GetWeddingForOwner :one
-SELECT id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at FROM weddings WHERE id = $1 AND owner_user_id = $2
+SELECT id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone FROM weddings WHERE id = $1 AND owner_user_id = $2
 `
 
 type GetWeddingForOwnerParams struct {
@@ -123,6 +126,7 @@ func (q *Queries) GetWeddingForOwner(ctx context.Context, arg GetWeddingForOwner
 		&i.ThemeID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Timezone,
 	)
 	return i, err
 }
@@ -153,7 +157,7 @@ func (q *Queries) ListSlugsWithPrefix(ctx context.Context, base string) ([]strin
 }
 
 const listWeddingsByOwner = `-- name: ListWeddingsByOwner :many
-SELECT id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at FROM weddings WHERE owner_user_id = $1 ORDER BY created_at DESC, id DESC
+SELECT id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone FROM weddings WHERE owner_user_id = $1 ORDER BY created_at DESC, id DESC
 `
 
 func (q *Queries) ListWeddingsByOwner(ctx context.Context, ownerUserID uuid.UUID) ([]Wedding, error) {
@@ -177,6 +181,7 @@ func (q *Queries) ListWeddingsByOwner(ctx context.Context, ownerUserID uuid.UUID
 			&i.ThemeID,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.Timezone,
 		); err != nil {
 			return nil, err
 		}
@@ -190,9 +195,9 @@ func (q *Queries) ListWeddingsByOwner(ctx context.Context, ownerUserID uuid.UUID
 
 const updateWeddingInfo = `-- name: UpdateWeddingInfo :one
 UPDATE weddings
-SET title = $2, wedding_date = $3, description = $4, main_photo_url = $5
+SET title = $2, wedding_date = $3, description = $4, main_photo_url = $5, timezone = $6
 WHERE id = $1
-RETURNING id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at
+RETURNING id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone
 `
 
 type UpdateWeddingInfoParams struct {
@@ -201,6 +206,7 @@ type UpdateWeddingInfoParams struct {
 	WeddingDate  time.Time
 	Description  string
 	MainPhotoUrl *string
+	Timezone     string
 }
 
 func (q *Queries) UpdateWeddingInfo(ctx context.Context, arg UpdateWeddingInfoParams) (Wedding, error) {
@@ -210,6 +216,7 @@ func (q *Queries) UpdateWeddingInfo(ctx context.Context, arg UpdateWeddingInfoPa
 		arg.WeddingDate,
 		arg.Description,
 		arg.MainPhotoUrl,
+		arg.Timezone,
 	)
 	var i Wedding
 	err := row.Scan(
@@ -224,6 +231,7 @@ func (q *Queries) UpdateWeddingInfo(ctx context.Context, arg UpdateWeddingInfoPa
 		&i.ThemeID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Timezone,
 	)
 	return i, err
 }
