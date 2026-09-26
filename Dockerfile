@@ -22,13 +22,16 @@ COPY . .
 ARG VERSION=dev
 RUN go tool templ generate && \
     tailwindcss -i src/styles/app.css -o static/css/app.css --minify && \
-    CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -X main.version=${VERSION}" -o /out/server ./cmd/server
+    CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -X main.version=${VERSION}" -o /out/lovoria ./cmd/server
 
 # ---- Runtime ----
-FROM gcr.io/distroless/static-debian12:nonroot
-COPY --from=build /out/server /server
+# Alpine (bukan distroless) supaya pre-deploy command Railway punya shell.
+FROM alpine:3.24
+RUN apk add --no-cache ca-certificates tzdata && \
+    adduser -D -H -u 10001 lovoria
+COPY --from=build /out/lovoria /usr/local/bin/lovoria
 ENV APP_ENV=production \
     PORT=8080
 EXPOSE 8080
-USER nonroot:nonroot
-ENTRYPOINT ["/server"]
+USER lovoria
+CMD ["lovoria", "serve"]

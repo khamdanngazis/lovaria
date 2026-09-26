@@ -27,13 +27,29 @@ type Config struct {
 	BaseURL string
 	// LogLevel: debug | info | warn | error (LOG_LEVEL).
 	LogLevel slog.Level
-	// DatabaseURL connection string Postgres (DATABASE_URL). Wajib mulai T02.
-	DatabaseURL string
+	// DB berisi koneksi & setelan pool Postgres.
+	DB DB
 	// ShutdownTimeout batas waktu graceful shutdown (SHUTDOWN_TIMEOUT, format Go duration).
 	ShutdownTimeout time.Duration
 	// StaticFromDisk: true → /static dibaca dari folder ./static (hot reload saat dev);
 	// false → dari file yang di-embed ke binary (STATIC_FROM_DISK).
 	StaticFromDisk bool
+}
+
+// DB adalah setelan koneksi Postgres (pgxpool).
+type DB struct {
+	// URL connection string Postgres (DATABASE_URL). Wajib kecuali APP_ENV=test.
+	URL string
+	// MaxConns jumlah koneksi maksimum di pool (DB_MAX_CONNS).
+	MaxConns int32
+	// MinConns jumlah koneksi yang dijaga tetap terbuka (DB_MIN_CONNS).
+	MinConns int32
+	// MaxConnLifetime umur maksimum satu koneksi (DB_MAX_CONN_LIFETIME).
+	MaxConnLifetime time.Duration
+	// MaxConnIdleTime lama koneksi idle sebelum ditutup (DB_MAX_CONN_IDLE_TIME).
+	MaxConnIdleTime time.Duration
+	// ConnectTimeout batas waktu membuka koneksi baru (DB_CONNECT_TIMEOUT).
+	ConnectTimeout time.Duration
 }
 
 func (c Config) IsDevelopment() bool { return c.Env == EnvDevelopment }
@@ -58,9 +74,9 @@ func LoadFrom(getenv func(string) string) (Config, error) {
 
 	var errs []error
 	cfg := Config{
-		Env:         get("APP_ENV", EnvDevelopment),
-		BaseURL:     strings.TrimRight(get("BASE_URL", "http://localhost:8080"), "/"),
-		DatabaseURL: get("DATABASE_URL", ""),
+		Env:     get("APP_ENV", EnvDevelopment),
+		BaseURL: strings.TrimRight(get("BASE_URL", "http://localhost:8080"), "/"),
+		DB:      DB{URL: get("DATABASE_URL", "")},
 	}
 
 	switch cfg.Env {
@@ -87,6 +103,44 @@ func LoadFrom(getenv func(string) string) (Config, error) {
 	cfg.StaticFromDisk, err = strconv.ParseBool(get("STATIC_FROM_DISK", strconv.FormatBool(cfg.IsDevelopment())))
 	if err != nil {
 		errs = append(errs, fmt.Errorf("STATIC_FROM_DISK: %w", err))
+	}
+
+	if cfg.DB.URL == "" && cfg.Env != EnvTest {
+		errs = append(errs, errors.New("DATABASE_URL: wajib diisi"))
+	}
+	durations := []struct {
+		key string
+		def string
+		dst *time.Duration
+	}{
+		{"DB_MAX_CONN_LIFETIME", "30m", &cfg.DB.MaxConnLifetime},
+		{"DB_MAX_CONN_IDLE_TIME", "5m", &cfg.DB.MaxConnIdleTime},
+		{"DB_CONNECT_TIMEOUT", "5s", &cfg.DB.ConnectTimeout},
+	}
+	for _, d := range durations {
+		v, err := time.ParseDuration(get(d.key, d.def))
+		if err != nil || v <= 0 {
+			errs = append(errs, fmt.Errorf("%s: nilai tidak valid %q", d.key, getenv(d.key)))
+		}
+		*d.dst = v
+	}
+	conns := []struct {
+		key string
+		def string
+		dst *int32
+	}{
+		{"DB_MAX_CONNS", "10", &cfg.DB.MaxConns},
+		{"DB_MIN_CONNS", "0", &cfg.DB.MinConns},
+	}
+	for _, n := range conns {
+		v, err := strconv.ParseInt(get(n.key, n.def), 10, 32)
+		if err != nil || v < 0 {
+			errs = append(errs, fmt.Errorf("%s: nilai tidak valid %q", n.key, getenv(n.key)))
+		}
+		*n.dst = int32(v)
+	}
+	if cfg.DB.MaxConns < 1 || cfg.DB.MinConns > cfg.DB.MaxConns {
+		errs = append(errs, errors.New("DB_MAX_CONNS harus ≥ 1 dan ≥ DB_MIN_CONNS"))
 	}
 
 	if err := errors.Join(errs...); err != nil {

@@ -11,7 +11,7 @@ func envFrom(m map[string]string) func(string) string {
 }
 
 func TestLoadDefaults(t *testing.T) {
-	cfg, err := LoadFrom(envFrom(nil))
+	cfg, err := LoadFrom(envFrom(map[string]string{"DATABASE_URL": "postgres://x"}))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -23,6 +23,10 @@ func TestLoadDefaults(t *testing.T) {
 	}
 	if !cfg.StaticFromDisk {
 		t.Error("StaticFromDisk harus true di development")
+	}
+	if cfg.DB.MaxConns != 10 || cfg.DB.MinConns != 0 || cfg.DB.MaxConnLifetime != 30*time.Minute ||
+		cfg.DB.MaxConnIdleTime != 5*time.Minute || cfg.DB.ConnectTimeout != 5*time.Second {
+		t.Errorf("unexpected DB defaults: %+v", cfg.DB)
 	}
 	if cfg.Addr() != ":8080" {
 		t.Errorf("Addr = %q", cfg.Addr())
@@ -37,6 +41,8 @@ func TestLoadProduction(t *testing.T) {
 		"LOG_LEVEL":        "warn",
 		"DATABASE_URL":     "postgres://x",
 		"SHUTDOWN_TIMEOUT": "5s",
+		"DB_MAX_CONNS":     "20",
+		"DB_MIN_CONNS":     "2",
 	}))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -50,13 +56,23 @@ func TestLoadProduction(t *testing.T) {
 	if cfg.StaticFromDisk {
 		t.Error("StaticFromDisk harus false di production")
 	}
-	if cfg.DatabaseURL != "postgres://x" || cfg.ShutdownTimeout != 5*time.Second {
+	if cfg.DB.URL != "postgres://x" || cfg.DB.MaxConns != 20 || cfg.DB.MinConns != 2 || cfg.ShutdownTimeout != 5*time.Second {
 		t.Errorf("unexpected config: %+v", cfg)
+	}
+}
+
+func TestDatabaseURLOptionalInTest(t *testing.T) {
+	if _, err := LoadFrom(envFrom(map[string]string{"APP_ENV": "test"})); err != nil {
+		t.Fatalf("unexpected error: %v", err)
 	}
 }
 
 func TestLoadInvalid(t *testing.T) {
 	cases := map[string]map[string]string{
+		"noDB":     {"APP_ENV": "production"},
+		"maxConns": {"DB_MAX_CONNS": "0"},
+		"minConns": {"DB_MIN_CONNS": "20"},
+		"lifetime": {"DB_MAX_CONN_LIFETIME": "soon"},
 		"env":      {"APP_ENV": "staging"},
 		"port":     {"PORT": "abc"},
 		"portHigh": {"PORT": "70000"},
@@ -66,7 +82,14 @@ func TestLoadInvalid(t *testing.T) {
 	}
 	for name, env := range cases {
 		t.Run(name, func(t *testing.T) {
-			if _, err := LoadFrom(envFrom(env)); err == nil {
+			full := map[string]string{"DATABASE_URL": "postgres://x"}
+			if name == "noDB" {
+				full = map[string]string{}
+			}
+			for k, v := range env {
+				full[k] = v
+			}
+			if _, err := LoadFrom(envFrom(full)); err == nil {
 				t.Error("expected error")
 			}
 		})

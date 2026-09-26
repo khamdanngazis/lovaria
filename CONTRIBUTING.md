@@ -22,6 +22,8 @@ Sumber: `doc/lovoria-tasks/00-README.md` dan Arsitektur §3 & §10.5. PR yang me
 cmd/server/            entrypoint; dependency injection manual (tanpa framework DI)
 src/platform/          infrastruktur lintas modul (bukan fitur)
   config/              config.Load() — satu-satunya tempat membaca env var
+  db/                  pgxpool, WithTx, NewID (UUIDv7), migrate; db/dbtest = harness integration test
+  seed/                kerangka `lovoria seed`
   logger/              slog JSON
   server/              Echo + middleware global + graceful shutdown
   health/              /healthz (proses hidup) & /readyz (dependency, mis. DB)
@@ -35,8 +37,11 @@ src/public-site/       routing & rendering website wedding (package publicsite)
 src/dashboard/         UI couple
 src/styles/app.css     input Tailwind
 static/                aset statis (di-embed ke binary); css/app.css hasil build, js/ vendored
-migrations/            SQL migration goose
+migrations/            SQL migration goose (di-embed ke binary)
+tools/linttenant/      cek aturan wedding_id pada query & index (make lint-tenant)
 ```
+
+Konvensi schema, migration, sqlc, transaksi, dan integration test: **[doc/database.md](doc/database.md)**.
 
 ## Pola Modul
 
@@ -44,7 +49,8 @@ Contoh lengkap ada di [`src/modules/example`](src/modules/example) (hanya dipasa
 
 | File | Isi |
 |---|---|
-| `repository.go` | Akses data. Mulai T02 berisi query **sqlc**. Setiap method tenant menerima `weddingID` dan memfilternya. Tidak diekspor ke modul lain. |
+| `repository.go` | Akses data lewat query **sqlc** di `db/` (package `<m>db`). Setiap method tenant menerima `weddingID` dan memfilternya. Tidak diekspor ke modul lain. |
+| `db/queries/*.sql` | Query sqlc modul. Hasil generate di `db/*.go` (di-commit). |
 | `service.go` | Business logic + validasi. **Satu-satunya API publik modul** — modul lain hanya boleh memanggil `Service`. Error domain sebagai `var ErrXxx = errors.New(...)`. |
 | `handler.go` | HTTP handler Echo. Parse input → panggil service → render templ fragment. Map error domain ke status HTTP (422 validasi, 404 tidak ditemukan). |
 | `routes.go` | `type Deps struct{...}` dan `func Register(g *echo.Group, deps Deps)`. |
@@ -54,7 +60,7 @@ Contoh lengkap ada di [`src/modules/example`](src/modules/example) (hanya dipasa
 Wiring di `cmd/server/main.go`:
 
 ```go
-repo := wedding.NewRepository(db)
+repo := wedding.NewRepository(pool)
 svc := wedding.NewService(repo)
 wedding.Register(e.Group("/dashboard/wedding"), wedding.Deps{Service: svc})
 ```
@@ -77,13 +83,17 @@ Gunakan resource & verb HTTP yang wajar, mis. `GET /weddings/:weddingID/guests`,
 
 ```bash
 cp .env.example .env
-make tools        # unduh tailwindcss ke ./bin
+make tools        # unduh tailwindcss & sqlc ke ./bin
+make db-up        # Postgres lokal (docker compose, port 5433)
+make migrate-up
 make dev          # air (templ generate + rebuild) + tailwind --watch → http://localhost:8090
-make test         # go test -race ./...
-make lint         # gofmt, templ fmt, go vet, golangci-lint
-make build        # binary ke ./bin/server
+make test         # go test -race ./... (integration test DB di-skip)
+make test-integration  # termasuk integration test Postgres
+make lint         # gofmt, templ fmt, go vet, golangci-lint, lint-tenant
+make build        # binary ke ./bin/lovoria
 make migrate-new name=create_weddings
-make migrate-up / make migrate-down
+make migrate-down / make migrate-status / make seed
+make sqlc         # generate query sqlc
 ```
 
 ## Definition of Done
