@@ -1,0 +1,12 @@
+package publicsite
+
+import "github.com/khamdanngazis/lovaria/src/templates/layouts"
+
+templ landingPage() {
+	@layouts.Public(layouts.Meta{Description: "Undangan pernikahan digital yang personal."}) {
+		<section class="py-16 text-center">
+			<h1 class="font-heading text-4xl text-primary">Lovoria</h1>
+			<p class="mt-4 text-ink/80">Undangan pernikahan digital yang personal.</p>
+		</section>
+	}
+}

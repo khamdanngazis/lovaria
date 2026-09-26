@@ -1,0 +1,28 @@
+version: "2"
+run:
+  timeout: 5m
+linters:
+  enable:
+    - bodyclose
+    - errorlint
+    - gosec
+    - revive
+    - unconvert
+  settings:
+    revive:
+      rules:
+        - name: exported
+          disabled: true
+        - name: package-comments
+          disabled: true
+    gosec:
+      excludes:
+        - G104
+  exclusions:
+    generated: strict
+    rules:
+      - path: _test\.go
+        linters: [gosec, bodyclose]
+formatters:
+  enable:
+    - gofmt

@@ -1,0 +1,25 @@
+/* Input Tailwind v4 (standalone CLI). Output: static/css/app.css */
+@import "tailwindcss";
+
+@source "../";
+
+/* Token dasar. Nilai per tema di-override lewat [data-theme="..."] (theme registry, T08). */
+@theme {
+  --color-primary: var(--lv-primary);
+  --color-surface: var(--lv-surface);
+  --color-ink: var(--lv-ink);
+  --font-heading: var(--lv-font-heading);
+  --font-sans: var(--lv-font-body);
+}
+
+:root {
+  --lv-primary: #b76e79;
+  --lv-surface: #fffaf7;
+  --lv-ink: #2c2c2c;
+  --lv-font-heading: "Playfair Display", ui-serif, Georgia, serif;
+  --lv-font-body: ui-sans-serif, system-ui, sans-serif;
+}
+
+[x-cloak] {
+  display: none !important;
+}

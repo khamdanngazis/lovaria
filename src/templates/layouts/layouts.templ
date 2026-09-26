@@ -1,0 +1,78 @@
+package layouts
+
+import "github.com/khamdanngazis/lovaria/static"
+
+// DefaultTheme dipakai bila halaman tidak menentukan tema.
+// Pemetaan tema → layout/token nantinya hanya lewat theme registry (modules/theme, T08).
+const DefaultTheme = "default"
+
+// Meta berisi metadata halaman untuk <head>.
+type Meta struct {
+	Title       string
+	Description string
+	// Theme mengisi atribut data-theme di <html> (dipakai CSS token tema, T08).
+	Theme string
+}
+
+func (m Meta) theme() string {
+	if m.Theme == "" {
+		return DefaultTheme
+	}
+	return m.Theme
+}
+
+func (m Meta) title() string {
+	if m.Title == "" {
+		return "Lovoria"
+	}
+	return m.Title + " · Lovoria"
+}
+
+templ base(meta Meta, bodyClass string) {
+	<!DOCTYPE html>
+	<html lang="id" data-theme={ meta.theme() }>
+		<head>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<title>{ meta.title() }</title>
+			if meta.Description != "" {
+				<meta name="description" content={ meta.Description }/>
+			}
+			<link rel="stylesheet" href={ static.URL("css/app.css") }/>
+			<script src={ static.URL("js/htmx.min.js") } defer></script>
+			<script src={ static.URL("js/alpine.min.js") } defer></script>
+		</head>
+		<body class={ bodyClass }>
+			{ children... }
+		</body>
+	</html>
+}
+
+// Public adalah layout dasar website wedding & halaman publik (mobile-first).
+templ Public(meta Meta) {
+	@base(meta, "min-h-dvh bg-surface text-ink antialiased") {
+		<main class="mx-auto w-full max-w-screen-sm px-4 py-8">
+			{ children... }
+		</main>
+	}
+}
+
+// Dashboard adalah layout dasar UI couple.
+templ Dashboard(meta Meta) {
+	@base(meta, "min-h-dvh bg-slate-50 text-slate-900 antialiased") {
+		<header class="border-b border-slate-200 bg-white">
+			<div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+				<a href="/dashboard" class="font-heading text-lg font-semibold text-primary">Lovoria</a>
+				<nav class="text-sm text-slate-600" x-data="{ open: false }">
+					<button type="button" class="sm:hidden" @click="open = !open" aria-label="Menu">☰</button>
+					<div class="hidden sm:flex sm:gap-4" :class="open && '!flex flex-col absolute right-4 mt-2 rounded bg-white p-3 shadow'">
+						<a href="/dashboard">Beranda</a>
+					</div>
+				</nav>
+			</div>
+		</header>
+		<main class="mx-auto w-full max-w-5xl px-4 py-6">
+			{ children... }
+		</main>
+	}
+}

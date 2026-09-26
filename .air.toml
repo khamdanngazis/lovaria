@@ -1,0 +1,27 @@
+# Hot reload untuk `make dev`: setiap perubahan .go/.templ → templ generate → rebuild → restart.
+# Browser buka http://localhost:8090 (proxy air, auto-reload halaman setelah rebuild).
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  pre_cmd = ["go tool templ generate"]
+  cmd = "go build -o ./tmp/server ./cmd/server"
+  entrypoint = ["./tmp/server"]
+  include_ext = ["go", "templ"]
+  exclude_dir = ["bin", "tmp", "static", "doc", "migrations", ".git"]
+  exclude_regex = ["_test\\.go$", "_templ\\.go$"]
+  delay = 200
+  kill_delay = "1s"
+  send_interrupt = true
+  stop_on_error = true
+
+[proxy]
+  enabled = true
+  proxy_port = 8090
+  app_port = 8080
+
+[log]
+  main_only = true
+
+[misc]
+  clean_on_exit = true
