@@ -32,6 +32,7 @@ import (
 	"github.com/khamdanngazis/lovaria/src/dashboard"
 	"github.com/khamdanngazis/lovaria/src/modules/admin"
 	"github.com/khamdanngazis/lovaria/src/modules/auth"
+	"github.com/khamdanngazis/lovaria/src/modules/domain"
 	"github.com/khamdanngazis/lovaria/src/modules/example"
 	"github.com/khamdanngazis/lovaria/src/modules/gallery"
 	"github.com/khamdanngazis/lovaria/src/modules/gift"
@@ -80,6 +81,7 @@ type app struct {
 	store    storage.Storage
 	auth     *auth.Service
 	weddings *wedding.Service
+	domains  *domain.Service
 }
 
 func run(args []string) error {
@@ -147,6 +149,12 @@ func newApp(ctx context.Context, cfg config.Config, log *slog.Logger, pool *pgxp
 	if err != nil {
 		return nil, err
 	}
+	// Custom domain (T15): tanpa CLOUDFLARE_* fitur nonaktif, lookup Host tetap jalan.
+	var hostnames domain.Hostnames
+	if cfg.Domain.Enabled() {
+		hostnames = &domain.Cloudflare{Token: cfg.Domain.CloudflareToken, ZoneID: cfg.Domain.CloudflareZoneID}
+	}
+	reserved := append([]string{hostOnly(cfg.BaseURL)}, cfg.ExtraHosts...)
 	return &app{
 		cfg:      cfg,
 		log:      log,
@@ -154,7 +162,17 @@ func newApp(ctx context.Context, cfg config.Config, log *slog.Logger, pool *pgxp
 		store:    store,
 		auth:     auth.NewService(auth.NewRepository(pool), mailer, cfg.BaseURL, log),
 		weddings: wedding.NewService(wedding.NewRepository(pool)),
+		domains:  domain.NewService(pool, hostnames, domain.Config{CNAMETarget: cfg.Domain.CNAMETarget, Reserved: reserved}, log),
 	}, nil
+}
+
+// hostOnly: host dari URL (https://lovoria.com → lovoria.com).
+func hostOnly(raw string) string {
+	u, err := url.Parse(raw)
+	if err != nil {
+		return ""
+	}
+	return strings.ToLower(u.Hostname())
 }
 
 // seeders mendaftarkan seeder modul untuk `lovoria seed`.
@@ -292,6 +310,7 @@ func (a *app) serve(ctx context.Context) error {
 	static.Configure(a.cfg.StaticFromDisk, "static")
 	go a.auth.RunCleanup(ctx, time.Hour)
 	go a.weddings.RunLifecycle(ctx, 10*time.Minute, a.cfg.ArchiveAfterDays, a.log)
+	go a.domains.RunPolling(ctx, 5*time.Minute) // verifikasi custom domain (T15)
 	return server.Run(ctx, a.routes(), a.cfg, a.log)
 }
 
@@ -328,10 +347,11 @@ func (a *app) routes() *echo.Echo {
 	guests := guest.NewService(guest.NewRepository(a.pool), cfg.BaseURL)
 	guestbooks := guestbook.NewService(a.pool, guestbook.NewWordFilter(slices.Concat(guestbook.DefaultBlockedWords, cfg.GuestbookBlockedWords)))
 	gifts := gift.NewService(a.pool)
+	a.weddings.SetDomains(a.domains, cfg.BaseURL) // URL kanonik (custom domain aktif)
 	views := &publicsite.ViewBuilder{Weddings: a.weddings, Events: events, Stories: stories, Gallery: photos, Themes: themes, Guestbook: guestbooks, Gifts: gifts}
 	home := &dashboard.Home{
 		Weddings: a.weddings, Events: events, Stories: stories, Gallery: photos, Themes: themes,
-		Guests: guests, Guestbook: guestbooks, BaseURL: cfg.BaseURL,
+		Guests: guests, Guestbook: guestbooks,
 	}
 
 	dash := e.Group("/dashboard", authMW.RequireAuth)
@@ -344,9 +364,10 @@ func (a *app) routes() *echo.Echo {
 	guest.Register(owned, guest.Deps{Service: guests})
 	guestbook.Register(owned, guestbook.Deps{Service: guestbooks})
 	gift.Register(owned, gift.Deps{Service: gifts})
+	domain.Register(owned, domain.Deps{Service: a.domains})
 	admin.Register(e.Group("/admin", authMW.RequireAuth, authMW.RequireRole(auth.RoleAdmin)), admin.Deps{})
 	publicsite.Register(e, publicsite.Deps{
-		Resolver: &publicsite.Resolver{Weddings: a.weddings, Guests: guests, Domains: publicsite.NoDomains{}, BaseURL: cfg.BaseURL, Log: log},
+		Resolver: &publicsite.Resolver{Weddings: a.weddings, Guests: guests, Domains: a.domains, BaseURL: cfg.BaseURL, ExtraHosts: cfg.ExtraHosts, HostHeader: cfg.Domain.HostHeader, Log: log},
 		Handler:  &publicsite.Handler{Views: views, Guests: guests, Guestbook: guestbooks, Events: events, Log: log, Secret: appSecret(cfg, log)},
 	})
 	return e

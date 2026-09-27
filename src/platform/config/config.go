@@ -38,6 +38,11 @@ type Config struct {
 	// GuestbookBlockedWords: kata kasar tambahan untuk filter buku ucapan
 	// (GUESTBOOK_BLOCKED_WORDS, dipisah koma; ditambahkan ke daftar bawaan).
 	GuestbookBlockedWords []string
+	// Domain berisi setelan custom domain (Cloudflare for SaaS, T15).
+	Domain Domain
+	// ExtraHosts: host milik Lovoria selain BASE_URL (mis. domain Railway) —
+	// Host lain yang bukan custom domain aktif mendapat 404.
+	ExtraHosts []string
 	// ArchiveAfterDays: wedding Kenangan diarsipkan otomatis setelah N hari
 	// sejak hari H+1 (LIFECYCLE_ARCHIVE_DAYS, default 365).
 	ArchiveAfterDays int
@@ -82,6 +87,21 @@ type Mail struct {
 	// ResendAPIKey untuk driver resend (RESEND_API_KEY).
 	ResendAPIKey string
 }
+
+// Domain adalah setelan custom domain per wedding (lihat doc/custom-domain.md).
+type Domain struct {
+	// CloudflareToken & CloudflareZoneID (CLOUDFLARE_API_TOKEN, CLOUDFLARE_ZONE_ID):
+	// zona Lovoria yang mengaktifkan Cloudflare for SaaS. Kosong → fitur nonaktif.
+	CloudflareToken  string
+	CloudflareZoneID string
+	// CNAMETarget tujuan CNAME untuk pasangan, mis. domains.lovoria.com (CUSTOM_DOMAIN_CNAME_TARGET).
+	CNAMETarget string
+	// HostHeader: header berisi host asli bila proxy (Cloudflare Worker) menulis
+	// ulang Host, mis. X-Forwarded-Host (CUSTOM_DOMAIN_HOST_HEADER). Kosong → Host.
+	HostHeader string
+}
+
+func (d Domain) Enabled() bool { return d.CloudflareToken != "" }
 
 // Storage adalah setelan penyimpanan objek (lihat src/platform/storage).
 type Storage struct {
@@ -233,6 +253,18 @@ func LoadFrom(getenv func(string) string) (Config, error) {
 		if w = strings.TrimSpace(w); w != "" {
 			cfg.GuestbookBlockedWords = append(cfg.GuestbookBlockedWords, w)
 		}
+	}
+	cfg.Domain = Domain{
+		CloudflareToken:  get("CLOUDFLARE_API_TOKEN", ""),
+		CloudflareZoneID: get("CLOUDFLARE_ZONE_ID", ""),
+		CNAMETarget:      strings.TrimSuffix(strings.ToLower(get("CUSTOM_DOMAIN_CNAME_TARGET", "")), "."),
+		HostHeader:       get("CUSTOM_DOMAIN_HOST_HEADER", ""),
+	}
+	if set := []bool{cfg.Domain.CloudflareToken != "", cfg.Domain.CloudflareZoneID != "", cfg.Domain.CNAMETarget != ""}; set[0] != set[1] || set[1] != set[2] {
+		errs = append(errs, errors.New("CLOUDFLARE_API_TOKEN, CLOUDFLARE_ZONE_ID, dan CUSTOM_DOMAIN_CNAME_TARGET harus diisi semua (atau dikosongkan semua)"))
+	}
+	if d := strings.TrimSpace(getenv("RAILWAY_PUBLIC_DOMAIN")); d != "" {
+		cfg.ExtraHosts = append(cfg.ExtraHosts, strings.ToLower(d))
 	}
 	cfg.Secret = getenv("APP_SECRET")
 	if cfg.Secret != "" && len(cfg.Secret) < 32 {

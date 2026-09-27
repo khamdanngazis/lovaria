@@ -60,6 +60,8 @@ Semua lewat environment variable (lihat [`.env.example`](.env.example)), dibaca 
 | `R2_PUBLIC_URL` | — | URL publik bucket, mis. `https://media.lovoria.com` atau `https://pub-xxx.r2.dev` |
 | `R2_ENDPOINT` | `https://<account>.r2.cloudflarestorage.com` | Override endpoint S3 (opsional) |
 | `APP_SECRET` | acak per proses | Kunci HMAC token form RSVP publik (min. 32 karakter). **Isi di production**, mis. `openssl rand -hex 32` |
+| `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ZONE_ID`, `CUSTOM_DOMAIN_CNAME_TARGET` | – | Custom domain per wedding (Cloudflare for SaaS). Isi ketiganya atau kosongkan semua. Lihat [doc/custom-domain.md](doc/custom-domain.md) |
+| `CUSTOM_DOMAIN_HOST_HEADER` | – | Header berisi host asli bila Cloudflare Worker menulis ulang Host (mis. `X-Lovoria-Host`) |
 | `GUESTBOOK_BLOCKED_WORDS` | – | Kata kasar tambahan untuk filter buku ucapan, dipisah koma (ditambahkan ke daftar bawaan) |
 | `LIFECYCLE_ARCHIVE_DAYS` | `365` | Wedding berstatus Kenangan diarsipkan otomatis setelah N hari |
 | `DATABASE_URL_TEST` | — | Hanya untuk integration test (user harus boleh `CREATE DATABASE`) |

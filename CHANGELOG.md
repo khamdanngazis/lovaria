@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### T15 — Custom domain (Cloudflare for SaaS)
+- Modul `domain` (migration `00011`): daftar domain per wedding, validasi & normalisasi, client Cloudflare Custom Hostnames (create/get/delete), status `pending_verification → active / failed (72 jam) / removed`, scheduler 5 menit dengan advisory lock, hapus domain menghapus hostname di Cloudflare dulu.
+- Dashboard menu **Domain**: form, instruksi CNAME untuk orang awam (Host `www`/`@`, target, peringatan domain utama), badge status, Cek ulang, Hapus.
+- Resolver: lookup Host → wedding dengan cache 60 detik (dikosongkan saat status berubah); host tak dikenal → 404 generik; `CUSTOM_DOMAIN_HOST_HEADER` untuk proxy (Cloudflare Worker di depan Railway); `RAILWAY_PUBLIC_DOMAIN` dikenali sebagai host Lovoria.
+- `/w/:slug` → 301 ke custom domain aktif (`/i/:code` tetap); `wedding.Service.CanonicalBaseURL`; beranda dashboard menampilkan link kanonik.
+- Peringatan log saat domain aktif ≥ 90 (kuota gratis 100).
+- Config baru: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ZONE_ID`, `CUSTOM_DOMAIN_CNAME_TARGET`, `CUSTOM_DOMAIN_HOST_HEADER`. Dokumentasi setup: `doc/custom-domain.md`.
+
 ### T13 — Beranda dashboard & ringkasan RSVP
 - Beranda wedding: nama pasangan, tanggal + hitung mundur (zona waktu wedding), status & Publikasikan, link undangan umum + Salin, tombol cepat, checklist onboarding 7 langkah dengan progress, ringkasan tamu & RSVP (open rate, RSVP rate), 5 ucapan terbaru, ringkasan galeri & storage.
 - Paket `src/dashboard` sebagai agregator murni (tanpa query; `TestNoQueriesInDashboard`), disuntikkan ke modul wedding lewat `wedding.Deps.Home`. Service baru: `guestbook.Recent`, `gallery.Summary`, `theme.Configured`, `Wedding.CountdownText`.

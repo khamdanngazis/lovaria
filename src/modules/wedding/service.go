@@ -143,9 +143,11 @@ type CoupleInput struct {
 }
 
 type Service struct {
-	repo   *Repository
-	events EventCounter
-	now    func() time.Time
+	repo    *Repository
+	events  EventCounter
+	now     func() time.Time
+	domains DomainSource // nil → tanpa custom domain
+	baseURL string
 }
 
 func NewService(repo *Repository) *Service {
@@ -466,4 +468,30 @@ func (s *Service) RebaseMediaURLs(ctx context.Context, oldPrefix, newPrefix stri
 		return nil
 	})
 	return total, err
+}
+
+// DomainSource: domain aktif wedding (modul domain, T15).
+type DomainSource interface {
+	ActiveDomain(ctx context.Context, weddingID uuid.UUID) (host string, ok bool, err error)
+}
+
+// SetDomains menghubungkan modul domain & basis URL Lovoria untuk CanonicalBaseURL.
+func (s *Service) SetDomains(d DomainSource, baseURL string) {
+	s.domains, s.baseURL = d, strings.TrimRight(baseURL, "/")
+}
+
+// CanonicalBaseURL: URL utama undangan umum — https://<custom domain> bila
+// aktif, selain itu BASE_URL + /w/<slug>. Dipakai link bagikan (T14), redirect
+// /w/:slug, dan beranda dashboard.
+func (s *Service) CanonicalBaseURL(ctx context.Context, w Wedding) (string, error) {
+	if s.domains != nil {
+		host, ok, err := s.domains.ActiveDomain(ctx, w.ID)
+		if err != nil {
+			return "", err
+		}
+		if ok {
+			return "https://" + host, nil
+		}
+	}
+	return s.baseURL + "/w/" + w.Slug, nil
 }
