@@ -411,3 +411,37 @@ func (s *Service) ListWeddingsByOwner(ctx context.Context, ownerID uuid.UUID) ([
 	}
 	return out, nil
 }
+
+// ---------- Perawatan ----------
+
+// RebaseMediaURLs mengganti basis URL media (oldPrefix → newPrefix) pada foto
+// utama wedding & foto pasangan. apply=false hanya menghitung baris terdampak.
+// Dipakai `lovoria media rebase-urls` saat domain publik storage berganti.
+func (s *Service) RebaseMediaURLs(ctx context.Context, oldPrefix, newPrefix string, apply bool) (int64, error) {
+	if !apply {
+		a, err := s.repo.q.CountMainPhotoPrefix(ctx, oldPrefix)
+		if err != nil {
+			return 0, err
+		}
+		b, err := s.repo.q.CountCouplePhotoPrefix(ctx, oldPrefix)
+		return a + b, err
+	}
+	var total int64
+	err := s.repo.inTx(ctx, func(q *weddingdb.Queries) error {
+		n, err := q.RebaseMainPhotoURL(ctx, weddingdb.RebaseMainPhotoURLParams{OldPrefix: oldPrefix, NewPrefix: newPrefix})
+		if err != nil {
+			return err
+		}
+		total += n
+		if n, err = q.RebaseGroomPhotoURL(ctx, weddingdb.RebaseGroomPhotoURLParams{OldPrefix: oldPrefix, NewPrefix: newPrefix}); err != nil {
+			return err
+		}
+		total += n
+		if n, err = q.RebaseBridePhotoURL(ctx, weddingdb.RebaseBridePhotoURLParams{OldPrefix: oldPrefix, NewPrefix: newPrefix}); err != nil {
+			return err
+		}
+		total += n
+		return nil
+	})
+	return total, err
+}

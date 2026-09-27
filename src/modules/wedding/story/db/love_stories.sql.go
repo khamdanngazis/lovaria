@@ -11,6 +11,18 @@ import (
 	"github.com/google/uuid"
 )
 
+const countStoryPhotoPrefix = `-- name: CountStoryPhotoPrefix :one
+SELECT count(*) FROM love_stories WHERE starts_with(photo_url, $1::text)
+`
+
+// tenant:ignore perawatan lintas wedding: ganti basis URL media (lovoria media rebase-urls)
+func (q *Queries) CountStoryPhotoPrefix(ctx context.Context, oldPrefix string) (int64, error) {
+	row := q.db.QueryRow(ctx, countStoryPhotoPrefix, oldPrefix)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createStory = `-- name: CreateStory :one
 INSERT INTO love_stories (id, wedding_id, date_year, date_month, date_day, title, description, photo_url, sort_order)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
@@ -176,6 +188,26 @@ func (q *Queries) ListStoriesForUpdate(ctx context.Context, weddingID uuid.UUID)
 		return nil, err
 	}
 	return items, nil
+}
+
+const rebaseStoryPhotoURL = `-- name: RebaseStoryPhotoURL :execrows
+UPDATE love_stories
+SET photo_url = $1::text || substr(photo_url, length($2::text) + 1)
+WHERE starts_with(photo_url, $2::text)
+`
+
+type RebaseStoryPhotoURLParams struct {
+	NewPrefix string
+	OldPrefix string
+}
+
+// tenant:ignore perawatan lintas wedding: ganti basis URL media (lovoria media rebase-urls)
+func (q *Queries) RebaseStoryPhotoURL(ctx context.Context, arg RebaseStoryPhotoURLParams) (int64, error) {
+	result, err := q.db.Exec(ctx, rebaseStoryPhotoURL, arg.NewPrefix, arg.OldPrefix)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const setStorySortOrder = `-- name: SetStorySortOrder :exec

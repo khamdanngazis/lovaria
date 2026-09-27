@@ -11,6 +11,18 @@ import (
 	"github.com/google/uuid"
 )
 
+const countItemURLPrefix = `-- name: CountItemURLPrefix :one
+SELECT count(*) FROM gallery_items WHERE starts_with(url, $1::text)
+`
+
+// tenant:ignore perawatan lintas wedding: ganti basis URL media (lovoria media rebase-urls)
+func (q *Queries) CountItemURLPrefix(ctx context.Context, oldPrefix string) (int64, error) {
+	row := q.db.QueryRow(ctx, countItemURLPrefix, oldPrefix)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createItem = `-- name: CreateItem :one
 INSERT INTO gallery_items (id, wedding_id, category, object_key, thumb_key, url, thumb_url,
                            width, height, size_bytes, sort_order, caption)
@@ -212,6 +224,29 @@ func (q *Queries) NextSortOrder(ctx context.Context, weddingID uuid.UUID) (int32
 	var column_1 int32
 	err := row.Scan(&column_1)
 	return column_1, err
+}
+
+const rebaseItemURLs = `-- name: RebaseItemURLs :execrows
+UPDATE gallery_items
+SET url       = CASE WHEN starts_with(url, $1::text)
+                     THEN $2::text || substr(url, length($1::text) + 1) ELSE url END,
+    thumb_url = CASE WHEN starts_with(thumb_url, $1::text)
+                     THEN $2::text || substr(thumb_url, length($1::text) + 1) ELSE thumb_url END
+WHERE starts_with(url, $1::text) OR starts_with(thumb_url, $1::text)
+`
+
+type RebaseItemURLsParams struct {
+	OldPrefix string
+	NewPrefix string
+}
+
+// tenant:ignore perawatan lintas wedding: ganti basis URL media (lovoria media rebase-urls)
+func (q *Queries) RebaseItemURLs(ctx context.Context, arg RebaseItemURLsParams) (int64, error) {
+	result, err := q.db.Exec(ctx, rebaseItemURLs, arg.OldPrefix, arg.NewPrefix)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const setItemSortOrder = `-- name: SetItemSortOrder :exec

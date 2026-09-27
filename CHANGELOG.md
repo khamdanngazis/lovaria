@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fix — URL publik foto R2
+- Config menolak `R2_PUBLIC_URL` berupa endpoint S3 API (`*.r2.cloudflarestorage.com`), yang membuat foto gagal dibuka browser (`InvalidArgument: Authorization`), dengan pesan yang menunjuk ke URL Public access / custom domain.
+- Perintah `lovoria media rebase-urls --from <url-lama> [--to <url-baru>] [--apply]`: memindah basis URL foto yang sudah tersimpan (gallery, foto utama, foto pasangan, foto cerita); simulasi secara default, idempoten. Setiap modul mengubah tabelnya sendiri lewat service (`RebaseMediaURLs`).
+
 ### T07c — Halaman import file lebih ramah
 - Kotak unggah besar (klik atau seret file) di paling atas; memilih file langsung membuka pratinjau.
 - Tombol "Unduh template" (`GET /guests/import/template`, CSV dengan `sep=,` untuk Excel regional Indonesia); parser mendukung baris `sep=`.

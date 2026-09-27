@@ -2,6 +2,7 @@ package config
 
 import (
 	"log/slog"
+	"strings"
 	"testing"
 	"time"
 )
@@ -116,6 +117,15 @@ func TestStorageConfig(t *testing.T) {
 	// Production tanpa R2 (driver local) harus gagal: tidak ada file di disk Railway.
 	if _, err := LoadFrom(envFrom(map[string]string{"DATABASE_URL": "x", "APP_ENV": "production"})); err == nil {
 		t.Error("production + STORAGE_DRIVER=local harus error")
+	}
+	// Endpoint S3 API bukan URL publik.
+	r2["R2_PUBLIC_URL"] = "https://f0eda752dd7b08e24bb1ba322376c95e.r2.cloudflarestorage.com"
+	if _, err := LoadFrom(envFrom(r2)); err == nil || !strings.Contains(err.Error(), "pub-xxxx.r2.dev") {
+		t.Errorf("endpoint API sebagai R2_PUBLIC_URL harus ditolak: %v", err)
+	}
+	r2["R2_PUBLIC_URL"] = "https://pub-0123456789abcdef.r2.dev"
+	if _, err := LoadFrom(envFrom(r2)); err != nil {
+		t.Errorf("r2.dev harus diterima: %v", err)
 	}
 	delete(r2, "R2_BUCKET")
 	if _, err := LoadFrom(envFrom(r2)); err == nil {

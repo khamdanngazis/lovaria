@@ -24,6 +24,7 @@ lovoria [serve]              # HTTP server
 lovoria migrate up|down|status|version|redo
 lovoria seed                 # data contoh (ditolak di production)
 lovoria create-admin --email ops@lovoria.com [--name Ops]   # password: prompt tersembunyi / env LOVORIA_ADMIN_PASSWORD
+lovoria media rebase-urls --from <url-lama> [--apply]       # ganti basis URL foto tersimpan (lihat bagian R2)
 ```
 
 Admin production: `railway ssh --service lovaria -- lovoria create-admin --email <email>` lalu ketik password + Enter.
@@ -93,6 +94,17 @@ Variabel service `lovaria` (tab **Variables**):
 2. Bucket → Settings → **Public access**: sambungkan custom domain (mis. `media.lovoria.com`, di balik CDN Cloudflare) atau aktifkan subdomain `r2.dev` untuk awal. Nilai ini = `R2_PUBLIC_URL`.
 3. R2 → **Manage R2 API Tokens** → Create API token, permission **Object Read & Write**, dibatasi ke bucket tersebut → `R2_ACCESS_KEY_ID` & `R2_SECRET_ACCESS_KEY`.
 4. `R2_ACCOUNT_ID` = ID akun (bagian depan `https://<account>.r2.cloudflarestorage.com`).
+
+⚠️ `R2_PUBLIC_URL` **bukan** endpoint `https://<account>.r2.cloudflarestorage.com` (itu S3 API yang butuh tanda tangan — browser mendapat `InvalidArgument: Authorization`). Aplikasi menolak start bila nilainya endpoint API.
+
+**Mengganti domain publik foto** (mis. memperbaiki `R2_PUBLIC_URL`, atau pindah dari `r2.dev` ke `media.lovoria.com`): URL foto disimpan lengkap di DB, jadi setelah variabel diganti & ter-deploy jalankan:
+
+```bash
+railway ssh --service lovaria -- lovoria media rebase-urls --from <url-lama>          # simulasi: hitung baris terdampak
+railway ssh --service lovaria -- lovoria media rebase-urls --from <url-lama> --apply  # terapkan (default --to = R2_PUBLIC_URL)
+```
+
+Objek di bucket tidak berubah; hanya URL tersimpan (gallery, foto utama, foto pasangan, foto cerita). Aman dijalankan ulang.
 
 Upload selalu lewat server (resize + strip EXIF), jadi bucket tidak butuh CORS. Objek bersifat immutable (key unik) dan disajikan dengan `Cache-Control: immutable`.
 

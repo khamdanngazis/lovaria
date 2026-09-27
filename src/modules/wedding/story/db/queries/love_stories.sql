@@ -26,3 +26,13 @@ UPDATE love_stories SET sort_order = $3 WHERE id = $1 AND wedding_id = $2;
 
 -- name: DeleteStory :execrows
 DELETE FROM love_stories WHERE id = $1 AND wedding_id = $2;
+
+-- name: CountStoryPhotoPrefix :one
+-- tenant:ignore perawatan lintas wedding: ganti basis URL media (lovoria media rebase-urls)
+SELECT count(*) FROM love_stories WHERE starts_with(photo_url, sqlc.arg(old_prefix)::text);
+
+-- name: RebaseStoryPhotoURL :execrows
+-- tenant:ignore perawatan lintas wedding: ganti basis URL media (lovoria media rebase-urls)
+UPDATE love_stories
+SET photo_url = sqlc.arg(new_prefix)::text || substr(photo_url, length(sqlc.arg(old_prefix)::text) + 1)
+WHERE starts_with(photo_url, sqlc.arg(old_prefix)::text);

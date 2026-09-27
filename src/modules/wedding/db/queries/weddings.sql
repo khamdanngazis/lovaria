@@ -39,3 +39,11 @@ WHERE id = sqlc.arg(id);
 
 -- name: SetMainPhotoURL :exec
 UPDATE weddings SET main_photo_url = $2 WHERE id = $1;
+
+-- name: CountMainPhotoPrefix :one
+SELECT count(*) FROM weddings WHERE starts_with(main_photo_url, sqlc.arg(old_prefix)::text);
+
+-- name: RebaseMainPhotoURL :execrows
+UPDATE weddings
+SET main_photo_url = sqlc.arg(new_prefix)::text || substr(main_photo_url, length(sqlc.arg(old_prefix)::text) + 1)
+WHERE starts_with(main_photo_url, sqlc.arg(old_prefix)::text);
