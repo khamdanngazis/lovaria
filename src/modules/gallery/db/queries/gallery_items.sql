@@ -30,3 +30,16 @@ UPDATE gallery_items SET sort_order = $3 WHERE id = $1 AND wedding_id = $2;
 -- name: DeleteItem :one
 DELETE FROM gallery_items WHERE id = $1 AND wedding_id = $2
 RETURNING object_key, thumb_key, size_bytes;
+
+-- name: CountItemURLPrefix :one
+-- tenant:ignore perawatan lintas wedding: ganti basis URL media (lovoria media rebase-urls)
+SELECT count(*) FROM gallery_items WHERE starts_with(url, sqlc.arg(old_prefix)::text);
+
+-- name: RebaseItemURLs :execrows
+-- tenant:ignore perawatan lintas wedding: ganti basis URL media (lovoria media rebase-urls)
+UPDATE gallery_items
+SET url       = CASE WHEN starts_with(url, sqlc.arg(old_prefix)::text)
+                     THEN sqlc.arg(new_prefix)::text || substr(url, length(sqlc.arg(old_prefix)::text) + 1) ELSE url END,
+    thumb_url = CASE WHEN starts_with(thumb_url, sqlc.arg(old_prefix)::text)
+                     THEN sqlc.arg(new_prefix)::text || substr(thumb_url, length(sqlc.arg(old_prefix)::text) + 1) ELSE thumb_url END
+WHERE starts_with(url, sqlc.arg(old_prefix)::text) OR starts_with(thumb_url, sqlc.arg(old_prefix)::text);

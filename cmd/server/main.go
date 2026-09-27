@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"net/url"
 	"os"
 	"os/signal"
 	"strings"
@@ -53,6 +54,8 @@ const usage = `Usage:
   lovoria [serve]            jalankan HTTP server
   lovoria migrate <cmd>      cmd: up | down | status | version | redo
   lovoria seed               isi data contoh (development)
+  lovoria media rebase-urls --from <url-lama> [--to <url-baru>] [--apply]
+                             ganti basis URL foto tersimpan (default --to = R2_PUBLIC_URL; tanpa --apply hanya simulasi)
   lovoria create-admin --email <email> [--name <nama>] [--password <pw>]
                              tanpa --password: env LOVORIA_ADMIN_PASSWORD, lalu prompt stdin`
 
@@ -118,6 +121,11 @@ func run(args []string) error {
 		return seed.Run(ctx, log, a.seeders())
 	case "create-admin":
 		return a.createAdmin(ctx, args[1:], os.Stdin)
+	case "media":
+		if len(args) < 2 || args[1] != "rebase-urls" {
+			return fmt.Errorf("media: perintah yang tersedia: rebase-urls\n%s", usage)
+		}
+		return a.rebaseMediaURLs(ctx, args[2:], os.Stdout)
 	default:
 		return fmt.Errorf("perintah tidak dikenal %q\n%s", cmd, usage)
 	}
@@ -178,6 +186,67 @@ func (a *app) createAdmin(ctx context.Context, args []string, stdin io.Reader) e
 	}
 	fmt.Printf("admin dibuat: %s (%s)\n", u.Email, u.ID)
 	return nil
+}
+
+// rebaseMediaURLs mengganti basis URL foto yang tersimpan di DB (mis. setelah
+// R2_PUBLIC_URL diperbaiki atau pindah ke custom domain). Objek di storage tidak
+// berubah. Tiap modul mengubah tabelnya sendiri lewat service-nya.
+func (a *app) rebaseMediaURLs(ctx context.Context, args []string, out io.Writer) error {
+	fs := flag.NewFlagSet("media rebase-urls", flag.ContinueOnError)
+	from := fs.String("from", "", "basis URL lama, mis. https://<akun>.r2.cloudflarestorage.com (wajib)")
+	to := fs.String("to", a.cfg.Storage.PublicURL, "basis URL baru (default: R2_PUBLIC_URL)")
+	apply := fs.Bool("apply", false, "terapkan perubahan (tanpa ini hanya simulasi)")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	oldPrefix, err := mediaPrefix(*from)
+	if err != nil {
+		return fmt.Errorf("--from: %w", err)
+	}
+	newPrefix, err := mediaPrefix(*to)
+	if err != nil {
+		return fmt.Errorf("--to: %w", err)
+	}
+	if oldPrefix == newPrefix {
+		return errors.New("--from dan --to sama")
+	}
+
+	steps := []struct {
+		name string
+		fn   func(context.Context, string, string, bool) (int64, error)
+	}{
+		{"gallery_items", gallery.NewService(gallery.NewRepository(a.pool), a.store, a.weddings, a.cfg.Storage.QuotaBytes, a.log).RebaseMediaURLs},
+		{"weddings + couples", a.weddings.RebaseMediaURLs},
+		{"love_stories", story.NewService(story.NewRepository(a.pool)).RebaseMediaURLs},
+	}
+	mode := "SIMULASI (tidak ada yang diubah)"
+	if *apply {
+		mode = "DITERAPKAN"
+	}
+	fmt.Fprintf(out, "media rebase-urls — %s\n  dari: %s\n  ke:   %s\n", mode, oldPrefix, newPrefix)
+	var total int64
+	for _, st := range steps {
+		n, err := st.fn(ctx, oldPrefix, newPrefix, *apply)
+		if err != nil {
+			return fmt.Errorf("%s: %w", st.name, err)
+		}
+		total += n
+		fmt.Fprintf(out, "  %-20s %d baris\n", st.name+":", n)
+	}
+	if !*apply && total > 0 {
+		fmt.Fprintln(out, "Jalankan ulang dengan --apply untuk menerapkan.")
+	}
+	return nil
+}
+
+// mediaPrefix menormalkan basis URL menjadi "https://host/path/" (selalu diakhiri
+// "/", supaya https://a.com tidak ikut mencocokkan https://a.com.lain).
+func mediaPrefix(raw string) (string, error) {
+	u, err := url.Parse(strings.TrimSpace(raw))
+	if raw == "" || err != nil || (u.Scheme != "https" && u.Scheme != "http") || u.Host == "" {
+		return "", fmt.Errorf("URL tidak valid %q", raw)
+	}
+	return strings.TrimRight(u.String(), "/") + "/", nil
 }
 
 // promptPassword membaca password dari stdin. Di terminal sungguhan input tidak

@@ -11,6 +11,19 @@ import (
 	"github.com/google/uuid"
 )
 
+const countCouplePhotoPrefix = `-- name: CountCouplePhotoPrefix :one
+SELECT count(*) FROM couples
+WHERE starts_with(groom_photo_url, $1::text) OR starts_with(bride_photo_url, $1::text)
+`
+
+// tenant:ignore perawatan lintas wedding: ganti basis URL media (lovoria media rebase-urls)
+func (q *Queries) CountCouplePhotoPrefix(ctx context.Context, oldPrefix string) (int64, error) {
+	row := q.db.QueryRow(ctx, countCouplePhotoPrefix, oldPrefix)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createCouple = `-- name: CreateCouple :one
 INSERT INTO couples (id, wedding_id, groom_name, bride_name)
 VALUES ($1, $2, $3, $4)
@@ -67,6 +80,46 @@ func (q *Queries) GetCouple(ctx context.Context, weddingID uuid.UUID) (Couple, e
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const rebaseBridePhotoURL = `-- name: RebaseBridePhotoURL :execrows
+UPDATE couples
+SET bride_photo_url = $1::text || substr(bride_photo_url, length($2::text) + 1)
+WHERE starts_with(bride_photo_url, $2::text)
+`
+
+type RebaseBridePhotoURLParams struct {
+	NewPrefix string
+	OldPrefix string
+}
+
+// tenant:ignore perawatan lintas wedding: ganti basis URL media (lovoria media rebase-urls)
+func (q *Queries) RebaseBridePhotoURL(ctx context.Context, arg RebaseBridePhotoURLParams) (int64, error) {
+	result, err := q.db.Exec(ctx, rebaseBridePhotoURL, arg.NewPrefix, arg.OldPrefix)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const rebaseGroomPhotoURL = `-- name: RebaseGroomPhotoURL :execrows
+UPDATE couples
+SET groom_photo_url = $1::text || substr(groom_photo_url, length($2::text) + 1)
+WHERE starts_with(groom_photo_url, $2::text)
+`
+
+type RebaseGroomPhotoURLParams struct {
+	NewPrefix string
+	OldPrefix string
+}
+
+// tenant:ignore perawatan lintas wedding: ganti basis URL media (lovoria media rebase-urls)
+func (q *Queries) RebaseGroomPhotoURL(ctx context.Context, arg RebaseGroomPhotoURLParams) (int64, error) {
+	result, err := q.db.Exec(ctx, rebaseGroomPhotoURL, arg.NewPrefix, arg.OldPrefix)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const updateCouple = `-- name: UpdateCouple :one

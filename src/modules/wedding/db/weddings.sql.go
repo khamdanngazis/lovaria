@@ -12,6 +12,17 @@ import (
 	"github.com/google/uuid"
 )
 
+const countMainPhotoPrefix = `-- name: CountMainPhotoPrefix :one
+SELECT count(*) FROM weddings WHERE starts_with(main_photo_url, $1::text)
+`
+
+func (q *Queries) CountMainPhotoPrefix(ctx context.Context, oldPrefix string) (int64, error) {
+	row := q.db.QueryRow(ctx, countMainPhotoPrefix, oldPrefix)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createWedding = `-- name: CreateWedding :one
 INSERT INTO weddings (id, owner_user_id, slug, title, wedding_date, description)
 VALUES ($1, $2, $3, $4, $5, $6)
@@ -196,6 +207,25 @@ func (q *Queries) ListWeddingsByOwner(ctx context.Context, ownerUserID uuid.UUID
 		return nil, err
 	}
 	return items, nil
+}
+
+const rebaseMainPhotoURL = `-- name: RebaseMainPhotoURL :execrows
+UPDATE weddings
+SET main_photo_url = $1::text || substr(main_photo_url, length($2::text) + 1)
+WHERE starts_with(main_photo_url, $2::text)
+`
+
+type RebaseMainPhotoURLParams struct {
+	NewPrefix string
+	OldPrefix string
+}
+
+func (q *Queries) RebaseMainPhotoURL(ctx context.Context, arg RebaseMainPhotoURLParams) (int64, error) {
+	result, err := q.db.Exec(ctx, rebaseMainPhotoURL, arg.NewPrefix, arg.OldPrefix)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const releaseStorage = `-- name: ReleaseStorage :exec

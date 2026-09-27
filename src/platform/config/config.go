@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -89,6 +90,23 @@ type Storage struct {
 	PublicURL string
 	// QuotaBytes kuota penyimpanan per wedding (STORAGE_QUOTA_MB, default 500).
 	QuotaBytes int64
+}
+
+// validatePublicURL memastikan R2_PUBLIC_URL adalah alamat yang bisa dibuka
+// browser (r2.dev / custom domain), bukan endpoint S3 API yang butuh tanda tangan.
+func validatePublicURL(raw string) error {
+	if raw == "" {
+		return nil // sudah dilaporkan sebagai "wajib diisi"
+	}
+	u, err := url.Parse(raw)
+	if err != nil || (u.Scheme != "https" && u.Scheme != "http") || u.Host == "" {
+		return fmt.Errorf("R2_PUBLIC_URL: URL tidak valid %q", raw)
+	}
+	if strings.HasSuffix(strings.ToLower(u.Hostname()), ".r2.cloudflarestorage.com") {
+		return errors.New("R2_PUBLIC_URL: ini endpoint S3 API (butuh tanda tangan, foto tidak bisa dibuka browser); " +
+			"pakai URL Public access bucket (https://pub-xxxx.r2.dev) atau custom domain (mis. https://media.lovoria.com)")
+	}
+	return nil
 }
 
 func (c Config) IsDevelopment() bool { return c.Env == EnvDevelopment }
@@ -193,6 +211,9 @@ func LoadFrom(getenv func(string) string) (Config, error) {
 		}
 		if cfg.Storage.R2AccountID == "" && cfg.Storage.R2Endpoint == "" {
 			errs = append(errs, errors.New("R2_ACCOUNT_ID atau R2_ENDPOINT: wajib diisi untuk STORAGE_DRIVER=r2"))
+		}
+		if err := validatePublicURL(cfg.Storage.PublicURL); err != nil {
+			errs = append(errs, err)
 		}
 	default:
 		errs = append(errs, fmt.Errorf("STORAGE_DRIVER: nilai tidak valid %q (local | r2)", cfg.Storage.Driver))

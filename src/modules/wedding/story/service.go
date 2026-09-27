@@ -322,3 +322,11 @@ func (s *Service) ListStories(ctx context.Context, weddingID uuid.UUID) ([]Story
 	}
 	return out, nil
 }
+
+// RebaseMediaURLs mengganti basis URL foto cerita (lihat wedding.Service.RebaseMediaURLs).
+func (s *Service) RebaseMediaURLs(ctx context.Context, oldPrefix, newPrefix string, apply bool) (int64, error) {
+	if !apply {
+		return s.repo.q.CountStoryPhotoPrefix(ctx, oldPrefix)
+	}
+	return s.repo.q.RebaseStoryPhotoURL(ctx, storydb.RebaseStoryPhotoURLParams{OldPrefix: oldPrefix, NewPrefix: newPrefix})
+}

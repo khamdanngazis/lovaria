@@ -295,3 +295,12 @@ func (s *Service) StorageUsage(ctx context.Context, weddingID uuid.UUID) (Usage,
 	}
 	return Usage{UsedBytes: used, QuotaBytes: s.quota}, nil
 }
+
+// RebaseMediaURLs mengganti basis URL foto & thumbnail gallery (objek di storage
+// tidak berubah; hanya URL publik tersimpan). apply=false hanya menghitung.
+func (s *Service) RebaseMediaURLs(ctx context.Context, oldPrefix, newPrefix string, apply bool) (int64, error) {
+	if !apply {
+		return s.repo.q.CountItemURLPrefix(ctx, oldPrefix)
+	}
+	return s.repo.q.RebaseItemURLs(ctx, gallerydb.RebaseItemURLsParams{OldPrefix: oldPrefix, NewPrefix: newPrefix})
+}
