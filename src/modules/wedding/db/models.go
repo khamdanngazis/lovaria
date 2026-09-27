@@ -60,6 +60,19 @@ type GalleryItem struct {
 	UpdatedAt time.Time
 }
 
+type GiftAccount struct {
+	ID            uuid.UUID
+	WeddingID     uuid.UUID
+	Type          string
+	Provider      string
+	AccountNumber string
+	AccountName   string
+	AddressText   string
+	SortOrder     int32
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+}
+
 type Guest struct {
 	ID               uuid.UUID
 	WeddingID        uuid.UUID
@@ -78,6 +91,16 @@ type Guest struct {
 	LastOpenedAt     *time.Time
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
+}
+
+type GuestbookEntry struct {
+	ID        uuid.UUID
+	WeddingID uuid.UUID
+	GuestID   *uuid.UUID
+	GuestName string
+	Message   string
+	IsHidden  bool
+	CreatedAt time.Time
 }
 
 type LoveStory struct {

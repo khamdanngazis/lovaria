@@ -5,8 +5,12 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/google/uuid"
+
 	"github.com/khamdanngazis/lovaria/src/modules/gallery"
+	"github.com/khamdanngazis/lovaria/src/modules/gift"
 	"github.com/khamdanngazis/lovaria/src/modules/guest"
+	"github.com/khamdanngazis/lovaria/src/modules/guestbook"
 	"github.com/khamdanngazis/lovaria/src/modules/theme"
 	"github.com/khamdanngazis/lovaria/src/modules/theme/view"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding"
@@ -19,11 +23,13 @@ import (
 // ViewBuilder menyusun view.View (kontrak tema) dari service tiap modul.
 // Dipakai halaman undangan publik (T09) dan preview tema di dashboard (T08).
 type ViewBuilder struct {
-	Weddings *wedding.Service
-	Events   *event.Service
-	Stories  *story.Service
-	Gallery  *gallery.Service
-	Themes   *theme.Service
+	Weddings  *wedding.Service
+	Events    *event.Service
+	Stories   *story.Service
+	Gallery   *gallery.Service
+	Themes    *theme.Service
+	Guestbook *guestbook.Service
+	Gifts     *gift.Service
 }
 
 // Build menyusun data undangan wedding w; g boleh nil (akses tanpa kode tamu).
@@ -48,6 +54,10 @@ func (b *ViewBuilder) Build(ctx context.Context, w wedding.Wedding, g *guest.Gue
 	if err != nil {
 		return view.View{}, fmt.Errorf("view: theme: %w", err)
 	}
+	gifts, err := b.Gifts.List(ctx, w.ID)
+	if err != nil {
+		return view.View{}, fmt.Errorf("view: gifts: %w", err)
+	}
 
 	tz := wedding.TimezoneAbbr(w.Timezone)
 	v := view.View{
@@ -65,6 +75,22 @@ func (b *ViewBuilder) Build(ctx context.Context, w wedding.Wedding, g *guest.Gue
 	}
 	if w.MainPhotoURL != nil {
 		v.MainPhoto = *w.MainPhotoURL
+	}
+	if v.AllowGuestbook {
+		es, more, err := b.Guestbook.Visible(ctx, w.ID, uuid.Nil, guestbook.PublicPage)
+		if err != nil {
+			return view.View{}, fmt.Errorf("view: guestbook: %w", err)
+		}
+		v.Guestbook.Entries = guestbookEntries(es, w.Timezone)
+		if more {
+			v.Guestbook.MoreBefore = es[len(es)-1].ID.String()
+		}
+	}
+	for _, a := range gifts {
+		v.Gifts = append(v.Gifts, view.Gift{
+			Type: a.Type, TypeLabel: gift.TypeLabel(a.Type), Provider: a.Provider,
+			AccountNumber: a.AccountNumber, AccountName: a.AccountName, Address: a.Address,
+		})
 	}
 	if g != nil {
 		v.Guest = &view.Guest{Name: g.Name, Code: g.InvitationCode, MaxPax: g.MaxPax, RSVPStatus: g.RSVPStatus, RSVPPax: g.RSVPPax, RSVPMessage: g.RSVPMessage}
@@ -125,6 +151,17 @@ func FillSample(v *view.View) {
 			{DateText: "2019", Title: "Pertama bertemu", Description: "Cerita singkat awal perjumpaan kalian."},
 			{DateText: "2025", Title: "Lamaran", Description: "Momen berharga sebelum hari bahagia."},
 		}
+	}
+	if len(v.Guestbook.Entries) == 0 {
+		v.Sample = true
+		v.Guestbook.Entries = []view.GuestbookEntry{
+			{Name: "Rina", Message: "Selamat menempuh hidup baru! Semoga menjadi keluarga sakinah, mawaddah, warahmah.", DateText: v.DateText},
+			{Name: "Andi & keluarga", Message: "Bahagia selalu untuk kalian berdua.", DateText: v.DateText},
+		}
+	}
+	if len(v.Gifts) == 0 {
+		v.Sample = true
+		v.Gifts = []view.Gift{{Type: "bank", TypeLabel: "Rekening bank", Provider: "Bank Contoh", AccountNumber: "1234567890", AccountName: v.Couple.GroomName}}
 	}
 	if len(v.Gallery) == 0 {
 		v.Sample = true

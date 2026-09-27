@@ -15,6 +15,8 @@ import (
 
 	"github.com/khamdanngazis/lovaria/src/modules/auth"
 	"github.com/khamdanngazis/lovaria/src/modules/gallery"
+	"github.com/khamdanngazis/lovaria/src/modules/gift"
+	"github.com/khamdanngazis/lovaria/src/modules/guestbook"
 	"github.com/khamdanngazis/lovaria/src/modules/theme"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding/event"
@@ -52,6 +54,7 @@ func newApp(t *testing.T) app {
 	views := &publicsite.ViewBuilder{
 		Weddings: ws, Events: event.NewService(event.NewRepository(pool)), Stories: story.NewService(story.NewRepository(pool)),
 		Gallery: gallery.NewService(gallery.NewRepository(pool), store, ws, 500<<20, log), Themes: themes,
+		Guestbook: guestbook.NewService(pool, nil), Gifts: gift.NewService(pool),
 	}
 	e := server.New(cfg, log)
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {

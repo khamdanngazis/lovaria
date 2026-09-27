@@ -15,6 +15,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/khamdanngazis/lovaria/src/modules/guest"
+	"github.com/khamdanngazis/lovaria/src/modules/guestbook"
 	"github.com/khamdanngazis/lovaria/src/modules/theme"
 	"github.com/khamdanngazis/lovaria/src/modules/theme/view"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding/event"
@@ -22,10 +23,11 @@ import (
 )
 
 type Handler struct {
-	Views  *ViewBuilder
-	Guests *guest.Service
-	Events *event.Service
-	Log    *slog.Logger
+	Views     *ViewBuilder
+	Guests    *guest.Service
+	Guestbook *guestbook.Service
+	Events    *event.Service
+	Log       *slog.Logger
 	// Secret kunci HMAC token form RSVP (config APP_SECRET).
 	Secret []byte
 	now    func() time.Time
@@ -62,6 +64,12 @@ func (h *Handler) Invitation(c echo.Context) error {
 		v.Events[i].CalendarURL = res.Prefix + "/events/" + v.Events[i].ID + ".ics"
 	}
 	v.OG = h.og(res, v)
+	if !res.Preview {
+		h.setGuestbookForm(&v, res)
+		if c.QueryParam("guestbook") == "ok" { // kembali dari form tanpa JS
+			v.Guestbook.Notice = guestbookNotice
+		}
+	}
 	if res.Guest != nil && !res.Preview {
 		v.RSVP.Action = res.Prefix + "/rsvp"
 		v.RSVP.Token = h.rsvpToken(res.Guest.InvitationCode, h.clock())

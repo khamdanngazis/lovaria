@@ -54,7 +54,27 @@ Bagian `shared.RSVPSection` (sama di semua tema), tampil bila `View.AllowRSVP` (
 - **Rate limit per kode tamu** (in-memory): 6/menit, burst 5 → 429 (pesan dirender di section).
 - `APP_SECRET` kosong → kunci acak per proses (token dari halaman lama tidak berlaku setelah restart; production mencatat peringatan).
 
-Belum ada (menunggu T11): opsi menyalin pesan RSVP ke buku tamu.
+Pilihan "Tampilkan juga pesan ini di buku ucapan" (checkbox, default mati, hanya bila buku ucapan terbuka): pesan RSVP disalin lewat `guestbook.Post` dengan nama tamu — hanya bila pesannya baru/berubah, jadi kiriman ganda tidak membuat entri ganda.
+
+## Buku ucapan & amplop digital (T11)
+
+Modul & dashboard: [guestbook-gift.md](guestbook-gift.md).
+
+**Buku ucapan** (`shared.GuestbookSection`, tampil bila `wedding.AllowsGuestbook()`: published, wedding_day, **memory**): form nama (terisi nama tamu bila lewat `/i/:code`) + ucapan, lalu 10 pesan terbaru dan "Muat lebih banyak".
+
+| Route | Fungsi |
+|---|---|
+| `POST /i/:code/guestbook`, `/w/:slug/guestbook`, `/guestbook` (custom domain) | Kirim ucapan. htmx → section baru (pesan sukses + daftar terbaru); tanpa JS → 303 ke `…?guestbook=ok#guestbook`. Validasi → 422; status tertutup → 403; draft/preview → 404. |
+| `GET` path yang sama `?before=<id>` | Potongan pesan berikutnya (htmx menukar tombol "Muat lebih banyak"; tanpa JS halaman sederhana). |
+
+Proteksi (tanpa CSRF cookie, lihat `server.PublicFormPath`):
+- **Honeypot** `website` (disembunyikan dari manusia & pembaca layar, `.lv-hp`): terisi → dibalas seolah sukses, **tidak disimpan**.
+- **Token HMAC** `guestbook|<wedding id>|<hari>` (sama seperti RSVP).
+- **Rate limit per IP** (`c.RealIP()`, in-memory): 5/menit, burst 5 → 429 dengan pesan di section.
+- Filter kata kasar → pesan disembunyikan otomatis.
+- Semua teks dirender lewat templ (ter-escape) — pesan berisi HTML tampil apa adanya sebagai teks.
+
+**Amplop digital** (`shared.GiftSection`): tidak dirender bila wedding tidak punya akun. Kartu per akun (penyedia, nomor, a.n.) dan kartu alamat. Tombol **Salin Nomor / Salin Alamat** diaktifkan `invitation.js` (tanpa Alpine — halaman undangan sengaja tidak memuat Alpine demi performa): `navigator.clipboard.writeText` di konteks HTTPS, cadangan `execCommand('copy')` dengan textarea `contentEditable` + `setSelectionRange` (iOS Safari), toast "Tersalin". Nomor disalin tanpa spasi/strip. Tanpa JS tombol tetap tersembunyi dan nomor bisa diseleksi (`select-all`). Nomor rekening **hanya** ada di section ini — tidak di OG meta, halaman arsip, atau file kalender.
 
 ## JS & performa
 

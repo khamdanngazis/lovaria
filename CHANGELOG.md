@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### T11 — Buku ucapan & amplop digital
+- Modul `guestbook` (migration `00009`): section Ucapan & Doa di undangan (nama terisi dari tamu, 10 pesan terbaru + "Muat lebih banyak"), terbuka juga saat Kenangan. Proteksi: honeypot (ditolak diam-diam), token HMAC, rate limit per IP, filter kata kasar (`GUESTBOOK_BLOCKED_WORDS`) → disembunyikan otomatis.
+- Modul `gift` (migration `00010`): rekening bank, e-wallet, alamat kirim hadiah; CRUD + urutan di dashboard. Section Tanda Kasih dengan tombol Salin (Clipboard API + cadangan iOS Safari) dan toast; disembunyikan bila kosong.
+- Dashboard: tab **Ucapan** (tampilkan/sembunyikan/hapus) dan **Hadiah**.
+- RSVP: pilihan menyalin pesan ke buku ucapan (default mati, idempoten).
+- `server.PublicFormPath` mencakup form buku ucapan; `ui.Field` mendapat `Mandatory` & `List`.
+
 ### T10 — RSVP
 - Form RSVP di undangan (`shared.RSVPSection`, semua tema): Hadir/Tidak hadir → jumlah orang (1..max_pax) → pesan; bisa diubah sampai hari H, read-only saat Kenangan. `/w/:slug` mengarahkan ke link pribadi.
 - `POST /i/:code/rsvp`: htmx fragment atau redirect 303 tanpa JS; `pax > max_pax` ditolak; update idempoten.

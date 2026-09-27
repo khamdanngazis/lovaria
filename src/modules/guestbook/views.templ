@@ -1,0 +1,137 @@
+package guestbook
+
+import (
+	"net/url"
+	"strconv"
+	"time"
+
+	"github.com/khamdanngazis/lovaria/src/modules/wedding"
+	"github.com/khamdanngazis/lovaria/src/platform/web"
+	"github.com/khamdanngazis/lovaria/src/templates/layouts"
+)
+
+type pageState struct {
+	W       wedding.Wedding
+	Filter  string // "" | shown | hidden
+	Page    int
+	Entries []Entry
+	Stats   Stats
+}
+
+func base(w wedding.Wedding) string { return w.DashboardURL("/guestbook") }
+
+func (s pageState) query(filter string, page int) string {
+	v := url.Values{}
+	if filter != "" {
+		v.Set("filter", filter)
+	}
+	if page > 1 {
+		v.Set("page", strconv.Itoa(page))
+	}
+	if len(v) == 0 {
+		return base(s.W)
+	}
+	return base(s.W) + "?" + v.Encode()
+}
+
+// when: waktu pesan di zona waktu wedding.
+func (s pageState) when(t time.Time) string {
+	if loc, err := time.LoadLocation(s.W.Timezone); err == nil {
+		t = t.In(loc)
+	}
+	return web.FormatDateID(t) + " " + t.Format("15.04")
+}
+
+templ page(s pageState) {
+	@wedding.Shell(s.W, "/guestbook") {
+		@section(s)
+	}
+}
+
+templ section(s pageState) {
+	<section id="guestbook" class="space-y-4">
+		<p class="text-sm text-slate-600">
+			Ucapan & doa dari tamu. Pesan yang mengandung kata kasar otomatis disembunyikan; tampilkan lagi bila ternyata aman.
+		</p>
+		<nav class="flex gap-2 overflow-x-auto whitespace-nowrap text-sm scrollbar-none" aria-label="Filter pesan">
+			@filterLink(s, "", "Semua · "+strconv.Itoa(s.Stats.Total))
+			@filterLink(s, "shown", "Tampil · "+strconv.Itoa(s.Stats.Visible()))
+			@filterLink(s, "hidden", "Disembunyikan · "+strconv.Itoa(s.Stats.Hidden))
+		</nav>
+		// Filter & halaman aktif ikut dikirim saat aksi, supaya daftar yang dirender ulang tetap sama.
+		<form id="guestbook-state" class="hidden">
+			<input type="hidden" name="filter" value={ s.Filter }/>
+			<input type="hidden" name="page" value={ strconv.Itoa(s.Page) }/>
+		</form>
+		if len(s.Entries) == 0 {
+			<div class="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-slate-500">
+				if s.Stats.Total == 0 {
+					Belum ada ucapan. Pesan dari tamu akan muncul di sini.
+				} else {
+					Tidak ada pesan di filter ini.
+				}
+			</div>
+		} else {
+			<ul class="space-y-2">
+				for _, e := range s.Entries {
+					@item(s, e)
+				}
+			</ul>
+		}
+		<nav class="flex items-center justify-between text-sm" aria-label="Halaman">
+			if s.Page > 1 {
+				<a href={ templ.SafeURL(s.query(s.Filter, s.Page-1)) } class="rounded-lg border border-slate-300 bg-white px-3 py-1.5">‹ Sebelumnya</a>
+			} else {
+				<span></span>
+			}
+			if len(s.Entries) == DashboardPage {
+				<a href={ templ.SafeURL(s.query(s.Filter, s.Page+1)) } class="rounded-lg border border-slate-300 bg-white px-3 py-1.5">Berikutnya ›</a>
+			}
+		</nav>
+	</section>
+}
+
+templ filterLink(s pageState, filter, label string) {
+	<a
+		href={ templ.SafeURL(s.query(filter, 1)) }
+		class={ "rounded-full px-3 py-1.5", templ.KV("bg-primary text-white", s.Filter == filter), templ.KV("bg-white text-slate-600 ring-1 ring-slate-300", s.Filter != filter) }
+		if s.Filter == filter {
+			aria-current="page"
+		}
+	>{ label }</a>
+}
+
+templ item(s pageState, e Entry) {
+	{{ u := base(s.W) + "/" + e.ID.String() }}
+	<li class={ "rounded-xl bg-white p-3 shadow-sm ring-1 ring-black/5", templ.KV("opacity-70", e.Hidden) }>
+		<div class="flex flex-wrap items-center gap-2">
+			<span class="break-words font-medium">{ e.Name }</span>
+			if e.GuestID != nil {
+				<span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">tamu undangan</span>
+			}
+			if e.Hidden {
+				<span class="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-800">Disembunyikan</span>
+			}
+		</div>
+		<p class="mt-1 whitespace-pre-line break-words text-sm text-slate-700">{ e.Message }</p>
+		<div class="mt-2 flex items-center gap-4 border-t border-slate-100 pt-2 text-sm">
+			<span class="flex-1 text-xs text-slate-500">{ s.when(e.CreatedAt) }</span>
+			<form method="post" action={ templ.SafeURL(u) } hx-patch={ u } hx-include="#guestbook-state" hx-target="#guestbook" hx-swap="outerHTML">
+				@layouts.CSRFField()
+				<input type="hidden" name="_method" value="PATCH"/>
+				if e.Hidden {
+					<input type="hidden" name="hidden" value="0"/>
+					<button type="submit" class="font-medium text-primary hover:underline">Tampilkan</button>
+				} else {
+					<input type="hidden" name="hidden" value="1"/>
+					<button type="submit" class="font-medium text-slate-600 hover:underline">Sembunyikan</button>
+				}
+			</form>
+			<form method="post" action={ templ.SafeURL(u) } hx-delete={ u } hx-include="#guestbook-state" hx-target="#guestbook" hx-swap="outerHTML" hx-confirm={ "Hapus ucapan dari " + e.Name + "?" }>
+				@layouts.CSRFField()
+				<input type="hidden" name="_method" value="DELETE"/>
+				<button type="submit" class="text-red-600 hover:underline">Hapus</button>
+			</form>
+		</div>
+	</li>
+}

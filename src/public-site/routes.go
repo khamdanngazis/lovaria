@@ -9,6 +9,8 @@ type Deps struct {
 	Handler  *Handler
 	// RSVPLimit batas kiriman RSVP per kode tamu; nol → default.
 	RSVPLimit RSVPLimit
+	// GuestbookLimit batas kiriman buku ucapan per IP; nol → default.
+	GuestbookLimit GuestbookLimit
 }
 
 func Register(e *echo.Echo, d Deps) {
@@ -25,4 +27,11 @@ func Register(e *echo.Echo, d Deps) {
 	e.GET("/i/:code/events/:file", h.Calendar, rw)
 	// Form publik: tanpa CSRF cookie (lihat server.PublicFormPath), dilindungi token HMAC + rate limit.
 	e.POST("/i/:code/rsvp", h.RSVP, rw, h.rsvpLimiter(d.RSVPLimit))
+
+	// Buku ucapan (T11): POST dilindungi token HMAC + honeypot + rate limit per IP.
+	gbLimit := h.guestbookLimiter(d.GuestbookLimit)
+	for _, p := range []string{"/i/:code/guestbook", "/w/:slug/guestbook", "/guestbook"} {
+		e.GET(p, h.GuestbookMore, rw)
+		e.POST(p, h.GuestbookPost, rw, gbLimit)
+	}
 }

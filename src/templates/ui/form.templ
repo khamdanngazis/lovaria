@@ -13,7 +13,13 @@ type Field struct {
 	Placeholder  string
 	Autocomplete string
 	Required     bool
-	MaxLength    int
+	// Mandatory: tampil sebagai wajib (tanpa label "opsional") tetapi tanpa
+	// atribut required — untuk kolom yang wajib hanya pada kondisi tertentu
+	// (divalidasi server), supaya kolom yang disembunyikan tidak memblokir submit.
+	Mandatory bool
+	MaxLength int
+	// List: id <datalist> berisi saran isian.
+	List string
 }
 
 const inputClass = "mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
@@ -22,7 +28,7 @@ templ Input(f Field) {
 	<div>
 		<label for={ f.ID } class="block text-sm font-medium text-slate-800">
 			{ f.Label }
-			if !f.Required {
+			if !f.Required && !f.Mandatory {
 				<span class="font-normal text-slate-400">(opsional)</span>
 			}
 		</label>
@@ -40,6 +46,9 @@ templ Input(f Field) {
 			if f.MaxLength > 0 {
 				maxlength={ f.MaxLength }
 			}
+			if f.List != "" {
+				list={ f.List }
+			}
 			required?={ f.Required }
 			if f.Error != "" {
 				aria-invalid="true"
@@ -55,7 +64,7 @@ templ TextArea(f Field, rows int) {
 	<div>
 		<label for={ f.ID } class="block text-sm font-medium text-slate-800">
 			{ f.Label }
-			if !f.Required {
+			if !f.Required && !f.Mandatory {
 				<span class="font-normal text-slate-400">(opsional)</span>
 			}
 		</label>
@@ -90,7 +99,7 @@ templ Select(f Field, options []Option) {
 	<div>
 		<label for={ f.ID } class="block text-sm font-medium text-slate-800">
 			{ f.Label }
-			if !f.Required {
+			if !f.Required && !f.Mandatory {
 				<span class="font-normal text-slate-400">(opsional)</span>
 			}
 		</label>
@@ -160,7 +169,7 @@ templ ImageUpload(f Field, uploadURL, category string) {
 	<div x-data={ templ.JSFuncCall("imageUpload", uploadURL, category, f.Value).CallInline }>
 		<span class="block text-sm font-medium text-slate-800">
 			{ f.Label }
-			if !f.Required {
+			if !f.Required && !f.Mandatory {
 				<span class="font-normal text-slate-400">(opsional)</span>
 			}
 		</span>

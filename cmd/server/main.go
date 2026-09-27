@@ -19,6 +19,7 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
+	"slices"
 	"strings"
 	"syscall"
 	"time"
@@ -33,7 +34,9 @@ import (
 	"github.com/khamdanngazis/lovaria/src/modules/auth"
 	"github.com/khamdanngazis/lovaria/src/modules/example"
 	"github.com/khamdanngazis/lovaria/src/modules/gallery"
+	"github.com/khamdanngazis/lovaria/src/modules/gift"
 	"github.com/khamdanngazis/lovaria/src/modules/guest"
+	"github.com/khamdanngazis/lovaria/src/modules/guestbook"
 	"github.com/khamdanngazis/lovaria/src/modules/theme"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding/event"
@@ -324,7 +327,9 @@ func (a *app) routes() *echo.Echo {
 	stories := story.NewService(story.NewRepository(a.pool))
 	photos := gallery.NewService(gallery.NewRepository(a.pool), a.store, a.weddings, cfg.Storage.QuotaBytes, log)
 	themes := theme.NewService(a.pool, a.weddings)
-	views := &publicsite.ViewBuilder{Weddings: a.weddings, Events: events, Stories: stories, Gallery: photos, Themes: themes}
+	guestbooks := guestbook.NewService(a.pool, guestbook.NewWordFilter(slices.Concat(guestbook.DefaultBlockedWords, cfg.GuestbookBlockedWords)))
+	gifts := gift.NewService(a.pool)
+	views := &publicsite.ViewBuilder{Weddings: a.weddings, Events: events, Stories: stories, Gallery: photos, Themes: themes, Guestbook: guestbooks, Gifts: gifts}
 
 	event.Register(owned, event.Deps{Service: events})
 	story.Register(owned, story.Deps{Service: stories})
@@ -332,10 +337,12 @@ func (a *app) routes() *echo.Echo {
 	theme.Register(owned, theme.Deps{Service: themes, Previewer: views})
 	guests := guest.NewService(guest.NewRepository(a.pool), cfg.BaseURL)
 	guest.Register(owned, guest.Deps{Service: guests})
+	guestbook.Register(owned, guestbook.Deps{Service: guestbooks})
+	gift.Register(owned, gift.Deps{Service: gifts})
 	admin.Register(e.Group("/admin", authMW.RequireAuth, authMW.RequireRole(auth.RoleAdmin)), admin.Deps{})
 	publicsite.Register(e, publicsite.Deps{
 		Resolver: &publicsite.Resolver{Weddings: a.weddings, Guests: guests, Domains: publicsite.NoDomains{}, BaseURL: cfg.BaseURL, Log: log},
-		Handler:  &publicsite.Handler{Views: views, Guests: guests, Events: events, Log: log, Secret: appSecret(cfg, log)},
+		Handler:  &publicsite.Handler{Views: views, Guests: guests, Guestbook: guestbooks, Events: events, Log: log, Secret: appSecret(cfg, log)},
 	})
 	return e
 }
