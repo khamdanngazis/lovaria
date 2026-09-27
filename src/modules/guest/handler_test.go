@@ -40,7 +40,7 @@ func newTestServer(t *testing.T, f fixture) *echo.Echo {
 		}
 	})
 	owned := wedding.Register(e.Group("/dashboard/weddings"), wedding.Deps{Service: f.weddings})
-	Register(owned, Deps{Service: f.svc})
+	Register(owned, Deps{Service: f.svc, Weddings: f.weddings})
 	return e
 }
 

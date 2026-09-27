@@ -1,0 +1,118 @@
+package guest
+
+import (
+	"github.com/khamdanngazis/lovaria/src/modules/wedding"
+	"github.com/khamdanngazis/lovaria/src/platform/web"
+	"github.com/khamdanngazis/lovaria/src/templates/layouts"
+	"github.com/khamdanngazis/lovaria/src/templates/ui"
+)
+
+templ sharePage(s shareState) {
+	@wedding.Shell(s.W, "/share") {
+		<div class="space-y-4">
+			@ui.Notice(s.Notice)
+			@shareGeneral(s)
+			@shareTemplateEditor(s)
+			@slugEditor(s)
+		</div>
+	}
+}
+
+// shareGeneral: link undangan umum + Web Share API + salin + WhatsApp.
+templ shareGeneral(s shareState) {
+	@ui.Card() {
+		<h2 class="font-semibold">Link undangan umum</h2>
+		<p class="mt-1 text-sm text-slate-600">Untuk dibagikan di grup atau media sosial. Tamu yang ingin RSVP memakai link pribadi masing-masing (menu Tamu).</p>
+		<div class="mt-3 flex items-center gap-2" x-data={ shareGeneralData(s.Link, s.general()) }>
+			<input type="text" readonly value={ s.Link } aria-label="Link undangan umum" onfocus="this.select()" class="min-w-0 flex-1 rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm"/>
+			<button type="button" x-cloak @click="copy(link, 'link')" class="flex-none rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium hover:bg-slate-50" x-text="copied === 'link' ? 'Tersalin ✓' : 'Salin'">Salin</button>
+		</div>
+		<div class="mt-3 flex flex-wrap gap-2 text-sm" x-data={ shareGeneralData(s.Link, s.general()) }>
+			<button type="button" x-cloak x-show="canShare" @click="nativeShare()" class="rounded-lg bg-primary px-3 py-2 font-medium text-white">Bagikan…</button>
+			<a href={ templ.SafeURL(WhatsAppURL("", s.general())) } target="_blank" rel="noopener" class="rounded-lg bg-green-600 px-3 py-2 font-medium text-white hover:bg-green-700">Kirim lewat WhatsApp</a>
+			<button type="button" x-cloak @click="copy(text, 'msg')" class="rounded-lg border border-slate-300 px-3 py-2 font-medium hover:bg-slate-50" x-text="copied === 'msg' ? 'Tersalin ✓' : 'Salin pesan'">Salin pesan</button>
+			<a href={ templ.SafeURL(s.Link) } target="_blank" rel="noopener" class="rounded-lg border border-slate-300 px-3 py-2 font-medium hover:bg-slate-50">Buka ↗</a>
+		</div>
+	}
+}
+
+// shareTemplateEditor: template pesan dengan preview langsung (Alpine).
+templ shareTemplateEditor(s shareState) {
+	@ui.Card() {
+		<h2 class="font-semibold">Template pesan undangan</h2>
+		<p class="mt-1 text-sm text-slate-600">
+			Dipakai tombol Kirim WA & Salin pesan di daftar tamu. Kata dalam kurung kurawal diganti otomatis:
+			<code class="rounded bg-slate-100 px-1">{ "{guest_name}" }</code>
+			<code class="rounded bg-slate-100 px-1">{ "{couple}" }</code>
+			<code class="rounded bg-slate-100 px-1">{ "{date}" }</code>
+			<code class="rounded bg-slate-100 px-1">{ "{link}" }</code>.
+			Teks di antara *bintang* tampil tebal di WhatsApp.
+		</p>
+		<form method="post" action={ templ.SafeURL(s.W.DashboardURL("/share/template")) } x-data={ s.previewData() } class="mt-4 grid gap-4 md:grid-cols-2">
+			@layouts.CSRFField()
+			<div class="space-y-3">
+				<div class="flex flex-wrap items-center gap-2 text-sm">
+					<label for="share-lang" class="font-medium">Bahasa</label>
+					<select id="share-lang" name="language" x-model="lang" class="rounded-lg border border-slate-300 bg-white px-3 py-1.5">
+						<option value="id" selected?={ s.Form.Language == LangID }>Indonesia</option>
+						<option value="en" selected?={ s.Form.Language == LangEN }>English</option>
+					</select>
+					<button type="button" x-cloak @click="useDefault()" class="text-primary hover:underline">Pakai template bawaan</button>
+				</div>
+				<div>
+					<label for="share-body" class="sr-only">Isi pesan</label>
+					<textarea id="share-body" name="body" rows="12" maxlength="2000" x-model="body" class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 font-mono text-sm">{ s.Form.Body }</textarea>
+					if msg := s.Errors["body"]; msg != "" {
+						<p class="mt-1 text-sm text-red-600">{ msg }</p>
+					}
+					<p class="mt-1 text-xs text-slate-500"><span x-text="body.length">0</span>/2000 karakter</p>
+				</div>
+				<div class="flex flex-wrap gap-2">
+					@ui.PrimaryButton("Simpan template")
+				</div>
+			</div>
+			<div>
+				<p class="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">Preview (contoh tamu: Budi Santoso)</p>
+				<div class="rounded-2xl rounded-tl-sm bg-[#dcf8c6] p-3 text-sm text-slate-900 shadow-sm">
+					<p class="whitespace-pre-wrap break-words" x-text="preview()">{ Render(s.Form.Body, ShareVars{GuestName: "Budi Santoso", Couple: s.Share.Couple, Date: DateText(s.W.WeddingDate, s.Form.Language), Link: Link(s.Share.Origin, "ABCD234")}) }</p>
+				</div>
+			</div>
+		</form>
+		if s.Share.Template.Custom {
+			<form method="post" action={ templ.SafeURL(s.W.DashboardURL("/share/template/reset")) } onsubmit="return confirm('Kembalikan ke template bawaan? Template Anda akan dihapus.')" class="mt-3">
+				@layouts.CSRFField()
+				<button type="submit" class="text-sm text-slate-500 hover:underline">Kembalikan ke template bawaan</button>
+			</form>
+		}
+	}
+}
+
+// slugEditor: ganti alamat undangan (/w/…); alamat lama dialihkan 90 hari.
+templ slugEditor(s shareState) {
+	@ui.Card() {
+		<h2 class="font-semibold">Alamat undangan</h2>
+		<p class="mt-1 text-sm text-slate-600">Ganti bagian akhir alamat undangan umum. Link lama tetap berfungsi (dialihkan) selama 90 hari.</p>
+		@ui.Alert(s.SlugError)
+		<form method="post" action={ templ.SafeURL(s.W.DashboardURL("/slug")) } class="mt-3 space-y-2">
+			@layouts.CSRFField()
+			<input type="hidden" name="_method" value="PATCH"/>
+			<label for="slug-input" class="block text-sm font-medium">Alamat</label>
+			<div class="flex flex-wrap items-center gap-2">
+				<span class="text-sm text-slate-500">{ s.Origin }/w/</span>
+				<input id="slug-input" type="text" name="slug" value={ s.W.Slug } required maxlength="60" pattern="[a-z0-9]+(-[a-z0-9]+)*" autocomplete="off" class="min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-base"/>
+				@ui.PrimaryButton("Simpan")
+			</div>
+			<p class="text-xs text-slate-500">Huruf kecil a–z, angka, dan tanda hubung. Contoh: khamdan-sarah</p>
+		</form>
+		if len(s.Redirects) > 0 {
+			<div class="mt-4 text-sm">
+				<p class="font-medium text-slate-700">Alamat lama yang masih dialihkan</p>
+				<ul class="mt-1 space-y-0.5 text-slate-600">
+					for _, r := range s.Redirects {
+						<li>/w/{ r.OldSlug } <span class="text-xs text-slate-400">— sampai { web.FormatDateID(r.ExpiresAt) }</span></li>
+					}
+				</ul>
+			</div>
+		}
+	}
+}

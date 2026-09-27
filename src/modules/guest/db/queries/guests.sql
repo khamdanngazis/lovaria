@@ -40,6 +40,7 @@ SELECT count(*) FROM guests
 WHERE wedding_id = sqlc.arg(wedding_id)
   AND (sqlc.narg(status)::text IS NULL OR rsvp_status = sqlc.narg(status))
   AND (sqlc.narg(group_name)::text IS NULL OR group_name = sqlc.narg(group_name))
+  AND (sqlc.narg(shared)::boolean IS NULL OR (shared_at IS NOT NULL) = sqlc.narg(shared))
   AND (sqlc.narg(q)::text IS NULL
        OR name ILIKE '%' || sqlc.narg(q) || '%'
        OR phone LIKE '%' || sqlc.narg(q) || '%'
@@ -51,6 +52,7 @@ SELECT * FROM guests
 WHERE wedding_id = sqlc.arg(wedding_id)
   AND (sqlc.narg(status)::text IS NULL OR rsvp_status = sqlc.narg(status))
   AND (sqlc.narg(group_name)::text IS NULL OR group_name = sqlc.narg(group_name))
+  AND (sqlc.narg(shared)::boolean IS NULL OR (shared_at IS NOT NULL) = sqlc.narg(shared))
   AND (sqlc.narg(q)::text IS NULL
        OR name ILIKE '%' || sqlc.narg(q) || '%'
        OR phone LIKE '%' || sqlc.narg(q) || '%'
@@ -91,3 +93,16 @@ WHERE wedding_id = sqlc.arg(wedding_id)
   AND (sqlc.narg(status)::text IS NULL OR rsvp_status = sqlc.narg(status))
 ORDER BY rsvp_at DESC, id
 LIMIT sqlc.arg(lim) OFFSET sqlc.arg(off);
+
+-- name: MarkShared :execrows
+UPDATE guests SET shared_at = $3 WHERE id = $1 AND wedding_id = $2;
+
+-- name: GetShareTemplate :one
+SELECT * FROM share_templates WHERE wedding_id = $1;
+
+-- name: UpsertShareTemplate :exec
+INSERT INTO share_templates (wedding_id, language, body) VALUES ($1, $2, $3)
+ON CONFLICT (wedding_id) DO UPDATE SET language = EXCLUDED.language, body = EXCLUDED.body;
+
+-- name: DeleteShareTemplate :exec
+DELETE FROM share_templates WHERE wedding_id = $1;

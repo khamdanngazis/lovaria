@@ -367,3 +367,30 @@ func TestCustomDomainRedirectAndHostHeader(t *testing.T) {
 		t.Errorf("header host tak dikenal: %d", rec.Code)
 	}
 }
+
+func TestOldSlugRedirects(t *testing.T) {
+	f := newFixture(t)
+	_, w := f.newWedding(t, "a@example.com", "Khamdan", "Sarah")
+	f.publish(w.ID)
+	old := w.Slug
+	if _, err := f.weddings.ChangeSlug(ctx, w.ID, "khamdan-sarah-baru"); err != nil {
+		t.Fatal(err)
+	}
+	rec := f.get("/w/"+old+"?ref=wa", nil)
+	if rec.Code != http.StatusMovedPermanently || rec.Header().Get("Location") != "/w/khamdan-sarah-baru?ref=wa" {
+		t.Fatalf("slug lama: %d %s", rec.Code, rec.Header().Get("Location"))
+	}
+	if rec := f.get("/w/"+old+"/events/x.ics", nil); rec.Header().Get("Location") != "/w/khamdan-sarah-baru/events/x.ics" {
+		t.Errorf("sub-path: %s", rec.Header().Get("Location"))
+	}
+	// POST ke slug lama (buku ucapan) → 308 supaya tetap POST.
+	if rec := f.post("/w/"+old+"/guestbook", gbForm(w.ID, "Ani", "Halo"), false, ""); rec.Code != http.StatusPermanentRedirect {
+		t.Errorf("POST slug lama: %d", rec.Code)
+	}
+	if rec := f.get("/w/khamdan-sarah-baru", nil); rec.Code != http.StatusOK {
+		t.Errorf("slug baru: %d", rec.Code)
+	}
+	if rec := f.get("/w/tidak-pernah-ada", nil); rec.Code != http.StatusNotFound {
+		t.Errorf("slug tak dikenal: %d", rec.Code)
+	}
+}

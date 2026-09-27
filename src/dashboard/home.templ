@@ -32,7 +32,7 @@ templ quickActions(d homeData) {
 		<div class="mt-4 grid grid-cols-3 gap-2 text-center text-sm">
 			<a href={ templ.SafeURL("/w/" + d.W.Slug) } target="_blank" rel="noopener" class="rounded-lg bg-primary px-2 py-2.5 font-medium text-white">Buka website ↗</a>
 			<a href={ templ.SafeURL(d.W.DashboardURL("/info")) } class="rounded-lg border border-slate-300 px-2 py-2.5 font-medium text-slate-700 hover:bg-slate-50">Kelola wedding</a>
-			<a href={ templ.SafeURL(d.W.DashboardURL("/guests")) } class="rounded-lg border border-slate-300 px-2 py-2.5 font-medium text-slate-700 hover:bg-slate-50">Bagikan undangan</a>
+			<a href={ templ.SafeURL(d.W.DashboardURL("/share")) } class="rounded-lg border border-slate-300 px-2 py-2.5 font-medium text-slate-700 hover:bg-slate-50">Bagikan undangan</a>
 		</div>
 	}
 }

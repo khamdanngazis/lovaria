@@ -16,11 +16,12 @@ import (
 )
 
 type Handler struct {
-	svc *Service
+	svc      *Service
+	weddings *wedding.Service
 }
 
-func NewHandler(svc *Service) *Handler {
-	return &Handler{svc: svc}
+func NewHandler(svc *Service, weddings *wedding.Service) *Handler {
+	return &Handler{svc: svc, weddings: weddings}
 }
 
 var fields = []string{"name", "phone", "email", "group_name", "max_pax", "notes"}
@@ -53,7 +54,7 @@ func filterFrom(c echo.Context) Filter {
 	r := c.Request()
 	_ = r.ParseForm()
 	page, _ := strconv.Atoi(r.Form.Get("page"))
-	return Filter{Q: r.Form.Get("q"), Status: r.Form.Get("status"), Group: r.Form.Get("group"), Page: page}
+	return Filter{Q: r.Form.Get("q"), Status: r.Form.Get("status"), Group: r.Form.Get("group"), Shared: r.Form.Get("shared"), Page: page}
 }
 
 func formFrom(c echo.Context) form {
@@ -89,7 +90,11 @@ func (h *Handler) state(c echo.Context, w wedding.Wedding, f Filter) (listState,
 	if err != nil {
 		return listState{}, err
 	}
-	return listState{W: w, Filter: f, Page: p, Stats: st, Groups: groups}, nil
+	share, err := h.share(ctx, w)
+	if err != nil {
+		return listState{}, err
+	}
+	return listState{W: w, Filter: f, Page: p, Stats: st, Groups: groups, Share: share}, nil
 }
 
 // done: htmx → daftar terbaru (+ tutup editor), tanpa JS → redirect ke daftar.
@@ -109,7 +114,11 @@ func (h *Handler) done(c echo.Context, w wedding.Wedding, notice string) error {
 func (h *Handler) invalid(c echo.Context, w wedding.Wedding, id uuid.UUID, g Guest, f form) error {
 	link := ""
 	if id != uuid.Nil {
-		link = h.svc.InvitationURL(g.InvitationCode)
+		origin, err := h.svc.Origin(c.Request().Context(), w.ID)
+		if err != nil {
+			return err
+		}
+		link = Link(origin, g.InvitationCode)
 	}
 	if web.IsHTMX(c) {
 		web.Retarget(c, "#"+formID(id))
@@ -194,7 +203,11 @@ func (h *Handler) Edit(c echo.Context) error {
 	if err != nil {
 		return notFound(err)
 	}
-	ed := editor(w, g.ID, g, formOf(g), h.svc.InvitationURL(g.InvitationCode))
+	origin, err := h.svc.Origin(c.Request().Context(), w.ID)
+	if err != nil {
+		return err
+	}
+	ed := editor(w, g.ID, g, formOf(g), Link(origin, g.InvitationCode))
 	if web.IsHTMX(c) {
 		return web.Render(c, http.StatusOK, ed)
 	}

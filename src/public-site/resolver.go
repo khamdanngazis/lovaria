@@ -149,7 +149,23 @@ func (r *Resolver) ResolveWedding(next echo.HandlerFunc) echo.HandlerFunc {
 			// 3. /w/:slug.
 			w, err := r.Weddings.GetWeddingBySlug(ctx, slug)
 			if errors.Is(err, wedding.ErrNotFound) {
-				return notFound(c)
+				// Slug lama (diganti pasangan, T14) → alamat baru selama 90 hari.
+				nw, ok, rerr := r.Weddings.SlugRedirectTarget(ctx, slug)
+				if rerr != nil {
+					return rerr
+				}
+				if !ok {
+					return notFound(c)
+				}
+				target := "/w/" + nw.Slug + strings.TrimPrefix(c.Request().URL.Path, "/w/"+slug)
+				if q := c.Request().URL.RawQuery; q != "" {
+					target += "?" + q
+				}
+				code := http.StatusMovedPermanently
+				if m := c.Request().Method; m != http.MethodGet && m != http.MethodHead {
+					code = http.StatusPermanentRedirect // 308: form POST tetap POST
+				}
+				return c.Redirect(code, target)
 			}
 			if err != nil {
 				return err

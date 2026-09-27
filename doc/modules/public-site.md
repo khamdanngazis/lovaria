@@ -24,6 +24,8 @@ Hasil (`Resolved{Wedding, Guest, Preview, Origin, Prefix}`) disimpan di context 
 
 **Custom domain (T15):** host yang bukan milik Lovoria dan bukan custom domain aktif → 404 generik (tidak pernah jatuh ke wedding lain lewat path). Domain aktif → `GET /w/:slug…` dialihkan 301 ke `https://<domain>…`; `/i/:code` tidak dialihkan. Detail: [custom-domain.md](../custom-domain.md).
 
+**Slug lama (T14):** `/w/<slug lama>…` → 301 ke `/w/<slug baru>…` (query ikut; selain GET/HEAD memakai 308 supaya POST tetap POST) selama 90 hari setelah pasangan mengganti slug (`slug_redirects`, migration `00017`). Slug lama yang masih dialihkan tidak bisa diambil wedding lain.
+
 **Gerbang status** (guard `wedding.IsPublic()`, lihat [wedding-lifecycle.md](wedding-lifecycle.md)): `draft` → hanya pemilik yang login (banner "Preview", `Cache-Control: no-store`), selain itu 404. `memory` → banner terima kasih; `archived` → halaman ringkas. Kunjungan lewat kode tamu mencatat `guest.MarkOpened`, kecuali pemilik yang sedang preview.
 
 ## Rendering

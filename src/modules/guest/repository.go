@@ -29,7 +29,7 @@ func toGuest(r guestdb.Guest) Guest {
 	g := Guest{
 		ID: r.ID, WeddingID: r.WeddingID, Name: r.Name, Phone: r.Phone, GroupName: r.GroupName,
 		MaxPax: int(r.MaxPax), InvitationCode: r.InvitationCode, RSVPStatus: r.RsvpStatus,
-		RSVPPax: int(r.RsvpPax), RSVPMessage: r.RsvpMessage, RSVPAt: r.RsvpAt, Notes: r.Notes,
+		RSVPPax: int(r.RsvpPax), RSVPMessage: r.RsvpMessage, RSVPAt: r.RsvpAt, SharedAt: r.SharedAt, Notes: r.Notes,
 		LastOpenedAt: r.LastOpenedAt, CreatedAt: r.CreatedAt,
 	}
 	if r.Email != nil {

@@ -90,3 +90,25 @@ SELECT theme_id, count(*) AS n FROM weddings GROUP BY theme_id;
 
 -- name: StorageTotal :one
 SELECT COALESCE(sum(storage_used_bytes), 0)::bigint FROM weddings;
+
+-- name: SetSlug :one
+UPDATE weddings SET slug = $2 WHERE id = $1 RETURNING *;
+
+-- name: SlugTaken :one
+-- tenant:ignore slug unik global (weddings + redirect aktif wedding lain)
+SELECT (EXISTS (SELECT 1 FROM weddings WHERE slug = sqlc.arg(slug)::citext AND id <> sqlc.arg(wedding_id))
+    OR EXISTS (SELECT 1 FROM slug_redirects WHERE old_slug = sqlc.arg(slug)::citext AND wedding_id <> sqlc.arg(wedding_id) AND expires_at > sqlc.arg(now)))::boolean AS taken;
+
+-- name: UpsertSlugRedirect :exec
+INSERT INTO slug_redirects (old_slug, wedding_id, expires_at) VALUES ($1, $2, $3)
+ON CONFLICT (old_slug) DO UPDATE SET wedding_id = EXCLUDED.wedding_id, expires_at = EXCLUDED.expires_at, created_at = now();
+
+-- name: DeleteSlugRedirect :exec
+DELETE FROM slug_redirects WHERE old_slug = $1 AND wedding_id = $2;
+
+-- name: GetSlugRedirect :one
+-- tenant:ignore resolver public site: slug lama → wedding (slug unik global)
+SELECT wedding_id FROM slug_redirects WHERE old_slug = $1 AND expires_at > $2;
+
+-- name: ListSlugRedirects :many
+SELECT * FROM slug_redirects WHERE wedding_id = $1 AND expires_at > $2 ORDER BY created_at DESC;

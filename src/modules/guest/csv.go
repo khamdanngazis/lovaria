@@ -243,6 +243,10 @@ func (s *Service) ExportCSV(ctx context.Context, weddingID uuid.UUID, w io.Write
 	if err != nil {
 		return err
 	}
+	origin, err := s.Origin(ctx, weddingID)
+	if err != nil {
+		return err
+	}
 	if _, err := io.WriteString(w, "\ufeff"); err != nil {
 		return err
 	}
@@ -258,7 +262,7 @@ func (s *Service) ExportCSV(ctx context.Context, weddingID uuid.UUID, w io.Write
 	for _, g := range guests {
 		_ = cw.Write([]string{
 			csvSafe(g.Name), g.Phone, g.Email, csvSafe(g.GroupName), fmt.Sprint(g.MaxPax), g.InvitationCode,
-			s.InvitationURL(g.InvitationCode), g.RSVPStatus, fmt.Sprint(g.RSVPPax), csvSafe(g.RSVPMessage),
+			Link(origin, g.InvitationCode), g.RSVPStatus, fmt.Sprint(g.RSVPPax), csvSafe(g.RSVPMessage),
 			ts(g.RSVPAt), ts(g.LastOpenedAt), csvSafe(g.Notes),
 		})
 	}

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/a-h/templ"
@@ -298,4 +299,18 @@ func (h *Handler) UpdateCouple(c echo.Context) error {
 	f = coupleValues(updated)
 	f.Notice = "Perubahan tersimpan."
 	return render(c, http.StatusOK, coupleForm(w, f), couplePage(w, f))
+}
+
+// PATCH /dashboard/weddings/:weddingID/slug (slug=…) — dari halaman Bagikan (T14).
+func (h *Handler) UpdateSlug(c echo.Context) error {
+	w := mustWedding(c)
+	_, err := h.svc.ChangeSlug(c.Request().Context(), w.ID, c.FormValue("slug"))
+	var se *SlugError
+	if errors.As(err, &se) {
+		return c.Redirect(http.StatusSeeOther, weddingURL(w, "/share?slug_err="+url.QueryEscape(se.Msg)))
+	}
+	if err != nil {
+		return err
+	}
+	return c.Redirect(http.StatusSeeOther, weddingURL(w, "/share?ok=slug"))
 }
