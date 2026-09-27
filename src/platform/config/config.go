@@ -40,7 +40,7 @@ type Config struct {
 	GuestbookBlockedWords []string
 	// Domain berisi setelan custom domain (Cloudflare for SaaS, T15).
 	Domain Domain
-	// ExtraHosts: host milik Lovoria selain BASE_URL (mis. domain Railway) —
+	// ExtraHosts: host milik Lovoria selain BASE_URL (RAILWAY_PUBLIC_DOMAIN + EXTRA_HOSTS) —
 	// Host lain yang bukan custom domain aktif mendapat 404.
 	ExtraHosts []string
 	// ArchiveAfterDays: wedding Kenangan diarsipkan otomatis setelah N hari
@@ -263,8 +263,18 @@ func LoadFrom(getenv func(string) string) (Config, error) {
 	if set := []bool{cfg.Domain.CloudflareToken != "", cfg.Domain.CloudflareZoneID != "", cfg.Domain.CNAMETarget != ""}; set[0] != set[1] || set[1] != set[2] {
 		errs = append(errs, errors.New("CLOUDFLARE_API_TOKEN, CLOUDFLARE_ZONE_ID, dan CUSTOM_DOMAIN_CNAME_TARGET harus diisi semua (atau dikosongkan semua)"))
 	}
-	if d := strings.TrimSpace(getenv("RAILWAY_PUBLIC_DOMAIN")); d != "" {
-		cfg.ExtraHosts = append(cfg.ExtraHosts, strings.ToLower(d))
+	// Host Lovoria tambahan: domain Railway + EXTRA_HOSTS (dipisah koma), mis.
+	// domain lama *.up.railway.app setelah pindah ke domain sendiri, supaya
+	// link undangan yang sudah terkirim tetap jalan.
+	for _, d := range append([]string{getenv("RAILWAY_PUBLIC_DOMAIN")}, strings.Split(getenv("EXTRA_HOSTS"), ",")...) {
+		d = strings.TrimSuffix(strings.ToLower(strings.TrimSpace(d)), ".")
+		if strings.HasPrefix(d, "https://") || strings.HasPrefix(d, "http://") || strings.Contains(d, "/") {
+			errs = append(errs, fmt.Errorf("EXTRA_HOSTS: tulis host saja tanpa skema/path, bukan %q", d))
+			continue
+		}
+		if d != "" {
+			cfg.ExtraHosts = append(cfg.ExtraHosts, d)
+		}
 	}
 	cfg.Secret = getenv("APP_SECRET")
 	if cfg.Secret != "" && len(cfg.Secret) < 32 {

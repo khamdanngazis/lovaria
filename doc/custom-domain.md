@@ -22,12 +22,17 @@ Cloudflare meneruskan request custom hostname ke origin dengan `Host: www.khamda
 
 ```js
 // Worker "lovoria-custom-domains", route: */* di zona lovoria.com — menurut dokumentasi
-// Cloudflare, route */* juga menangkap trafik custom hostname. Variabel Worker: ORIGIN_HOST.
+// Cloudflare, route */* juga menangkap trafik custom hostname.
+// Variabel Worker: ORIGIN_HOST (domain Railway), OWN_ZONE (mis. lovoria.com).
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const original = url.hostname;
-    url.hostname = env.ORIGIN_HOST; // lovaria-production.up.railway.app
+    // Domain Lovoria sendiri (lovoria.com, www., …) diteruskan apa adanya.
+    if (original === env.OWN_ZONE || original.endsWith('.' + env.OWN_ZONE)) {
+      return fetch(request);
+    }
+    url.hostname = env.ORIGIN_HOST; // mis. lovaria-production.up.railway.app
     const req = new Request(url, request);
     req.headers.set('X-Lovoria-Host', original);
     // IP pengunjung asli untuk rate limit (bukan IP Worker).
@@ -37,7 +42,9 @@ export default {
 };
 ```
 
-Lalu isi `CUSTOM_DOMAIN_HOST_HEADER=X-Lovoria-Host`. Request ke domain Lovoria sendiri (`lovoria.com`, domain Railway) juga lewat Worker ini; aplikasi mengenali host tersebut sebagai milik Lovoria (`BASE_URL`, `RAILWAY_PUBLIC_DOMAIN`).
+Lalu isi `CUSTOM_DOMAIN_HOST_HEADER=X-Lovoria-Host`. Trafik domain Lovoria sendiri diteruskan Worker tanpa diubah.
+
+**Domain lama tetap hidup.** Setelah domain sendiri didaftarkan di Railway, `RAILWAY_PUBLIC_DOMAIN` ikut berganti ke domain itu. Isi `EXTRA_HOSTS=<nama>.up.railway.app` supaya domain Railway lama tetap dikenali sebagai host Lovoria — tanpa ini link undangan yang sudah terkirim lewat domain lama menjadi 404 (aturan "host tak dikenal → 404"). Nilai ini juga dipakai sebagai `ORIGIN_HOST` Worker.
 
 **B. Origin yang menerima Host apa pun** (VPS / reverse proxy sendiri): tidak perlu Worker, biarkan `CUSTOM_DOMAIN_HOST_HEADER` kosong.
 
@@ -53,6 +60,7 @@ Buat API token (**My Profile → API Tokens → Create Token → Custom**): perm
 | `CLOUDFLARE_ZONE_ID` | Zone ID (Overview zona, kolom kanan) |
 | `CUSTOM_DOMAIN_CNAME_TARGET` | `domains.lovoria.com` |
 | `CUSTOM_DOMAIN_HOST_HEADER` | `X-Lovoria-Host` (opsi A) atau kosong |
+| `EXTRA_HOSTS` | `lovaria-production.up.railway.app` (domain Railway lama, dipisah koma bila lebih dari satu) |
 
 Ketiga variabel pertama wajib diisi bersamaan; kosong semua → menu Domain menampilkan "belum tersedia".
 
