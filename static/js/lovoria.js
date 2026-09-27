@@ -37,6 +37,30 @@
 
   document.addEventListener('alpine:init', () => {
     // Pengunggah banyak foto sekaligus: antrean, maks. 2 bersamaan, progress per file.
+    // Salin teks (link undangan di beranda). Cadangan execCommand untuk
+    // browser tanpa Clipboard API / konteks non-HTTPS.
+    window.Alpine.data('copyText', (text) => ({
+      copied: false,
+      async copy() {
+        let ok = false;
+        try {
+          await navigator.clipboard.writeText(text);
+          ok = true;
+        } catch (e) {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.cssText = 'position:fixed;opacity:0;font-size:16px';
+          document.body.appendChild(ta);
+          ta.select();
+          ta.setSelectionRange(0, text.length);
+          try { ok = document.execCommand('copy'); } catch (e2) { ok = false; }
+          ta.remove();
+        }
+        this.copied = ok;
+        if (ok) setTimeout(() => { this.copied = false; }, 2000);
+      },
+    }));
+
     window.Alpine.data('galleryUploader', (uploadURL, refreshURL) => ({
       category: 'wedding',
       files: [],

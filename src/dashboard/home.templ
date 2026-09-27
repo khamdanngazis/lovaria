@@ -1,0 +1,176 @@
+package dashboard
+
+import (
+	"strconv"
+
+	"github.com/khamdanngazis/lovaria/src/platform/web"
+	"github.com/khamdanngazis/lovaria/src/templates/ui"
+)
+
+templ widgets(d homeData) {
+	<div class="space-y-4">
+		@quickActions(d)
+		if d.done() < len(d.Onboarding) {
+			@onboarding(d)
+		}
+		@guestSummary(d)
+		<div class="grid gap-4 md:grid-cols-2">
+			@recentMessages(d)
+			@gallerySummary(d)
+		</div>
+	</div>
+}
+
+templ quickActions(d homeData) {
+	@ui.Card() {
+		<p class="text-xs uppercase tracking-wide text-slate-400">Link undangan umum</p>
+		<div class="mt-2 flex items-center gap-2" x-data={ copyData(d.Link) }>
+			<input type="text" readonly value={ d.Link } aria-label="Link undangan umum" class="min-w-0 flex-1 rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-700" onfocus="this.select()"/>
+			<button type="button" x-cloak @click="copy()" class="flex-none rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium hover:bg-slate-50" x-text="copied ? 'Tersalin ✓' : 'Salin'">Salin</button>
+		</div>
+		<p class="mt-2 text-xs text-slate-500">Untuk tamu tertentu, pakai link pribadi dari menu Tamu supaya nama tamu tampil & bisa RSVP.</p>
+		<div class="mt-4 grid grid-cols-3 gap-2 text-center text-sm">
+			<a href={ templ.SafeURL("/w/" + d.W.Slug) } target="_blank" rel="noopener" class="rounded-lg bg-primary px-2 py-2.5 font-medium text-white">Buka website ↗</a>
+			<a href={ templ.SafeURL(d.W.DashboardURL("/info")) } class="rounded-lg border border-slate-300 px-2 py-2.5 font-medium text-slate-700 hover:bg-slate-50">Kelola wedding</a>
+			<a href={ templ.SafeURL(d.W.DashboardURL("/guests")) } class="rounded-lg border border-slate-300 px-2 py-2.5 font-medium text-slate-700 hover:bg-slate-50">Bagikan undangan</a>
+		</div>
+	}
+}
+
+templ onboarding(d homeData) {
+	@ui.Card() {
+		<div class="flex items-center justify-between gap-3">
+			<h2 class="font-semibold">Lengkapi undanganmu</h2>
+			<span class="text-sm text-slate-500">{ strconv.Itoa(d.done()) }/{ strconv.Itoa(len(d.Onboarding)) }</span>
+		</div>
+		<div class="mt-2 h-2 overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-label="Kemajuan checklist" aria-valuemin="0" aria-valuemax={ strconv.Itoa(len(d.Onboarding)) } aria-valuenow={ strconv.Itoa(d.done()) }>
+			<div class="h-full rounded-full bg-primary" style={ "width:" + strconv.Itoa(rate(d.done(), len(d.Onboarding))) + "%" }></div>
+		</div>
+		<ul class="mt-3 divide-y divide-slate-100">
+			for _, s := range d.Onboarding {
+				<li>
+					<a href={ templ.SafeURL(s.URL) } class="flex items-center gap-3 py-2.5">
+						if s.Done {
+							<span class="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-green-100 text-sm text-green-700" aria-hidden="true">✓</span>
+						} else {
+							<span class="h-6 w-6 flex-none rounded-full border-2 border-slate-300" aria-hidden="true"></span>
+						}
+						<span class="min-w-0 flex-1">
+							<span class={ "block text-sm font-medium", templ.KV("text-slate-400 line-through", s.Done) }>
+								<span class="sr-only">
+									if s.Done {
+										Sudah:
+									} else {
+										Belum:
+									}
+								</span>
+								{ s.Label }
+							</span>
+							if !s.Done {
+								<span class="block text-xs text-slate-500">{ s.Hint }</span>
+							}
+						</span>
+						if !s.Done {
+							<span class="text-slate-400" aria-hidden="true">›</span>
+						}
+					</a>
+				</li>
+			}
+		</ul>
+	}
+}
+
+templ stat(label, value, sub string) {
+	<div class="rounded-xl bg-slate-50 px-3 py-2.5">
+		<p class="text-xs text-slate-500">{ label }</p>
+		<p class="text-xl font-semibold">{ value }</p>
+		if sub != "" {
+			<p class="text-xs text-slate-500">{ sub }</p>
+		}
+	</div>
+}
+
+templ bar(label string, pct int, detail string) {
+	<div>
+		<div class="flex justify-between text-sm">
+			<span>{ label }</span>
+			<span class="font-medium">{ strconv.Itoa(pct) }%</span>
+		</div>
+		<div class="mt-1 h-2 overflow-hidden rounded-full bg-slate-100">
+			<div class="h-full rounded-full bg-primary" style={ "width:" + strconv.Itoa(pct) + "%" }></div>
+		</div>
+		<p class="mt-0.5 text-xs text-slate-500">{ detail }</p>
+	</div>
+}
+
+templ guestSummary(d homeData) {
+	@ui.Card() {
+		<div class="flex items-center justify-between gap-3">
+			<h2 class="font-semibold">Tamu & RSVP</h2>
+			<a href={ templ.SafeURL(d.W.DashboardURL("/rsvp")) } class="text-sm text-primary hover:underline">Lihat RSVP</a>
+		</div>
+		if d.Guests.Total == 0 {
+			<p class="mt-3 text-sm text-slate-500">
+				Belum ada tamu. <a href={ templ.SafeURL(d.W.DashboardURL("/guests")) } class="text-primary hover:underline">Tambah tamu</a> untuk membuat link undangan pribadi.
+			</p>
+		} else {
+			<div class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+				@stat("Diundang", strconv.Itoa(d.Guests.Total), strconv.Itoa(d.Guests.PaxInvited)+" orang")
+				@stat("Hadir", strconv.Itoa(d.Guests.Attending), strconv.Itoa(d.Guests.PaxAttending)+" orang")
+				@stat("Tidak hadir", strconv.Itoa(d.Guests.Declined), "")
+				@stat("Belum konfirmasi", strconv.Itoa(d.Guests.Pending), "")
+			</div>
+			<div class="mt-4 grid gap-3 sm:grid-cols-2">
+				@bar("Undangan dibuka", d.openRate(), strconv.Itoa(d.Guests.Opened)+" dari "+strconv.Itoa(d.Guests.Total)+" tamu membuka link pribadinya")
+				@bar("Sudah RSVP", d.rsvpRate(), strconv.Itoa(d.Guests.Attending+d.Guests.Declined)+" dari "+strconv.Itoa(d.Guests.Total)+" tamu menjawab")
+			</div>
+		}
+	}
+}
+
+templ recentMessages(d homeData) {
+	@ui.Card() {
+		<div class="flex items-center justify-between gap-3">
+			<h2 class="font-semibold">Ucapan terbaru</h2>
+			<a href={ templ.SafeURL(d.W.DashboardURL("/guestbook")) } class="text-sm text-primary hover:underline">Semua ucapan</a>
+		</div>
+		if len(d.Messages) == 0 {
+			<p class="mt-3 text-sm text-slate-500">Belum ada ucapan dari tamu.</p>
+		} else {
+			<ul class="mt-3 space-y-3">
+				for _, m := range d.Messages {
+					<li class="text-sm">
+						<p class="line-clamp-2 break-words text-slate-700">{ m.Message }</p>
+						<p class="mt-0.5 text-xs text-slate-500">
+							<span class="font-medium text-slate-700">{ m.Name }</span> · { web.FormatDateID(m.CreatedAt) }
+							if m.Hidden {
+								· <span class="text-amber-700">disembunyikan</span>
+							}
+						</p>
+					</li>
+				}
+			</ul>
+		}
+	}
+}
+
+templ gallerySummary(d homeData) {
+	@ui.Card() {
+		<div class="flex items-center justify-between gap-3">
+			<h2 class="font-semibold">Galeri · { strconv.Itoa(d.Gallery.Count) } foto</h2>
+			<a href={ templ.SafeURL(d.W.DashboardURL("/gallery")) } class="text-sm text-primary hover:underline">Kelola</a>
+		</div>
+		if len(d.Gallery.Thumbs) > 0 {
+			<div class="mt-3 grid grid-cols-3 gap-1.5">
+				for _, t := range d.Gallery.Thumbs {
+					<img src={ t } alt="" loading="lazy" class="aspect-square w-full rounded-lg object-cover"/>
+				}
+			</div>
+		} else {
+			<p class="mt-3 text-sm text-slate-500">Belum ada foto.</p>
+		}
+		<div class="mt-4">
+			@bar("Penyimpanan", d.storagePercent(), humanBytes(d.Gallery.Usage.UsedBytes)+" dari "+humanBytes(d.Gallery.Usage.QuotaBytes)+" terpakai")
+		</div>
+	}
+}

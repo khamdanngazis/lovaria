@@ -221,3 +221,18 @@ func (f fixture) status(t *testing.T, id uuid.UUID) string {
 	}
 	return w.Status
 }
+
+func TestCountdownUsesWeddingTimezone(t *testing.T) {
+	w := Wedding{WeddingDate: time.Date(2026, 12, 12, 0, 0, 0, 0, time.UTC), Timezone: "Asia/Jayapura"}
+	for now, want := range map[string]string{
+		"2026-12-01T00:00:00Z": "H-11",
+		"2026-12-11T14:59:00Z": "H-1",      // 23.59 WIT tgl 11
+		"2026-12-11T15:00:00Z": "Hari ini", // 00.00 WIT tgl 12
+		"2026-12-14T15:00:00Z": "3 hari lalu",
+	} {
+		at, _ := time.Parse(time.RFC3339, now)
+		if got := w.CountdownText(at); got != want {
+			t.Errorf("%s: %q, want %q", now, got, want)
+		}
+	}
+}

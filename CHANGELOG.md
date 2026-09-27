@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### T13 — Beranda dashboard & ringkasan RSVP
+- Beranda wedding: nama pasangan, tanggal + hitung mundur (zona waktu wedding), status & Publikasikan, link undangan umum + Salin, tombol cepat, checklist onboarding 7 langkah dengan progress, ringkasan tamu & RSVP (open rate, RSVP rate), 5 ucapan terbaru, ringkasan galeri & storage.
+- Paket `src/dashboard` sebagai agregator murni (tanpa query; `TestNoQueriesInDashboard`), disuntikkan ke modul wedding lewat `wedding.Deps.Home`. Service baru: `guestbook.Recent`, `gallery.Summary`, `theme.Configured`, `Wedding.CountdownText`.
+- Navigasi final: sidebar di desktop, bottom nav + menu di ponsel (menggantikan tab horizontal).
+- Daftar wedding (> 1 wedding): badge status & hitung mundur.
+- Beranda dengan 500 tamu ±20 ms (lokal).
+
 ### T11 — Buku ucapan & amplop digital
 - Modul `guestbook` (migration `00009`): section Ucapan & Doa di undangan (nama terisi dari tamu, 10 pesan terbaru + "Muat lebih banyak"), terbuka juga saat Kenangan. Proteksi: honeypot (ditolak diam-diam), token HMAC, rate limit per IP, filter kata kasar (`GUESTBOOK_BLOCKED_WORDS`) → disembunyikan otomatis.
 - Modul `gift` (migration `00010`): rekening bank, e-wallet, alamat kirim hadiah; CRUD + urutan di dashboard. Section Tanda Kasih dengan tombol Salin (Clipboard API + cadangan iOS Safari) dan toast; disembunyikan bila kosong.

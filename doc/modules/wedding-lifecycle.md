@@ -46,4 +46,4 @@ Modul lain **tidak boleh** membandingkan string status — pakai method `Wedding
 
 ## Dashboard
 
-Kartu "Status undangan" di ringkasan wedding: label status, penjelasan, checklist (✓/✗, tautan "Tambah acara"), tombol **Publikasikan** (nonaktif bila checklist belum lengkap) / **Tarik publikasi** dengan konfirmasi, dan riwayat status. Endpoint: `PATCH /dashboard/weddings/:id/status` (`status=published|draft`).
+Kartu "Status undangan" di beranda wedding (lihat [dashboard.md](dashboard.md)): label status, penjelasan, checklist (✓/✗, tautan "Tambah acara"), tombol **Publikasikan** (nonaktif bila checklist belum lengkap) / **Tarik publikasi** dengan konfirmasi, dan riwayat status. Endpoint: `PATCH /dashboard/weddings/:id/status` (`status=published|draft`).

@@ -1,6 +1,7 @@
 package wedding
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -15,7 +16,13 @@ import (
 type Handler struct {
 	svc         *Service
 	archiveDays int
+	home        HomeWidgets
 }
+
+// HomeWidgets menyusun bagian beranda wedding dari modul lain (ringkasan tamu,
+// RSVP, ucapan, galeri, checklist — disediakan paket dashboard, T13). Modul
+// wedding hanya memiliki header & kartu status; nil → tanpa widget.
+type HomeWidgets func(ctx context.Context, w Wedding) (templ.Component, error)
 
 func NewHandler(svc *Service) *Handler {
 	return &Handler{svc: svc, archiveDays: 365}
@@ -77,7 +84,7 @@ func (h *Handler) List(c echo.Context) error {
 	if len(ws) == 0 {
 		return web.Redirect(c, "/dashboard/weddings/new")
 	}
-	return web.Render(c, http.StatusOK, listPage(ws))
+	return web.Render(c, http.StatusOK, listPage(ws, h.svc.clock()))
 }
 
 // GET /dashboard/weddings/new → langkah 1 wizard.
@@ -183,7 +190,13 @@ func (h *Handler) overview(c echo.Context, w Wedding) (overviewState, error) {
 	if err != nil {
 		return overviewState{}, err
 	}
-	return overviewState{W: w, Couple: couple, Checklist: checklist, History: history}, nil
+	o := overviewState{W: w, Couple: couple, Checklist: checklist, History: history, Now: h.svc.clock()}
+	if h.home != nil {
+		if o.Home, err = h.home(ctx, w); err != nil {
+			return overviewState{}, err
+		}
+	}
+	return o, nil
 }
 
 // PATCH /dashboard/weddings/:weddingID/status (status=published|draft) — Publish/Unpublish.

@@ -319,23 +319,28 @@ func (a *app) routes() *echo.Echo {
 			Service: example.NewService(example.NewMemoryRepository()),
 		})
 	}
-	dash := e.Group("/dashboard", authMW.RequireAuth)
-	dashboard.Register(dash, dashboard.Deps{Weddings: a.weddings})
-	owned := wedding.Register(dash.Group("/weddings"), wedding.Deps{Service: a.weddings, ArchiveDays: cfg.ArchiveAfterDays})
+	// Service modul (dibuat dulu: beranda dashboard mengagregasi semuanya).
 	events := event.NewService(event.NewRepository(a.pool))
 	a.weddings.SetEventCounter(events) // checklist publikasi
 	stories := story.NewService(story.NewRepository(a.pool))
 	photos := gallery.NewService(gallery.NewRepository(a.pool), a.store, a.weddings, cfg.Storage.QuotaBytes, log)
 	themes := theme.NewService(a.pool, a.weddings)
+	guests := guest.NewService(guest.NewRepository(a.pool), cfg.BaseURL)
 	guestbooks := guestbook.NewService(a.pool, guestbook.NewWordFilter(slices.Concat(guestbook.DefaultBlockedWords, cfg.GuestbookBlockedWords)))
 	gifts := gift.NewService(a.pool)
 	views := &publicsite.ViewBuilder{Weddings: a.weddings, Events: events, Stories: stories, Gallery: photos, Themes: themes, Guestbook: guestbooks, Gifts: gifts}
+	home := &dashboard.Home{
+		Weddings: a.weddings, Events: events, Stories: stories, Gallery: photos, Themes: themes,
+		Guests: guests, Guestbook: guestbooks, BaseURL: cfg.BaseURL,
+	}
 
+	dash := e.Group("/dashboard", authMW.RequireAuth)
+	dashboard.Register(dash, dashboard.Deps{Weddings: a.weddings})
+	owned := wedding.Register(dash.Group("/weddings"), wedding.Deps{Service: a.weddings, ArchiveDays: cfg.ArchiveAfterDays, Home: home.Widgets})
 	event.Register(owned, event.Deps{Service: events})
 	story.Register(owned, story.Deps{Service: stories})
 	gallery.Register(owned, gallery.Deps{Service: photos, Weddings: a.weddings})
 	theme.Register(owned, theme.Deps{Service: themes, Previewer: views})
-	guests := guest.NewService(guest.NewRepository(a.pool), cfg.BaseURL)
 	guest.Register(owned, guest.Deps{Service: guests})
 	guestbook.Register(owned, guestbook.Deps{Service: guestbooks})
 	gift.Register(owned, gift.Deps{Service: gifts})

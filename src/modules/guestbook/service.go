@@ -165,3 +165,16 @@ func (s *Service) Delete(ctx context.Context, weddingID, id uuid.UUID) error {
 	}
 	return nil
 }
+
+// Recent: n pesan terbaru (termasuk yang disembunyikan) untuk beranda dashboard.
+func (s *Service) Recent(ctx context.Context, weddingID uuid.UUID, n int) ([]Entry, error) {
+	rows, err := s.q.ListEntries(ctx, guestbookdb.ListEntriesParams{WeddingID: weddingID, Lim: int32(n)}) //nolint:gosec // G115: n kecil
+	if err != nil {
+		return nil, err
+	}
+	out := make([]Entry, len(rows))
+	for i, r := range rows {
+		out[i] = toEntry(r)
+	}
+	return out, nil
+}

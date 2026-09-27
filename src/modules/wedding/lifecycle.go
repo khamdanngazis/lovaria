@@ -231,14 +231,40 @@ func (s *Service) History(ctx context.Context, weddingID uuid.UUID, limit int) (
 // dueStatus menghitung status yang seharusnya berlaku untuk wedding berstatus
 // cur pada waktu now, memakai tanggal lokal di zona waktu wedding:
 // hari H 00:00 → wedding_day, H+1 → memory, H+1+archiveDays → archived.
-func dueStatus(cur string, weddingDate time.Time, tz string, now time.Time, archiveDays int) string {
+// localDays mengembalikan "hari ini" (tanggal lokal zona waktu wedding) dan
+// hari H, keduanya tengah malam UTC supaya bisa dibandingkan per hari kalender.
+func localDays(weddingDate time.Time, tz string, now time.Time) (today, day time.Time) {
 	loc, err := time.LoadLocation(tz)
 	if err != nil {
 		loc = time.UTC
 	}
 	local := now.In(loc)
-	today := time.Date(local.Year(), local.Month(), local.Day(), 0, 0, 0, 0, time.UTC)
-	day := time.Date(weddingDate.Year(), weddingDate.Month(), weddingDate.Day(), 0, 0, 0, 0, time.UTC)
+	today = time.Date(local.Year(), local.Month(), local.Day(), 0, 0, 0, 0, time.UTC)
+	day = time.Date(weddingDate.Year(), weddingDate.Month(), weddingDate.Day(), 0, 0, 0, 0, time.UTC)
+	return today, day
+}
+
+// DaysUntil: jumlah hari kalender (zona waktu wedding) dari now ke hari H.
+// 0 = hari ini, negatif = sudah lewat.
+func (w Wedding) DaysUntil(now time.Time) int {
+	today, day := localDays(w.WeddingDate, w.Timezone, now)
+	return int(day.Sub(today).Hours() / 24)
+}
+
+// CountdownText: "H-45", "Hari ini", atau "12 hari lalu".
+func (w Wedding) CountdownText(now time.Time) string {
+	switch d := w.DaysUntil(now); {
+	case d > 0:
+		return fmt.Sprintf("H-%d", d)
+	case d == 0:
+		return "Hari ini"
+	default:
+		return fmt.Sprintf("%d hari lalu", -d)
+	}
+}
+
+func dueStatus(cur string, weddingDate time.Time, tz string, now time.Time, archiveDays int) string {
+	today, day := localDays(weddingDate, tz, now)
 
 	steps := []struct {
 		from, to string
