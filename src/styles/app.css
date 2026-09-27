@@ -81,3 +81,29 @@
 .lv-lb-close { top: 0.5rem; right: 0.5rem; }
 .lv-lb-prev { left: 0; top: 50%; transform: translateY(-50%); }
 .lv-lb-next { right: 0; top: 50%; transform: translateY(-50%); }
+
+/* Undangan: honeypot anti-bot (tersembunyi dari manusia & pembaca layar) dan
+   toast "Tersalin" untuk tombol salin nomor rekening. */
+.lv-hp {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+.lv-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 1.5rem;
+  z-index: 100;
+  transform: translateX(-50%);
+  border-radius: 9999px;
+  background: rgb(15 23 42 / 0.92);
+  color: #fff;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.875rem;
+  transition: opacity 0.3s ease;
+}
+.lv-toast[hidden] {
+  display: none;
+}

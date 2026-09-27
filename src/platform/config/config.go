@@ -35,6 +35,9 @@ type Config struct {
 	Mail Mail
 	// Storage berisi setelan penyimpanan foto (R2 / disk lokal dev).
 	Storage Storage
+	// GuestbookBlockedWords: kata kasar tambahan untuk filter buku ucapan
+	// (GUESTBOOK_BLOCKED_WORDS, dipisah koma; ditambahkan ke daftar bawaan).
+	GuestbookBlockedWords []string
 	// ArchiveAfterDays: wedding Kenangan diarsipkan otomatis setelah N hari
 	// sejak hari H+1 (LIFECYCLE_ARCHIVE_DAYS, default 365).
 	ArchiveAfterDays int
@@ -226,6 +229,11 @@ func LoadFrom(getenv func(string) string) (Config, error) {
 		errs = append(errs, fmt.Errorf("STORAGE_DRIVER: nilai tidak valid %q (local | r2)", cfg.Storage.Driver))
 	}
 
+	for _, w := range strings.Split(getenv("GUESTBOOK_BLOCKED_WORDS"), ",") {
+		if w = strings.TrimSpace(w); w != "" {
+			cfg.GuestbookBlockedWords = append(cfg.GuestbookBlockedWords, w)
+		}
+	}
 	cfg.Secret = getenv("APP_SECRET")
 	if cfg.Secret != "" && len(cfg.Secret) < 32 {
 		errs = append(errs, errors.New("APP_SECRET: minimal 32 karakter"))

@@ -182,3 +182,22 @@ func TestRunGracefulShutdown(t *testing.T) {
 		t.Fatal("server tidak berhenti")
 	}
 }
+
+func TestPublicFormPath(t *testing.T) {
+	for p, want := range map[string]bool{
+		"/i/ABCDEFG/rsvp":                 true,
+		"/i/ABCDEFG/guestbook":            true,
+		"/w/budi-sari/guestbook":          true,
+		"/guestbook":                      true,
+		"/w/budi-sari/rsvp":               false, // RSVP hanya lewat kode tamu
+		"/i//rsvp":                        false,
+		"/i/ABCDEFG/rsvp/x":               false,
+		"/dashboard/weddings/x/guestbook": false,
+		"/auth/login":                     false,
+		"/x/guestbook":                    false,
+	} {
+		if got := PublicFormPath(p); got != want {
+			t.Errorf("PublicFormPath(%q) = %v, want %v", p, got, want)
+		}
+	}
+}

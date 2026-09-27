@@ -114,9 +114,22 @@ func skipInfra(c echo.Context) bool {
 
 // PublicFormPath: form di halaman undangan publik (di-cache, tanpa token CSRF
 // per pengunjung). Handler-nya wajib memakai proteksi sendiri — token HMAC +
-// rate limit (RSVP, T10).
+// rate limit (RSVP T10, buku ucapan T11).
 func PublicFormPath(p string) bool {
-	return strings.HasPrefix(p, "/i/") && strings.HasSuffix(p, "/rsvp") && strings.Count(p, "/") == 3
+	if p == "/guestbook" { // custom domain
+		return true
+	}
+	parts := strings.Split(p, "/") // "", "i"|"w", kode/slug, form
+	if len(parts) != 4 || parts[0] != "" || parts[2] == "" {
+		return false
+	}
+	switch parts[1] {
+	case "i":
+		return parts[3] == "rsvp" || parts[3] == "guestbook"
+	case "w":
+		return parts[3] == "guestbook"
+	}
+	return false
 }
 
 func requestLogger(log *slog.Logger) echo.MiddlewareFunc {

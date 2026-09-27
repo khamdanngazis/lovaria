@@ -1,5 +1,5 @@
 // Package shared berisi bagian undangan yang sama di semua tema (RSVP, buku
-// tamu, hadiah). RSVP: T10; buku tamu & hadiah: T11 (sementara placeholder di preview).
+// tamu, hadiah): RSVP (T10), buku ucapan & amplop digital (T11).
 package shared
 
 import (
@@ -8,15 +8,6 @@ import (
 
 	"github.com/khamdanngazis/lovaria/src/modules/theme/view"
 )
-
-templ placeholder(id, title, note string) {
-	<section id={ id } class="px-6 py-12">
-		<div class="rounded-2xl border-2 border-dashed border-primary/30 p-6 text-center">
-			<h2 class="text-2xl text-primary">{ title }</h2>
-			<p class="mt-2 text-sm opacity-70">{ note }</p>
-		</div>
-	</section>
-}
 
 // RSVPSection: konfirmasi kehadiran (T10). Form POST biasa (tanpa JS) yang
 // ditingkatkan htmx: respons berupa section ini lagi (hx-swap outerHTML).
@@ -114,6 +105,12 @@ templ rsvpForm(v view.View) {
 				<textarea id="rsvp-message" name="message" rows="3" maxlength="500" class="w-full rounded-xl border border-primary/30 bg-white px-3 py-2.5 text-base">{ message }</textarea>
 				@rsvpError(v, "message")
 			</div>
+			if v.AllowGuestbook {
+				<label class="flex items-start gap-2 text-sm">
+					<input type="checkbox" name="to_guestbook" value="1" checked?={ v.RSVP.ToGuestbook } class="mt-0.5 h-4 w-4 accent-primary"/>
+					<span>Tampilkan juga pesan ini di buku ucapan</span>
+				</label>
+			}
 			<button
 				type="submit"
 				disabled?={ v.RSVP.Action == "" }
@@ -145,16 +142,110 @@ templ rsvpError(v view.View, field string) {
 	}
 }
 
-// GuestbookSection: ucapan & doa (T11).
+// GuestbookSection: ucapan & doa (T11) — form + daftar pesan terbaru dengan
+// "Muat lebih banyak". Tetap terbuka saat Kenangan.
 templ GuestbookSection(v view.View) {
-	if v.Preview && v.AllowGuestbook {
-		@placeholder("guestbook", "Ucapan & Doa", "Buku tamu akan tampil di sini.")
+	if v.AllowGuestbook {
+		{{ g := v.Guestbook }}
+		<section id="guestbook" class="px-6 py-16">
+			<div class="mb-8 text-center">
+				<h2 class="text-3xl text-primary">Ucapan & Doa</h2>
+				<p class="mt-2 text-sm opacity-80">Kirimkan doa dan ucapan untuk kedua mempelai</p>
+			</div>
+			<div class="rounded-2xl bg-white/60 p-5 shadow-sm ring-1 ring-primary/15">
+				if g.Notice != "" {
+					<p role="status" class="mb-4 rounded-xl bg-primary px-4 py-3 text-center text-sm text-white">{ g.Notice }</p>
+				}
+				if g.Error != "" {
+					<p role="alert" class="mb-4 rounded-xl bg-red-50 px-4 py-3 text-center text-sm text-red-700">{ g.Error }</p>
+				}
+				<form
+					method="post"
+					if g.Action != "" {
+						action={ templ.SafeURL(g.Action) }
+						hx-post={ g.Action }
+						hx-target="#guestbook"
+						hx-swap="outerHTML"
+						hx-disabled-elt="find button"
+					}
+					class="space-y-4"
+				>
+					<input type="hidden" name="token" value={ g.Token }/>
+					// Honeypot: manusia tidak melihat kolom ini; bot yang mengisinya ditolak diam-diam.
+					<div class="lv-hp" aria-hidden="true">
+						<label for="gb-website">Website</label>
+						<input id="gb-website" type="text" name="website" tabindex="-1" autocomplete="off"/>
+					</div>
+					<div>
+						<label for="gb-name" class="mb-1 block text-sm font-medium">Nama</label>
+						<input id="gb-name" type="text" name="name" value={ g.Name } maxlength="100" required autocomplete="name" class="w-full rounded-xl border border-primary/30 bg-white px-3 py-2.5 text-base"/>
+						@fieldError(g.Errors["name"])
+					</div>
+					<div>
+						<label for="gb-message" class="mb-1 block text-sm font-medium">Ucapan</label>
+						<textarea id="gb-message" name="message" rows="3" maxlength="500" required class="w-full rounded-xl border border-primary/30 bg-white px-3 py-2.5 text-base">{ g.Message }</textarea>
+						@fieldError(g.Errors["message"])
+					</div>
+					<button type="submit" disabled?={ g.Action == "" } class="w-full rounded-full bg-primary px-6 py-3 text-sm font-medium text-white shadow disabled:opacity-60">Kirim ucapan</button>
+				</form>
+			</div>
+			<div id="guestbook-list" class="mt-6 space-y-3">
+				@GuestbookEntries(v)
+			</div>
+		</section>
 	}
 }
 
-// GiftSection: amplop digital (T11).
+// GuestbookEntries: potongan daftar pesan + tombol "Muat lebih banyak" (tombol
+// diganti potongan berikutnya lewat htmx; tanpa JS berupa link biasa).
+templ GuestbookEntries(v view.View) {
+	{{ g := v.Guestbook }}
+	for _, e := range g.Entries {
+		<article class="rounded-2xl bg-white/60 p-4 ring-1 ring-primary/10">
+			<p class="whitespace-pre-line break-words text-sm">{ e.Message }</p>
+			<p class="mt-2 text-xs opacity-70"><span class="font-semibold text-primary">{ e.Name }</span> · { e.DateText }</p>
+		</article>
+	}
+	if g.MoreBefore != "" && g.Action != "" {
+		{{ more := g.Action + "?before=" + g.MoreBefore }}
+		<a href={ templ.SafeURL(more) } hx-get={ more } hx-swap="outerHTML" class="block rounded-full border border-primary px-6 py-2.5 text-center text-sm font-medium text-primary">Muat lebih banyak</a>
+	}
+}
+
+templ fieldError(msg string) {
+	if msg != "" {
+		<p class="mt-1 text-sm text-red-700">{ msg }</p>
+	}
+}
+
+// GiftSection: amplop digital (T11). Disembunyikan bila tidak ada akun.
+// Tombol salin dimunculkan invitation.js (tanpa JS nomor tetap bisa diseleksi).
 templ GiftSection(v view.View) {
-	if v.Preview {
-		@placeholder("gift", "Tanda Kasih", "Informasi rekening / e-wallet akan tampil di sini.")
+	if len(v.Gifts) > 0 {
+		<section id="gift" class="px-6 py-16">
+			<div class="mb-8 text-center">
+				<h2 class="text-3xl text-primary">Tanda Kasih</h2>
+				<p class="mt-2 text-sm opacity-80">Doa restu Anda sudah lebih dari cukup. Namun bila ingin memberi tanda kasih, dapat melalui:</p>
+			</div>
+			<div class="space-y-4">
+				for _, gf := range v.Gifts {
+					<div class="rounded-2xl bg-white/70 p-5 text-center shadow-sm ring-1 ring-primary/15">
+						if gf.Type == "address" {
+							<p class="text-xs font-medium uppercase tracking-wide text-primary">Kirim hadiah</p>
+							if gf.AccountName != "" {
+								<p class="mt-2 font-semibold">{ gf.AccountName }</p>
+							}
+							<p class="mt-1 whitespace-pre-line break-words text-sm">{ gf.Address }</p>
+							<button type="button" hidden data-copy={ gf.Address } class="mt-4 rounded-full border border-primary px-5 py-2 text-xs font-medium text-primary">Salin Alamat</button>
+						} else {
+							<p class="text-xs font-medium uppercase tracking-wide text-primary">{ gf.Provider }</p>
+							<p class="mt-2 select-all font-mono text-xl tracking-wider">{ gf.AccountNumber }</p>
+							<p class="mt-1 text-sm opacity-80">a.n. { gf.AccountName }</p>
+							<button type="button" hidden data-copy={ gf.AccountNumber } class="mt-4 rounded-full bg-primary px-5 py-2 text-xs font-medium text-white">Salin Nomor</button>
+						}
+					</div>
+				}
+			</div>
+		</section>
 	}
 }

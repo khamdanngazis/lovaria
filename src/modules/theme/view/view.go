@@ -40,6 +40,9 @@ type View struct {
 
 	// RSVP: form konfirmasi kehadiran tamu (T10); Action kosong → form nonaktif.
 	RSVP RSVPForm
+	// Guestbook: form & daftar ucapan (T11); Gifts: amplop digital (T11).
+	Guestbook GuestbookView
+	Gifts     []Gift
 
 	// Preview: tampilkan banner "Preview" (owner melihat draft / dashboard).
 	Preview bool
@@ -96,6 +99,37 @@ type RSVPForm struct {
 	Status  string
 	Pax     int
 	Message string
+	// ToGuestbook: tamu memilih menyalin pesan ke buku ucapan.
+	ToGuestbook bool
+}
+
+// GuestbookView adalah keadaan section buku ucapan.
+type GuestbookView struct {
+	Action  string // URL POST (GET ?before= untuk muat lebih banyak); kosong → form nonaktif
+	Token   string
+	Entries []GuestbookEntry
+	// MoreBefore: ID entri terakhir bila masih ada pesan berikutnya.
+	MoreBefore string
+	Notice     string
+	Error      string
+	Errors     map[string]string
+	Name       string // isian (terisi nama tamu bila lewat /i/:code)
+	Message    string
+}
+
+type GuestbookEntry struct {
+	Name, Message, DateText string
+}
+
+// Gift adalah satu rekening / e-wallet / alamat. Nomor rekening hanya boleh
+// tampil di section hadiah (bukan OG meta atau halaman lain).
+type Gift struct {
+	Type          string // bank | ewallet | address
+	TypeLabel     string
+	Provider      string
+	AccountNumber string
+	AccountName   string
+	Address       string
 }
 
 // OG adalah meta preview link. URL wajib absolut.

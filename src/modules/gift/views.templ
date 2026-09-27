@@ -1,0 +1,194 @@
+package gift
+
+import (
+	"github.com/google/uuid"
+
+	"github.com/khamdanngazis/lovaria/src/modules/wedding"
+	"github.com/khamdanngazis/lovaria/src/templates/layouts"
+	"github.com/khamdanngazis/lovaria/src/templates/ui"
+)
+
+type form struct {
+	Values map[string]string
+	Errors map[string]string
+}
+
+func (f form) v(k string) string { return f.Values[k] }
+func (f form) e(k string) string { return f.Errors[k] }
+
+type pageState struct {
+	W         wedding.Wedding
+	Accounts  []Account
+	Creating  bool
+	EditingID uuid.UUID
+	Form      form
+}
+
+func base(w wedding.Wedding) string { return w.DashboardURL("/gifts") }
+
+func itemURL(w wedding.Wedding, id uuid.UUID, suffix string) string {
+	return base(w) + "/" + id.String() + suffix
+}
+
+// alpineType: state Alpine awal editor (nilai dibatasi ke jenis yang dikenal).
+func alpineType(t string) string {
+	if TypeLabel(t) == t {
+		t = TypeBank
+	}
+	return "{ type: '" + t + "' }"
+}
+
+func formID(id uuid.UUID) string {
+	if id == uuid.Nil {
+		return "gift-form-new"
+	}
+	return "gift-form-" + id.String()
+}
+
+templ page(s pageState) {
+	@wedding.Shell(s.W, "/gifts") {
+		@section(s)
+	}
+}
+
+templ section(s pageState) {
+	<section id="gifts" class="space-y-4">
+		<div class="flex flex-wrap items-center justify-between gap-3">
+			<p class="text-sm text-slate-600">Rekening, e-wallet, atau alamat untuk tamu yang ingin memberi tanda kasih. Bagian ini tidak tampil di undangan bila kosong.</p>
+			if !s.Creating {
+				<a
+					href={ templ.SafeURL(base(s.W) + "/new") }
+					hx-get={ base(s.W) + "/new" }
+					hx-target="#gift-editor"
+					hx-swap="innerHTML"
+					class="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white"
+				>+ Tambah</a>
+			}
+		</div>
+		<div id="gift-editor">
+			if s.Creating {
+				@editor(s.W, uuid.Nil, s.Form)
+			}
+		</div>
+		if len(s.Accounts) == 0 && !s.Creating {
+			<div class="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-slate-500">
+				Belum ada rekening atau alamat.
+			</div>
+		}
+		<ol class="space-y-3">
+			for i, a := range s.Accounts {
+				if a.ID == s.EditingID {
+					@editorItem(s.W, a.ID, s.Form)
+				} else {
+					@item(s.W, a, i == 0, i == len(s.Accounts)-1)
+				}
+			}
+		</ol>
+	</section>
+}
+
+templ item(w wedding.Wedding, a Account, first, last bool) {
+	<li id={ "gift-" + a.ID.String() } class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
+		<div class="flex items-start gap-3">
+			<div class="min-w-0 flex-1">
+				<p class="text-xs font-medium uppercase tracking-wide text-primary">{ TypeLabel(a.Type) }</p>
+				if a.Type == TypeAddress {
+					<p class="mt-1 whitespace-pre-line break-words text-sm">{ a.Address }</p>
+					if a.AccountName != "" {
+						<p class="mt-1 text-sm text-slate-600">Penerima: { a.AccountName }</p>
+					}
+				} else {
+					<p class="mt-0.5 font-semibold">{ a.Provider }</p>
+					<p class="font-mono text-lg tracking-wide">{ a.AccountNumber }</p>
+					<p class="text-sm text-slate-600">a.n. { a.AccountName }</p>
+				}
+			</div>
+			<div class="flex flex-col gap-1">
+				for _, d := range []struct{ Dir, Label, Icon string; Disabled bool }{{"up", "Naikkan", "▲", first}, {"down", "Turunkan", "▼", last}} {
+					<form method="post" action={ templ.SafeURL(itemURL(w, a.ID, "/position")) } hx-patch={ itemURL(w, a.ID, "/position") } hx-target="#gifts" hx-swap="outerHTML">
+						@layouts.CSRFField()
+						<input type="hidden" name="_method" value="PATCH"/>
+						<input type="hidden" name="direction" value={ d.Dir }/>
+						<button type="submit" disabled?={ d.Disabled } aria-label={ d.Label } title={ d.Label } class="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-30">{ d.Icon }</button>
+					</form>
+				}
+			</div>
+		</div>
+		<div class="mt-3 flex gap-4 border-t border-slate-100 pt-3 text-sm">
+			<a href={ templ.SafeURL(itemURL(w, a.ID, "/edit")) } hx-get={ itemURL(w, a.ID, "/edit") } hx-target={ "#gift-" + a.ID.String() } hx-swap="outerHTML" class="font-medium text-primary hover:underline">Ubah</a>
+			<form method="post" action={ templ.SafeURL(itemURL(w, a.ID, "")) } hx-delete={ itemURL(w, a.ID, "") } hx-target="#gifts" hx-swap="outerHTML" hx-confirm="Hapus data ini?">
+				@layouts.CSRFField()
+				<input type="hidden" name="_method" value="DELETE"/>
+				<button type="submit" class="text-red-600 hover:underline">Hapus</button>
+			</form>
+		</div>
+	</li>
+}
+
+templ editorItem(w wedding.Wedding, id uuid.UUID, f form) {
+	<li id={ "gift-" + id.String() }>
+		@editor(w, id, f)
+	</li>
+}
+
+// editor: form tambah (id == Nil) atau ubah. Tanpa JS semua kolom tampil;
+// dengan Alpine hanya kolom yang relevan untuk jenis terpilih.
+templ editor(w wedding.Wedding, id uuid.UUID, f form) {
+	<form
+		id={ formID(id) }
+		method="post"
+		if id == uuid.Nil {
+			action={ templ.SafeURL(base(w)) }
+			hx-post={ base(w) }
+		} else {
+			action={ templ.SafeURL(itemURL(w, id, "")) }
+			hx-patch={ itemURL(w, id, "") }
+		}
+		hx-target="#gifts"
+		hx-swap="outerHTML"
+		hx-disabled-elt="find button"
+		x-data={ alpineType(f.v("type")) }
+		class="space-y-4 rounded-2xl bg-white p-4 shadow-sm ring-2 ring-primary/40 sm:p-5"
+	>
+		@layouts.CSRFField()
+		if id != uuid.Nil {
+			<input type="hidden" name="_method" value="PATCH"/>
+		}
+		<fieldset>
+			<legend class="block text-sm font-medium text-slate-800">Jenis</legend>
+			<div class="mt-1 grid grid-cols-1 gap-2 sm:grid-cols-3">
+				for _, t := range Types {
+					<label class="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+						<input type="radio" name="type" value={ t.ID } checked?={ f.v("type") == t.ID } x-model="type" class="accent-primary"/>
+						{ t.Label }
+					</label>
+				}
+			</div>
+			if f.e("type") != "" {
+				<p class="mt-1 text-sm text-red-600">{ f.e("type") }</p>
+			}
+		</fieldset>
+		<div x-show="type !== 'address'" class="space-y-4">
+			<div>
+				@ui.Input(ui.Field{ID: formID(id) + "-provider", Name: "provider", Label: "Bank / e-wallet", Type: "text", Value: f.v("provider"), Error: f.e("provider"), Placeholder: "BCA, Mandiri, GoPay…", MaxLength: 50, Mandatory: true, List: formID(id) + "-providers"})
+				<datalist id={ formID(id) + "-providers" }>
+					for _, b := range Banks {
+						<option value={ b }></option>
+					}
+					for _, e := range Ewallets {
+						<option value={ e }></option>
+					}
+				</datalist>
+			</div>
+			@ui.Input(ui.Field{ID: formID(id) + "-number", Name: "account_number", Label: "Nomor rekening / HP", Type: "text", Value: f.v("account_number"), Error: f.e("account_number"), Placeholder: "1234567890", Autocomplete: "off", MaxLength: 40, Mandatory: true})
+		</div>
+		@ui.Input(ui.Field{ID: formID(id) + "-name", Name: "account_name", Label: "Nama pemilik / penerima", Type: "text", Value: f.v("account_name"), Error: f.e("account_name"), Hint: "Wajib untuk rekening & e-wallet; untuk alamat boleh dikosongkan.", MaxLength: 100, Mandatory: true})
+		<div x-show="type === 'address'">
+			@ui.TextArea(ui.Field{ID: formID(id) + "-address", Name: "address", Label: "Alamat kirim hadiah", Value: f.v("address"), Error: f.e("address"), Hint: "Tampil di undangan untuk tamu yang ingin mengirim kado.", MaxLength: 500, Mandatory: true}, 3)
+		</div>
+		<div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+			<a href={ templ.SafeURL(base(w)) } hx-get={ base(w) } hx-target="#gifts" hx-swap="outerHTML" class="rounded-lg border border-slate-300 px-4 py-2.5 text-center font-medium text-slate-700 hover:bg-slate-50">Batal</a>
+			@ui.PrimaryButton("Simpan")
+		</div>
+	</form>
+}

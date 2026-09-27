@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
@@ -28,18 +29,26 @@ const (
 	tokenMaxAge = 30 * 24 * time.Hour
 )
 
-func (h *Handler) rsvpToken(code string, now time.Time) string {
+// formToken: token form publik untuk tujuan (purpose) & kunci tertentu —
+// RSVP: kode tamu; buku ucapan: ID wedding.
+func (h *Handler) formToken(purpose, key string, now time.Time) string {
 	ts := strconv.FormatInt(now.Truncate(tokenStep).Unix(), 10)
-	return ts + "." + h.rsvpMAC(code, ts)
+	return ts + "." + h.formMAC(purpose, key, ts)
 }
 
-func (h *Handler) rsvpMAC(code, ts string) string {
+func (h *Handler) formMAC(purpose, key, ts string) string {
 	m := hmac.New(sha256.New, h.Secret)
-	m.Write([]byte("rsvp|" + code + "|" + ts))
+	m.Write([]byte(purpose + "|" + key + "|" + ts))
 	return hex.EncodeToString(m.Sum(nil)[:16])
 }
 
+func (h *Handler) rsvpToken(code string, now time.Time) string { return h.formToken("rsvp", code, now) }
+
 func (h *Handler) validRSVPToken(code, token string, now time.Time) bool {
+	return h.validFormToken("rsvp", code, token, now)
+}
+
+func (h *Handler) validFormToken(purpose, key, token string, now time.Time) bool {
 	ts, mac, ok := strings.Cut(token, ".")
 	if !ok {
 		return false
@@ -52,15 +61,16 @@ func (h *Handler) validRSVPToken(code, token string, now time.Time) bool {
 	if age < -tokenStep || age > tokenMaxAge {
 		return false
 	}
-	return hmac.Equal([]byte(mac), []byte(h.rsvpMAC(code, ts)))
+	return hmac.Equal([]byte(mac), []byte(h.formMAC(purpose, key, ts)))
 }
 
 // rsvpView: data minimum untuk merender shared.RSVPSection (fragment htmx).
 func (h *Handler) rsvpView(res Resolved, g guest.Guest) view.View {
 	return view.View{
-		AllowRSVP: res.Wedding.AllowsRSVP(),
-		Guest:     &view.Guest{Name: g.Name, Code: g.InvitationCode, MaxPax: g.MaxPax, RSVPStatus: g.RSVPStatus, RSVPPax: g.RSVPPax, RSVPMessage: g.RSVPMessage},
-		RSVP:      view.RSVPForm{Action: res.Prefix + "/rsvp", Token: h.rsvpToken(g.InvitationCode, h.clock())},
+		AllowRSVP:      res.Wedding.AllowsRSVP(),
+		AllowGuestbook: res.Wedding.AllowsGuestbook(),
+		Guest:          &view.Guest{Name: g.Name, Code: g.InvitationCode, MaxPax: g.MaxPax, RSVPStatus: g.RSVPStatus, RSVPPax: g.RSVPPax, RSVPMessage: g.RSVPMessage},
+		RSVP:           view.RSVPForm{Action: res.Prefix + "/rsvp", Token: h.rsvpToken(g.InvitationCode, h.clock())},
 	}
 }
 
@@ -90,11 +100,12 @@ func (h *Handler) RSVP(c echo.Context) error {
 	}
 	status, message := c.FormValue("status"), c.FormValue("message")
 	pax, _ := strconv.Atoi(c.FormValue("pax"))
+	toGuestbook := c.FormValue("to_guestbook") == "1"
 	updated, err := h.Guests.UpdateRSVP(ctx, g.WeddingID, g.ID, status, pax, message)
 	var ve guest.ValidationError
 	if errors.As(err, &ve) {
 		v.RSVP.Errors = ve
-		v.RSVP.Status, v.RSVP.Pax, v.RSVP.Message = status, pax, message
+		v.RSVP.Status, v.RSVP.Pax, v.RSVP.Message, v.RSVP.ToGuestbook = status, pax, message, toGuestbook
 		if v.RSVP.Status == "" {
 			v.RSVP.Status = "-" // pertahankan isian kosong, jangan kembali ke jawaban lama
 		}
@@ -102,6 +113,13 @@ func (h *Handler) RSVP(c echo.Context) error {
 	}
 	if err != nil {
 		return err
+	}
+	// Salin pesan ke buku ucapan (pilihan tamu, default mati). Hanya bila
+	// pesannya baru/berubah, supaya kiriman ganda tidak membuat entri ganda.
+	if toGuestbook && updated.RSVPMessage != "" && updated.RSVPMessage != g.RSVPMessage && res.Wedding.AllowsGuestbook() {
+		if _, err := h.Guestbook.Post(ctx, g.WeddingID, &g.ID, g.Name, updated.RSVPMessage); err != nil {
+			h.Log.WarnContext(ctx, "public: rsvp → buku ucapan", slog.String("error", err.Error()))
+		}
 	}
 	if !web.IsHTMX(c) {
 		return c.Redirect(http.StatusSeeOther, res.Prefix+"?rsvp=ok#rsvp")

@@ -16,7 +16,9 @@ import (
 
 	"github.com/khamdanngazis/lovaria/src/modules/auth"
 	"github.com/khamdanngazis/lovaria/src/modules/gallery"
+	"github.com/khamdanngazis/lovaria/src/modules/gift"
 	"github.com/khamdanngazis/lovaria/src/modules/guest"
+	"github.com/khamdanngazis/lovaria/src/modules/guestbook"
 	"github.com/khamdanngazis/lovaria/src/modules/theme"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding/event"
@@ -50,6 +52,8 @@ type fixture struct {
 	weddings  *wedding.Service
 	guests    *guest.Service
 	events    *event.Service
+	guestbook *guestbook.Service
+	gifts     *gift.Service
 	auth      *auth.Service
 	domains   fakeDomains
 	publish   func(uuid.UUID)
@@ -68,9 +72,12 @@ func newFixture(t *testing.T) fixture {
 	ws := wedding.NewService(wedding.NewRepository(pool))
 	gs := guest.NewService(guest.NewRepository(pool), cfg.BaseURL)
 	evs := event.NewService(event.NewRepository(pool))
+	gb := guestbook.NewService(pool, guestbook.NewWordFilter(guestbook.DefaultBlockedWords))
+	gf := gift.NewService(pool)
 	views := &ViewBuilder{
 		Weddings: ws, Events: evs, Stories: story.NewService(story.NewRepository(pool)),
 		Gallery: gallery.NewService(gallery.NewRepository(pool), store, ws, 500<<20, log), Themes: theme.NewService(pool, ws),
+		Guestbook: gb, Gifts: gf,
 	}
 	domains := fakeDomains{}
 
@@ -85,12 +92,13 @@ func newFixture(t *testing.T) fixture {
 		}
 	})
 	Register(e, Deps{
-		Resolver:  &Resolver{Weddings: ws, Guests: gs, Domains: domains, BaseURL: cfg.BaseURL, Log: log},
-		Handler:   &Handler{Views: views, Guests: gs, Events: evs, Log: log, Secret: []byte(testSecret), now: func() time.Time { return testNow }},
-		RSVPLimit: RSVPLimit{PerMinute: 60, Burst: 8},
+		Resolver:       &Resolver{Weddings: ws, Guests: gs, Domains: domains, BaseURL: cfg.BaseURL, Log: log},
+		Handler:        &Handler{Views: views, Guests: gs, Guestbook: gb, Events: evs, Log: log, Secret: []byte(testSecret), now: func() time.Time { return testNow }},
+		RSVPLimit:      RSVPLimit{PerMinute: 60, Burst: 8},
+		GuestbookLimit: GuestbookLimit{PerMinute: 60, Burst: 8},
 	})
 	return fixture{
-		e: e, weddings: ws, guests: gs, events: evs, domains: domains,
+		e: e, weddings: ws, guests: gs, events: evs, domains: domains, guestbook: gb, gifts: gf,
 		auth: auth.NewService(auth.NewRepository(pool), &mail.LogMailer{Log: log}, "http://x", log),
 		publish: func(id uuid.UUID) {
 			if _, err := pool.Exec(ctx, `UPDATE weddings SET status = 'published' WHERE id = $1`, id); err != nil {

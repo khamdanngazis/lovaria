@@ -1,6 +1,10 @@
 package publicsite
 
-import "github.com/khamdanngazis/lovaria/src/templates/layouts"
+import (
+	"github.com/khamdanngazis/lovaria/src/modules/theme/view"
+	"github.com/khamdanngazis/lovaria/src/templates/layouts"
+	"github.com/khamdanngazis/lovaria/src/templates/shared"
+)
 
 templ landingPage() {
 	@layouts.Public(layouts.Meta{Description: "Undangan pernikahan digital yang personal."}) {
@@ -36,6 +40,17 @@ templ archivedPage(names, date string) {
 			<p class="mx-auto mt-10 max-w-xs text-ink/80">
 				Undangan ini telah diarsipkan. Terima kasih atas doa dan kehadiran Anda.
 			</p>
+		</section>
+	}
+}
+
+// guestbookMorePage: "Muat lebih banyak" tanpa JS — potongan pesan berikutnya.
+templ guestbookMorePage(v view.View, prefix string) {
+	@layouts.Public(layouts.Meta{Title: "Ucapan & Doa", Cacheable: true}) {
+		<section class="mx-auto max-w-md space-y-3 px-6 py-12">
+			<a href={ templ.SafeURL(prefix + "#guestbook") } class="text-sm text-primary">‹ Kembali ke undangan</a>
+			<h1 class="font-heading text-3xl text-primary">Ucapan & Doa</h1>
+			@shared.GuestbookEntries(v)
 		</section>
 	}
 }

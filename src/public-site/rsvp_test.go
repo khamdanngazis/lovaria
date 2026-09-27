@@ -140,7 +140,7 @@ func TestRSVPGuards(t *testing.T) {
 	}
 
 	// /w/:slug tidak punya form, hanya arahan memakai link pribadi.
-	if body := f.get("/w/"+w.Slug, nil).Body.String(); !strings.Contains(body, "Gunakan link undangan pribadi Anda untuk RSVP") || strings.Contains(body, `name="token"`) {
+	if body := f.get("/w/"+w.Slug, nil).Body.String(); !strings.Contains(body, "Gunakan link undangan pribadi Anda untuk RSVP") || strings.Contains(body, `/rsvp"`) {
 		t.Error("/w/:slug harus menampilkan arahan link pribadi")
 	}
 	// Kode tidak ada → 404.
@@ -161,7 +161,7 @@ func TestRSVPGuards(t *testing.T) {
 		t.Errorf("RSVP berubah saat ditutup: %s", got.RSVPStatus)
 	}
 	body := f.get("/i/"+g.InvitationCode, nil).Body.String()
-	if !strings.Contains(body, "Konfirmasi Anda: Hadir · 1 orang") || strings.Contains(body, `name="token"`) {
+	if !strings.Contains(body, "Konfirmasi Anda: Hadir · 1 orang") || strings.Contains(body, `/rsvp"`) {
 		t.Error("memory: harus tampil ringkasan tanpa form")
 	}
 

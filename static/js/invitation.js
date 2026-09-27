@@ -69,3 +69,63 @@
     startX = null;
   });
 })();
+
+// Tombol "Salin Nomor" / "Salin Alamat" (section hadiah, T11). Tombol baru
+// dimunculkan bila JS aktif; tanpa JS nomor tetap bisa diseleksi manual.
+(function () {
+  var buttons = document.querySelectorAll('[data-copy]');
+  if (!buttons.length) return;
+  buttons.forEach(function (b) { b.hidden = false; });
+
+  var toast = document.createElement('div');
+  toast.className = 'lv-toast';
+  toast.setAttribute('role', 'status');
+  toast.setAttribute('aria-live', 'polite');
+  toast.hidden = true;
+  document.body.appendChild(toast);
+  var timer;
+  function show(msg) {
+    toast.textContent = msg;
+    toast.hidden = false;
+    clearTimeout(timer);
+    timer = setTimeout(function () { toast.hidden = true; }, 2000);
+  }
+
+  // Cadangan untuk browser tanpa Clipboard API / konteks non-HTTPS. iOS Safari
+  // butuh elemen yang bisa diedit + setSelectionRange; font 16px mencegah zoom.
+  function legacyCopy(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.contentEditable = 'true';
+    ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;font-size:16px';
+    document.body.appendChild(ta);
+    var range = document.createRange();
+    range.selectNodeContents(ta);
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    ta.setSelectionRange(0, text.length);
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    sel.removeAllRanges();
+    return ok;
+  }
+
+  function copy(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(text).then(function () { return true; }, function () { return legacyCopy(text); });
+    }
+    return Promise.resolve(legacyCopy(text));
+  }
+
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-copy]');
+    if (!b) return;
+    // Nomor disalin tanpa spasi/strip supaya langsung bisa ditempel di aplikasi bank.
+    var text = b.getAttribute('data-copy');
+    if (/^[\d\s.+-]+$/.test(text)) text = text.replace(/[\s.-]/g, '');
+    copy(text).then(function (ok) { show(ok ? 'Tersalin: ' + text : 'Gagal menyalin, silakan salin manual'); });
+  });
+})();
