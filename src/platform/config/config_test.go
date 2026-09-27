@@ -82,6 +82,23 @@ func TestBaseURLFromRailway(t *testing.T) {
 	}
 }
 
+func TestExtraHosts(t *testing.T) {
+	cfg, err := LoadFrom(envFrom(map[string]string{
+		"DATABASE_URL": "x", "RAILWAY_PUBLIC_DOMAIN": "lovoria.my.id",
+		"EXTRA_HOSTS": " Lovaria-Production.up.railway.app. , ,old.example.com",
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []string{"lovoria.my.id", "lovaria-production.up.railway.app", "old.example.com"}
+	if strings.Join(cfg.ExtraHosts, ",") != strings.Join(want, ",") {
+		t.Errorf("ExtraHosts = %v", cfg.ExtraHosts)
+	}
+	if _, err := LoadFrom(envFrom(map[string]string{"DATABASE_URL": "x", "EXTRA_HOSTS": "https://x.up.railway.app"})); err == nil {
+		t.Error("EXTRA_HOSTS dengan skema harus ditolak")
+	}
+}
+
 func TestMailDefaultsToLog(t *testing.T) {
 	cfg, err := LoadFrom(envFrom(map[string]string{"DATABASE_URL": "x"}))
 	if err != nil {

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Perbaikan — domain Railway lama 404
+- Setelah domain sendiri didaftarkan di Railway, `RAILWAY_PUBLIC_DOMAIN` berganti sehingga domain `*.up.railway.app` lama dianggap host asing dan link undangan lama menjadi 404. Config baru `EXTRA_HOSTS` (dipisah koma) untuk tetap mengenali host lama.
+- Script Worker di `doc/custom-domain.md` meneruskan trafik domain Lovoria sendiri tanpa diubah (`OWN_ZONE`).
+
 ### Perbaikan — beranda akun admin
 - Admin tanpa wedding kini diarahkan ke `/admin` setelah login (sebelumnya ke wizard "Buat website pernikahan"); header dashboard menampilkan link **Admin** untuk akun admin.
 - Test performa daftar 1.000 wedding memakai waktu terbaik dari 3 percobaan (tidak flaky saat suite paralel).
