@@ -1,20 +1,24 @@
-// Package publicsite berisi routing & rendering website wedding publik (mobile-first).
-// Resolusi wedding (Host header → fallback slug/kode) akan dipasang di sini
-// sebagai satu middleware terpusat (T09).
+// Package publicsite berisi routing & rendering website wedding publik
+// (mobile-first). Resolusi wedding HANYA lewat Resolver.ResolveWedding.
 package publicsite
 
-import (
-	"net/http"
+import "github.com/labstack/echo/v4"
 
-	"github.com/labstack/echo/v4"
+type Deps struct {
+	Resolver *Resolver
+	Handler  *Handler
+}
 
-	"github.com/khamdanngazis/lovaria/src/platform/web"
-)
+func Register(e *echo.Echo, d Deps) {
+	rw := d.Resolver.ResolveWedding
+	h := d.Handler
 
-type Deps struct{}
+	// Domain utama: "/" = landing. Custom domain (T15): "/" = undangan.
+	e.GET("/", h.Home, rw)
+	e.GET("/events/:file", h.Calendar, rw) // custom domain
 
-func Register(e *echo.Echo, _ Deps) {
-	e.GET("/", func(c echo.Context) error {
-		return web.Render(c, http.StatusOK, landingPage())
-	})
+	e.GET("/w/:slug", h.Invitation, rw)
+	e.GET("/w/:slug/events/:file", h.Calendar, rw)
+	e.GET("/i/:code", h.Invitation, rw)
+	e.GET("/i/:code/events/:file", h.Calendar, rw)
 }

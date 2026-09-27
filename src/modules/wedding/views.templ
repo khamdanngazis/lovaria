@@ -229,6 +229,13 @@ templ overviewPage(w Wedding, c Couple, welcome bool) {
 				<p class="mt-1"><span class="rounded-full bg-slate-100 px-2 py-0.5 text-sm">{ statusLabel[w.Status] }</span></p>
 				<p class="mt-3 text-xs uppercase tracking-wide text-slate-400">Alamat website</p>
 				<p class="mt-1 break-all text-sm text-slate-700">/w/{ w.Slug }</p>
+				<a href={ templ.SafeURL("/w/" + w.Slug) } target="_blank" rel="noopener" class="mt-2 inline-block text-sm font-medium text-primary hover:underline">
+					if w.Status == StatusDraft {
+						Lihat undangan (preview, hanya Anda) ↗
+					} else {
+						Lihat undangan ↗
+					}
+				</a>
 			}
 		</div>
 	}

@@ -53,9 +53,17 @@ func TestRenderAllThemes(t *testing.T) {
 			if strings.Contains(html, `id="rsvp"`) {
 				t.Error("placeholder RSVP hanya boleh tampil saat preview")
 			}
-			// Hanya font judul & isi tema ini yang dimuat.
-			if n := strings.Count(html, "family="); n > 2 {
-				t.Errorf("memuat %d font, maksimal 2", n)
+			// Hanya font judul & isi tema ini yang dimuat (dihitung di URL Google Fonts).
+			i := strings.Index(html, "https://fonts.googleapis.com/css2?")
+			if i < 0 {
+				t.Fatal("URL Google Fonts tidak ada")
+			}
+			fontsURL := html[i : i+strings.Index(html[i:], `"`)]
+			if n := strings.Count(fontsURL, "family="); n > 2 {
+				t.Errorf("memuat %d font, maksimal 2: %s", n, fontsURL)
+			}
+			if strings.Contains(html, `<link rel="stylesheet" href="https://fonts.googleapis.com`) && !strings.Contains(html, "<noscript>") {
+				t.Error("stylesheet font tidak boleh memblokir render")
 			}
 		})
 	}

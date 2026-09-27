@@ -68,6 +68,7 @@ func (b *ViewBuilder) Build(ctx context.Context, w wedding.Wedding, g *guest.Gue
 	}
 	for _, e := range evs {
 		v.Events = append(v.Events, view.Event{
+			ID:   e.ID.String(),
 			Name: e.Name, TypeLabel: event.TypeLabel(e.Type), DateText: web.FormatDateID(e.Date),
 			TimeText: timeText(e.StartTime, e.EndTime, tz), Venue: e.Venue, Address: e.Address,
 			MapsURL: e.MapsURL, Description: e.Description,

@@ -112,6 +112,18 @@ func TestGlobalBodyLimit(t *testing.T) {
 	}
 }
 
+func TestGzipTextResponses(t *testing.T) {
+	e := New(testConfig(t), slog.New(slog.NewJSONHandler(io.Discard, nil)))
+	e.GET("/page", func(c echo.Context) error { return c.HTML(http.StatusOK, strings.Repeat("<p>undangan</p>", 200)) })
+	req := httptest.NewRequest(http.MethodGet, "/page", nil)
+	req.Header.Set("Accept-Encoding", "gzip")
+	rec := httptest.NewRecorder()
+	e.ServeHTTP(rec, req)
+	if rec.Header().Get("Content-Encoding") != "gzip" || rec.Body.Len() >= 3000 {
+		t.Errorf("tidak terkompresi: %q, %d byte", rec.Header().Get("Content-Encoding"), rec.Body.Len())
+	}
+}
+
 func TestRecoverFromPanic(t *testing.T) {
 	var buf bytes.Buffer
 	e := New(testConfig(t), slog.New(slog.NewJSONHandler(&buf, nil)))

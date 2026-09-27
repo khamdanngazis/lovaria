@@ -21,6 +21,7 @@ import (
 	"strings"
 	"syscall"
 	"time"
+	_ "time/tzdata" // zona waktu wedding (Asia/Jakarta, …) untuk file kalender
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
@@ -326,8 +327,12 @@ func (a *app) routes() *echo.Echo {
 	story.Register(owned, story.Deps{Service: stories})
 	gallery.Register(owned, gallery.Deps{Service: photos, Weddings: a.weddings})
 	theme.Register(owned, theme.Deps{Service: themes, Previewer: views})
-	guest.Register(owned, guest.Deps{Service: guest.NewService(guest.NewRepository(a.pool), cfg.BaseURL)})
+	guests := guest.NewService(guest.NewRepository(a.pool), cfg.BaseURL)
+	guest.Register(owned, guest.Deps{Service: guests})
 	admin.Register(e.Group("/admin", authMW.RequireAuth, authMW.RequireRole(auth.RoleAdmin)), admin.Deps{})
-	publicsite.Register(e, publicsite.Deps{})
+	publicsite.Register(e, publicsite.Deps{
+		Resolver: &publicsite.Resolver{Weddings: a.weddings, Guests: guests, Domains: publicsite.NoDomains{}, BaseURL: cfg.BaseURL, Log: log},
+		Handler:  &publicsite.Handler{Views: views, Guests: guests, Events: events, Log: log},
+	})
 	return e
 }

@@ -18,6 +18,10 @@ type Meta struct {
 	Description string
 	// Theme mengisi atribut data-theme di <html> (dipakai CSS token tema, T08).
 	Theme string
+	// Cacheable: halaman boleh di-cache bersama (undangan publik) — tanpa token
+	// CSRF per pengunjung di HTML. Form di halaman seperti ini wajib memakai
+	// proteksi sendiri (mis. token HMAC RSVP, T10).
+	Cacheable bool
 }
 
 func (m Meta) theme() string {
@@ -53,18 +57,30 @@ templ Document(meta Meta, head templ.Component, bodyClass string) {
 				<meta name="description" content={ meta.Description }/>
 			}
 			<meta name="htmx-config" content={ htmxConfig }/>
-			<meta name="csrf-token" content={ web.CSRFToken(ctx) }/>
+			if !meta.Cacheable {
+				<meta name="csrf-token" content={ web.CSRFToken(ctx) }/>
+			}
+			<link rel="icon" href={ static.URL("img/favicon.svg") } type="image/svg+xml"/>
 			<link rel="stylesheet" href={ static.URL("css/app.css") }/>
 			<script src={ static.URL("js/htmx.min.js") } defer></script>
-			<script src={ static.URL("js/lovoria.js") } defer></script>
-			<script src={ static.URL("js/alpine.min.js") } defer></script>
+			// Halaman undangan (Cacheable) tidak memakai Alpine / komponen dashboard.
+			if !meta.Cacheable {
+				<script src={ static.URL("js/lovoria.js") } defer></script>
+				<script src={ static.URL("js/alpine.min.js") } defer></script>
+			}
 			if head != nil {
 				@head
 			}
 		</head>
-		<body class={ bodyClass } hx-headers={ web.HXHeaders(ctx) }>
-			{ children... }
-		</body>
+		if meta.Cacheable {
+			<body class={ bodyClass }>
+				{ children... }
+			</body>
+		} else {
+			<body class={ bodyClass } hx-headers={ web.HXHeaders(ctx) }>
+				{ children... }
+			</body>
+		}
 	</html>
 }
 

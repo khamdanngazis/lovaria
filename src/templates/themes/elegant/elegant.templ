@@ -16,15 +16,17 @@ templ ornament() {
 templ Hero(v view.View) {
 	<section id="opening" class="relative flex min-h-dvh items-center justify-center overflow-hidden p-6 text-center">
 		if base.CoverOf(v) != "" {
-			<img src={ base.CoverOf(v) } alt="" class="absolute inset-0 h-full w-full object-cover"/>
+			<img src={ base.CoverOf(v) } alt="" fetchpriority="low" class="absolute inset-0 h-full w-full object-cover"/>
 			<div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/30 to-black/70"></div>
 		}
 		<div class={ "relative w-full border px-6 py-14", templ.KV("border-white/60 text-white", base.CoverOf(v) != ""), templ.KV("border-primary/50", base.CoverOf(v) == "") }>
 			<p class="text-[11px] uppercase tracking-[0.4em]">The Wedding of</p>
 			@ornament()
-			<h1 class="text-5xl leading-tight">{ v.Couple.GroomName }</h1>
-			<p class="my-2 text-3xl italic" style="font-family: var(--lv-font-heading)">&amp;</p>
-			<h1 class="text-5xl leading-tight">{ v.Couple.BrideName }</h1>
+			<h1 class="text-5xl leading-tight">
+				<span class="block">{ v.Couple.GroomName }</span>
+				<span class="my-2 block text-3xl italic">&amp;</span>
+				<span class="block">{ v.Couple.BrideName }</span>
+			</h1>
 			@ornament()
 			<p class="text-sm tracking-widest">{ v.DateText }</p>
 			<p class="mt-10 text-xs uppercase tracking-[0.3em] opacity-80">Kepada Yth.</p>
@@ -36,6 +38,7 @@ templ Hero(v view.View) {
 
 templ Couple(v view.View) {
 	<section id="couple" class="px-6 py-20 text-center">
+		<h2 class="sr-only">Mempelai</h2>
 		<p class="text-xs uppercase tracking-[0.35em] text-primary">Bismillah</p>
 		<p class="mx-auto mt-4 max-w-xs text-sm italic opacity-80">Dengan memohon rahmat dan ridho Tuhan, kami bermaksud menyelenggarakan pernikahan putra-putri kami</p>
 		@ornament()

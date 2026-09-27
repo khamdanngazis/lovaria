@@ -63,20 +63,21 @@ func register(d ThemeDef) {
 	registry[d.ID] = d
 }
 
+// Warna bawaan dipilih agar kontras teks ≥ 4.5:1 (WCAG AA) di atas warna latarnya.
 func init() {
 	register(ThemeDef{
 		ID: "elegant", Name: "Elegan", Description: "Klasik dengan aksen emas, serif, dan bingkai tipis.",
-		Tokens: view.Tokens{Primary: "#9c7c4a", Surface: "#fbf8f3", Ink: "#2b2b2b", FontHeading: "Cormorant Garamond", FontBody: "Lato"},
+		Tokens: view.Tokens{Primary: "#8a6a3c", Surface: "#fbf8f3", Ink: "#2b2b2b", FontHeading: "Cormorant Garamond", FontBody: "Lato"},
 		Parts:  Parts{Hero: elegant.Hero, Couple: elegant.Couple, Events: elegant.Events},
 	})
 	register(ThemeDef{
 		ID: "minimal", Name: "Minimalis", Description: "Bersih dan lega, huruf kapital, tanpa ornamen.",
-		Tokens: view.Tokens{Primary: "#8a8a8a", Surface: "#ffffff", Ink: "#1f1f1f", FontHeading: "Josefin Sans", FontBody: "Inter"},
+		Tokens: view.Tokens{Primary: "#707070", Surface: "#ffffff", Ink: "#1f1f1f", FontHeading: "Josefin Sans", FontBody: "Inter"},
 		Parts:  Parts{Hero: minimal.Hero, Couple: minimal.Couple, Closing: minimal.Closing},
 	})
 	register(ThemeDef{
 		ID: "romantic", Name: "Romantis", Description: "Lembut dengan warna merah muda, tulisan tangan, foto melengkung.",
-		Tokens: view.Tokens{Primary: "#b76e79", Surface: "#fff6f6", Ink: "#4a3b3b", FontHeading: "Great Vibes", FontBody: "Lora"},
+		Tokens: view.Tokens{Primary: "#a85a67", Surface: "#fff6f6", Ink: "#4a3b3b", FontHeading: "Great Vibes", FontBody: "Lora"},
 		Parts:  Parts{Hero: romantic.Hero, Couple: romantic.Couple, Closing: romantic.Closing},
 	})
 	register(ThemeDef{

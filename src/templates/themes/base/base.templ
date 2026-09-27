@@ -3,8 +3,11 @@
 package base
 
 import (
+	"fmt"
+
 	"github.com/khamdanngazis/lovaria/src/modules/theme/view"
 	"github.com/khamdanngazis/lovaria/src/templates/layouts"
+	"github.com/khamdanngazis/lovaria/static"
 )
 
 // Head: Google Fonts (hanya yang dipakai) + token CSS tema.
@@ -12,19 +15,37 @@ templ Head(v view.View) {
 	if v.FontsURL != "" {
 		<link rel="preconnect" href="https://fonts.googleapis.com"/>
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-		<link rel="stylesheet" href={ v.FontsURL }/>
+		// Dimuat tanpa memblokir render (teks tampil dulu dengan font cadangan).
+		<link rel="preload" as="style" href={ v.FontsURL } onload="this.onload=null;this.rel='stylesheet'"/>
+		<noscript><link rel="stylesheet" href={ v.FontsURL }/></noscript>
 	}
 	// v.CSS dibuat theme.TokensCSS dari nilai tervalidasi (hex, whitelist font,
 	// URL tanpa < > " ' ( )), jadi aman disisipkan mentah.
 	@templ.Raw("<style>" + v.CSS + "</style>")
-	if v.Preview {
-		<meta name="robots" content="noindex"/>
+	// Undangan bersifat pribadi (nama tamu di /i/:code): jangan diindeks.
+	<meta name="robots" content="noindex"/>
+	if v.OG.Title != "" {
+		<meta property="og:type" content="website"/>
+		<meta property="og:title" content={ v.OG.Title }/>
+		<meta property="og:description" content={ v.OG.Description }/>
+		if v.OG.URL != "" {
+			<meta property="og:url" content={ v.OG.URL }/>
+			<link rel="canonical" href={ v.OG.URL }/>
+		}
+		if v.OG.Image != "" {
+			<meta property="og:image" content={ v.OG.Image }/>
+			<meta name="twitter:card" content="summary_large_image"/>
+			<meta name="twitter:image" content={ v.OG.Image }/>
+		}
+		<meta name="twitter:title" content={ v.OG.Title }/>
+		<meta name="twitter:description" content={ v.OG.Description }/>
 	}
+	<script src={ static.URL("js/invitation.js") } defer></script>
 }
 
 // Layout: kerangka halaman undangan — kolom seukuran ponsel di tengah layar.
 templ Layout(v view.View) {
-	@layouts.Document(layouts.Meta{Title: "The Wedding of " + v.Couple.Names(), Theme: v.ThemeID}, Head(v), "lv-invitation min-h-dvh antialiased") {
+	@layouts.Document(layouts.Meta{Title: "The Wedding of " + v.Couple.Names(), Description: v.OG.Description, Theme: v.ThemeID, Cacheable: true}, Head(v), "lv-invitation min-h-dvh antialiased") {
 		if v.Preview {
 			<div class="sticky top-0 z-50 bg-slate-900 px-4 py-2 text-center text-xs text-white">
 				Preview — belum dipublikasikan
@@ -60,13 +81,20 @@ func wide(i, n int) bool {
 	return i%3 == 0 || (i == n-1 && i%3 == 1)
 }
 
+func photoLabel(p view.Photo, i int) string {
+	if p.Caption != "" {
+		return "Lihat foto: " + p.Caption
+	}
+	return fmt.Sprintf("Lihat foto %d", i+1)
+}
+
 // CoverOf dipakai tema lain.
 func CoverOf(v view.View) string { return coverOf(v) }
 
 templ Hero(v view.View) {
 	<section id="opening" class="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-6 py-16 text-center">
 		if coverOf(v) != "" {
-			<img src={ coverOf(v) } alt="" class="absolute inset-0 h-full w-full object-cover"/>
+			<img src={ coverOf(v) } alt="" fetchpriority="low" class="absolute inset-0 h-full w-full object-cover"/>
 			<div class="absolute inset-0 bg-black/45"></div>
 		}
 		<div class={ "relative", templ.KV("text-white", coverOf(v) != "") }>
@@ -86,7 +114,7 @@ templ SectionTitle(title, subtitle string) {
 	<div class="mb-8 text-center">
 		<h2 class="text-3xl text-primary">{ title }</h2>
 		if subtitle != "" {
-			<p class="mt-2 text-sm opacity-70">{ subtitle }</p>
+			<p class="mt-2 text-sm opacity-80">{ subtitle }</p>
 		}
 	</div>
 }
@@ -189,7 +217,7 @@ templ Gallery(v view.View) {
 			@SectionTitle("Galeri", "")
 			<div class="grid grid-cols-2 gap-2">
 				for i, p := range v.Gallery {
-					<a href={ templ.SafeURL(p.URL) } class={ "block overflow-hidden rounded-xl", templ.KV("col-span-2", wide(i, len(v.Gallery))) }>
+					<a href={ templ.SafeURL(p.URL) } data-lightbox aria-label={ photoLabel(p, i) } class={ "block overflow-hidden rounded-xl", templ.KV("col-span-2", wide(i, len(v.Gallery))) }>
 						<img src={ p.ThumbURL } alt={ p.Caption } loading="lazy" class={ "w-full object-cover", templ.KV("aspect-video", wide(i, len(v.Gallery))), templ.KV("aspect-square", !wide(i, len(v.Gallery))) }/>
 					</a>
 				}

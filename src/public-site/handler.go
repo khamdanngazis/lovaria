@@ -1,0 +1,180 @@
+package publicsite
+
+import (
+	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
+	"errors"
+	"fmt"
+	"log/slog"
+	"net/http"
+	"strings"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
+
+	"github.com/khamdanngazis/lovaria/src/modules/guest"
+	"github.com/khamdanngazis/lovaria/src/modules/theme"
+	"github.com/khamdanngazis/lovaria/src/modules/theme/view"
+	"github.com/khamdanngazis/lovaria/src/modules/wedding/event"
+	"github.com/khamdanngazis/lovaria/src/platform/web"
+)
+
+type Handler struct {
+	Views  *ViewBuilder
+	Guests *guest.Service
+	Events *event.Service
+	Log    *slog.Logger
+	now    func() time.Time
+}
+
+func (h *Handler) clock() time.Time {
+	if h.now != nil {
+		return h.now()
+	}
+	return time.Now()
+}
+
+// Home: "/" — undangan bila Host adalah custom domain, selain itu landing page.
+func (h *Handler) Home(c echo.Context) error {
+	if _, ok := FromContext(c.Request().Context()); ok {
+		return h.Invitation(c)
+	}
+	return web.Render(c, http.StatusOK, landingPage())
+}
+
+// Invitation: GET /i/:code, /w/:slug (dan "/" di custom domain).
+func (h *Handler) Invitation(c echo.Context) error {
+	ctx := c.Request().Context()
+	res, _ := FromContext(ctx)
+	v, err := h.Views.Build(ctx, res.Wedding, res.Guest)
+	if err != nil {
+		return err
+	}
+	v.Preview = res.Preview
+	for i := range v.Events {
+		v.Events[i].CalendarURL = res.Prefix + "/events/" + v.Events[i].ID + ".ics"
+	}
+	v.OG = h.og(res, v)
+
+	if res.Guest != nil && !res.Preview {
+		if err := h.Guests.MarkOpened(ctx, res.Wedding.ID, res.Guest.ID); err != nil {
+			h.Log.WarnContext(ctx, "public: mark opened", slog.String("error", err.Error()))
+		}
+	}
+
+	var buf bytes.Buffer
+	if err := theme.Render(v).Render(ctx, &buf); err != nil {
+		return err
+	}
+	hdr := c.Response().Header()
+	hdr.Set("X-Robots-Tag", "noindex")
+	if res.Preview {
+		hdr.Set("Cache-Control", "no-store")
+	} else {
+		// Cache singkat; aman di CDN karena kode tamu ada di path (URL berbeda per tamu).
+		hdr.Set("Cache-Control", "public, max-age=60")
+		sum := sha256.Sum256(buf.Bytes())
+		etag := `W/"` + hex.EncodeToString(sum[:12]) + `"`
+		hdr.Set("ETag", etag)
+		if match := c.Request().Header.Get("If-None-Match"); match != "" && strings.Contains(match, etag) {
+			return c.NoContent(http.StatusNotModified)
+		}
+	}
+	return c.HTMLBlob(http.StatusOK, buf.Bytes())
+}
+
+// og menyusun meta preview link (WhatsApp dll.): nama pasangan, tanggal, foto sampul.
+func (h *Handler) og(res Resolved, v view.View) view.OG {
+	desc := v.DateText
+	if len(v.Events) > 0 && v.Events[0].Venue != "" {
+		desc += " · " + v.Events[0].Venue
+	}
+	if res.Guest != nil {
+		desc = "Kepada Yth. " + res.Guest.Name + " — " + desc
+	}
+	image := v.Settings.CoverImage
+	if image == "" {
+		image = v.MainPhoto
+	}
+	return view.OG{
+		Title:       "The Wedding of " + v.Couple.Names(),
+		Description: desc,
+		Image:       absolute(res.Origin, image),
+		URL:         res.Origin + res.Prefix,
+	}
+}
+
+// absolute menjadikan URL relatif (/media/…, storage lokal dev) absolut.
+func absolute(origin, u string) string {
+	if u == "" || strings.HasPrefix(u, "http://") || strings.HasPrefix(u, "https://") {
+		return u
+	}
+	return origin + "/" + strings.TrimPrefix(u, "/")
+}
+
+// Calendar: GET …/events/:file (file = "<event-id>.ics").
+func (h *Handler) Calendar(c echo.Context) error {
+	ctx := c.Request().Context()
+	res, _ := FromContext(ctx)
+	id, err := uuid.Parse(strings.TrimSuffix(c.Param("file"), ".ics"))
+	if err != nil || !strings.HasSuffix(c.Param("file"), ".ics") {
+		return notFound(c)
+	}
+	e, err := h.Events.GetEvent(ctx, res.Wedding.ID, id)
+	if errors.Is(err, event.ErrNotFound) {
+		return notFound(c)
+	}
+	if err != nil {
+		return err
+	}
+	start, end, err := eventTimes(e.Date, e.StartTime, e.EndTime, res.Wedding.Timezone)
+	if err != nil {
+		return err
+	}
+	couple, err := h.Views.Weddings.GetCouple(ctx, res.Wedding.ID)
+	if err != nil {
+		return err
+	}
+	loc := e.Venue
+	if e.Address != "" {
+		loc += ", " + e.Address
+	}
+	body := buildICS(icsEvent{
+		UID:         e.ID.String() + "@lovoria",
+		Summary:     fmt.Sprintf("%s — %s & %s", e.Name, firstName(couple.GroomName), firstName(couple.BrideName)),
+		Location:    loc,
+		Description: strings.TrimSpace(e.Description + "\n" + e.MapsURL),
+		URL:         res.Origin + res.Prefix,
+		Start:       start, End: end,
+	}, h.clock())
+
+	hdr := c.Response().Header()
+	hdr.Set(echo.HeaderContentDisposition, fmt.Sprintf(`attachment; filename="%s.ics"`, slugFile(e.Name)))
+	hdr.Set("Cache-Control", "no-store")
+	return c.Blob(http.StatusOK, "text/calendar; charset=utf-8", []byte(body))
+}
+
+func firstName(s string) string {
+	if f := strings.Fields(s); len(f) > 0 {
+		return f[0]
+	}
+	return s
+}
+
+func slugFile(s string) string {
+	var b strings.Builder
+	for _, r := range strings.ToLower(s) {
+		switch {
+		case r >= 'a' && r <= 'z', r >= '0' && r <= '9':
+			b.WriteRune(r)
+		case b.Len() > 0:
+			b.WriteByte('-')
+		}
+	}
+	if out := strings.Trim(b.String(), "-"); out != "" {
+		return out
+	}
+	return "acara"
+}
