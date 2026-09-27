@@ -67,6 +67,7 @@ const usage = `Usage:
                              ganti basis URL foto tersimpan (default --to = R2_PUBLIC_URL; tanpa --apply hanya simulasi)
   lovoria create-admin --email <email> [--name <nama>] [--password <pw>]
                              tanpa --password: env LOVORIA_ADMIN_PASSWORD, lalu prompt stdin
+  lovoria demo seed          buat undangan contoh per tema untuk landing page (/w/contoh-<tema>, idempoten)
   lovoria backup run         buat backup database sekarang (BACKUP_BUCKET / BACKUP_DIR)
   lovoria backup list        daftar backup, terbaru dulu
   lovoria backup restore <file> --to <database-url> [--overwrite]
@@ -135,6 +136,11 @@ func run(args []string) error {
 		return seed.Run(ctx, log, a.seeders())
 	case "create-admin":
 		return a.createAdmin(ctx, args[1:], os.Stdin)
+	case "demo":
+		if len(args) < 2 || args[1] != "seed" {
+			return fmt.Errorf("demo: perintah yang tersedia: seed\n%s", usage)
+		}
+		return a.seedDemo(ctx, os.Stdout)
 	case "backup":
 		return a.backupCmd(ctx, args[1:], os.Stdout)
 	case "media":
@@ -402,7 +408,7 @@ func (a *app) routes() *echo.Echo {
 	admin.Register(e.Group("/admin", server.NoStore, authMW.RequireAuth, authMW.RequireRole(auth.RoleAdmin)), admins)
 	publicsite.Register(e, publicsite.Deps{
 		Resolver: &publicsite.Resolver{Weddings: a.weddings, Guests: guests, Domains: a.domains, BaseURL: cfg.BaseURL, ExtraHosts: cfg.ExtraHosts, HostHeader: cfg.Domain.HostHeader, Log: log},
-		Handler:  &publicsite.Handler{Views: views, Guests: guests, Guestbook: guestbooks, Events: events, Log: log, Secret: secret},
+		Handler:  &publicsite.Handler{BaseURL: cfg.BaseURL, Packages: admins, Views: views, Guests: guests, Guestbook: guestbooks, Events: events, Log: log, Secret: secret},
 	})
 	return e
 }

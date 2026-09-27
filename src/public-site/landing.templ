@@ -1,0 +1,503 @@
+package publicsite
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/khamdanngazis/lovaria/src/modules/admin"
+	"github.com/khamdanngazis/lovaria/src/templates/layouts"
+	"github.com/khamdanngazis/lovaria/static"
+)
+
+// landingData: isi dinamis landing page (T18).
+type landingData struct {
+	Themes   []landingTheme
+	Packages []admin.Package
+	LoggedIn bool
+	OGImage  string // URL absolut gambar Open Graph
+	URL      string // URL kanonik landing
+}
+
+type landingTheme struct {
+	ID, Name, Description string
+	Primary, Surface, Ink string // warna bawaan tema (kartu pratinjau)
+	DemoURL               string // "" bila undangan contoh belum dibuat
+}
+
+const landingFonts = "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap"
+
+// Teks utama landing di satu tempat supaya mudah disunting pemilik produk.
+const (
+	landingEyebrow = "THE DIGITAL WEDDING EXPERIENCE"
+	landingLead    = "Buat website pernikahan yang indah, undang orang-orang tersayang, dan simpan setiap momen berharga — dalam satu tempat."
+	landingDesc    = "Lovoria: website & undangan pernikahan digital yang personal — cerita cinta, RSVP, ucapan, dan kenangan dalam satu tempat."
+)
+
+templ landingHead(d landingData) {
+	<link rel="preconnect" href="https://fonts.googleapis.com"/>
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+	<link rel="preload" as="style" href={ landingFonts } data-font-css/>
+	<noscript><link rel="stylesheet" href={ landingFonts }/></noscript>
+	<meta name="theme-color" content="#FAF7F5"/>
+	<link rel="apple-touch-icon" href={ static.URL("img/brand/apple-touch-icon.png") }/>
+	<link rel="canonical" href={ d.URL }/>
+	<meta property="og:type" content="website"/>
+	<meta property="og:site_name" content="Lovoria"/>
+	<meta property="og:title" content="Lovoria — Your Love. Your Story. Your Forever."/>
+	<meta property="og:description" content={ landingDesc }/>
+	<meta property="og:url" content={ d.URL }/>
+	<meta property="og:image" content={ d.OGImage }/>
+	<meta property="og:image:width" content="1200"/>
+	<meta property="og:image:height" content="630"/>
+	<meta name="twitter:card" content="summary_large_image"/>
+	<script src={ static.URL("js/landing.js") } defer></script>
+}
+
+templ landingPage(d landingData) {
+	@layouts.Document(layouts.Meta{Title: "Website & Undangan Pernikahan Digital", Description: landingDesc, Cacheable: true}, landingHead(d), "bg-lovoria-bg font-ui text-lovoria-text antialiased") {
+		@landingHeader(d)
+		<main>
+			@landingHero(d)
+			@landingPositioning()
+			@landingSteps()
+			@landingFeatures()
+			@landingThemes(d)
+			if len(d.Packages) > 0 {
+				@landingPricing(d)
+			}
+			@landingFAQ()
+			@landingCTA(d)
+		</main>
+		@landingFooter()
+	}
+}
+
+// ---------- Ikon garis tipis (stroke 1.5, ujung membulat) ----------
+
+var landingIcons = map[string]string{
+	"heart":    "M12 20s-7-4.35-7-10a4 4 0 0 1 7-2.65A4 4 0 0 1 19 10c0 5.65-7 10-7 10z",
+	"book":     "M4 5.5A1.5 1.5 0 0 1 5.5 4H11v15H5.5A1.5 1.5 0 0 0 4 20.5zM20 5.5A1.5 1.5 0 0 0 18.5 4H13v15h5.5a1.5 1.5 0 0 1 1.5 1.5z",
+	"calendar": "M7 3v3m10-3v3M4 9h16M5 5.5h14a1 1 0 0 1 1 1V19a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6.5a1 1 0 0 1 1-1z",
+	"pin":      "M12 21s-6-5.33-6-10.5A6 6 0 0 1 18 10.5C18 15.67 12 21 12 21zm0-8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z",
+	"image":    "M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm0 10 4.5-4.5 3.5 3.5 2.5-2.5L20 17M15 9.5h.01",
+	"check":    "M9 12.5l2 2 4-4.5M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z",
+	"message":  "M5 5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-7l-4 3.5V16H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z",
+	"gift":     "M4 10h16v10H4zM3 7h18v3H3zm9 0v13M12 7c-1.5-3-5-3.5-5-1.25C7 7 9.5 7 12 7zm0 0c1.5-3 5-3.5 5-1.25C17 7 14.5 7 12 7z",
+	"link":     "M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1",
+	"globe":    "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM3.5 9h17M3.5 15h17M12 3c2.5 2.5 3.5 5.5 3.5 9s-1 6.5-3.5 9c-2.5-2.5-3.5-5.5-3.5-9s1-6.5 3.5-9z",
+	"users":    "M16 20v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M9.5 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM21 20v-1a4 4 0 0 0-3-3.87M15.5 4.13a3.5 3.5 0 0 1 0 6.75",
+	"sparkle":  "M12 3c.5 4 2 5.5 6 6-4 .5-5.5 2-6 6-.5-4-2-5.5-6-6 4-.5 5.5-2 6-6zM19 15c.25 1.75 1 2.5 2.75 2.75C20 18 19.25 18.75 19 20.5c-.25-1.75-1-2.5-2.75-2.75C18 17.5 18.75 16.75 19 15z",
+	"pen":      "M4 20h4L19 9a2.83 2.83 0 0 0-4-4L4 16zM13.5 6.5l4 4",
+	"send":     "M21 3 10 14M21 3l-7 18-4-7-7-4z",
+	"arrow":    "M5 12h14m-5-5 5 5-5 5",
+	"chevron":  "M6 9l6 6 6-6",
+	"menu":     "M4 7h16M4 12h16M4 17h16",
+}
+
+templ icon(name, class string) {
+	<svg aria-hidden="true" viewBox="0 0 24 24" class={ class } fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d={ landingIcons[name] }></path></svg>
+}
+
+// sparkle: ornamen bintang kecil champagne (dari bintang di monogram LV).
+templ sparkle(class string) {
+	<svg aria-hidden="true" viewBox="0 0 24 24" class={ class } fill="currentColor"><path d="M12 2c.6 5.2 2.8 7.4 8 8-5.2.6-7.4 2.8-8 8-.6-5.2-2.8-7.4-8-8 5.2-.6 7.4-2.8 8-8z"></path></svg>
+}
+
+const (
+	btnPrimary   = "inline-flex items-center justify-center gap-2 rounded-xl bg-lovoria-primary px-6 py-3.5 text-sm font-medium text-white shadow-soft transition hover:bg-lovoria-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lovoria-primary"
+	btnSecondary = "inline-flex items-center justify-center gap-2 rounded-xl border border-lovoria-primary px-6 py-3.5 text-sm font-medium text-lovoria-primary transition hover:bg-lovoria-primary/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lovoria-primary"
+	container    = "mx-auto w-full max-w-6xl px-5 sm:px-8"
+)
+
+templ sectionHeading(eyebrow, title, lead string) {
+	<div class="mx-auto max-w-2xl text-center">
+		<p class="flex items-center justify-center gap-2 text-xs font-medium uppercase tracking-[0.25em] text-lovoria-accent-ink">
+			@sparkle("h-3 w-3 text-lovoria-accent")
+			{ eyebrow }
+			@sparkle("h-3 w-3 text-lovoria-accent")
+		</p>
+		<h2 class="mt-4 font-display text-3xl leading-tight text-lovoria-deep sm:text-4xl">{ title }</h2>
+		if lead != "" {
+			<p class="mt-4 leading-relaxed text-lovoria-muted">{ lead }</p>
+		}
+	</div>
+}
+
+// ---------- Header ----------
+templ landingNavLinks(d landingData) {
+	<a href="#fitur" class="hover:text-lovoria-primary">Fitur</a>
+	<a href="#cara-kerja" class="hover:text-lovoria-primary">Cara Kerja</a>
+	<a href="#tema" class="hover:text-lovoria-primary">Tema</a>
+	if len(d.Packages) > 0 {
+		<a href="#harga" class="hover:text-lovoria-primary">Harga</a>
+	}
+	<a href="#faq" class="hover:text-lovoria-primary">FAQ</a>
+}
+
+templ landingHeader(d landingData) {
+	<header class="sticky top-0 z-40 border-b border-lovoria-border/70 bg-lovoria-bg/90 backdrop-blur">
+		<div class={ container, "flex h-16 items-center justify-between gap-4" }>
+			<a href="/" aria-label="Lovoria — beranda" class="text-lovoria-primary">
+				@layouts.BrandLogo("")
+			</a>
+			<nav aria-label="Navigasi utama" class="hidden items-center gap-7 text-sm font-medium text-lovoria-text md:flex">
+				@landingNavLinks(d)
+			</nav>
+			<div class="flex items-center gap-2">
+				if d.LoggedIn {
+					<a href="/dashboard" class={ btnPrimary, "!px-4 !py-2.5" }>Dashboard</a>
+				} else {
+					<a href="/login" class="hidden px-3 py-2 text-sm font-medium text-lovoria-text hover:text-lovoria-primary sm:inline">Masuk</a>
+					<a href="/register" class={ btnPrimary, "!px-4 !py-2.5" }>Mulai</a>
+				}
+				<details class="relative md:hidden">
+					<summary class="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-lg text-lovoria-deep [&::-webkit-details-marker]:hidden" aria-label="Menu">
+						@icon("menu", "h-6 w-6")
+					</summary>
+					<nav aria-label="Navigasi (ponsel)" class="absolute right-0 top-12 flex w-52 flex-col gap-1 rounded-2xl border border-lovoria-border bg-white p-3 text-sm font-medium shadow-soft [&>a]:rounded-lg [&>a]:px-3 [&>a]:py-2.5 [&>a:hover]:bg-lovoria-bg">
+						@landingNavLinks(d)
+						if !d.LoggedIn {
+							<a href="/login" class="hover:text-lovoria-primary">Masuk</a>
+						}
+					</nav>
+				</details>
+			</div>
+		</div>
+	</header>
+}
+
+// ---------- Hero ----------
+templ landingHero(d landingData) {
+	<section class="relative overflow-hidden">
+		<div aria-hidden="true" class="pointer-events-none absolute -right-40 -top-40 h-[32rem] w-[32rem] rounded-full bg-[linear-gradient(135deg,#6B4E71_0%,#8A687F_45%,#C9A88A_100%)] opacity-[0.12] blur-3xl"></div>
+		<div class={ container, "relative grid items-center gap-14 py-16 sm:py-24 lg:grid-cols-[1.1fr_0.9fr]" }>
+			<div>
+				<p class="text-xs font-medium uppercase tracking-[0.3em] text-lovoria-accent-ink">{ landingEyebrow }</p>
+				<h1 class="mt-6 font-display text-5xl leading-[1.08] text-lovoria-deep sm:text-6xl lg:text-7xl">
+					Your Love.
+					<br/>
+					Your Story.
+					<br/>
+					<span class="italic text-lovoria-primary">Your Forever.</span>
+				</h1>
+				<p class="mt-7 max-w-xl text-lg leading-relaxed text-lovoria-muted">{ landingLead }</p>
+				<div class="mt-9 flex flex-col gap-3 sm:flex-row">
+					<a href="/register" class={ btnPrimary }>
+						Mulai Sekarang
+						@icon("arrow", "h-4 w-4")
+					</a>
+					<a href="#tema" class={ btnSecondary }>
+						Lihat Contoh
+						@icon("arrow", "h-4 w-4")
+					</a>
+				</div>
+				<p class="mt-6 text-sm text-lovoria-muted">Tanpa aplikasi untuk tamu · Siap dibagikan lewat WhatsApp · Bisa pakai domain sendiri</p>
+			</div>
+			@heroMockup()
+		</div>
+	</section>
+}
+
+// heroMockup: pratinjau undangan di ponsel + kartu RSVP & ucapan (HTML/CSS
+// ringan, bukan foto) — "let the couple's story be the hero".
+templ heroMockup() {
+	<div class="relative mx-auto mb-12 w-full max-w-sm" aria-hidden="true">
+		<div class="rounded-[2.2rem] border border-lovoria-border bg-white p-3 shadow-soft">
+			<div class="relative overflow-hidden rounded-[1.7rem] bg-[#fbf6f1] px-6 pb-10 pt-12 text-center">
+				<div class="absolute inset-x-0 top-0 h-40 bg-[linear-gradient(180deg,rgba(201,168,138,0.25),transparent)]"></div>
+				<div class="relative">
+					@layouts.BrandMark("mx-auto h-8 w-auto text-lovoria-accent")
+					<p class="mt-6 text-[10px] uppercase tracking-[0.35em] text-lovoria-muted">The Wedding of</p>
+					<p class="mt-3 font-display text-4xl leading-tight text-lovoria-deep">Raka <span class="text-lovoria-accent">&amp;</span> Nadia</p>
+					<div class="mx-auto mt-5 h-px w-16 bg-lovoria-accent"></div>
+					<p class="mt-5 text-sm text-lovoria-text">Sabtu, 14 Februari 2027</p>
+					<p class="mt-8 text-xs text-lovoria-muted">Kepada Yth.</p>
+					<p class="mt-1 font-display text-lg text-lovoria-deep">Bapak Budi &amp; Keluarga</p>
+					<span class="mt-6 inline-block rounded-lg bg-lovoria-primary px-5 py-2.5 text-xs font-medium text-white">Buka Undangan</span>
+					<div class="mt-10 grid grid-cols-4 gap-2 text-center">
+						for _, n := range [][2]string{{"124", "Hari"}, {"08", "Jam"}, {"30", "Menit"}, {"12", "Detik"}} {
+							<div class="rounded-lg border border-lovoria-border bg-white/70 py-2">
+								<p class="font-display text-lg text-lovoria-deep">{ n[0] }</p>
+								<p class="text-[9px] uppercase tracking-wider text-lovoria-muted">{ n[1] }</p>
+							</div>
+						}
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="absolute -left-10 -top-6 hidden w-44 rounded-2xl border border-lovoria-border bg-white p-4 shadow-soft sm:block">
+			<p class="flex items-center gap-2 text-xs font-medium text-lovoria-primary">
+				@icon("check", "h-4 w-4")
+				RSVP
+			</p>
+			<p class="mt-2 font-display text-2xl text-lovoria-deep">128 tamu</p>
+			<p class="text-xs text-lovoria-muted">akan hadir</p>
+		</div>
+		<div class="absolute -bottom-16 -right-10 hidden w-56 rounded-2xl border border-lovoria-border bg-white p-4 shadow-soft sm:block">
+			<p class="flex items-center gap-2 text-xs font-medium text-lovoria-primary">
+				@icon("message", "h-4 w-4")
+				Ucapan &amp; Doa
+			</p>
+			<p class="mt-2 text-sm leading-snug text-lovoria-text">“Selamat menempuh hidup baru, bahagia selalu!”</p>
+			<p class="mt-1 text-xs text-lovoria-muted">— Rina &amp; Andi</p>
+		</div>
+	</div>
+}
+
+// ---------- Positioning ----------
+templ landingPositioning() {
+	<section class="border-y border-lovoria-border bg-white">
+		<div class={ container, "grid gap-10 py-16 sm:py-20 lg:grid-cols-2 lg:items-center" }>
+			<div>
+				<p class="text-xs font-medium uppercase tracking-[0.25em] text-lovoria-accent-ink">More than a wedding invitation</p>
+				<h2 class="mt-4 font-display text-3xl leading-tight text-lovoria-deep sm:text-4xl">Undangan biasa selesai di hari H. Kisah kalian tidak.</h2>
+			</div>
+			<div class="space-y-4 text-lovoria-muted">
+				<p class="leading-relaxed">
+					Lovoria adalah rumah digital untuk kisah cinta dan kenangan pernikahan kalian — dimulai sebelum hari bahagia, hadir di hari H, dan tetap bermakna setelahnya.
+				</p>
+				<div class="flex flex-wrap items-center gap-x-3 gap-y-2 font-display text-lg text-lovoria-deep">
+					for i, s := range []string{"Create", "Invite", "Experience", "Remember"} {
+						if i > 0 {
+							@icon("arrow", "h-4 w-4 text-lovoria-accent")
+						}
+						<span>{ s }</span>
+					}
+				</div>
+			</div>
+		</div>
+	</section>
+}
+
+// ---------- Cara kerja ----------
+
+type landingStep struct{ Icon, Stage, Title, Body string }
+
+var landingSteps4 = []landingStep{
+	{"pen", "Create", "Ceritakan kisah kalian", "Isi profil pasangan, cerita cinta, acara, dan galeri foto, lalu pilih tema yang paling mencerminkan kalian."},
+	{"send", "Invite", "Undang dengan personal", "Setiap tamu mendapat link pribadi dengan namanya sendiri — kirim lewat WhatsApp hanya dengan satu klik."},
+	{"heart", "Experience", "Pengalaman untuk tamu", "Tamu membuka undangan di ponsel, melihat peta & kalender acara, konfirmasi kehadiran, dan mengirim doa."},
+	{"sparkle", "Remember", "Kenangan yang tetap hidup", "Setelah hari H, website berubah menjadi halaman kenangan — ucapan dan cerita kalian tetap bisa dikunjungi."},
+}
+
+templ landingSteps() {
+	<section id="cara-kerja" class="scroll-mt-20 py-20 sm:py-28">
+		<div class={ container }>
+			@sectionHeading("Cara kerja", "Dari undangan hingga kenangan", "Empat langkah sederhana — tanpa kemampuan teknis, cukup dari ponsel.")
+			<ol class="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+				for i, s := range landingSteps4 {
+					<li class="rounded-2xl border border-lovoria-border bg-white p-6">
+						<div class="flex items-center justify-between">
+							<span class="flex h-11 w-11 items-center justify-center rounded-xl bg-lovoria-primary/10 text-lovoria-primary">
+								@icon(s.Icon, "h-5 w-5")
+							</span>
+							<span class="font-display text-3xl text-lovoria-accent-ink">{ fmt.Sprintf("0%d", i+1) }</span>
+						</div>
+						<p class="mt-5 text-xs font-medium uppercase tracking-[0.2em] text-lovoria-accent-ink">{ s.Stage }</p>
+						<h3 class="mt-1 font-display text-xl text-lovoria-deep">{ s.Title }</h3>
+						<p class="mt-2 text-sm leading-relaxed text-lovoria-muted">{ s.Body }</p>
+					</li>
+				}
+			</ol>
+		</div>
+	</section>
+}
+
+// ---------- Fitur ----------
+
+var landingFeatureList = [][3]string{
+	{"book", "Cerita cinta", "Linimasa perjalanan kalian, dari pertama bertemu hingga lamaran."},
+	{"calendar", "Acara & kalender", "Akad, resepsi, jam, dan tombol simpan ke kalender untuk tamu."},
+	{"pin", "Peta lokasi", "Tamu langsung membuka petunjuk arah ke tempat acara."},
+	{"image", "Galeri foto", "Foto prewedding & momen favorit, ringan dibuka di ponsel."},
+	{"check", "RSVP", "Konfirmasi kehadiran & jumlah tamu, rekap otomatis di dashboard."},
+	{"message", "Ucapan & doa", "Buku tamu digital yang tetap terbuka setelah hari bahagia."},
+	{"gift", "Amplop digital", "Rekening, e-wallet, atau alamat kirim hadiah dengan tombol salin."},
+	{"link", "Link pribadi & WhatsApp", "Nama tamu tampil di undangan; kirim massal lewat WhatsApp per tamu."},
+	{"globe", "Domain sendiri", "Gunakan alamat seperti www.namakalian.com, lengkap dengan HTTPS."},
+}
+
+templ landingFeatures() {
+	<section id="fitur" class="scroll-mt-20 border-y border-lovoria-border bg-white py-20 sm:py-28">
+		<div class={ container }>
+			@sectionHeading("Fitur", "Semua yang dibutuhkan hari bahagia kalian", "Dirancang untuk pasangan, disukai tamu — tanpa terasa seperti template generik.")
+			<ul class="mt-14 grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+				for _, f := range landingFeatureList {
+					<li class="flex gap-4">
+						<span class="flex h-11 w-11 flex-none items-center justify-center rounded-xl border border-lovoria-border text-lovoria-primary">
+							@icon(f[0], "h-5 w-5")
+						</span>
+						<div>
+							<h3 class="font-medium text-lovoria-deep">{ f[1] }</h3>
+							<p class="mt-1 text-sm leading-relaxed text-lovoria-muted">{ f[2] }</p>
+						</div>
+					</li>
+				}
+			</ul>
+		</div>
+	</section>
+}
+
+// ---------- Tema ----------
+templ landingThemes(d landingData) {
+	<section id="tema" class="scroll-mt-20 py-20 sm:py-28">
+		<div class={ container }>
+			@sectionHeading("Tema", "Pilih suasana yang paling kalian", "Setiap tema bisa disesuaikan warna, huruf, latar, dan foto sampulnya.")
+			<ul class="mt-12 grid grid-cols-2 gap-3 sm:mt-14 sm:gap-6 lg:grid-cols-4">
+				for _, t := range d.Themes {
+					<li class="flex flex-col overflow-hidden rounded-2xl border border-lovoria-border bg-white">
+						<div class="flex aspect-[4/5] flex-col items-center justify-center gap-2 px-3 text-center sm:gap-3 sm:px-6" style={ "background:" + t.Surface + ";color:" + t.Ink }>
+							<p class="text-[8px] uppercase tracking-[0.3em] sm:text-[10px]">The Wedding of</p>
+							<p class="font-display text-lg leading-snug sm:text-2xl" style={ "color:" + t.Primary }>Raka &amp; Nadia</p>
+							<div class="h-px w-12" style={ "background:" + t.Primary }></div>
+							<p class="text-[10px] opacity-80 sm:text-xs">14 · 02 · 2027</p>
+						</div>
+						<div class="flex flex-1 flex-col p-4 sm:p-5">
+							<h3 class="font-display text-lg text-lovoria-deep sm:text-xl">{ t.Name }</h3>
+							<p class="mt-1 flex-1 text-xs leading-relaxed text-lovoria-muted sm:text-sm">{ t.Description }</p>
+							if t.DemoURL != "" {
+								<a href={ templ.SafeURL(t.DemoURL) } class="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-lovoria-primary hover:underline">
+									Lihat contoh
+									@icon("arrow", "h-4 w-4")
+								</a>
+							}
+						</div>
+					</li>
+				}
+			</ul>
+		</div>
+	</section>
+}
+
+// ---------- Harga ----------
+
+func storageText(mb int) string {
+	if mb >= 1024 && mb%1024 == 0 {
+		return fmt.Sprintf("%d GB", mb/1024)
+	}
+	return fmt.Sprintf("%d MB", mb)
+}
+
+func durationText(days int) string {
+	switch {
+	case days%365 == 0:
+		return fmt.Sprintf("%d tahun", days/365)
+	case days%30 == 0:
+		return fmt.Sprintf("%d bulan", days/30)
+	default:
+		return fmt.Sprintf("%d hari", days)
+	}
+}
+
+templ landingPricing(d landingData) {
+	<section id="harga" class="scroll-mt-20 border-y border-lovoria-border bg-white py-20 sm:py-28">
+		<div class={ container }>
+			@sectionHeading("Harga", "Paket untuk setiap cerita", "")
+			<ul class="mx-auto mt-14 grid max-w-5xl gap-6 md:grid-cols-3">
+				for _, p := range d.Packages {
+					<li class="flex flex-col rounded-2xl border border-lovoria-border bg-lovoria-bg p-7">
+						<h3 class="font-display text-2xl text-lovoria-deep">{ p.Name }</h3>
+						if p.PriceDisplay != "" {
+							<p class="mt-3 text-2xl font-semibold text-lovoria-primary">{ p.PriceDisplay }</p>
+						}
+						<ul class="mt-6 flex-1 space-y-3 text-sm text-lovoria-text">
+							<li class="flex gap-2">
+								@icon("check", "h-5 w-5 flex-none text-lovoria-accent")
+								Semua fitur undangan, RSVP, ucapan & amplop digital
+							</li>
+							<li class="flex gap-2">
+								@icon("check", "h-5 w-5 flex-none text-lovoria-accent")
+								Penyimpanan foto { storageText(p.StorageMB) }
+							</li>
+							<li class="flex gap-2">
+								@icon("check", "h-5 w-5 flex-none text-lovoria-accent")
+								Halaman kenangan aktif { durationText(p.ArchiveDays) } setelah hari H
+							</li>
+						</ul>
+						<a href="/register" class={ btnSecondary, "mt-8" }>Pilih { p.Name }</a>
+					</li>
+				}
+			</ul>
+		</div>
+	</section>
+}
+
+// ---------- FAQ ----------
+
+var landingFAQs = [][2]string{
+	{"Apakah tamu perlu mengunduh aplikasi?", "Tidak. Undangan dibuka langsung di browser ponsel dari link yang kalian kirim, termasuk dari WhatsApp."},
+	{"Bagaimana cara mengirim undangan ke tamu?", "Tambahkan daftar tamu (ketik, tempel dari catatan, atau import CSV). Setiap tamu mendapat link pribadi dengan namanya; kirim lewat tombol WhatsApp atau salin pesan yang sudah disiapkan."},
+	{"Bisakah memakai domain sendiri?", "Bisa. Hubungkan domain seperti www.namakalian.com dari menu Domain; kami memandu pengaturan DNS-nya langkah demi langkah dan HTTPS aktif otomatis."},
+	{"Apakah isi undangan bisa diubah setelah dibagikan?", "Bisa kapan saja. Perubahan langsung terlihat oleh tamu tanpa perlu mengirim ulang link."},
+	{"Apa yang terjadi setelah hari pernikahan?", "Website berubah menjadi halaman kenangan: konfirmasi kehadiran ditutup, sementara cerita dan ucapan tetap bisa dikunjungi. Lama halaman kenangan mengikuti paket."},
+	{"Apakah data tamu aman?", "Link pribadi tamu tidak diindeks mesin pencari, data tidak dijual, dan cadangan data dibuat setiap hari. Selengkapnya di Kebijakan Privasi."},
+}
+
+templ landingFAQ() {
+	<section id="faq" class="scroll-mt-20 py-20 sm:py-28">
+		<div class={ container }>
+			@sectionHeading("FAQ", "Pertanyaan yang sering diajukan", "")
+			<div class="mx-auto mt-12 max-w-3xl divide-y divide-lovoria-border border-y border-lovoria-border">
+				for _, q := range landingFAQs {
+					<details class="group py-5">
+						<summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-medium text-lovoria-deep [&::-webkit-details-marker]:hidden">
+							{ q[0] }
+							@icon("chevron", "h-5 w-5 flex-none text-lovoria-primary transition group-open:rotate-180")
+						</summary>
+						<p class="mt-3 leading-relaxed text-lovoria-muted">{ q[1] }</p>
+					</details>
+				}
+			</div>
+		</div>
+	</section>
+}
+
+// ---------- CTA & footer ----------
+templ landingCTA(d landingData) {
+	<section class="bg-lovoria-deep text-white">
+		<div class={ container, "relative overflow-hidden py-20 text-center sm:py-24" }>
+			@sparkle("absolute left-[12%] top-12 h-4 w-4 text-lovoria-accent/60")
+			@sparkle("absolute right-[15%] bottom-14 h-3 w-3 text-lovoria-accent/60")
+			@layouts.BrandMark("mx-auto h-12 w-auto text-lovoria-accent")
+			<h2 class="mx-auto mt-6 max-w-2xl font-display text-3xl leading-tight sm:text-5xl">Mulai ceritakan kisah kalian hari ini.</h2>
+			<p class="mx-auto mt-5 max-w-xl text-white/75">Buat website pernikahan dalam hitungan menit — lengkapi pelan-pelan, terbitkan saat siap.</p>
+			<a href={ templ.SafeURL(ctaURL(d)) } class="mt-9 inline-flex items-center gap-2 rounded-xl bg-white px-7 py-3.5 text-sm font-medium text-lovoria-deep transition hover:bg-lovoria-bg">
+				if d.LoggedIn {
+					Buka Dashboard
+				} else {
+					Buat Undangan
+				}
+				@icon("arrow", "h-4 w-4")
+			</a>
+		</div>
+	</section>
+}
+
+func ctaURL(d landingData) string {
+	if d.LoggedIn {
+		return "/dashboard"
+	}
+	return "/register"
+}
+
+templ landingFooter() {
+	<footer class="bg-lovoria-deep text-white/70">
+		<div class={ container, "flex flex-col gap-8 border-t border-white/10 py-12 sm:flex-row sm:items-start sm:justify-between" }>
+			<div>
+				<span class="text-white">
+					@layouts.BrandLogo("")
+				</span>
+				<p class="mt-3 font-display italic text-lovoria-accent">Your Love. Your Story. Your Forever.</p>
+			</div>
+			<nav aria-label="Tautan footer" class="grid grid-cols-2 gap-x-12 gap-y-2 text-sm">
+				<a href="#fitur" class="hover:text-white">Fitur</a>
+				<a href="/privacy" class="hover:text-white">Kebijakan Privasi</a>
+				<a href="#tema" class="hover:text-white">Tema</a>
+				<a href="/terms" class="hover:text-white">Syarat &amp; Ketentuan</a>
+				<a href="/login" class="hover:text-white">Masuk</a>
+				<a href="/register" class="hover:text-white">Daftar</a>
+			</nav>
+		</div>
+		<p class={ container, "pb-10 text-xs text-white/50" }>© { fmt.Sprint(time.Now().Year()) } Lovoria. Semua hak dilindungi.</p>
+	</footer>
+}

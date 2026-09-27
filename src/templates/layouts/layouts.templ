@@ -136,7 +136,9 @@ templ Dashboard(meta Meta) {
 		}
 		<header class="border-b border-slate-200 bg-white">
 			<div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-				<a href="/dashboard" class="font-heading text-lg font-semibold text-primary">Lovoria</a>
+				<a href="/dashboard" aria-label="Lovoria — dashboard" class="text-lovoria-primary">
+					@BrandLogo("[&>span]:text-base")
+				</a>
 				<nav class="relative text-sm text-slate-600" x-data="{ open: false }">
 					<button type="button" class="sm:hidden" @click="open = !open" aria-label="Menu">☰</button>
 					<div class="hidden items-center sm:flex sm:gap-4" :class="open && '!flex flex-col items-end absolute right-0 top-6 z-10 gap-2 rounded bg-white p-3 shadow'">

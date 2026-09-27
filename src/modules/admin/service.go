@@ -53,16 +53,21 @@ type Package struct {
 	StorageMB    int
 	ArchiveDays  int
 	PriceDisplay string
-	Weddings     int // jumlah wedding yang memakai (hanya di ListPackages)
+	// ShowOnLanding & SortOrder: tampil di bagian harga landing page (T18).
+	ShowOnLanding bool
+	SortOrder     int
+	Weddings      int // jumlah wedding yang memakai (hanya di ListPackages)
 }
 
 func toPackage(r admindb.Package) Package {
-	return Package{ID: r.ID, Name: r.Name, StorageMB: int(r.StorageMb), ArchiveDays: int(r.ArchiveDays), PriceDisplay: r.PriceDisplay}
+	return Package{ID: r.ID, Name: r.Name, StorageMB: int(r.StorageMb), ArchiveDays: int(r.ArchiveDays), PriceDisplay: r.PriceDisplay,
+		ShowOnLanding: r.ShowOnLanding, SortOrder: int(r.SortOrder)}
 }
 
 // PackageInput: nilai mentah form paket.
 type PackageInput struct {
-	Name, StorageMB, ArchiveDays, PriceDisplay string
+	Name, StorageMB, ArchiveDays, PriceDisplay, SortOrder string
+	ShowOnLanding                                         bool
 }
 
 // AuditEntry adalah satu baris audit log.
@@ -218,6 +223,15 @@ func parsePackage(in PackageInput) (admindb.Package, error) {
 	if utf8.RuneCountInString(p.PriceDisplay) > 40 {
 		v["price_display"] = "Harga maksimal 40 karakter"
 	}
+	order := 0
+	if t := strings.TrimSpace(in.SortOrder); t != "" {
+		n, err := strconv.Atoi(t)
+		if err != nil || n < 0 || n > 999 {
+			v["sort_order"] = "Urutan 0–999"
+		}
+		order = n
+	}
+	p.ShowOnLanding, p.SortOrder = in.ShowOnLanding, int32(order) //nolint:gosec // G115: 0..999
 	if len(v) > 0 {
 		return p, v
 	}
@@ -237,7 +251,8 @@ func (s *Service) ListPackages(ctx context.Context) ([]Package, error) {
 	}
 	out := make([]Package, len(rows))
 	for i, r := range rows {
-		out[i] = Package{ID: r.ID, Name: r.Name, StorageMB: int(r.StorageMb), ArchiveDays: int(r.ArchiveDays), PriceDisplay: r.PriceDisplay, Weddings: int(r.Weddings)}
+		out[i] = Package{ID: r.ID, Name: r.Name, StorageMB: int(r.StorageMb), ArchiveDays: int(r.ArchiveDays), PriceDisplay: r.PriceDisplay,
+			ShowOnLanding: r.ShowOnLanding, SortOrder: int(r.SortOrder), Weddings: int(r.Weddings)}
 	}
 	return out, nil
 }
@@ -247,7 +262,8 @@ func (s *Service) CreatePackage(ctx context.Context, in PackageInput) (Package, 
 	if err != nil {
 		return Package{}, err
 	}
-	row, err := s.q.CreatePackage(ctx, admindb.CreatePackageParams{ID: db.NewID(), Name: p.Name, StorageMb: p.StorageMb, ArchiveDays: p.ArchiveDays, PriceDisplay: p.PriceDisplay})
+	row, err := s.q.CreatePackage(ctx, admindb.CreatePackageParams{ID: db.NewID(), Name: p.Name, StorageMb: p.StorageMb, ArchiveDays: p.ArchiveDays, PriceDisplay: p.PriceDisplay,
+		ShowOnLanding: p.ShowOnLanding, SortOrder: p.SortOrder})
 	if isUniqueName(err) {
 		return Package{}, ValidationError{"name": "Nama paket sudah dipakai"}
 	}
@@ -262,7 +278,8 @@ func (s *Service) UpdatePackage(ctx context.Context, id uuid.UUID, in PackageInp
 	if err != nil {
 		return Package{}, err
 	}
-	row, err := s.q.UpdatePackage(ctx, admindb.UpdatePackageParams{ID: id, Name: p.Name, StorageMb: p.StorageMb, ArchiveDays: p.ArchiveDays, PriceDisplay: p.PriceDisplay})
+	row, err := s.q.UpdatePackage(ctx, admindb.UpdatePackageParams{ID: id, Name: p.Name, StorageMb: p.StorageMb, ArchiveDays: p.ArchiveDays, PriceDisplay: p.PriceDisplay,
+		ShowOnLanding: p.ShowOnLanding, SortOrder: p.SortOrder})
 	switch {
 	case errors.Is(err, pgx.ErrNoRows):
 		return Package{}, ErrNotFound
@@ -273,6 +290,7 @@ func (s *Service) UpdatePackage(ctx context.Context, id uuid.UUID, in PackageInp
 	}
 	return toPackage(row), s.audit(ctx, "package.update", "package", id.String(), map[string]string{
 		"name": row.Name, "storage_mb": strconv.Itoa(int(row.StorageMb)), "archive_days": strconv.Itoa(int(row.ArchiveDays)),
+		"landing": strconv.FormatBool(row.ShowOnLanding),
 	})
 }
 
@@ -355,4 +373,18 @@ func (s *Service) SetThemeEnabled(ctx context.Context, themeID string, enabled b
 		action = "theme.disable"
 	}
 	return s.audit(ctx, action, "theme", themeID, nil)
+}
+
+// LandingPackages: paket yang ditampilkan di bagian harga landing page (T18),
+// berurutan. Kosong → landing menyembunyikan bagian harga.
+func (s *Service) LandingPackages(ctx context.Context) ([]Package, error) {
+	rows, err := s.q.ListLandingPackages(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]Package, len(rows))
+	for i, r := range rows {
+		out[i] = toPackage(r)
+	}
+	return out, nil
 }

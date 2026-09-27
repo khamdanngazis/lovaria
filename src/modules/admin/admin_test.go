@@ -449,8 +449,9 @@ func TestWeddingListWith1000(t *testing.T) {
 		t.Errorf("list 1.000 wedding: %v (batas 300ms)", took)
 	}
 	t.Logf("list 1.000 wedding: %v", took)
-	rec = f.do(http.MethodGet, "/admin/weddings?status=memory&q=wedding+00", admin, reqOpt{})
-	// memory = i % 3 == 2 → 0002, 0005, …; 0001 (published) & 0003 (draft) tidak ikut.
+	// "wedding 000" → 0001–0009; memory = i % 3 == 2 → hanya 0002, 0005, 0008
+	// (muat dalam satu halaman, urutan acak tidak berpengaruh).
+	rec = f.do(http.MethodGet, "/admin/weddings?status=memory&q=wedding+000", admin, reqOpt{})
 	if b := rec.Body.String(); !strings.Contains(b, "Wedding 0002") || strings.Contains(b, "Wedding 0001") || strings.Contains(b, "Wedding 0003") {
 		t.Error("filter status + cari")
 	}
@@ -475,5 +476,21 @@ func TestAdminQueriesOwnTablesOnly(t *testing.T) {
 				t.Errorf("%s menyentuh tabel %q milik modul lain", file, m[1])
 			}
 		}
+	}
+}
+
+func TestPackageShowOnLanding(t *testing.T) {
+	f := newFixture(t)
+	_, admin := f.user(t, "admin@example.com", true)
+	f.do(http.MethodPost, "/admin/packages", admin, reqOpt{form: url.Values{"name": {"Tersembunyi"}, "storage_mb": {"100"}, "archive_days": {"30"}}})
+	f.do(http.MethodPost, "/admin/packages", admin, reqOpt{form: url.Values{"name": {"Premium"}, "storage_mb": {"1024"}, "archive_days": {"365"}, "price_display": {"Rp 149.000"}, "show_on_landing": {"1"}, "sort_order": {"2"}}})
+	f.do(http.MethodPost, "/admin/packages", admin, reqOpt{form: url.Values{"name": {"Basic"}, "storage_mb": {"200"}, "archive_days": {"180"}, "show_on_landing": {"1"}, "sort_order": {"1"}}})
+	ps, err := f.svc.LandingPackages(ctx)
+	if err != nil || len(ps) != 2 || ps[0].Name != "Basic" || ps[1].Name != "Premium" || !ps[1].ShowOnLanding {
+		t.Fatalf("landing: %+v %v", ps, err)
+	}
+	rec := f.do(http.MethodPost, "/admin/packages", admin, reqOpt{form: url.Values{"name": {"X"}, "storage_mb": {"1"}, "archive_days": {"1"}, "sort_order": {"-5"}}})
+	if !strings.Contains(rec.Header().Get("Location"), "err=") {
+		t.Error("urutan negatif harus ditolak")
 	}
 }

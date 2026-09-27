@@ -60,12 +60,13 @@ UPDATE weddings SET status = $2 WHERE id = $1;
 -- name: ListLifecycleCandidates :many
 -- Wedding yang mungkin perlu maju status otomatis (dicek per zona waktu di Go).
 SELECT id, status, wedding_date, timezone FROM weddings
-WHERE status IN ('published', 'wedding_day', 'memory') AND wedding_date <= sqlc.arg(until)::date;
+WHERE status IN ('published', 'wedding_day', 'memory') AND wedding_date <= sqlc.arg(until)::date AND NOT is_demo;
 
 -- name: AdminListWeddings :many
 -- Panel admin (T16): semua wedding dengan filter & urutan. Laporan lintas tenant.
 SELECT * FROM weddings
-WHERE (sqlc.narg(status)::text IS NULL OR status = sqlc.narg(status))
+WHERE NOT is_demo
+  AND (sqlc.narg(status)::text IS NULL OR status = sqlc.narg(status))
   AND (sqlc.narg(date_from)::date IS NULL OR wedding_date >= sqlc.narg(date_from))
   AND (sqlc.narg(date_to)::date IS NULL OR wedding_date <= sqlc.narg(date_to))
   AND (sqlc.narg(q)::text IS NULL OR title ILIKE '%' || sqlc.narg(q) || '%' OR slug::text ILIKE '%' || sqlc.narg(q) || '%')
@@ -77,19 +78,20 @@ LIMIT sqlc.arg(lim) OFFSET sqlc.arg(off);
 
 -- name: AdminCountWeddings :one
 SELECT count(*) FROM weddings
-WHERE (sqlc.narg(status)::text IS NULL OR status = sqlc.narg(status))
+WHERE NOT is_demo
+  AND (sqlc.narg(status)::text IS NULL OR status = sqlc.narg(status))
   AND (sqlc.narg(date_from)::date IS NULL OR wedding_date >= sqlc.narg(date_from))
   AND (sqlc.narg(date_to)::date IS NULL OR wedding_date <= sqlc.narg(date_to))
   AND (sqlc.narg(q)::text IS NULL OR title ILIKE '%' || sqlc.narg(q) || '%' OR slug::text ILIKE '%' || sqlc.narg(q) || '%');
 
 -- name: CountWeddingsByStatus :many
-SELECT status, count(*) AS n FROM weddings GROUP BY status;
+SELECT status, count(*) AS n FROM weddings WHERE NOT is_demo GROUP BY status;
 
 -- name: CountWeddingsByTheme :many
-SELECT theme_id, count(*) AS n FROM weddings GROUP BY theme_id;
+SELECT theme_id, count(*) AS n FROM weddings WHERE NOT is_demo GROUP BY theme_id;
 
 -- name: StorageTotal :one
-SELECT COALESCE(sum(storage_used_bytes), 0)::bigint FROM weddings;
+SELECT COALESCE(sum(storage_used_bytes), 0)::bigint FROM weddings WHERE NOT is_demo;
 
 -- name: SetSlug :one
 UPDATE weddings SET slug = $2 WHERE id = $1 RETURNING *;
@@ -112,3 +114,6 @@ SELECT wedding_id FROM slug_redirects WHERE old_slug = $1 AND expires_at > $2;
 
 -- name: ListSlugRedirects :many
 SELECT * FROM slug_redirects WHERE wedding_id = $1 AND expires_at > $2 ORDER BY created_at DESC;
+
+-- name: MarkDemo :exec
+UPDATE weddings SET is_demo = true WHERE id = $1;

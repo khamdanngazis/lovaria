@@ -147,13 +147,15 @@ type LoveStory struct {
 }
 
 type Package struct {
-	ID           uuid.UUID
-	Name         string
-	StorageMb    int32
-	ArchiveDays  int32
-	PriceDisplay string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	ID            uuid.UUID
+	Name          string
+	StorageMb     int32
+	ArchiveDays   int32
+	PriceDisplay  string
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	ShowOnLanding bool
+	SortOrder     int32
 }
 
 type PasswordResetToken struct {
@@ -214,6 +216,7 @@ type Wedding struct {
 	UpdatedAt        time.Time
 	Timezone         string
 	StorageUsedBytes int64
+	IsDemo           bool
 }
 
 type WeddingPackage struct {

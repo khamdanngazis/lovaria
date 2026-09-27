@@ -3,18 +3,19 @@
 
 -- name: ListPackages :many
 SELECT p.*, (SELECT count(*) FROM wedding_packages wp WHERE wp.package_id = p.id) AS weddings -- tenant:ignore hitung pemakai paket
-FROM packages p ORDER BY p.storage_mb, p.name;
+FROM packages p ORDER BY p.sort_order, p.storage_mb, p.name;
 
 -- name: GetPackage :one
 SELECT * FROM packages WHERE id = $1;
 
 -- name: CreatePackage :one
-INSERT INTO packages (id, name, storage_mb, archive_days, price_display)
-VALUES ($1, $2, $3, $4, $5)
+INSERT INTO packages (id, name, storage_mb, archive_days, price_display, show_on_landing, sort_order)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING *;
 
 -- name: UpdatePackage :one
-UPDATE packages SET name = $2, storage_mb = $3, archive_days = $4, price_display = $5
+UPDATE packages SET name = $2, storage_mb = $3, archive_days = $4, price_display = $5,
+    show_on_landing = $6, sort_order = $7
 WHERE id = $1
 RETURNING *;
 
@@ -45,3 +46,6 @@ LIMIT sqlc.arg(lim) OFFSET sqlc.arg(off);
 -- name: CountAuditLogs :one
 SELECT count(*) FROM admin_audit_logs
 WHERE (sqlc.narg(target_id)::text IS NULL OR target_id = sqlc.narg(target_id));
+
+-- name: ListLandingPackages :many
+SELECT * FROM packages WHERE show_on_landing ORDER BY sort_order, storage_mb, name;

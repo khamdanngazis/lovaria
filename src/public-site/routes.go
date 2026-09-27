@@ -29,6 +29,8 @@ func Register(e *echo.Echo, d Deps) {
 	e.GET("/events/:file", h.Calendar, rw) // custom domain
 
 	// Halaman legal (T17), tanpa resolver: sama di semua host.
+	e.GET("/robots.txt", robots(d.Resolver))
+	e.GET("/sitemap.xml", sitemap(d.Resolver))
 	e.GET("/privacy", h.Privacy)
 	e.GET("/terms", h.Terms)
 

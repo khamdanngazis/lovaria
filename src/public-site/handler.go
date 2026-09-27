@@ -26,6 +26,10 @@ import (
 const openedEvery = 15 * time.Minute
 
 type Handler struct {
+	// BaseURL: URL utama Lovoria (kanonik & gambar OG landing page).
+	BaseURL string
+	// Packages: paket yang ditampilkan di landing (admin.Service); nil → tanpa harga.
+	Packages  LandingPackages
 	Views     *ViewBuilder
 	Guests    *guest.Service
 	Guestbook *guestbook.Service
@@ -48,7 +52,13 @@ func (h *Handler) Home(c echo.Context) error {
 	if _, ok := FromContext(c.Request().Context()); ok {
 		return h.Invitation(c)
 	}
-	return web.Render(c, http.StatusOK, landingPage())
+	d, err := h.landing(c)
+	if err != nil {
+		return err
+	}
+	// Konten landing sama untuk semua pengunjung kecuali tombol login/dashboard.
+	c.Response().Header().Set("Cache-Control", "private, max-age=300")
+	return web.Render(c, http.StatusOK, landingPage(d))
 }
 
 // Invitation: GET /i/:code, /w/:slug (dan "/" di custom domain).

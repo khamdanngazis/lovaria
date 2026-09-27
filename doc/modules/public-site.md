@@ -37,6 +37,20 @@ Hasil (`Resolved{Wedding, Guest, Preview, Origin, Prefix}`) disimpan di context 
 - **Privasi**: `noindex` (meta + `X-Robots-Tag`) — halaman berisi nama tamu tidak boleh masuk mesin pencari. Karena itu skor SEO Lighthouse sengaja rendah.
 - **Kalender (.ics)**: waktu lokal acara dikonversi ke UTC dengan zona waktu wedding (`time/tzdata` di-embed); tanpa jam selesai → durasi 2 jam. Acara wedding lain → 404.
 
+## Landing page (T18)
+
+`GET /` di domain Lovoria (custom domain tetap menampilkan undangan). Desain: `doc/landing-page-guide.md` — ivory `#FAF7F5`, Playfair Display + Inter, Dusty Plum `#6B4E71`, aksen champagne `#C9A88A` (teks kecil memakai `lovoria-accent-ink` `#8C6B50` supaya kontras AA). Token Tailwind `lovoria-*`, `font-display`, `font-ui`, `shadow-soft` di `src/styles/app.css`; logo `layouts.BrandMark` / `BrandLogo` (monogram LV dari `doc/vector-logo.svg`, warna `currentColor`), aset di `static/img/brand/`.
+
+| Bagian | Sumber data |
+|---|---|
+| Hero, alur Create → Invite → Experience → Remember, fitur, FAQ, CTA | teks di `src/public-site/landing.templ` (konstanta di atas file) |
+| Tema | `theme.All()` minus tema nonaktif admin; link "Lihat contoh" bila `/w/contoh-<tema>` ada & publik |
+| Harga | `admin.Service.LandingPackages` — paket bertanda **Tampil di landing page** (admin → Paket), berurutan; kosong → bagian & menu Harga disembunyikan |
+
+- **Undangan contoh**: `lovoria demo seed` (idempoten) membuat satu wedding per tema (`/w/contoh-elegant`, …) berisi data fiktif, milik akun sistem `demo@<domain>` yang dinonaktifkan, ditandai `weddings.is_demo` (migration `00018`) → tidak dihitung laporan admin & tidak diproses scheduler lifecycle. Jalankan sekali setelah deploy: `railway ssh --service lovaria -- lovoria demo seed`.
+- **SEO**: landing boleh diindeks (undangan tetap `noindex`), `canonical` & Open Graph (`static/img/brand/og-lovoria.png` 1200×630), `robots.txt` (domain Lovoria: landing/privacy/terms saja; custom domain pasangan: `Disallow: /`), `sitemap.xml` (landing, privacy, terms).
+- **Performa**: tanpa Alpine; `static/js/landing.js` hanya memuat font tanpa memblokir render; CSP publik (`StrictCSP`). Lighthouse mobile lokal: 100 / 100 / 100 / 100.
+
 ## RSVP (T10)
 
 Bagian `shared.RSVPSection` (sama di semua tema), tampil bila `View.AllowRSVP` (guard `wedding.AllowsRSVP()`: published & wedding_day):

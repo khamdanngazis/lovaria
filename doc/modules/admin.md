@@ -23,7 +23,7 @@ Modul admin **hanya** memiliki tabel `packages`, `wedding_packages`, `admin_audi
 | Customers | cari nama/email, detail + wedding milik user, tombol email, **nonaktifkan / aktifkan** |
 | Weddings | filter & urutan, paginasi 25; detail: pasangan, pemilik, tamu & RSVP, storage, domain, paket, riwayat status, audit wedding itu; aksi: ubah status, pasang paket, buka website, **lihat dashboard (lihat saja)** |
 | Tema | registry + jumlah pemakai; nonaktifkan untuk pasangan baru |
-| Paket | buat / ubah / hapus (paket terpakai tidak bisa dihapus) |
+| Paket | buat / ubah / hapus (paket terpakai tidak bisa dihapus); **Tampil di landing page** + urutan (migration `00019`) |
 | Storage | total + 20 wedding terbesar (terpakai / kuota) |
 | Domain | semua custom domain + status, jumlah aktif terhadap kuota 100 |
 | Audit log | semua aksi admin, terbaru dulu |
