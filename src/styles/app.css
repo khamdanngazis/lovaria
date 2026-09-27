@@ -31,3 +31,15 @@
     display: none;
   }
 }
+
+/* Halaman undangan (tema): latar & tipografi dari token --lv-* (theme.Render). */
+.lv-invitation {
+  background: var(--lv-background, var(--lv-surface));
+  color: var(--lv-ink);
+  font-family: var(--lv-font-body);
+}
+.lv-invitation h1,
+.lv-invitation h2,
+.lv-invitation h3 {
+  font-family: var(--lv-font-heading);
+}

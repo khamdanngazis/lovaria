@@ -279,6 +279,23 @@ func (q *Queries) SetMainPhotoURL(ctx context.Context, arg SetMainPhotoURLParams
 	return err
 }
 
+const setThemeID = `-- name: SetThemeID :execrows
+UPDATE weddings SET theme_id = $2 WHERE id = $1
+`
+
+type SetThemeIDParams struct {
+	ID      uuid.UUID
+	ThemeID string
+}
+
+func (q *Queries) SetThemeID(ctx context.Context, arg SetThemeIDParams) (int64, error) {
+	result, err := q.db.Exec(ctx, setThemeID, arg.ID, arg.ThemeID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const updateWeddingInfo = `-- name: UpdateWeddingInfo :one
 UPDATE weddings
 SET title = $2, wedding_date = $3, description = $4, main_photo_url = $5, timezone = $6

@@ -1,0 +1,74 @@
+// Package modern: tema tegas — sans tebal, blok warna penuh, kartu berwarna.
+package modern
+
+import (
+	"github.com/khamdanngazis/lovaria/src/modules/theme/view"
+	"github.com/khamdanngazis/lovaria/src/templates/themes/base"
+)
+
+templ Hero(v view.View) {
+	<section id="opening" class="flex min-h-dvh flex-col">
+		<div class="relative flex-1 bg-primary">
+			if base.CoverOf(v) != "" {
+				<img src={ base.CoverOf(v) } alt="" class="absolute inset-0 h-full w-full object-cover mix-blend-multiply opacity-80"/>
+			}
+			<div class="relative flex h-full flex-col justify-end p-8 text-white">
+				<p class="text-xs font-semibold uppercase tracking-[0.3em]">We're getting married</p>
+				<h1 class="mt-3 text-5xl font-semibold leading-[1.05]">{ v.Couple.GroomName }<br/>&amp; { v.Couple.BrideName }</h1>
+			</div>
+		</div>
+		<div class="grid grid-cols-2 items-center gap-4 bg-surface p-8">
+			<div>
+				<p class="text-xs uppercase tracking-widest opacity-60">Untuk</p>
+				<p class="font-semibold">{ base.GuestName(v) }</p>
+				<p class="mt-2 text-sm">{ v.DateText }</p>
+			</div>
+			<a href="#couple" class="justify-self-end rounded-xl bg-ink px-5 py-4 text-sm font-semibold text-surface" style="background: var(--lv-ink)">Buka Undangan →</a>
+		</div>
+	</section>
+}
+
+templ Couple(v view.View) {
+	<section id="couple" class="px-6 py-16">
+		<h2 class="text-4xl font-semibold">Mempelai</h2>
+		<div class="mt-8 space-y-4">
+			@person(v.Couple.GroomName, v.Couple.GroomPhoto, v.Couple.GroomDesc, "Mempelai Pria")
+			@person(v.Couple.BrideName, v.Couple.BridePhoto, v.Couple.BrideDesc, "Mempelai Wanita")
+		</div>
+		<div class="mt-8 rounded-3xl bg-ink p-8 text-surface" style="background: var(--lv-ink)">
+			<p class="text-xs font-semibold uppercase tracking-[0.3em] text-primary">Save the date</p>
+			<p class="mt-2 text-3xl font-semibold">{ v.DateText }</p>
+			if v.Description != "" {
+				<p class="mt-3 whitespace-pre-line text-sm opacity-80">{ v.Description }</p>
+			}
+		</div>
+	</section>
+}
+
+templ person(name, photo, desc, role string) {
+	<div class="flex items-center gap-4 rounded-3xl bg-primary/10 p-4">
+		if photo != "" {
+			<img src={ photo } alt={ name } loading="lazy" class="h-24 w-24 flex-none rounded-2xl object-cover"/>
+		}
+		<div class="min-w-0">
+			<p class="text-xs font-semibold uppercase tracking-widest text-primary">{ role }</p>
+			<h3 class="text-2xl font-semibold">{ name }</h3>
+			if desc != "" {
+				<p class="whitespace-pre-line text-sm opacity-70">{ desc }</p>
+			}
+		</div>
+	</div>
+}
+
+templ Events(v view.View) {
+	if len(v.Events) > 0 {
+		<section id="events" class="px-6 py-16">
+			<h2 class="mb-8 text-4xl font-semibold">Acara</h2>
+			<div class="space-y-4">
+				for _, e := range v.Events {
+					@base.EventCard(e, "rounded-3xl bg-primary p-7 text-left text-white [&_.text-primary]:text-white/80 [&_a]:!border-white [&_a]:!text-white [&_a.bg-primary]:!bg-white/20")
+				}
+			</div>
+		</section>
+	}
+}

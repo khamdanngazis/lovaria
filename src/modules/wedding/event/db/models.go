@@ -138,3 +138,14 @@ type Wedding struct {
 	Timezone         string
 	StorageUsedBytes int64
 }
+
+type WeddingThemeSetting struct {
+	WeddingID       uuid.UUID
+	PrimaryColor    *string
+	FontHeading     *string
+	FontBody        *string
+	BackgroundValue *string
+	CoverImageUrl   *string
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+}

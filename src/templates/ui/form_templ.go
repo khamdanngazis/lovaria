@@ -1088,7 +1088,7 @@ func ImageUpload(f Field, uploadURL, category string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 87, "\" type=\"file\" accept=\"image/jpeg,image/png,image/webp\" class=\"sr-only\" @change=\"pick($event)\"></label> <button type=\"button\" x-show=\"value && !uploading\" @click=\"value = ''\" class=\"block text-sm text-red-600 hover:underline\">Hapus foto</button></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 87, "\" type=\"file\" accept=\"image/jpeg,image/png,image/webp\" class=\"sr-only\" @change=\"pick($event)\"></label> <button type=\"button\" x-show=\"value && !uploading\" @click=\"value = ''; $nextTick(() => $dispatch('image-change'))\" class=\"block text-sm text-red-600 hover:underline\">Hapus foto</button></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

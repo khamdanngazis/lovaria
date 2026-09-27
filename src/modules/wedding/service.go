@@ -359,6 +359,19 @@ func (s *Service) StorageUsage(ctx context.Context, weddingID uuid.UUID) (int64,
 	return w.StorageUsedBytes, nil
 }
 
+// SetThemeID mengganti tema wedding. Validasi ID tema dilakukan modul theme
+// (satu-satunya pemilik registry); modul wedding hanya menyimpan.
+func (s *Service) SetThemeID(ctx context.Context, weddingID uuid.UUID, themeID string) error {
+	n, err := s.repo.q.SetThemeID(ctx, weddingdb.SetThemeIDParams{ID: weddingID, ThemeID: themeID})
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
 // SetMainPhotoURL menjadikan URL (mis. foto gallery) sebagai foto utama wedding.
 func (s *Service) SetMainPhotoURL(ctx context.Context, weddingID uuid.UUID, url string) error {
 	return s.repo.q.SetMainPhotoURL(ctx, weddingdb.SetMainPhotoURLParams{ID: weddingID, MainPhotoUrl: optional(url)})

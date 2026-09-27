@@ -1,0 +1,35 @@
+// Package shared berisi bagian undangan yang sama di semua tema (RSVP, buku
+// tamu, hadiah). Logic diisi T10/T11; untuk sekarang hanya tampil di preview.
+package shared
+
+import "github.com/khamdanngazis/lovaria/src/modules/theme/view"
+
+templ placeholder(id, title, note string) {
+	<section id={ id } class="px-6 py-12">
+		<div class="rounded-2xl border-2 border-dashed border-primary/30 p-6 text-center">
+			<h2 class="text-2xl text-primary">{ title }</h2>
+			<p class="mt-2 text-sm opacity-70">{ note }</p>
+		</div>
+	</section>
+}
+
+// RSVPSection: konfirmasi kehadiran (T10).
+templ RSVPSection(v view.View) {
+	if v.Preview {
+		@placeholder("rsvp", "Konfirmasi Kehadiran", "Form RSVP untuk tamu akan tampil di sini.")
+	}
+}
+
+// GuestbookSection: ucapan & doa (T11).
+templ GuestbookSection(v view.View) {
+	if v.Preview {
+		@placeholder("guestbook", "Ucapan & Doa", "Buku tamu akan tampil di sini.")
+	}
+}
+
+// GiftSection: amplop digital (T11).
+templ GiftSection(v view.View) {
+	if v.Preview {
+		@placeholder("gift", "Tanda Kasih", "Informasi rekening / e-wallet akan tampil di sini.")
+	}
+}

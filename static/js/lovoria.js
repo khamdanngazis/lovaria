@@ -95,6 +95,26 @@
       },
     }));
 
+    // Preview tema: perbarui iframe#theme-preview dari isi form (dengan jeda).
+    window.Alpine.data('themePreview', (previewURL) => ({
+      timer: null,
+      refresh() {
+        clearTimeout(this.timer);
+        this.timer = setTimeout(() => {
+          const params = new URLSearchParams(new FormData(this.$refs.form));
+          params.delete('_csrf');
+          params.delete('_method');
+          document.getElementById('theme-preview').src = previewURL + '?' + params.toString();
+        }, 400);
+      },
+    }));
+
+    // Warna opsional: checkbox "pakai warna sendiri" + color picker.
+    window.Alpine.data('colorField', (initial) => ({
+      custom: !!initial,
+      color: initial || '#b76e79',
+    }));
+
     // Field satu foto: upload lalu isi input tersembunyi dengan URL hasilnya.
     window.Alpine.data('imageUpload', (uploadURL, category, initial) => ({
       value: initial || '',
@@ -113,6 +133,7 @@
         this.uploading = false;
         if (res.status >= 200 && res.status < 300) {
           this.value = JSON.parse(res.body).url;
+          this.$nextTick(() => this.$dispatch('image-change'));
         } else {
           this.error = errorText(res);
         }
