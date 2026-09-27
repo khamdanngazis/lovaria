@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### T10 — RSVP
+- Form RSVP di undangan (`shared.RSVPSection`, semua tema): Hadir/Tidak hadir → jumlah orang (1..max_pax) → pesan; bisa diubah sampai hari H, read-only saat Kenangan. `/w/:slug` mengarahkan ke link pribadi.
+- `POST /i/:code/rsvp`: htmx fragment atau redirect 303 tanpa JS; `pax > max_pax` ditolak; update idempoten.
+- Proteksi form publik tanpa CSRF cookie: token HMAC (kode + hari, `APP_SECRET`) + rate limit per kode tamu; `server.PublicFormPath` melewati CSRF global hanya untuk path ini.
+- Halaman undangan tamu `Cache-Control: private, no-cache` (ETag) supaya status RSVP langsung terlihat saat dibuka lagi.
+- Dashboard: tab **RSVP** — statistik, respons terbaru, filter status.
+- Config baru `APP_SECRET`.
+
 ### T12 — Publish & wedding lifecycle
 - State machine `wedding.Service.Transition` dengan tabel transisi & aktor (pasangan/sistem/admin), transisi ilegal ditolak dengan pesan jelas; riwayat di `wedding_status_history` (migration `00008`).
 - Checklist publikasi (nama pasangan, tanggal, ≥1 acara) via `EventCounter` dari sub-modul event.

@@ -33,6 +33,10 @@ func TestMain(m *testing.M) { os.Exit(dbtest.Main(m)) }
 
 var ctx = context.Background()
 
+const testSecret = "rahasia-test-rahasia-test-rahasia-test"
+
+var testNow = time.Date(2026, 9, 1, 0, 0, 0, 0, time.UTC)
+
 // fakeDomains memetakan host → wedding (pengganti custom domain T15).
 type fakeDomains map[string]uuid.UUID
 
@@ -81,8 +85,9 @@ func newFixture(t *testing.T) fixture {
 		}
 	})
 	Register(e, Deps{
-		Resolver: &Resolver{Weddings: ws, Guests: gs, Domains: domains, BaseURL: cfg.BaseURL, Log: log},
-		Handler:  &Handler{Views: views, Guests: gs, Events: evs, Log: log, now: func() time.Time { return time.Date(2026, 9, 1, 0, 0, 0, 0, time.UTC) }},
+		Resolver:  &Resolver{Weddings: ws, Guests: gs, Domains: domains, BaseURL: cfg.BaseURL, Log: log},
+		Handler:   &Handler{Views: views, Guests: gs, Events: evs, Log: log, Secret: []byte(testSecret), now: func() time.Time { return testNow }},
+		RSVPLimit: RSVPLimit{PerMinute: 60, Burst: 8},
 	})
 	return fixture{
 		e: e, weddings: ws, guests: gs, events: evs, domains: domains,

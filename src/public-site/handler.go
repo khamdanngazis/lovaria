@@ -26,6 +26,8 @@ type Handler struct {
 	Guests *guest.Service
 	Events *event.Service
 	Log    *slog.Logger
+	// Secret kunci HMAC token form RSVP (config APP_SECRET).
+	Secret []byte
 	now    func() time.Time
 }
 
@@ -60,6 +62,13 @@ func (h *Handler) Invitation(c echo.Context) error {
 		v.Events[i].CalendarURL = res.Prefix + "/events/" + v.Events[i].ID + ".ics"
 	}
 	v.OG = h.og(res, v)
+	if res.Guest != nil && !res.Preview {
+		v.RSVP.Action = res.Prefix + "/rsvp"
+		v.RSVP.Token = h.rsvpToken(res.Guest.InvitationCode, h.clock())
+		if c.QueryParam("rsvp") == "ok" { // kembali dari form tanpa JS
+			v.RSVP.Notice = rsvpNotice(res.Guest.RSVPStatus)
+		}
+	}
 
 	if res.Guest != nil && !res.Preview {
 		if err := h.Guests.MarkOpened(ctx, res.Wedding.ID, res.Guest.ID); err != nil {
@@ -76,8 +85,13 @@ func (h *Handler) Invitation(c echo.Context) error {
 	if res.Preview {
 		hdr.Set("Cache-Control", "no-store")
 	} else {
-		// Cache singkat; aman di CDN karena kode tamu ada di path (URL berbeda per tamu).
-		hdr.Set("Cache-Control", "public, max-age=60")
+		if res.Guest != nil {
+			// Halaman tamu memuat status RSVP-nya: selalu validasi ulang (ETag → 304)
+			// supaya jawaban yang baru dikirim langsung terlihat saat link dibuka lagi.
+			hdr.Set("Cache-Control", "private, no-cache")
+		} else {
+			hdr.Set("Cache-Control", "public, max-age=60")
+		}
 		sum := sha256.Sum256(buf.Bytes())
 		etag := `W/"` + hex.EncodeToString(sum[:12]) + `"`
 		hdr.Set("ETag", etag)

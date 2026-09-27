@@ -109,7 +109,14 @@ func csrf(cfg config.Config) echo.MiddlewareFunc {
 
 func skipInfra(c echo.Context) bool {
 	p := c.Request().URL.Path
-	return p == "/healthz" || p == "/readyz" || strings.HasPrefix(p, "/static/")
+	return p == "/healthz" || p == "/readyz" || strings.HasPrefix(p, "/static/") || PublicFormPath(p)
+}
+
+// PublicFormPath: form di halaman undangan publik (di-cache, tanpa token CSRF
+// per pengunjung). Handler-nya wajib memakai proteksi sendiri — token HMAC +
+// rate limit (RSVP, T10).
+func PublicFormPath(p string) bool {
+	return strings.HasPrefix(p, "/i/") && strings.HasSuffix(p, "/rsvp") && strings.Count(p, "/") == 3
 }
 
 func requestLogger(log *slog.Logger) echo.MiddlewareFunc {

@@ -386,3 +386,22 @@ func (h *Handler) PasteConfirm(c echo.Context) error {
 	}
 	return c.Redirect(http.StatusSeeOther, fmt.Sprintf("%s?imported=%d", base(w), n))
 }
+
+// GET .../rsvp — respons RSVP terbaru (T10).
+func (h *Handler) RSVP(c echo.Context) error {
+	w := ctxWedding(c)
+	ctx := c.Request().Context()
+	s := rsvpState{W: w, Status: c.QueryParam("status")}
+	if s.Status != StatusAttending && s.Status != StatusDeclined {
+		s.Status = ""
+	}
+	page, _ := strconv.Atoi(c.QueryParam("page"))
+	var err error
+	if s.Page, err = h.svc.Responses(ctx, w.ID, s.Status, page); err != nil {
+		return err
+	}
+	if s.Stats, err = h.svc.Stats(ctx, w.ID); err != nil {
+		return err
+	}
+	return web.Render(c, http.StatusOK, rsvpPage(s))
+}
