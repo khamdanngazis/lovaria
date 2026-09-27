@@ -1,3 +1,9 @@
+// Font Google: dimuat sebagai preload lalu dijadikan stylesheet di sini (bukan
+// atribut onload) supaya CSP halaman undangan bisa melarang script inline.
+document.querySelectorAll('link[data-font-css]').forEach(function (l) {
+  l.rel = 'stylesheet';
+});
+
 // JS halaman undangan (tanpa library): lightbox galeri + fade-in saat scroll.
 (function () {
   // Fade-in bagian halaman saat masuk layar (dilewati bila pengguna memilih

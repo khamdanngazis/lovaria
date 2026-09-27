@@ -46,6 +46,10 @@ type Config struct {
 	// ArchiveAfterDays: wedding Kenangan diarsipkan otomatis setelah N hari
 	// sejak hari H+1 (LIFECYCLE_ARCHIVE_DAYS, default 365).
 	ArchiveAfterDays int
+	// Backup berisi setelan backup database harian (T17).
+	Backup Backup
+	// SentryDSN mengaktifkan pelaporan error 5xx ke Sentry (SENTRY_DSN, opsional).
+	SentryDSN string
 	// Secret kunci HMAC aplikasi, mis. token form RSVP publik (APP_SECRET, min 32
 	// karakter). Kosong → dibuat acak saat start (token lama tidak berlaku
 	// setelah restart); isi di production.
@@ -87,6 +91,21 @@ type Mail struct {
 	// ResendAPIKey untuk driver resend (RESEND_API_KEY).
 	ResendAPIKey string
 }
+
+// Backup: dump database harian ke penyimpanan privat (lihat doc/runbook.md).
+type Backup struct {
+	// Bucket R2 PRIVAT untuk backup (BACKUP_BUCKET), memakai kredensial R2_*.
+	// Dir: folder lokal (BACKUP_DIR, development). Keduanya kosong → nonaktif.
+	Bucket, Dir string
+	// RetentionDays: backup lebih tua dihapus (BACKUP_RETENTION_DAYS, default 14).
+	RetentionDays int
+	// HourUTC: jam backup harian (BACKUP_HOUR_UTC, default 19 = 02.00 WIB).
+	HourUTC int
+	// PgDump & PgRestore: path binary (PG_DUMP_PATH, PG_RESTORE_PATH).
+	PgDump, PgRestore string
+}
+
+func (b Backup) Enabled() bool { return b.Bucket != "" || b.Dir != "" }
 
 // Domain adalah setelan custom domain per wedding (lihat doc/custom-domain.md).
 type Domain struct {
@@ -276,6 +295,25 @@ func LoadFrom(getenv func(string) string) (Config, error) {
 			cfg.ExtraHosts = append(cfg.ExtraHosts, d)
 		}
 	}
+	cfg.SentryDSN = get("SENTRY_DSN", "")
+	cfg.Backup = Backup{
+		Bucket: get("BACKUP_BUCKET", ""), Dir: get("BACKUP_DIR", ""),
+		PgDump: get("PG_DUMP_PATH", "pg_dump"), PgRestore: get("PG_RESTORE_PATH", "pg_restore"),
+	}
+	cfg.Backup.RetentionDays, err = strconv.Atoi(get("BACKUP_RETENTION_DAYS", "14"))
+	if err != nil || cfg.Backup.RetentionDays < 1 {
+		errs = append(errs, fmt.Errorf("BACKUP_RETENTION_DAYS: nilai tidak valid %q", getenv("BACKUP_RETENTION_DAYS")))
+	}
+	cfg.Backup.HourUTC, err = strconv.Atoi(get("BACKUP_HOUR_UTC", "19"))
+	if err != nil || cfg.Backup.HourUTC < 0 || cfg.Backup.HourUTC > 23 {
+		errs = append(errs, fmt.Errorf("BACKUP_HOUR_UTC: nilai tidak valid %q (0–23)", getenv("BACKUP_HOUR_UTC")))
+	}
+	if cfg.Backup.Bucket != "" && cfg.Backup.Bucket == cfg.Storage.R2Bucket {
+		errs = append(errs, errors.New("BACKUP_BUCKET tidak boleh sama dengan R2_BUCKET (bucket foto bersifat publik)"))
+	}
+	if cfg.Backup.Bucket != "" && (cfg.Storage.R2AccessKeyID == "" || (cfg.Storage.R2AccountID == "" && cfg.Storage.R2Endpoint == "")) {
+		errs = append(errs, errors.New("BACKUP_BUCKET butuh kredensial R2 (R2_ACCOUNT_ID/R2_ENDPOINT, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY)"))
+	}
 	cfg.Secret = getenv("APP_SECRET")
 	if cfg.Secret != "" && len(cfg.Secret) < 32 {
 		errs = append(errs, errors.New("APP_SECRET: minimal 32 karakter"))
@@ -328,7 +366,9 @@ func LoadFrom(getenv func(string) string) (Config, error) {
 		def string
 		dst *int32
 	}{
-		{"DB_MAX_CONNS", "10", &cfg.DB.MaxConns},
+		// 25: load test T17 (250 req/detik) butuh > 10 koneksi; Postgres Railway
+		// mengizinkan 100, cukup untuk satu instance + migrasi/psql.
+		{"DB_MAX_CONNS", "25", &cfg.DB.MaxConns},
 		{"DB_MIN_CONNS", "0", &cfg.DB.MinConns},
 	}
 	for _, n := range conns {

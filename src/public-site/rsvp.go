@@ -120,6 +120,7 @@ func (h *Handler) RSVP(c echo.Context) error {
 		if _, err := h.Guestbook.Post(ctx, g.WeddingID, &g.ID, g.Name, updated.RSVPMessage); err != nil {
 			h.Log.WarnContext(ctx, "public: rsvp → buku ucapan", slog.String("error", err.Error()))
 		}
+		h.Views.Invalidate(g.WeddingID)
 	}
 	if !web.IsHTMX(c) {
 		return c.Redirect(http.StatusSeeOther, res.Prefix+"?rsvp=ok#rsvp")

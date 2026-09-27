@@ -16,7 +16,7 @@ templ Head(v view.View) {
 		<link rel="preconnect" href="https://fonts.googleapis.com"/>
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 		// Dimuat tanpa memblokir render (teks tampil dulu dengan font cadangan).
-		<link rel="preload" as="style" href={ v.FontsURL } onload="this.onload=null;this.rel='stylesheet'"/>
+		<link rel="preload" as="style" href={ v.FontsURL } data-font-css/>
 		<noscript><link rel="stylesheet" href={ v.FontsURL }/></noscript>
 	}
 	// v.CSS dibuat theme.TokensCSS dari nilai tervalidasi (hex, whitelist font,

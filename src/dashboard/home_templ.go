@@ -133,7 +133,7 @@ func quickActions(d homeData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" aria-label=\"Link undangan umum\" class=\"min-w-0 flex-1 rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-700\" onfocus=\"this.select()\"> <button type=\"button\" x-cloak @click=\"copy()\" class=\"flex-none rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium hover:bg-slate-50\" x-text=\"copied ? 'Tersalin ✓' : 'Salin'\">Salin</button></div><p class=\"mt-2 text-xs text-slate-500\">Untuk tamu tertentu, pakai link pribadi dari menu Tamu supaya nama tamu tampil & bisa RSVP.</p><div class=\"mt-4 grid grid-cols-3 gap-2 text-center text-sm\"><a href=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" aria-label=\"Link undangan umum\" class=\"min-w-0 flex-1 rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-700\" data-select-on-focus> <button type=\"button\" x-cloak @click=\"copy()\" class=\"flex-none rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium hover:bg-slate-50\" x-text=\"copied ? 'Tersalin ✓' : 'Salin'\">Salin</button></div><p class=\"mt-2 text-xs text-slate-500\">Untuk tamu tertentu, pakai link pribadi dari menu Tamu supaya nama tamu tampil & bisa RSVP.</p><div class=\"mt-4 grid grid-cols-3 gap-2 text-center text-sm\"><a href=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -63,10 +64,11 @@ type Resolver struct {
 	HostHeader string
 	Log        *slog.Logger
 	ownHosts   map[string]bool
+	ownOnce    sync.Once // ownHosts diisi sekali; request paralel tidak boleh menulis map bersamaan
 }
 
 func (r *Resolver) isOwnHost(host string) bool {
-	if r.ownHosts == nil {
+	r.ownOnce.Do(func() {
 		r.ownHosts = map[string]bool{"localhost": true, "127.0.0.1": true, "::1": true}
 		if u, err := url.Parse(r.BaseURL); err == nil && u.Hostname() != "" {
 			r.ownHosts[strings.ToLower(u.Hostname())] = true
@@ -74,7 +76,7 @@ func (r *Resolver) isOwnHost(host string) bool {
 		for _, h := range r.ExtraHosts {
 			r.ownHosts[strings.ToLower(h)] = true
 		}
-	}
+	})
 	return r.ownHosts[host]
 }
 

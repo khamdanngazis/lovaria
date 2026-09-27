@@ -258,7 +258,7 @@ templ userPage(u auth.User, ws []wedding.Wedding, f flash) {
 					method="post"
 					action={ templ.SafeURL("/admin/users/" + u.ID.String() + "/disabled") }
 					if u.DisabledAt == nil {
-						onsubmit="return confirm('Nonaktifkan akun ini? User langsung keluar dari semua sesi dan tidak bisa login.')"
+						data-confirm="Nonaktifkan akun ini? User langsung keluar dari semua sesi dan tidak bisa login."
 					}
 				>
 					@layouts.CSRFField()
@@ -407,7 +407,7 @@ templ weddingPage(d weddingData) {
 			} else {
 				<div class="mt-2 flex flex-wrap gap-2">
 					for _, to := range d.Transitions {
-						<form method="post" action={ templ.SafeURL("/admin/weddings/" + d.W.ID.String() + "/status") } onsubmit={ templ.ComponentScript{Call: "return confirm('Ubah status menjadi " + wedding.StatusLabel(to) + "?')"} }>
+						<form method="post" action={ templ.SafeURL("/admin/weddings/" + d.W.ID.String() + "/status") } data-confirm={ "Ubah status menjadi " + wedding.StatusLabel(to) + "?" }>
 							@layouts.CSRFField()
 							<input type="hidden" name="status" value={ to }/>
 							<button type="submit" class="rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50">→ { wedding.StatusLabel(to) }</button>
@@ -489,7 +489,7 @@ templ packagesPage(ps []Package, f flash) {
 				</form>
 				<div class="mt-2 flex items-center justify-between text-xs text-slate-500">
 					<span>Dipakai { strconv.Itoa(p.Weddings) } wedding</span>
-					<form method="post" action={ templ.SafeURL("/admin/packages/" + p.ID.String() + "/delete") } onsubmit="return confirm('Hapus paket ini?')">
+					<form method="post" action={ templ.SafeURL("/admin/packages/" + p.ID.String() + "/delete") } data-confirm="Hapus paket ini?">
 						@layouts.CSRFField()
 						<button type="submit" class="text-red-600 hover:underline">Hapus</button>
 					</form>

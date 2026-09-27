@@ -1,6 +1,8 @@
 package layouts
 
 import (
+	"fmt"
+
 	"github.com/khamdanngazis/lovaria/src/platform/web"
 	"github.com/khamdanngazis/lovaria/static"
 )
@@ -90,6 +92,32 @@ templ Public(meta Meta) {
 		<main class="mx-auto w-full max-w-screen-sm px-4 py-8">
 			{ children... }
 		</main>
+		@footer()
+	}
+}
+
+templ footer() {
+	<footer class="mx-auto max-w-screen-sm px-4 pb-8 text-center text-xs text-ink/60">
+		<a href="/privacy" class="hover:underline">Kebijakan Privasi</a>
+		<span aria-hidden="true">·</span>
+		<a href="/terms" class="hover:underline">Syarat &amp; Ketentuan</a>
+	</footer>
+}
+
+// ErrorPage: halaman error bergaya (404, 403, 429, 500, …) untuk semua route.
+templ ErrorPage(code int, title, message string) {
+	@Public(Meta{Title: title}) {
+		<section class="py-20 text-center">
+			<p class="font-heading text-6xl text-primary">{ fmt.Sprint(code) }</p>
+			<h1 class="mt-4 text-xl font-semibold">{ title }</h1>
+			<p class="mx-auto mt-3 max-w-sm text-ink/70">{ message }</p>
+			<div class="mt-8 flex flex-wrap justify-center gap-3 text-sm">
+				<a href="/" class="rounded-full bg-primary px-6 py-3 font-medium text-white">Ke beranda</a>
+				if _, ok := web.CurrentUser(ctx); ok {
+					<a href="/dashboard" class="rounded-full border border-primary px-6 py-3 font-medium text-primary">Ke dashboard</a>
+				}
+			</div>
+		</section>
 	}
 }
 

@@ -1533,7 +1533,7 @@ func editor(w wedding.Wedding, id uuid.UUID, g Guest, f form, link string) templ
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 128, "<div class=\"flex flex-col-reverse gap-2 sm:flex-row sm:justify-end\"><button type=\"button\" onclick=\"this.closest('#guest-editor').innerHTML = ''\" class=\"rounded-lg border border-slate-300 px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-50\">Batal</button>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 128, "<div class=\"flex flex-col-reverse gap-2 sm:flex-row sm:justify-end\"><button type=\"button\" @click=\"$el.closest('#guest-editor').innerHTML = ''\" class=\"rounded-lg border border-slate-300 px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-50\">Batal</button>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

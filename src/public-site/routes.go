@@ -2,7 +2,11 @@
 // (mobile-first). Resolusi wedding HANYA lewat Resolver.ResolveWedding.
 package publicsite
 
-import "github.com/labstack/echo/v4"
+import (
+	"github.com/labstack/echo/v4"
+
+	"github.com/khamdanngazis/lovaria/src/platform/server"
+)
 
 type Deps struct {
 	Resolver *Resolver
@@ -14,12 +18,19 @@ type Deps struct {
 }
 
 func Register(e *echo.Echo, d Deps) {
-	rw := d.Resolver.ResolveWedding
+	// Halaman undangan: CSP tanpa eval (tanpa Alpine), dipasang sebelum resolver.
+	rw := func(next echo.HandlerFunc) echo.HandlerFunc {
+		return server.StrictCSP(d.Resolver.ResolveWedding(next))
+	}
 	h := d.Handler
 
 	// Domain utama: "/" = landing. Custom domain (T15): "/" = undangan.
 	e.GET("/", h.Home, rw)
 	e.GET("/events/:file", h.Calendar, rw) // custom domain
+
+	// Halaman legal (T17), tanpa resolver: sama di semua host.
+	e.GET("/privacy", h.Privacy)
+	e.GET("/terms", h.Terms)
 
 	e.GET("/w/:slug", h.Invitation, rw)
 	e.GET("/w/:slug/events/:file", h.Calendar, rw)

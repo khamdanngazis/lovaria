@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # ---- Build ----
-FROM golang:1.25-bookworm AS build
+FROM golang:1.26-bookworm AS build
 WORKDIR /app
 
 ARG TAILWIND_VERSION=v4.3.3
@@ -27,7 +27,10 @@ RUN go tool templ generate && \
 # ---- Runtime ----
 # Alpine (bukan distroless) supaya pre-deploy command Railway punya shell.
 FROM alpine:3.24
-RUN apk add --no-cache ca-certificates tzdata && \
+# postgresql18-client: pg_dump/pg_restore untuk backup (lovoria backup). Versi
+# mayor HARUS sama dengan server Postgres produksi (Railway: 18) — pg_restore
+# yang lebih baru menulis setting yang belum dikenal server lama.
+RUN apk add --no-cache ca-certificates tzdata postgresql18-client && \
     adduser -D -H -u 10001 lovoria
 COPY --from=build /out/lovoria /usr/local/bin/lovoria
 ENV APP_ENV=production \

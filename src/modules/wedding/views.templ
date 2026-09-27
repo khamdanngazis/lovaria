@@ -365,14 +365,14 @@ templ statusCard(o overviewState) {
 				<p class="mt-1"><span class={ "rounded-full px-3 py-1 text-sm font-medium", statusBadge[o.W.Status] }>{ StatusLabel(o.W.Status) }</span></p>
 			</div>
 			if o.W.IsDraft() {
-				<form method="post" action={ templ.SafeURL(weddingURL(o.W, "/status")) } onsubmit="return confirm('Publikasikan undangan? Tamu yang punya link bisa membukanya.')">
+				<form method="post" action={ templ.SafeURL(weddingURL(o.W, "/status")) } data-confirm="Publikasikan undangan? Tamu yang punya link bisa membukanya.">
 					@layouts.CSRFField()
 					<input type="hidden" name="_method" value="PATCH"/>
 					<input type="hidden" name="status" value="published"/>
 					<button type="submit" disabled?={ !o.ready() } class="rounded-lg bg-primary px-4 py-2.5 font-medium text-white disabled:cursor-not-allowed disabled:opacity-50">Publikasikan</button>
 				</form>
 			} else if o.W.Status == StatusPublished {
-				<form method="post" action={ templ.SafeURL(weddingURL(o.W, "/status")) } onsubmit="return confirm('Tarik publikasi? Tamu tidak bisa membuka undangan sampai dipublikasikan lagi.')">
+				<form method="post" action={ templ.SafeURL(weddingURL(o.W, "/status")) } data-confirm="Tarik publikasi? Tamu tidak bisa membuka undangan sampai dipublikasikan lagi.">
 					@layouts.CSRFField()
 					<input type="hidden" name="_method" value="PATCH"/>
 					<input type="hidden" name="status" value="draft"/>

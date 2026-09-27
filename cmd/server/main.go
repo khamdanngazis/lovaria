@@ -42,8 +42,10 @@ import (
 	"github.com/khamdanngazis/lovaria/src/modules/wedding"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding/event"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding/story"
+	"github.com/khamdanngazis/lovaria/src/platform/backup"
 	"github.com/khamdanngazis/lovaria/src/platform/config"
 	"github.com/khamdanngazis/lovaria/src/platform/db"
+	"github.com/khamdanngazis/lovaria/src/platform/errtrack"
 	"github.com/khamdanngazis/lovaria/src/platform/health"
 	"github.com/khamdanngazis/lovaria/src/platform/logger"
 	"github.com/khamdanngazis/lovaria/src/platform/mail"
@@ -64,7 +66,11 @@ const usage = `Usage:
   lovoria media rebase-urls --from <url-lama> [--to <url-baru>] [--apply]
                              ganti basis URL foto tersimpan (default --to = R2_PUBLIC_URL; tanpa --apply hanya simulasi)
   lovoria create-admin --email <email> [--name <nama>] [--password <pw>]
-                             tanpa --password: env LOVORIA_ADMIN_PASSWORD, lalu prompt stdin`
+                             tanpa --password: env LOVORIA_ADMIN_PASSWORD, lalu prompt stdin
+  lovoria backup run         buat backup database sekarang (BACKUP_BUCKET / BACKUP_DIR)
+  lovoria backup list        daftar backup, terbaru dulu
+  lovoria backup restore <file> --to <database-url> [--overwrite]
+                             pulihkan backup ke database lain (--overwrite bila target = DATABASE_URL)`
 
 func main() {
 	if err := run(os.Args[1:]); err != nil {
@@ -129,6 +135,8 @@ func run(args []string) error {
 		return seed.Run(ctx, log, a.seeders())
 	case "create-admin":
 		return a.createAdmin(ctx, args[1:], os.Stdin)
+	case "backup":
+		return a.backupCmd(ctx, args[1:], os.Stdout)
 	case "media":
 		if len(args) < 2 || args[1] != "rebase-urls" {
 			return fmt.Errorf("media: perintah yang tersedia: rebase-urls\n%s", usage)
@@ -309,9 +317,22 @@ func (a *app) serve(ctx context.Context) error {
 	a.log.Info("starting lovoria", slog.String("version", version), slog.String("base_url", a.cfg.BaseURL))
 	static.Configure(a.cfg.StaticFromDisk, "static")
 	e := a.routes() // merakit service lebih dulu (SetArchiveDaysSource dll.) sebelum scheduler jalan
+	report, flush, err := errtrack.Init(a.cfg.SentryDSN, a.cfg.Env, version)
+	if err != nil {
+		return err
+	}
+	defer flush()
+	server.ReportErrors(e, report)
+	if a.cfg.SentryDSN != "" {
+		a.log.Info("error tracking: Sentry aktif")
+	}
 	go a.auth.RunCleanup(ctx, time.Hour)
 	go a.weddings.RunLifecycle(ctx, 10*time.Minute, a.cfg.ArchiveAfterDays, a.log)
 	go a.domains.RunPolling(ctx, 5*time.Minute) // verifikasi custom domain (T15)
+	if bk := a.backups(); bk != nil {
+		go bk.RunDaily(ctx, a.pool, a.cfg.Backup.HourUTC)
+		a.log.Info("backup harian aktif", slog.Int("hour_utc", a.cfg.Backup.HourUTC), slog.Int("retention_days", a.cfg.Backup.RetentionDays))
+	}
 	return server.Run(ctx, e, a.cfg, a.log)
 }
 
@@ -357,7 +378,7 @@ func (a *app) routes() *echo.Echo {
 		Guests: guests, Guestbook: guestbooks,
 	}
 
-	dash := e.Group("/dashboard", authMW.RequireAuth)
+	dash := e.Group("/dashboard", server.NoStore, authMW.RequireAuth)
 	dashboard.Register(dash, dashboard.Deps{Weddings: a.weddings})
 	owned := wedding.Register(dash.Group("/weddings"), wedding.Deps{Service: a.weddings, ArchiveDays: cfg.ArchiveAfterDays, Home: home.Widgets})
 	event.Register(owned, event.Deps{Service: events})
@@ -378,7 +399,7 @@ func (a *app) routes() *echo.Echo {
 	a.weddings.SetAdminAccess(admins)
 	a.weddings.SetArchiveDaysSource(admins.ArchiveDays)
 	photos.SetQuotaSource(admins.QuotaBytes)
-	admin.Register(e.Group("/admin", authMW.RequireAuth, authMW.RequireRole(auth.RoleAdmin)), admins)
+	admin.Register(e.Group("/admin", server.NoStore, authMW.RequireAuth, authMW.RequireRole(auth.RoleAdmin)), admins)
 	publicsite.Register(e, publicsite.Deps{
 		Resolver: &publicsite.Resolver{Weddings: a.weddings, Guests: guests, Domains: a.domains, BaseURL: cfg.BaseURL, ExtraHosts: cfg.ExtraHosts, HostHeader: cfg.Domain.HostHeader, Log: log},
 		Handler:  &publicsite.Handler{Views: views, Guests: guests, Guestbook: guestbooks, Events: events, Log: log, Secret: secret},
@@ -398,4 +419,73 @@ func appSecret(cfg config.Config, log *slog.Logger) []byte {
 	b := make([]byte, 32)
 	_, _ = rand.Read(b)
 	return b
+}
+
+// backups menyusun service backup dari config (nil bila tidak dikonfigurasi).
+func (a *app) backups() *backup.Service {
+	c := a.cfg.Backup
+	if !c.Enabled() {
+		return nil
+	}
+	var store backup.Store = backup.DirStore{Dir: c.Dir}
+	if c.Bucket != "" {
+		endpoint := a.cfg.Storage.R2Endpoint
+		if endpoint == "" {
+			endpoint = "https://" + a.cfg.Storage.R2AccountID + ".r2.cloudflarestorage.com"
+		}
+		store = backup.NewR2Store(endpoint, c.Bucket, a.cfg.Storage.R2AccessKeyID, a.cfg.Storage.R2SecretAccessKey)
+	}
+	return &backup.Service{
+		Store: store, DBURL: a.cfg.DB.URL, Retention: time.Duration(c.RetentionDays) * 24 * time.Hour,
+		Prefix: "lovoria-" + a.cfg.Env, PgDump: c.PgDump, PgRestore: c.PgRestore, Log: a.log,
+	}
+}
+
+// backupCmd: lovoria backup run | list | restore <file> --to <url> [--overwrite].
+func (a *app) backupCmd(ctx context.Context, args []string, out io.Writer) error {
+	bk := a.backups()
+	if bk == nil {
+		return errors.New("backup: isi BACKUP_BUCKET (R2 privat) atau BACKUP_DIR")
+	}
+	if len(args) == 0 {
+		return fmt.Errorf("backup: butuh perintah run | list | restore\n%s", usage)
+	}
+	switch args[0] {
+	case "run":
+		key, err := bk.Run(ctx)
+		if err != nil {
+			return err
+		}
+		fmt.Fprintln(out, "backup dibuat:", key)
+		return nil
+	case "list":
+		objs, err := bk.Store.List(ctx)
+		if err != nil {
+			return err
+		}
+		for _, o := range objs {
+			fmt.Fprintf(out, "%s\t%d KB\t%s\n", o.Key, (o.Size+1023)/1024, o.Created.UTC().Format(time.RFC3339))
+		}
+		if len(objs) == 0 {
+			fmt.Fprintln(out, "(belum ada backup)")
+		}
+		return nil
+	case "restore":
+		fs := flag.NewFlagSet("backup restore", flag.ContinueOnError)
+		to := fs.String("to", "", "URL database tujuan")
+		overwrite := fs.Bool("overwrite", false, "izinkan menimpa DATABASE_URL aplikasi")
+		if len(args) < 2 {
+			return errors.New("backup restore: butuh nama file (lihat: lovoria backup list)")
+		}
+		if err := fs.Parse(args[2:]); err != nil {
+			return err
+		}
+		if err := bk.Restore(ctx, args[1], *to, *overwrite); err != nil {
+			return err
+		}
+		fmt.Fprintln(out, "restore selesai:", args[1])
+		return nil
+	default:
+		return fmt.Errorf("backup: perintah tidak dikenal %q (run | list | restore)", args[0])
+	}
 }

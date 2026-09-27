@@ -251,3 +251,41 @@
     }));
   });
 })();
+
+// Error dari server untuk request htmx (4xx/5xx tidak di-swap, kecuali 422/429):
+// tampilkan pesan singkat supaya aksi yang gagal tidak diam saja (mis. mode
+// lihat saja admin). Server mengirim pesan sebagai teks biasa untuk htmx.
+(() => {
+  let box, timer;
+  const show = (msg) => {
+    if (!box) {
+      box = document.createElement('div');
+      box.setAttribute('role', 'alert');
+      box.className = 'fixed inset-x-4 bottom-20 z-[60] mx-auto max-w-md rounded-xl bg-red-600 px-4 py-3 text-center text-sm text-white shadow-lg lg:bottom-6';
+      document.body.appendChild(box);
+    }
+    box.textContent = msg;
+    box.hidden = false;
+    clearTimeout(timer);
+    timer = setTimeout(() => { box.hidden = true; }, 5000);
+  };
+  document.body.addEventListener('htmx:responseError', (e) => {
+    const text = (e.detail.xhr && e.detail.xhr.responseText) || '';
+    // Hanya teks pendek; halaman HTML penuh (mis. dari proxy) diganti pesan umum.
+    show(text && text.length < 300 && !/</.test(text) ? text : 'Terjadi kesalahan. Coba lagi.');
+  });
+  document.body.addEventListener('htmx:sendError', () => show('Tidak bisa terhubung ke server. Periksa koneksi internet.'));
+})();
+
+// Pengganti handler inline (CSP melarang onsubmit=/onfocus= di HTML):
+// <form data-confirm="Yakin?"> dan <input data-select-on-focus>.
+document.addEventListener('submit', (e) => {
+  const msg = e.target.dataset && e.target.dataset.confirm;
+  if (msg && !window.confirm(msg)) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+  }
+}, true);
+document.addEventListener('focusin', (e) => {
+  if (e.target.matches && e.target.matches('[data-select-on-focus]')) e.target.select();
+});

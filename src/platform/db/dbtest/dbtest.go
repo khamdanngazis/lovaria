@@ -164,3 +164,22 @@ func withDatabase(rawURL, name string) (string, error) {
 	u.Path = "/" + name
 	return u.String(), nil
 }
+
+// EmptyDatabase membuat database kosong tambahan (dihapus saat test selesai)
+// dan mengembalikan URL-nya — mis. target uji restore backup.
+func EmptyDatabase(t testing.TB) string {
+	t.Helper()
+	Pool(t)
+	ctx := context.Background()
+	admin := os.Getenv(envURL)
+	name, err := createDatabase(ctx, admin)
+	if err != nil {
+		t.Fatalf("dbtest: %v", err)
+	}
+	t.Cleanup(func() { _ = dropDatabase(context.Background(), admin, name) })
+	u, err := withDatabase(admin, name)
+	if err != nil {
+		t.Fatalf("dbtest: %v", err)
+	}
+	return u
+}

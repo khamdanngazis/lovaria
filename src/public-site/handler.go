@@ -22,6 +22,9 @@ import (
 	"github.com/khamdanngazis/lovaria/src/platform/web"
 )
 
+// openedEvery: selang minimum pembaruan last_opened_at per tamu.
+const openedEvery = 15 * time.Minute
+
 type Handler struct {
 	Views     *ViewBuilder
 	Guests    *guest.Service
@@ -55,7 +58,11 @@ func (h *Handler) Invitation(c echo.Context) error {
 	if res.Wedding.IsArchived() {
 		return h.archived(c, res)
 	}
-	v, err := h.Views.Build(ctx, res.Wedding, res.Guest)
+	build := h.Views.BuildPublic
+	if res.Preview {
+		build = h.Views.Build // pemilik melihat perubahan terbaru, tanpa cache
+	}
+	v, err := build(ctx, res.Wedding, res.Guest)
 	if err != nil {
 		return err
 	}
@@ -78,7 +85,9 @@ func (h *Handler) Invitation(c echo.Context) error {
 		}
 	}
 
-	if res.Guest != nil && !res.Preview {
+	// Catat "sudah dibuka" paling sering tiap 15 menit per tamu: menghindari
+	// UPDATE di setiap page view saat undangan ramai dibuka (load test T17).
+	if g := res.Guest; g != nil && !res.Preview && (g.LastOpenedAt == nil || h.clock().Sub(*g.LastOpenedAt) > openedEvery) {
 		if err := h.Guests.MarkOpened(ctx, res.Wedding.ID, res.Guest.ID); err != nil {
 			h.Log.WarnContext(ctx, "public: mark opened", slog.String("error", err.Error()))
 		}
@@ -213,4 +222,15 @@ func slugFile(s string) string {
 		return out
 	}
 	return "acara"
+}
+
+// GET /privacy, /terms — halaman legal (draf).
+func (h *Handler) Privacy(c echo.Context) error {
+	c.Response().Header().Set("Cache-Control", "public, max-age=3600")
+	return web.Render(c, http.StatusOK, privacyPage())
+}
+
+func (h *Handler) Terms(c echo.Context) error {
+	c.Response().Header().Set("Cache-Control", "public, max-age=3600")
+	return web.Render(c, http.StatusOK, termsPage())
 }

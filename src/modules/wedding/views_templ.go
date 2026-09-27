@@ -1384,7 +1384,7 @@ func statusCard(o overviewState) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 96, "\" onsubmit=\"return confirm('Publikasikan undangan? Tamu yang punya link bisa membukanya.')\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 96, "\" data-confirm=\"Publikasikan undangan? Tamu yang punya link bisa membukanya.\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1420,7 +1420,7 @@ func statusCard(o overviewState) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 101, "\" onsubmit=\"return confirm('Tarik publikasi? Tamu tidak bisa membuka undangan sampai dipublikasikan lagi.')\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 101, "\" data-confirm=\"Tarik publikasi? Tamu tidak bisa membuka undangan sampai dipublikasikan lagi.\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
