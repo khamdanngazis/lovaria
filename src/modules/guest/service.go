@@ -400,6 +400,32 @@ func (s *Service) Groups(ctx context.Context, weddingID uuid.UUID) ([]string, er
 	return s.repo.q.ListGroups(ctx, weddingID)
 }
 
+// Responses mengembalikan respons RSVP terbaru (tamu yang sudah menjawab),
+// opsional difilter status attending/declined.
+func (s *Service) Responses(ctx context.Context, weddingID uuid.UUID, status string, page int) (Page, error) {
+	var st *string
+	if status == StatusAttending || status == StatusDeclined {
+		st = &status
+	}
+	page = max(1, page)
+	total, err := s.repo.q.CountRSVPResponses(ctx, guestdb.CountRSVPResponsesParams{WeddingID: weddingID, Status: st})
+	if err != nil {
+		return Page{}, err
+	}
+	rows, err := s.repo.q.ListRSVPResponses(ctx, guestdb.ListRSVPResponsesParams{
+		WeddingID: weddingID, Status: st,
+		Lim: PerPage, Off: int32((page - 1) * PerPage), //nolint:gosec // G115: halaman kecil
+	})
+	if err != nil {
+		return Page{}, err
+	}
+	out := Page{Guests: make([]Guest, len(rows)), Total: int(total), Page: page, PerPage: PerPage}
+	for i, r := range rows {
+		out.Guests[i] = toGuest(r)
+	}
+	return out, nil
+}
+
 // Stats menghitung ringkasan tamu & pax wedding.
 func (s *Service) Stats(ctx context.Context, weddingID uuid.UUID) (Stats, error) {
 	r, err := s.repo.q.GuestStats(ctx, weddingID)

@@ -38,6 +38,10 @@ type Config struct {
 	// ArchiveAfterDays: wedding Kenangan diarsipkan otomatis setelah N hari
 	// sejak hari H+1 (LIFECYCLE_ARCHIVE_DAYS, default 365).
 	ArchiveAfterDays int
+	// Secret kunci HMAC aplikasi, mis. token form RSVP publik (APP_SECRET, min 32
+	// karakter). Kosong → dibuat acak saat start (token lama tidak berlaku
+	// setelah restart); isi di production.
+	Secret string
 	// ShutdownTimeout batas waktu graceful shutdown (SHUTDOWN_TIMEOUT, format Go duration).
 	ShutdownTimeout time.Duration
 	// StaticFromDisk: true → /static dibaca dari folder ./static (hot reload saat dev);
@@ -220,6 +224,11 @@ func LoadFrom(getenv func(string) string) (Config, error) {
 		}
 	default:
 		errs = append(errs, fmt.Errorf("STORAGE_DRIVER: nilai tidak valid %q (local | r2)", cfg.Storage.Driver))
+	}
+
+	cfg.Secret = getenv("APP_SECRET")
+	if cfg.Secret != "" && len(cfg.Secret) < 32 {
+		errs = append(errs, errors.New("APP_SECRET: minimal 32 karakter"))
 	}
 
 	cfg.ArchiveAfterDays, err = strconv.Atoi(get("LIFECYCLE_ARCHIVE_DAYS", "365"))

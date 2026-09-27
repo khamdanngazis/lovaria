@@ -29,9 +29,32 @@ Hasil (`Resolved{Wedding, Guest, Preview, Origin, Prefix}`) disimpan di context 
 `Handler.Invitation`: `ViewBuilder.Build` (wedding, pasangan, acara, cerita, galeri, pengaturan tema) → isi link `.ics` per acara & meta OG → `theme.Render`.
 
 - **OG / Twitter**: `og:title` "The Wedding of X & Y", `og:description` tanggal · tempat acara pertama (personal: "Kepada Yth. {tamu} — …"), `og:image` foto sampul tema atau foto utama (URL absolut), `og:url` kanonik (`BASE_URL` + `/i/KODE` atau `/w/slug`). Uji setelah deploy dengan mengirim link ke WhatsApp atau https://www.opengraph.xyz.
-- **Cache**: `public, max-age=60` + ETag (If-None-Match → 304). Aman di CDN karena kode tamu ada di path. HTML undangan **tidak memuat token CSRF** (`layouts.Meta.Cacheable`) supaya bisa dibagi antar pengunjung; form publik (RSVP, T10) memakai token sendiri.
+- **Cache**: `/w/:slug` → `public, max-age=60`; `/i/:code` → `private, no-cache` (selalu validasi ulang, supaya status RSVP tamu langsung terlihat); keduanya dengan ETag (If-None-Match → 304). HTML undangan **tidak memuat token CSRF** (`layouts.Meta.Cacheable`) supaya bisa dibagi antar pengunjung; form publik (RSVP, T10) memakai token sendiri.
 - **Privasi**: `noindex` (meta + `X-Robots-Tag`) — halaman berisi nama tamu tidak boleh masuk mesin pencari. Karena itu skor SEO Lighthouse sengaja rendah.
 - **Kalender (.ics)**: waktu lokal acara dikonversi ke UTC dengan zona waktu wedding (`time/tzdata` di-embed); tanpa jam selesai → durasi 2 jam. Acara wedding lain → 404.
+
+## RSVP (T10)
+
+Bagian `shared.RSVPSection` (sama di semua tema), tampil bila `View.AllowRSVP` (guard `wedding.AllowsRSVP()`: published & wedding_day):
+
+| Akses | Tampilan |
+|---|---|
+| `/i/:code` | Form: Hadir / Tidak hadir → jumlah orang (1..`max_pax`, disembunyikan lewat CSS `:has()` saat Tidak hadir) → pesan opsional. Jawaban tersimpan terisi ulang dan bisa diubah sampai hari H. |
+| `/w/:slug` | "Gunakan link undangan pribadi Anda untuk RSVP." |
+| Status Kenangan | Ringkasan jawaban tamu (read-only), tanpa form. |
+| Preview dashboard | Form contoh nonaktif. |
+
+**Endpoint** `POST /i/:code/rsvp` — payload `status` (`attending`/`declined`), `pax`, `message`, `token`. Lewat resolver (tamu & wedding), lalu `guest.UpdateRSVP` (satu `UPDATE` per tamu → kiriman ganda idempoten, jawaban terakhir menang; `pax > max_pax` → 422).
+- htmx (`HX-Request`) → fragment `<section id="rsvp">` (hx-swap outerHTML) dengan pesan sukses / error.
+- Tanpa JS → `303` ke `/i/:code?rsvp=ok#rsvp`, halaman menampilkan pesan sukses.
+- Wedding bukan published/wedding_day → 403 "konfirmasi kehadiran sudah ditutup"; draft/kode tidak ada → 404.
+
+**Proteksi tanpa CSRF cookie** (HTML undangan di-cache): path ini dilewati middleware CSRF global (`server.PublicFormPath`) dan diganti:
+- **Token HMAC** di hidden field: `<hari>.<HMAC-SHA256(APP_SECRET, "rsvp|KODE|hari")>`. Hari (UTC, dibulatkan) membuat HTML & ETag stabil sepanjang hari; token berlaku 30 hari dan hanya untuk kode tamu itu. Token salah → 403 "kirim ulang".
+- **Rate limit per kode tamu** (in-memory): 6/menit, burst 5 → 429 (pesan dirender di section).
+- `APP_SECRET` kosong → kunci acak per proses (token dari halaman lama tidak berlaku setelah restart; production mencatat peringatan).
+
+Belum ada (menunggu T11): opsi menyalin pesan RSVP ke buku tamu.
 
 ## JS & performa
 

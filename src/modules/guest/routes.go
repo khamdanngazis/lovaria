@@ -14,6 +14,7 @@ type Deps struct {
 func Register(w *echo.Group, deps Deps) {
 	h := NewHandler(deps.Service)
 	w.GET("/guests", h.List)
+	w.GET("/rsvp", h.RSVP)
 	w.POST("/guests", h.Create)
 	w.DELETE("/guests", h.BulkDelete)
 	w.GET("/guests/new", h.New)

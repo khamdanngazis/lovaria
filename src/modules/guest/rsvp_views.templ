@@ -1,0 +1,129 @@
+package guest
+
+import (
+	"net/url"
+	"strconv"
+	"time"
+
+	"github.com/khamdanngazis/lovaria/src/modules/wedding"
+	"github.com/khamdanngazis/lovaria/src/platform/web"
+)
+
+// rsvpState: data halaman RSVP dashboard (T10).
+type rsvpState struct {
+	W      wedding.Wedding
+	Status string // "" | attending | declined
+	Page   Page
+	Stats  Stats
+}
+
+func rsvpBase(w wedding.Wedding) string { return w.DashboardURL("/rsvp") }
+
+func (s rsvpState) query(status string, page int) string {
+	v := url.Values{}
+	if status != "" {
+		v.Set("status", status)
+	}
+	if page > 1 {
+		v.Set("page", strconv.Itoa(page))
+	}
+	if len(v) == 0 {
+		return rsvpBase(s.W)
+	}
+	return rsvpBase(s.W) + "?" + v.Encode()
+}
+
+// when: waktu respons di zona waktu wedding, mis. "Sabtu, 12 Desember 2026 14.05 WIB".
+func (s rsvpState) when(g Guest) string {
+	if g.RSVPAt == nil {
+		return ""
+	}
+	t := *g.RSVPAt
+	if loc, err := time.LoadLocation(s.W.Timezone); err == nil {
+		t = t.In(loc)
+	}
+	return web.FormatDateID(t) + " " + t.Format("15.04") + " " + wedding.TimezoneAbbr(s.W.Timezone)
+}
+
+templ rsvpPage(s rsvpState) {
+	@wedding.Shell(s.W, "/rsvp") {
+		<div class="space-y-4">
+			<div class="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
+				@statCard("Hadir", s.Stats.Attending, "tamu")
+				@statCard("Total orang hadir", s.Stats.PaxAttending, "termasuk pendamping")
+				@statCard("Tidak hadir", s.Stats.Declined, "tamu")
+				@statCard("Belum konfirmasi", s.Stats.Pending, "tamu")
+			</div>
+			@rsvpList(s)
+		</div>
+	}
+}
+
+templ rsvpList(s rsvpState) {
+	<section id="rsvp-list" class="space-y-3">
+		<nav class="flex gap-2 overflow-x-auto whitespace-nowrap text-sm scrollbar-none" aria-label="Filter status RSVP">
+			@rsvpFilter(s, "", "Semua respons")
+			@rsvpFilter(s, StatusAttending, "Hadir")
+			@rsvpFilter(s, StatusDeclined, "Tidak hadir")
+		</nav>
+		if len(s.Page.Guests) == 0 {
+			<div class="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-slate-500">
+				if s.Status == "" {
+					Belum ada tamu yang konfirmasi. Respons muncul di sini begitu tamu mengisi RSVP dari link undangan pribadinya.
+				} else {
+					Belum ada respons dengan status ini.
+				}
+			</div>
+		} else {
+			<ul class="space-y-2">
+				for _, g := range s.Page.Guests {
+					<li class="rounded-xl bg-white p-3 shadow-sm ring-1 ring-black/5">
+						<div class="flex flex-wrap items-center gap-2">
+							<span class="break-words font-medium">{ g.Name }</span>
+							<span class={ "rounded-full px-2 py-0.5 text-xs", statusClass(g.RSVPStatus) }>
+								{ StatusLabel(g.RSVPStatus) }
+								if g.RSVPStatus == StatusAttending {
+									· { strconv.Itoa(g.RSVPPax) } org
+								}
+							</span>
+						</div>
+						<p class="mt-0.5 text-sm text-slate-500">
+							if g.GroupName != "" {
+								{ g.GroupName } ·
+							}
+							{ s.when(g) }
+						</p>
+						if g.RSVPMessage != "" {
+							<p class="mt-1 break-words text-sm italic text-slate-600">“{ g.RSVPMessage }”</p>
+						}
+					</li>
+				}
+			</ul>
+			if s.Page.Pages() > 1 {
+				<nav class="flex items-center justify-between text-sm" aria-label="Halaman">
+					if s.Page.Page > 1 {
+						<a href={ templ.SafeURL(s.query(s.Status, s.Page.Page-1)) } class="rounded-lg border border-slate-300 bg-white px-3 py-1.5">‹ Sebelumnya</a>
+					} else {
+						<span></span>
+					}
+					<span class="text-slate-500">Halaman { strconv.Itoa(s.Page.Page) } dari { strconv.Itoa(s.Page.Pages()) }</span>
+					if s.Page.Page < s.Page.Pages() {
+						<a href={ templ.SafeURL(s.query(s.Status, s.Page.Page+1)) } class="rounded-lg border border-slate-300 bg-white px-3 py-1.5">Berikutnya ›</a>
+					} else {
+						<span></span>
+					}
+				</nav>
+			}
+		}
+	</section>
+}
+
+templ rsvpFilter(s rsvpState, status, label string) {
+	<a
+		href={ templ.SafeURL(s.query(status, 1)) }
+		class={ "rounded-full px-3 py-1.5", templ.KV("bg-primary text-white", s.Status == status), templ.KV("bg-white text-slate-600 ring-1 ring-slate-300", s.Status != status) }
+		if s.Status == status {
+			aria-current="page"
+		}
+	>{ label }</a>
+}

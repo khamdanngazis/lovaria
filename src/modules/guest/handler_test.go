@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -207,7 +208,7 @@ func TestGuestRoutesOwnerOnly(t *testing.T) {
 	base, item := w.DashboardURL("/guests"), w.DashboardURL("/guests/"+g.ID.String())
 
 	reqs := []*http.Request{
-		get(base), get(base + "/new"), get(base + "/export"), get(base + "/import"),
+		get(base), get(base + "/new"), get(base + "/export"), get(base + "/import"), get(w.DashboardURL("/rsvp")),
 		formReq(http.MethodPost, base, url.Values{"name": {"x"}}),
 		csvUpload(t, base+"/import", "name\nx\n"),
 		formReq(http.MethodPost, base+"/import/confirm", url.Values{"rows": {"name\nx\n"}}),
@@ -351,5 +352,39 @@ func TestImportPageAndTemplate(t *testing.T) {
 	}
 	if rec := send(e, bob, get(base+"/import/template"), false); rec.Code != http.StatusNotFound {
 		t.Errorf("bob → template alice: %d", rec.Code)
+	}
+}
+
+func TestRSVPDashboardPage(t *testing.T) {
+	f := newFixture(t)
+	e := newTestServer(t, f)
+	owner, w := f.newWedding(t, "a@example.com")
+	page := w.DashboardURL("/rsvp")
+
+	if rec := send(e, owner, get(page), false); rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Belum ada tamu yang konfirmasi") {
+		t.Fatalf("kosong: %d", rec.Code)
+	}
+	budi := f.add(t, w.ID, Input{Name: "Budi", MaxPax: "3"})
+	sari := f.add(t, w.ID, Input{Name: "Sari"})
+	f.add(t, w.ID, Input{Name: "Belum Jawab"})
+	if _, err := f.svc.UpdateRSVP(ctx, w.ID, budi.ID, StatusAttending, 3, "Selamat!"); err != nil {
+		t.Fatal(err)
+	}
+	f.svc.now = func() time.Time { return time.Now().Add(time.Minute) }
+	if _, err := f.svc.UpdateRSVP(ctx, w.ID, sari.ID, StatusDeclined, 0, ""); err != nil {
+		t.Fatal(err)
+	}
+
+	body := send(e, owner, get(page), false).Body.String()
+	// Terbaru dulu; tamu yang belum menjawab tidak ada di daftar respons.
+	if i, j := strings.Index(body, "Sari"), strings.Index(body, "Budi"); i < 0 || j < 0 || i > j {
+		t.Errorf("urutan respons salah (Sari %d, Budi %d)", i, j)
+	}
+	if strings.Contains(body, "Belum Jawab") || !strings.Contains(body, "Selamat!") || !strings.Contains(body, "Total orang hadir") {
+		t.Error("isi halaman RSVP tidak sesuai")
+	}
+	body = send(e, owner, get(page+"?status=attending"), false).Body.String()
+	if !strings.Contains(body, "Budi") || strings.Contains(body, ">Sari<") {
+		t.Error("filter hadir")
 	}
 }

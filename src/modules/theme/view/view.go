@@ -38,6 +38,9 @@ type View struct {
 	AllowRSVP      bool
 	AllowGuestbook bool
 
+	// RSVP: form konfirmasi kehadiran tamu (T10); Action kosong → form nonaktif.
+	RSVP RSVPForm
+
 	// Preview: tampilkan banner "Preview" (owner melihat draft / dashboard).
 	Preview bool
 	// Sample: data contoh dipakai untuk bagian yang masih kosong (preview dashboard).
@@ -63,11 +66,12 @@ func first(s string) string {
 }
 
 type Guest struct {
-	Name       string
-	Code       string
-	MaxPax     int
-	RSVPStatus string
-	RSVPPax    int
+	Name        string
+	Code        string
+	MaxPax      int
+	RSVPStatus  string // pending | attending | declined
+	RSVPPax     int
+	RSVPMessage string
 }
 
 type Event struct {
@@ -79,6 +83,19 @@ type Event struct {
 	MapsURL         string
 	CalendarURL     string // .ics (T09)
 	Description     string
+}
+
+// RSVPForm adalah keadaan form RSVP di halaman undangan.
+type RSVPForm struct {
+	Action string // URL POST, mis. "/i/KODE/rsvp"
+	Token  string // token HMAC anti-spam (pengganti CSRF di halaman yang di-cache)
+	Notice string // pesan sukses
+	Error  string // pesan umum (mis. RSVP ditutup, halaman kedaluwarsa)
+	Errors map[string]string
+	// Nilai isian (dipakai lagi saat validasi gagal).
+	Status  string
+	Pax     int
+	Message string
 }
 
 // OG adalah meta preview link. URL wajib absolut.

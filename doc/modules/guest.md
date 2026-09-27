@@ -23,6 +23,7 @@ Satu-satunya query lintas wedding: `GetGuestByCode` (`-- tenant:ignore`).
 |---|---|
 | `GetByCode(ctx, code)` | Resolver public site (T09). Kode dinormalisasi (trim + uppercase) dan dicek formatnya sebelum menyentuh DB. |
 | `UpdateRSVP(ctx, weddingID, guestID, status, pax, message)` | RSVP (T10). Validasi `1 ≤ pax ≤ max_pax`. |
+| `Responses(ctx, weddingID, status, page)` | Halaman RSVP dashboard: tamu yang sudah menjawab, terbaru dulu, filter `attending`/`declined`. |
 | `MarkOpened(ctx, weddingID, guestID)` | T09. |
 | `Stats(ctx, weddingID)` | Dashboard (T13): jumlah tamu & pax per status, jumlah yang sudah membuka undangan. |
 | `InvitationURL(code)` | `BASE_URL + /i/{code}`. |
@@ -33,6 +34,7 @@ Semua di bawah `/dashboard/weddings/:weddingID` (RequireAuth + RequireWeddingOwn
 
 | Method & path | Fungsi |
 |---|---|
+| `GET /rsvp?status=&page=` | Tab **RSVP**: statistik (hadir, total orang hadir, tidak hadir, belum konfirmasi) + respons terbaru dengan pesan tamu. Form RSVP publik: [public-site.md](public-site.md#rsvp-t10). |
 | `GET /guests?q=&status=&group=&page=` | Daftar (htmx → fragment `#guests` + statistik & opsi grup via out-of-band swap). |
 | `POST /guests` | Tambah. `quick=1` (baris Tambah cepat) → respons daftar + form tambah cepat baru (OOB, grup diingat, autofocus); error → `HX-Retarget: #guest-quick`. |
 | `GET /guests/new`, `GET /guests/:id/edit`, `PATCH /guests/:id`, `DELETE /guests/:id` | Form lengkap & ubah/hapus satu. |
@@ -81,4 +83,5 @@ Komponen Alpine `contactPicker` (`static/js/lovoria.js`) memakai `navigator.cont
 
 - `paste_test.go`, `csv_test.go`, `helpers_test.go`: parser, normalisasi HP, kode undangan.
 - `service_test.go`: CRUD, filter/pencarian, statistik, `GetByCode`, isolasi tenant, import 500 baris < 5 detik, `AddMany` semua-atau-tidak.
-- `handler_test.go`: alur HTTP (tambah cepat, tempel → periksa → simpan, import, export, hapus massal) dan 404 untuk user lain di semua route.
+- `handler_test.go`: alur HTTP (tambah cepat, tempel → periksa → simpan, import, export, hapus massal, halaman RSVP) dan 404 untuk user lain di semua route.
+- Alur RSVP publik diuji di `src/public-site/rsvp_test.go`.

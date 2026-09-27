@@ -1,8 +1,13 @@
 // Package shared berisi bagian undangan yang sama di semua tema (RSVP, buku
-// tamu, hadiah). Logic diisi T10/T11; untuk sekarang hanya tampil di preview.
+// tamu, hadiah). RSVP: T10; buku tamu & hadiah: T11 (sementara placeholder di preview).
 package shared
 
-import "github.com/khamdanngazis/lovaria/src/modules/theme/view"
+import (
+	"fmt"
+	"strconv"
+
+	"github.com/khamdanngazis/lovaria/src/modules/theme/view"
+)
 
 templ placeholder(id, title, note string) {
 	<section id={ id } class="px-6 py-12">
@@ -13,10 +18,130 @@ templ placeholder(id, title, note string) {
 	</section>
 }
 
-// RSVPSection: konfirmasi kehadiran (T10).
+// RSVPSection: konfirmasi kehadiran (T10). Form POST biasa (tanpa JS) yang
+// ditingkatkan htmx: respons berupa section ini lagi (hx-swap outerHTML).
 templ RSVPSection(v view.View) {
-	if v.Preview && v.AllowRSVP {
-		@placeholder("rsvp", "Konfirmasi Kehadiran", "Form RSVP untuk tamu akan tampil di sini.")
+	if v.AllowRSVP {
+		<section id="rsvp" class="px-6 py-16">
+			@rsvpTitle()
+			if v.Guest == nil {
+				<p class="rounded-2xl bg-primary/5 p-6 text-center text-sm">Gunakan link undangan pribadi Anda untuk RSVP.</p>
+			} else {
+				@rsvpForm(v)
+			}
+		</section>
+	} else if v.Guest != nil && v.Guest.RSVPStatus != "pending" && v.Guest.RSVPStatus != "" {
+		// RSVP ditutup (Kenangan): tampilkan jawaban tamu apa adanya.
+		<section id="rsvp" class="px-6 py-16">
+			@rsvpTitle()
+			<p class="rounded-2xl bg-primary/5 p-6 text-center text-sm">{ rsvpSummary(v.Guest) }</p>
+		</section>
+	}
+}
+
+templ rsvpTitle() {
+	<div class="mb-8 text-center">
+		<h2 class="text-3xl text-primary">Konfirmasi Kehadiran</h2>
+		<p class="mt-2 text-sm opacity-80">Mohon kabari kami apakah Anda dapat hadir</p>
+	</div>
+}
+
+func rsvpSummary(g *view.Guest) string {
+	switch g.RSVPStatus {
+	case "attending":
+		return fmt.Sprintf("Konfirmasi Anda: Hadir · %d orang", g.RSVPPax)
+	case "declined":
+		return "Konfirmasi Anda: Tidak dapat hadir"
+	}
+	return ""
+}
+
+// rsvpValues: isian form — nilai yang baru dikirim (saat error) atau jawaban tersimpan.
+func rsvpValues(v view.View) (status string, pax int, message string) {
+	f, g := v.RSVP, v.Guest
+	if f.Status != "" {
+		return f.Status, f.Pax, f.Message
+	}
+	status, pax, message = g.RSVPStatus, g.RSVPPax, g.RSVPMessage
+	if pax < 1 {
+		pax = 1
+	}
+	return
+}
+
+templ rsvpForm(v view.View) {
+	{{ status, pax, message := rsvpValues(v) }}
+	<div class="rounded-2xl bg-white/60 p-5 shadow-sm ring-1 ring-primary/15">
+		if v.RSVP.Notice != "" {
+			<p role="status" class="mb-4 rounded-xl bg-primary px-4 py-3 text-center text-sm text-white">{ v.RSVP.Notice }</p>
+		} else if s := rsvpSummary(v.Guest); s != "" {
+			<p class="mb-4 text-center text-sm">{ s }. Anda masih bisa mengubahnya sampai hari H.</p>
+		}
+		if v.RSVP.Error != "" {
+			<p role="alert" class="mb-4 rounded-xl bg-red-50 px-4 py-3 text-center text-sm text-red-700">{ v.RSVP.Error }</p>
+		}
+		<form
+			method="post"
+			if v.RSVP.Action != "" {
+				action={ templ.SafeURL(v.RSVP.Action) }
+				hx-post={ v.RSVP.Action }
+				hx-target="#rsvp"
+				hx-swap="outerHTML"
+				hx-disabled-elt="find button"
+			}
+			class="group space-y-4"
+		>
+			<input type="hidden" name="token" value={ v.RSVP.Token }/>
+			<fieldset>
+				<legend class="mb-2 text-sm font-medium">{ v.Guest.Name }, apakah Anda akan hadir?</legend>
+				<div class="grid grid-cols-2 gap-2">
+					@rsvpChoice("attending", "Hadir", status)
+					@rsvpChoice("declined", "Tidak hadir", status)
+				</div>
+				@rsvpError(v, "status")
+			</fieldset>
+			<div class="group-has-[[value=declined]:checked]:hidden">
+				<label for="rsvp-pax" class="mb-1 block text-sm font-medium">Jumlah orang</label>
+				<select id="rsvp-pax" name="pax" class="w-full rounded-xl border border-primary/30 bg-white px-3 py-2.5 text-base">
+					for n := 1; n <= max(1, v.Guest.MaxPax); n++ {
+						<option value={ strconv.Itoa(n) } selected?={ n == pax }>{ strconv.Itoa(n) } orang</option>
+					}
+				</select>
+				@rsvpError(v, "pax")
+			</div>
+			<div>
+				<label for="rsvp-message" class="mb-1 block text-sm font-medium">Pesan untuk mempelai <span class="font-normal opacity-70">(opsional)</span></label>
+				<textarea id="rsvp-message" name="message" rows="3" maxlength="500" class="w-full rounded-xl border border-primary/30 bg-white px-3 py-2.5 text-base">{ message }</textarea>
+				@rsvpError(v, "message")
+			</div>
+			<button
+				type="submit"
+				disabled?={ v.RSVP.Action == "" }
+				class="w-full rounded-full bg-primary px-6 py-3 text-sm font-medium text-white shadow disabled:opacity-60"
+			>
+				if v.Guest.RSVPStatus == "attending" || v.Guest.RSVPStatus == "declined" {
+					Perbarui konfirmasi
+				} else {
+					Kirim konfirmasi
+				}
+			</button>
+			if v.RSVP.Action == "" {
+				<p class="text-center text-xs opacity-70">Form aktif untuk tamu di link undangan pribadi.</p>
+			}
+		</form>
+	</div>
+}
+
+templ rsvpChoice(value, label, current string) {
+	<label class="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-primary/30 bg-white px-3 py-3 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary has-[:focus-visible]:ring-offset-2">
+		<input type="radio" name="status" value={ value } checked?={ current == value } required class="sr-only"/>
+		{ label }
+	</label>
+}
+
+templ rsvpError(v view.View, field string) {
+	if msg := v.RSVP.Errors[field]; msg != "" {
+		<p class="mt-1 text-sm text-red-700">{ msg }</p>
 	}
 }
 

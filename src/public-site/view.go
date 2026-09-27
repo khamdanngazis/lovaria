@@ -67,7 +67,7 @@ func (b *ViewBuilder) Build(ctx context.Context, w wedding.Wedding, g *guest.Gue
 		v.MainPhoto = *w.MainPhotoURL
 	}
 	if g != nil {
-		v.Guest = &view.Guest{Name: g.Name, Code: g.InvitationCode, MaxPax: g.MaxPax, RSVPStatus: g.RSVPStatus, RSVPPax: g.RSVPPax}
+		v.Guest = &view.Guest{Name: g.Name, Code: g.InvitationCode, MaxPax: g.MaxPax, RSVPStatus: g.RSVPStatus, RSVPPax: g.RSVPPax, RSVPMessage: g.RSVPMessage}
 	}
 	for _, e := range evs {
 		v.Events = append(v.Events, view.Event{

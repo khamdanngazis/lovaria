@@ -51,7 +51,7 @@ func TestRenderAllThemes(t *testing.T) {
 				t.Error("nama tamu tidak di-escape")
 			}
 			if strings.Contains(html, `id="rsvp"`) {
-				t.Error("placeholder RSVP hanya boleh tampil saat preview")
+				t.Error("section RSVP hanya tampil bila AllowRSVP")
 			}
 			// Hanya font judul & isi tema ini yang dimuat (dihitung di URL Google Fonts).
 			i := strings.Index(html, "https://fonts.googleapis.com/css2?")

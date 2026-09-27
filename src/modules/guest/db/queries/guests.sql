@@ -77,3 +77,17 @@ SELECT
     COALESCE(sum(rsvp_pax) FILTER (WHERE rsvp_status = 'attending'), 0)::bigint AS pax_attending,
     count(*) FILTER (WHERE last_opened_at IS NOT NULL)        AS opened
 FROM guests WHERE wedding_id = $1;
+
+-- name: CountRSVPResponses :one
+SELECT count(*) FROM guests
+WHERE wedding_id = sqlc.arg(wedding_id)
+  AND rsvp_at IS NOT NULL
+  AND (sqlc.narg(status)::text IS NULL OR rsvp_status = sqlc.narg(status));
+
+-- name: ListRSVPResponses :many
+SELECT * FROM guests
+WHERE wedding_id = sqlc.arg(wedding_id)
+  AND rsvp_at IS NOT NULL
+  AND (sqlc.narg(status)::text IS NULL OR rsvp_status = sqlc.narg(status))
+ORDER BY rsvp_at DESC, id
+LIMIT sqlc.arg(lim) OFFSET sqlc.arg(off);

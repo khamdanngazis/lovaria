@@ -160,6 +160,7 @@ func TestLoadInvalid(t *testing.T) {
 		"smtpPort": {"SMTP_PORT": "x"},
 		"storDrv":  {"STORAGE_DRIVER": "ftp"},
 		"archive":  {"LIFECYCLE_ARCHIVE_DAYS": "0"},
+		"secret":   {"APP_SECRET": "pendek"},
 		"quota":    {"STORAGE_QUOTA_MB": "0"},
 	}
 	for name, env := range cases {

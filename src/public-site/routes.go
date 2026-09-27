@@ -7,6 +7,8 @@ import "github.com/labstack/echo/v4"
 type Deps struct {
 	Resolver *Resolver
 	Handler  *Handler
+	// RSVPLimit batas kiriman RSVP per kode tamu; nol → default.
+	RSVPLimit RSVPLimit
 }
 
 func Register(e *echo.Echo, d Deps) {
@@ -21,4 +23,6 @@ func Register(e *echo.Echo, d Deps) {
 	e.GET("/w/:slug/events/:file", h.Calendar, rw)
 	e.GET("/i/:code", h.Invitation, rw)
 	e.GET("/i/:code/events/:file", h.Calendar, rw)
+	// Form publik: tanpa CSRF cookie (lihat server.PublicFormPath), dilindungi token HMAC + rate limit.
+	e.POST("/i/:code/rsvp", h.RSVP, rw, h.rsvpLimiter(d.RSVPLimit))
 }

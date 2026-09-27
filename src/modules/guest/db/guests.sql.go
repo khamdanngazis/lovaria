@@ -43,6 +43,25 @@ func (q *Queries) CountGuests(ctx context.Context, arg CountGuestsParams) (int64
 	return count, err
 }
 
+const countRSVPResponses = `-- name: CountRSVPResponses :one
+SELECT count(*) FROM guests
+WHERE wedding_id = $1
+  AND rsvp_at IS NOT NULL
+  AND ($2::text IS NULL OR rsvp_status = $2)
+`
+
+type CountRSVPResponsesParams struct {
+	WeddingID uuid.UUID
+	Status    *string
+}
+
+func (q *Queries) CountRSVPResponses(ctx context.Context, arg CountRSVPResponsesParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countRSVPResponses, arg.WeddingID, arg.Status)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createGuest = `-- name: CreateGuest :one
 INSERT INTO guests (id, wedding_id, name, phone, email, group_name, max_pax, invitation_code, notes)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
@@ -339,6 +358,65 @@ func (q *Queries) ListGuests(ctx context.Context, arg ListGuestsParams) ([]Guest
 		arg.Status,
 		arg.GroupName,
 		arg.Q,
+		arg.Off,
+		arg.Lim,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Guest{}
+	for rows.Next() {
+		var i Guest
+		if err := rows.Scan(
+			&i.ID,
+			&i.WeddingID,
+			&i.Name,
+			&i.Phone,
+			&i.Email,
+			&i.GroupName,
+			&i.MaxPax,
+			&i.InvitationCode,
+			&i.RsvpStatus,
+			&i.RsvpPax,
+			&i.RsvpMessage,
+			&i.RsvpAt,
+			&i.AttendanceStatus,
+			&i.Notes,
+			&i.LastOpenedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listRSVPResponses = `-- name: ListRSVPResponses :many
+SELECT id, wedding_id, name, phone, email, group_name, max_pax, invitation_code, rsvp_status, rsvp_pax, rsvp_message, rsvp_at, attendance_status, notes, last_opened_at, created_at, updated_at FROM guests
+WHERE wedding_id = $1
+  AND rsvp_at IS NOT NULL
+  AND ($2::text IS NULL OR rsvp_status = $2)
+ORDER BY rsvp_at DESC, id
+LIMIT $4 OFFSET $3
+`
+
+type ListRSVPResponsesParams struct {
+	WeddingID uuid.UUID
+	Status    *string
+	Off       int32
+	Lim       int32
+}
+
+func (q *Queries) ListRSVPResponses(ctx context.Context, arg ListRSVPResponsesParams) ([]Guest, error) {
+	rows, err := q.db.Query(ctx, listRSVPResponses,
+		arg.WeddingID,
+		arg.Status,
 		arg.Off,
 		arg.Lim,
 	)

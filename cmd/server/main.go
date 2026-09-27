@@ -10,6 +10,7 @@ package main
 import (
 	"bufio"
 	"context"
+	"crypto/rand"
 	"errors"
 	"flag"
 	"fmt"
@@ -334,7 +335,21 @@ func (a *app) routes() *echo.Echo {
 	admin.Register(e.Group("/admin", authMW.RequireAuth, authMW.RequireRole(auth.RoleAdmin)), admin.Deps{})
 	publicsite.Register(e, publicsite.Deps{
 		Resolver: &publicsite.Resolver{Weddings: a.weddings, Guests: guests, Domains: publicsite.NoDomains{}, BaseURL: cfg.BaseURL, Log: log},
-		Handler:  &publicsite.Handler{Views: views, Guests: guests, Events: events, Log: log},
+		Handler:  &publicsite.Handler{Views: views, Guests: guests, Events: events, Log: log, Secret: appSecret(cfg, log)},
 	})
 	return e
+}
+
+// appSecret: APP_SECRET, atau kunci acak per proses bila kosong (token form
+// RSVP yang sudah dirender jadi tidak berlaku setelah restart).
+func appSecret(cfg config.Config, log *slog.Logger) []byte {
+	if cfg.Secret != "" {
+		return []byte(cfg.Secret)
+	}
+	if cfg.IsProduction() {
+		log.Warn("APP_SECRET kosong: memakai kunci acak (isi APP_SECRET supaya token form tetap berlaku setelah restart)")
+	}
+	b := make([]byte, 32)
+	_, _ = rand.Read(b)
+	return b
 }
