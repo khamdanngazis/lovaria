@@ -23,18 +23,22 @@ func TestHomeRedirects(t *testing.T) {
 	one := wedding.Wedding{ID: uuid.New()}
 	cases := []struct {
 		name string
+		role string
 		list fakeLister
 		want string
 	}{
-		{"kosong", nil, "/dashboard/weddings/new"},
-		{"satu", fakeLister{one}, "/dashboard/weddings/" + one.ID.String()},
-		{"banyak", fakeLister{one, {ID: uuid.New()}}, "/dashboard/weddings"},
+		{"kosong", "couple", nil, "/dashboard/weddings/new"},
+		{"satu", "couple", fakeLister{one}, "/dashboard/weddings/" + one.ID.String()},
+		{"banyak", "couple", fakeLister{one, {ID: uuid.New()}}, "/dashboard/weddings"},
+		// Admin tanpa wedding → panel admin, bukan wizard.
+		{"admin kosong", "admin", nil, "/admin"},
+		{"admin punya wedding", "admin", fakeLister{one}, "/dashboard/weddings/" + one.ID.String()},
 	}
 	for _, tc := range cases {
 		e := echo.New()
 		Register(e.Group("/dashboard"), Deps{Weddings: tc.list})
 		r := httptest.NewRequest(http.MethodGet, "/dashboard", nil)
-		r = r.WithContext(web.WithUser(r.Context(), web.User{ID: uuid.New()}))
+		r = r.WithContext(web.WithUser(r.Context(), web.User{ID: uuid.New(), Role: tc.role}))
 		rec := httptest.NewRecorder()
 		e.ServeHTTP(rec, r)
 		if rec.Code != http.StatusSeeOther || rec.Header().Get("Location") != tc.want {

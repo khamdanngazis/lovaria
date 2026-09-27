@@ -1,6 +1,6 @@
 # Panel admin (T16)
 
-Route `/admin/*`, dilindungi `RequireAuth` + `RequireRole(admin)` di `cmd/server/main.go`; couple mendapat 403 di **semua** route (`TestCoupleCannotAccessAdmin` membaca daftar route dari router, jadi route baru otomatis ikut teruji). Akun admin dibuat dengan `lovoria create-admin --email …`.
+Route `/admin/*`, dilindungi `RequireAuth` + `RequireRole(admin)` di `cmd/server/main.go`; couple mendapat 403 di **semua** route (`TestCoupleCannotAccessAdmin` membaca daftar route dari router, jadi route baru otomatis ikut teruji). Akun admin dibuat dengan `lovoria create-admin --email …`. Setelah login, admin tanpa wedding diarahkan ke `/admin` (`GET /dashboard`); header dashboard menampilkan link **Admin**.
 
 ## Aturan data
 
