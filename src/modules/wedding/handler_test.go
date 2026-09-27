@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -195,5 +196,64 @@ func TestUpdateInfoAndCoupleForms(t *testing.T) {
 	}
 	if c, _ := f.svc.GetCouple(ctx, w.ID); c.GroomName != "Budi" {
 		t.Errorf("couple tidak tersimpan: %+v", c)
+	}
+}
+
+func TestPublishUnpublishViaHTTP(t *testing.T) {
+	f := newFixture(t)
+	e := newTestServer(t, f)
+	owner, bob := f.user(t, "a@example.com"), f.user(t, "bob@example.com")
+	w, _ := f.svc.CreateWedding(ctx, owner, validInput())
+	base := "/dashboard/weddings/" + w.ID.String()
+
+	// Checklist kurang (belum ada acara) → tombol nonaktif & PATCH ditolak 422.
+	f.svc.SetEventCounter(countEvents(0))
+	rec := req(e, owner, http.MethodGet, base, nil, false)
+	if !strings.Contains(rec.Body.String(), "Minimal 1 acara") || !strings.Contains(rec.Body.String(), "disabled") {
+		t.Errorf("checklist tidak tampil")
+	}
+	rec = req(e, owner, http.MethodPost, base+"/status", url.Values{"_method": {"PATCH"}, "status": {"published"}}, false)
+	if rec.Code != http.StatusUnprocessableEntity || !strings.Contains(rec.Body.String(), "belum bisa dipublikasikan: Minimal 1 acara") {
+		t.Fatalf("publish tanpa acara: %d", rec.Code)
+	}
+
+	f.svc.SetEventCounter(countEvents(1))
+	// User lain → 404, status tidak berubah.
+	if rec := req(e, bob, http.MethodPatch, base+"/status", url.Values{"status": {"published"}}, false); rec.Code != http.StatusNotFound {
+		t.Errorf("bob publish: %d", rec.Code)
+	}
+	rec = req(e, owner, http.MethodPost, base+"/status", url.Values{"_method": {"PATCH"}, "status": {"published"}}, false)
+	if rec.Code != http.StatusSeeOther || f.status(t, w.ID) != StatusPublished {
+		t.Fatalf("publish: %d %s", rec.Code, f.status(t, w.ID))
+	}
+	if rec := req(e, owner, http.MethodGet, rec.Header().Get("Location"), nil, false); !strings.Contains(rec.Body.String(), "Undangan dipublikasikan") || !strings.Contains(rec.Body.String(), "Tarik publikasi") {
+		t.Error("notice / tombol tarik publikasi tidak tampil")
+	}
+	// Transisi ilegal via HTTP → 422 dengan pesan jelas.
+	rec = req(e, owner, http.MethodPatch, base+"/status", url.Values{"status": {"archived"}}, false)
+	if rec.Code != http.StatusUnprocessableEntity || !strings.Contains(rec.Body.String(), "tidak bisa diubah dari Terbit ke Diarsipkan") {
+		t.Errorf("ilegal: %d", rec.Code)
+	}
+	if rec := req(e, owner, http.MethodPatch, base+"/status", url.Values{"status": {"draft"}}, false); rec.Code != http.StatusSeeOther || f.status(t, w.ID) != StatusDraft {
+		t.Errorf("unpublish: %d %s", rec.Code, f.status(t, w.ID))
+	}
+	if h, _ := f.svc.History(ctx, w.ID, 10); len(h) != 2 {
+		t.Errorf("riwayat = %d", len(h))
+	}
+}
+
+func TestPublishOnOrAfterWeddingDayAdvancesImmediately(t *testing.T) {
+	f := newFixture(t)
+	e := newTestServer(t, f)
+	f.svc.SetEventCounter(countEvents(1))
+	owner := f.user(t, "a@example.com")
+	in := validInput()
+	in.WeddingDate = "2026-01-10" // sudah lewat
+	w, _ := f.svc.CreateWedding(ctx, owner, in)
+	f.svc.now = func() time.Time { return time.Date(2026, 3, 1, 0, 0, 0, 0, time.UTC) }
+
+	req(e, owner, http.MethodPatch, "/dashboard/weddings/"+w.ID.String()+"/status", url.Values{"status": {"published"}}, false)
+	if got := f.status(t, w.ID); got != StatusMemory {
+		t.Errorf("status = %s, want memory (hari H sudah lewat)", got)
 	}
 }

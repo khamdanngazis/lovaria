@@ -143,11 +143,20 @@ type CoupleInput struct {
 }
 
 type Service struct {
-	repo *Repository
+	repo   *Repository
+	events EventCounter
+	now    func() time.Time
 }
 
 func NewService(repo *Repository) *Service {
 	return &Service{repo: repo}
+}
+
+func (s *Service) clock() time.Time {
+	if s.now != nil {
+		return s.now()
+	}
+	return time.Now()
 }
 
 // ---------- Validasi ----------

@@ -13,6 +13,17 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countEvents = `-- name: CountEvents :one
+SELECT count(*) FROM events WHERE wedding_id = $1
+`
+
+func (q *Queries) CountEvents(ctx context.Context, weddingID uuid.UUID) (int64, error) {
+	row := q.db.QueryRow(ctx, countEvents, weddingID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createEvent = `-- name: CreateEvent :one
 INSERT INTO events (id, wedding_id, name, type, event_date, start_time, end_time,
                     venue, address, maps_url, latitude, longitude, description, sort_order)

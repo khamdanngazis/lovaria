@@ -15,14 +15,14 @@ templ placeholder(id, title, note string) {
 
 // RSVPSection: konfirmasi kehadiran (T10).
 templ RSVPSection(v view.View) {
-	if v.Preview {
+	if v.Preview && v.AllowRSVP {
 		@placeholder("rsvp", "Konfirmasi Kehadiran", "Form RSVP untuk tamu akan tampil di sini.")
 	}
 }
 
 // GuestbookSection: ucapan & doa (T11).
 templ GuestbookSection(v view.View) {
-	if v.Preview {
+	if v.Preview && v.AllowGuestbook {
 		@placeholder("guestbook", "Ucapan & Doa", "Buku tamu akan tampil di sini.")
 	}
 }

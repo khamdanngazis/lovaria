@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### T12 — Publish & wedding lifecycle
+- State machine `wedding.Service.Transition` dengan tabel transisi & aktor (pasangan/sistem/admin), transisi ilegal ditolak dengan pesan jelas; riwayat di `wedding_status_history` (migration `00008`).
+- Checklist publikasi (nama pasangan, tanggal, ≥1 acara) via `EventCounter` dari sub-modul event.
+- Scheduler in-process (10 menit + saat start) dengan advisory lock Postgres; hari dihitung di zona waktu wedding; langkah tertinggal dikejar sekaligus; `AdvanceNow` setelah publikasi. `LIFECYCLE_ARCHIVE_DAYS` (default 365).
+- Guard `IsPublic`, `AllowsRSVP`, `AllowsGuestbook`, `InMemory`, `IsArchived`, `IsDraft`; `TestStatusGuardsOnly` melarang cek string status di luar modul wedding.
+- Halaman publik: banner terima kasih saat Kenangan, halaman ringkas saat Diarsipkan; `View.AllowRSVP/AllowGuestbook/Memory` untuk T10/T11.
+- Dashboard: kartu Status undangan — checklist, Publikasikan/Tarik publikasi dengan konfirmasi, riwayat status.
+- Dokumentasi: `doc/modules/wedding-lifecycle.md`.
+
 ### T09 — Public site
 - `Resolver.ResolveWedding`: satu-satunya resolusi wedding (Host/custom domain via `DomainLookup` stub → `/i/:code` → `/w/:slug`), ditegakkan `TestSingleResolver`. Gerbang status: draft/archived hanya untuk pemilik (banner Preview), selain itu 404 ramah.
 - Halaman undangan `/w/:slug` & `/i/:code` (sapaan personal, `MarkOpened`), `/` di custom domain; meta OG/Twitter (nama pasangan, tanggal, foto sampul absolut, URL kanonik); `noindex`.

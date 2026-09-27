@@ -287,6 +287,7 @@ func (a *app) serve(ctx context.Context) error {
 	a.log.Info("starting lovoria", slog.String("version", version), slog.String("base_url", a.cfg.BaseURL))
 	static.Configure(a.cfg.StaticFromDisk, "static")
 	go a.auth.RunCleanup(ctx, time.Hour)
+	go a.weddings.RunLifecycle(ctx, 10*time.Minute, a.cfg.ArchiveAfterDays, a.log)
 	return server.Run(ctx, a.routes(), a.cfg, a.log)
 }
 
@@ -316,8 +317,9 @@ func (a *app) routes() *echo.Echo {
 	}
 	dash := e.Group("/dashboard", authMW.RequireAuth)
 	dashboard.Register(dash, dashboard.Deps{Weddings: a.weddings})
-	owned := wedding.Register(dash.Group("/weddings"), wedding.Deps{Service: a.weddings})
+	owned := wedding.Register(dash.Group("/weddings"), wedding.Deps{Service: a.weddings, ArchiveDays: cfg.ArchiveAfterDays})
 	events := event.NewService(event.NewRepository(a.pool))
+	a.weddings.SetEventCounter(events) // checklist publikasi
 	stories := story.NewService(story.NewRepository(a.pool))
 	photos := gallery.NewService(gallery.NewRepository(a.pool), a.store, a.weddings, cfg.Storage.QuotaBytes, log)
 	themes := theme.NewService(a.pool, a.weddings)

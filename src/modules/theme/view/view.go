@@ -32,6 +32,12 @@ type View struct {
 	// OG: meta Open Graph / Twitter untuk preview link (WhatsApp dll.), diisi public site.
 	OG OG
 
+	// Status lifecycle (dari guard wedding, T12): Memory → banner terima kasih;
+	// AllowRSVP / AllowGuestbook menentukan apakah form tampil (T10/T11).
+	Memory         bool
+	AllowRSVP      bool
+	AllowGuestbook bool
+
 	// Preview: tampilkan banner "Preview" (owner melihat draft / dashboard).
 	Preview bool
 	// Sample: data contoh dipakai untuk bagian yang masih kosong (preview dashboard).

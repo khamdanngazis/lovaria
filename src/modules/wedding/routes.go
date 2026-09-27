@@ -4,6 +4,8 @@ import "github.com/labstack/echo/v4"
 
 type Deps struct {
 	Service *Service
+	// ArchiveDays: lama Kenangan sebelum diarsipkan (config LIFECYCLE_ARCHIVE_DAYS).
+	ArchiveDays int
 }
 
 // Register memasang route dashboard wedding pada group /dashboard/weddings
@@ -11,6 +13,9 @@ type Deps struct {
 // (/:weddingID, dilindungi RequireWeddingOwner) tempat sub-modul memasang route-nya.
 func Register(g *echo.Group, deps Deps) *echo.Group {
 	h := NewHandler(deps.Service)
+	if deps.ArchiveDays > 0 {
+		h.archiveDays = deps.ArchiveDays
+	}
 
 	g.GET("", h.List)
 	g.POST("", h.Create)
@@ -23,6 +28,7 @@ func Register(g *echo.Group, deps Deps) *echo.Group {
 	w.PATCH("/info", h.UpdateInfo)
 	w.GET("/couple", h.CouplePage)
 	w.PATCH("/couple", h.UpdateCouple)
+	w.PATCH("/status", h.UpdateStatus)
 	return w
 }
 

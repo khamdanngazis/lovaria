@@ -146,6 +146,69 @@ func (q *Queries) GetWeddingForOwner(ctx context.Context, arg GetWeddingForOwner
 	return i, err
 }
 
+const getWeddingForUpdate = `-- name: GetWeddingForUpdate :one
+SELECT id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone, storage_used_bytes FROM weddings WHERE id = $1 FOR UPDATE
+`
+
+func (q *Queries) GetWeddingForUpdate(ctx context.Context, id uuid.UUID) (Wedding, error) {
+	row := q.db.QueryRow(ctx, getWeddingForUpdate, id)
+	var i Wedding
+	err := row.Scan(
+		&i.ID,
+		&i.OwnerUserID,
+		&i.Slug,
+		&i.Title,
+		&i.WeddingDate,
+		&i.Description,
+		&i.MainPhotoUrl,
+		&i.Status,
+		&i.ThemeID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Timezone,
+		&i.StorageUsedBytes,
+	)
+	return i, err
+}
+
+const listLifecycleCandidates = `-- name: ListLifecycleCandidates :many
+SELECT id, status, wedding_date, timezone FROM weddings
+WHERE status IN ('published', 'wedding_day', 'memory') AND wedding_date <= $1::date
+`
+
+type ListLifecycleCandidatesRow struct {
+	ID          uuid.UUID
+	Status      string
+	WeddingDate time.Time
+	Timezone    string
+}
+
+// Wedding yang mungkin perlu maju status otomatis (dicek per zona waktu di Go).
+func (q *Queries) ListLifecycleCandidates(ctx context.Context, until time.Time) ([]ListLifecycleCandidatesRow, error) {
+	rows, err := q.db.Query(ctx, listLifecycleCandidates, until)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListLifecycleCandidatesRow{}
+	for rows.Next() {
+		var i ListLifecycleCandidatesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Status,
+			&i.WeddingDate,
+			&i.Timezone,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listSlugsWithPrefix = `-- name: ListSlugsWithPrefix :many
 SELECT slug::text FROM weddings WHERE slug = $1::citext OR slug ~ ('^' || $1::text || '-[0-9]+$')
 `
@@ -276,6 +339,20 @@ type SetMainPhotoURLParams struct {
 
 func (q *Queries) SetMainPhotoURL(ctx context.Context, arg SetMainPhotoURLParams) error {
 	_, err := q.db.Exec(ctx, setMainPhotoURL, arg.ID, arg.MainPhotoUrl)
+	return err
+}
+
+const setStatus = `-- name: SetStatus :exec
+UPDATE weddings SET status = $2 WHERE id = $1
+`
+
+type SetStatusParams struct {
+	ID     uuid.UUID
+	Status string
+}
+
+func (q *Queries) SetStatus(ctx context.Context, arg SetStatusParams) error {
+	_, err := q.db.Exec(ctx, setStatus, arg.ID, arg.Status)
 	return err
 }
 

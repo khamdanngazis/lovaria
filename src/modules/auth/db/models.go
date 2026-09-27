@@ -139,6 +139,16 @@ type Wedding struct {
 	StorageUsedBytes int64
 }
 
+type WeddingStatusHistory struct {
+	ID          uuid.UUID
+	WeddingID   uuid.UUID
+	FromStatus  string
+	ToStatus    string
+	Actor       string
+	ActorUserID *uuid.UUID
+	At          time.Time
+}
+
 type WeddingThemeSetting struct {
 	WeddingID       uuid.UUID
 	PrimaryColor    *string

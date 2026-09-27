@@ -30,3 +30,6 @@ UPDATE events SET sort_order = $3 WHERE id = $1 AND wedding_id = $2;
 
 -- name: DeleteEvent :execrows
 DELETE FROM events WHERE id = $1 AND wedding_id = $2;
+
+-- name: CountEvents :one
+SELECT count(*) FROM events WHERE wedding_id = $1;

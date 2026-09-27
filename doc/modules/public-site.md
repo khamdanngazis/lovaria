@@ -22,7 +22,7 @@ Satu-satunya tempat yang membaca Host header / slug / kode undangan (Arsitektur 
 
 Hasil (`Resolved{Wedding, Guest, Preview, Origin, Prefix}`) disimpan di context (`publicsite.FromContext`). Kode/slug tidak ditemukan → halaman 404 ramah.
 
-**Gerbang status:** `published`, `wedding_day`, `memory` → publik. `draft`/`archived` → hanya pemilik yang login (banner "Preview", `Cache-Control: no-store`); selain itu 404. Kunjungan lewat kode tamu mencatat `guest.MarkOpened`, kecuali pemilik yang sedang preview.
+**Gerbang status** (guard `wedding.IsPublic()`, lihat [wedding-lifecycle.md](wedding-lifecycle.md)): `draft` → hanya pemilik yang login (banner "Preview", `Cache-Control: no-store`), selain itu 404. `memory` → banner terima kasih; `archived` → halaman ringkas. Kunjungan lewat kode tamu mencatat `guest.MarkOpened`, kecuali pemilik yang sedang preview.
 
 ## Rendering
 
