@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Undangan contoh lebih lengkap
+- `lovoria demo seed` kini mengisi foto: sampul, potret mempelai, dan 6 foto galeri per tema (foto Unsplash, kredit di `cmd/server/demomedia/CREDITS.md`), plus kutipan contoh. Demo lama tanpa foto dilengkapi saat seed dijalankan ulang.
+- Landing: kartu tema menampilkan foto sampul & nama pasangan undangan contoh.
+- Foto mempelai kini menerima URL storage lokal `/media/…` (development), sama seperti pengaturan tema.
+
 ### T20 — Personalisasi undangan
 - **Hitung mundur** menuju acara pertama (hari/jam/menit/detik, zona waktu wedding): "Hari ini!" pada hari H, hilang setelahnya; tanpa JS menampilkan sisa hari. Ditautkan ke "Simpan ke Kalender".
 - **Kutipan / ayat** pembuka dengan contoh siap pakai (Islam, Kristen, umum) yang bisa diedit; **teks sapaan** di pembuka dan **kalimat penutup** bisa diubah di keempat tema.
