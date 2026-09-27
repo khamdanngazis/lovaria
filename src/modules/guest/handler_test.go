@@ -388,3 +388,19 @@ func TestRSVPDashboardPage(t *testing.T) {
 		t.Error("filter hadir")
 	}
 }
+
+// Tombol "Pilih dari kontak HP" ada di Tambah cepat & form lengkap; tampil-
+// tidaknya diatur Alpine (Contact Picker API hanya di Android).
+func TestContactPickerButtons(t *testing.T) {
+	f := newFixture(t)
+	e := newTestServer(t, f)
+	owner, w := f.newWedding(t, "a@example.com")
+	body := send(e, owner, get(w.DashboardURL("/guests")), false).Body.String()
+	if !strings.Contains(body, `id="guest-quick"`) || !strings.Contains(body, `x-data="contactFill()"`) || !strings.Contains(body, `aria-label="Pilih dari kontak HP"`) {
+		t.Error("tambah cepat tanpa tombol kontak")
+	}
+	body = send(e, owner, get(w.DashboardURL("/guests/new")), true).Body.String()
+	if !strings.Contains(body, `x-data="contactFill()"`) || !strings.Contains(body, "Pilih dari kontak HP") || !strings.Contains(body, `x-show="supported"`) {
+		t.Error("form lengkap tanpa tombol kontak")
+	}
+}

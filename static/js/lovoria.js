@@ -170,6 +170,26 @@
 
     // "Pilih dari kontak HP" (Contact Picker API — Chrome Android). Menambahkan
     // "Nama Nomor" per kontak ke textarea x-ref="text".
+    // Form tamu: pilih SATU kontak HP → isi No. HP (dan Nama bila masih kosong).
+    // Contact Picker API hanya ada di Chrome/Edge/Samsung Internet Android;
+    // tombol disembunyikan di browser lain. Normalisasi nomor tetap di server.
+    window.Alpine.data('contactFill', () => ({
+      supported: 'contacts' in navigator && 'select' in navigator.contacts,
+      async pick() {
+        try {
+          const [c] = await navigator.contacts.select(['name', 'tel'], { multiple: false });
+          if (!c) return;
+          const tel = (c.tel || [])[0];
+          const name = (c.name || [])[0];
+          const phoneInput = this.$root.querySelector('[name="phone"]');
+          const nameInput = this.$root.querySelector('[name="name"]');
+          if (tel && phoneInput) phoneInput.value = tel;
+          if (name && nameInput && !nameInput.value.trim()) nameInput.value = name;
+          (nameInput && !nameInput.value.trim() ? nameInput : phoneInput)?.focus();
+        } catch (_) { /* dibatalkan user */ }
+      },
+    }));
+
     window.Alpine.data('contactPicker', () => ({
       supported: 'contacts' in navigator && 'select' in navigator.contacts,
       async pick() {

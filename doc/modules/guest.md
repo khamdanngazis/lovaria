@@ -90,7 +90,12 @@ UTF-8 dengan BOM (Excel & Google Sheets). Nilai teks yang diawali `= + - @` dibe
 
 ## Pilih dari kontak
 
-Komponen Alpine `contactPicker` (`static/js/lovoria.js`) memakai `navigator.contacts.select(['name','tel'], {multiple: true})`. Tombol hanya muncul bila API tersedia (Chrome Android); hasilnya ditambahkan ke kotak tempel sebagai `Nama Nomor` per baris, lalu melewati alur tempel yang sama.
+Memakai Contact Picker API (`navigator.contacts.select`) — hanya tersedia di Chrome / Edge / Samsung Internet **Android** (HTTPS). iPhone (Safari maupun Chrome) dan desktop tidak mendukung; tombol disembunyikan (`x-show="supported"`), jadi pengguna tidak pernah melihat tombol yang tidak berfungsi. Situs hanya menerima kontak yang dipilih pengguna, bukan seluruh buku kontak.
+
+- **Tempel daftar tamu** — `contactPicker` (`static/js/lovoria.js`): pilih **banyak** kontak (`multiple: true`), hasilnya ditambahkan ke kotak tempel sebagai `Nama Nomor` per baris, lalu melewati alur tempel yang sama.
+- **Tambah cepat & form tamu lengkap** — `contactFill`: pilih **satu** kontak; No. HP diisi, Nama diisi hanya bila masih kosong. Tambah cepat memakai ikon di dalam kolom No. HP, form lengkap memakai link "Pilih dari kontak HP" di bawah kolom.
+
+Nomor dari kontak (`+62 857-1111-2222`, `0857…`) dinormalisasi ke `62…` di server seperti input manual.
 
 ## Test
 
