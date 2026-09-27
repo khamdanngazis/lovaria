@@ -61,6 +61,9 @@ type Wedding struct {
 	ThemeID      string
 	// Timezone zona waktu IANA acara (jam event disimpan sebagai waktu lokal).
 	Timezone string
+	// ArchiveVisibility: public | private — siapa yang bisa melihat undangan
+	// setelah diarsipkan (T19).
+	ArchiveVisibility string
 	// StorageUsedBytes total byte foto wedding di storage (lihat ReserveStorage).
 	StorageUsedBytes int64
 	CreatedAt        time.Time

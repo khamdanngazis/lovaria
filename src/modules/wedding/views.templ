@@ -322,8 +322,8 @@ var statusHint = map[string]string{
 	StatusDraft:      "Hanya Anda yang bisa melihat undangan. Publikasikan saat siap dibagikan ke tamu.",
 	StatusPublished:  "Undangan bisa dibuka tamu. Pada hari H status berubah otomatis menjadi Hari H.",
 	StatusWeddingDay: "Hari bahagia! Sehari setelahnya status otomatis menjadi Kenangan.",
-	StatusMemory:     "RSVP ditutup, buku tamu tetap terbuka. Undangan menampilkan ucapan terima kasih.",
-	StatusArchived:   "Undangan diarsipkan dan hanya menampilkan halaman ringkas.",
+	StatusMemory:     "RSVP ditutup, buku tamu tetap terbuka. Undangan tampil sebagai halaman kenangan: foto hari bahagia dan ucapan favorit di bagian atas.",
+	StatusArchived:   "Undangan diarsipkan: cerita, galeri, dan ucapan tetap bisa dibaca, tetapi semua form ditutup.",
 }
 
 var statusBadge = map[string]string{
@@ -398,6 +398,9 @@ templ statusCard(o overviewState) {
 				}
 			</ul>
 		}
+		if o.W.ShowsMemoryLayout() {
+			@archiveVisibilityForm(o.W)
+		}
 		if len(o.History) > 0 {
 			<details class="mt-3 text-sm text-slate-600">
 				<summary class="cursor-pointer">Riwayat status</summary>
@@ -409,6 +412,30 @@ templ statusCard(o overviewState) {
 			</details>
 		}
 	}
+}
+
+// archiveVisibilityForm: pilihan siapa yang bisa membuka arsip (T19). Muncul
+// sejak Kenangan supaya pasangan bisa memilih sebelum diarsipkan.
+templ archiveVisibilityForm(w Wedding) {
+	<form method="post" action={ templ.SafeURL(weddingURL(w, "/archive-visibility")) } class="mt-4 rounded-xl border border-slate-200 p-4">
+		@layouts.CSRFField()
+		<input type="hidden" name="_method" value="PATCH"/>
+		<fieldset>
+			<legend class="text-sm font-medium text-slate-800">Visibilitas arsip</legend>
+			<p class="mt-1 text-xs text-slate-500">Berlaku setelah undangan diarsipkan.</p>
+			<div class="mt-3 space-y-2 text-sm">
+				<label class="flex items-start gap-2">
+					<input type="radio" name="visibility" value={ ArchivePublicVisibility } checked?={ w.ArchiveVisibility != ArchivePrivate } class="mt-1"/>
+					<span><span class="font-medium">Publik</span> — tamu dengan link tetap bisa membaca cerita, galeri, dan ucapan.</span>
+				</label>
+				<label class="flex items-start gap-2">
+					<input type="radio" name="visibility" value={ ArchivePrivate } checked?={ w.ArchiveVisibility == ArchivePrivate } class="mt-1"/>
+					<span><span class="font-medium">Privat</span> — hanya Anda (saat login); tamu melihat halaman ringkas.</span>
+				</label>
+			</div>
+		</fieldset>
+		<button type="submit" class="mt-3 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Simpan visibilitas</button>
+	</form>
 }
 
 func actorLabel(a ActorKind) string {

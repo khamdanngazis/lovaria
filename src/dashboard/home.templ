@@ -10,6 +10,9 @@ import (
 templ widgets(d homeData) {
 	<div class="space-y-4">
 		@quickActions(d)
+		if len(d.Memory) > 0 {
+			@memoryCard(d)
+		}
 		if d.done() < len(d.Onboarding) {
 			@onboarding(d)
 		}
@@ -34,6 +37,36 @@ templ quickActions(d homeData) {
 			<a href={ templ.SafeURL(d.W.DashboardURL("/info")) } class="rounded-lg border border-slate-300 px-2 py-2.5 font-medium text-slate-700 hover:bg-slate-50">Kelola wedding</a>
 			<a href={ templ.SafeURL(d.W.DashboardURL("/share")) } class="rounded-lg border border-slate-300 px-2 py-2.5 font-medium text-slate-700 hover:bg-slate-50">Bagikan undangan</a>
 		</div>
+		if !d.W.IsDraft() && len(d.Memory) == 0 {
+			<a href={ templ.SafeURL(d.W.DashboardURL("/keepsake.pdf")) } class="mt-3 inline-block text-sm text-primary hover:underline">Unduh kenang-kenangan (PDF) — cerita & semua ucapan</a>
+		}
+	}
+}
+
+// memoryCard: setelah hari H — saran melengkapi halaman kenangan + unduh
+// kenang-kenangan (T19).
+templ memoryCard(d homeData) {
+	@ui.Card() {
+		<h2 class="font-semibold">Abadikan kenangan</h2>
+		<p class="mt-1 text-sm text-slate-600">Website kalian kini tampil sebagai halaman kenangan.</p>
+		<ul class="mt-3 divide-y divide-slate-100">
+			for _, s := range d.Memory {
+				<li>
+					<a href={ templ.SafeURL(s.URL) } class="flex items-center gap-3 py-2.5">
+						if s.Done {
+							<span class="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-green-100 text-sm text-green-700" aria-hidden="true">✓</span>
+						} else {
+							<span class="h-6 w-6 flex-none rounded-full border-2 border-slate-300" aria-hidden="true"></span>
+						}
+						<span class="min-w-0 flex-1">
+							<span class="block text-sm font-medium">{ s.Label }</span>
+							<span class="block text-xs text-slate-500">{ s.Hint }</span>
+						</span>
+					</a>
+				</li>
+			}
+		</ul>
+		<a href={ templ.SafeURL(d.W.DashboardURL("/keepsake.pdf")) } class="mt-3 inline-block rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white">Unduh kenang-kenangan (PDF)</a>
 	}
 }
 

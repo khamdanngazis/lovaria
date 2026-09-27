@@ -12,5 +12,6 @@ func Register(w *echo.Group, deps Deps) {
 	h := &Handler{svc: deps.Service}
 	w.GET("/guestbook", h.List)
 	w.PATCH("/guestbook/:entryID", h.SetHidden)
+	w.PATCH("/guestbook/:entryID/favorite", h.SetFavorite)
 	w.DELETE("/guestbook/:entryID", h.Delete)
 }

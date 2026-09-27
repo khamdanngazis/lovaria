@@ -117,3 +117,16 @@ func (h *Handler) Delete(c echo.Context) error {
 	}
 	return h.done(c, w)
 }
+
+// PATCH .../guestbook/:entryID/favorite (favorite=1|0)
+func (h *Handler) SetFavorite(c echo.Context) error {
+	w := ctxWedding(c)
+	id, err := entryID(c)
+	if err != nil {
+		return err
+	}
+	if _, err := h.svc.SetFavorite(c.Request().Context(), w.ID, id, c.FormValue("favorite") == "1"); err != nil {
+		return notFound(err)
+	}
+	return h.done(c, w)
+}

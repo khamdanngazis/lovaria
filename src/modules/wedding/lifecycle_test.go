@@ -236,3 +236,21 @@ func TestCountdownUsesWeddingTimezone(t *testing.T) {
 		}
 	}
 }
+
+func TestMemoryGuards(t *testing.T) {
+	for _, c := range []struct {
+		status, vis     string
+		memory, archPub bool
+	}{
+		{StatusPublished, ArchivePublicVisibility, false, false},
+		{StatusWeddingDay, ArchivePublicVisibility, false, false},
+		{StatusMemory, ArchivePublicVisibility, true, false},
+		{StatusArchived, ArchivePublicVisibility, true, true},
+		{StatusArchived, ArchivePrivate, true, false},
+	} {
+		w := Wedding{Status: c.status, ArchiveVisibility: c.vis}
+		if w.ShowsMemoryLayout() != c.memory || w.ArchivePublic() != c.archPub {
+			t.Errorf("%s/%s: memory=%v archivePublic=%v", c.status, c.vis, w.ShowsMemoryLayout(), w.ArchivePublic())
+		}
+	}
+}

@@ -55,8 +55,13 @@ templ Layout(v view.View) {
 			</div>
 		}
 		<main class="mx-auto min-h-dvh w-full max-w-md overflow-hidden bg-surface shadow-2xl shadow-black/10">
-			if v.Memory {
-				<p class="bg-primary px-4 py-3 text-center text-sm text-white">Terima kasih telah menjadi bagian dari hari kami ♡</p>
+			if v.ShowsMemory() {
+				<p class="bg-primary px-4 py-3 text-center text-sm text-white">
+					Terima kasih telah menjadi bagian dari hari kami ♡
+					if v.Archived {
+						<span class="mt-1 block text-xs opacity-80">Arsip kenangan — ucapan dan konfirmasi sudah ditutup.</span>
+					}
+				</p>
 			}
 			{ children... }
 		</main>
@@ -91,6 +96,30 @@ func photoLabel(p view.Photo, i int) string {
 	return fmt.Sprintf("Lihat foto %d", i+1)
 }
 
+// OpenHref: tujuan tombol pembuka — bagian kenangan (bila ada) setelah hari H.
+func OpenHref(v view.View) string {
+	if v.ShowsMemory() && (len(v.MemoryPhotos) > 0 || len(v.Guestbook.Favorites) > 0) {
+		return "#memories"
+	}
+	return "#couple"
+}
+
+// OpenText: label tombol pembuka — "Lihat Kenangan" setelah hari H.
+func OpenText(v view.View, normal, memory string) string {
+	if v.ShowsMemory() {
+		return memory
+	}
+	return normal
+}
+
+// EventsSubtitle: setelah hari H acara diringkas sebagai "telah dilangsungkan".
+func EventsSubtitle(v view.View) string {
+	if v.ShowsMemory() {
+		return "Telah dilangsungkan pada " + v.DateText
+	}
+	return ""
+}
+
 // CoverOf dipakai tema lain.
 func CoverOf(v view.View) string { return coverOf(v) }
 
@@ -108,7 +137,7 @@ templ Hero(v view.View) {
 				<p class="opacity-80">Kepada Yth.</p>
 				<p class="mt-1 text-lg font-semibold">{ GuestName(v) }</p>
 			</div>
-			<a href="#couple" class="mt-8 inline-block rounded-full bg-primary px-6 py-3 text-sm font-medium text-white shadow-lg">Buka Undangan</a>
+			<a href={ templ.SafeURL(OpenHref(v)) } class="mt-8 inline-block rounded-full bg-primary px-6 py-3 text-sm font-medium text-white shadow-lg">{ OpenText(v, "Buka Undangan", "Lihat Kenangan") }</a>
 		</div>
 	</section>
 }
@@ -180,7 +209,7 @@ templ LoveStory(v view.View) {
 templ Events(v view.View) {
 	if len(v.Events) > 0 {
 		<section id="events" class="px-6 py-16">
-			@SectionTitle("Acara", "")
+			@SectionTitle("Acara", EventsSubtitle(v))
 			<div class="space-y-5">
 				for _, e := range v.Events {
 					@EventCard(e, "rounded-2xl bg-white/70 p-6 text-center shadow-sm ring-1 ring-black/5")

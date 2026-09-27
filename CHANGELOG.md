@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### T19 — Remember: halaman kenangan, arsip, & keepsake
+- **Mode Kenangan**: undangan berganti tata letak — tombol pembuka "Lihat Kenangan", bagian **Kenangan Hari Bahagia** (foto kategori Pernikahan + ucapan favorit) tepat setelah pembuka, acara "Telah dilangsungkan pada …" tanpa tombol kalender. Berlaku di keempat tema.
+- **Arsip read-only**: wedding yang diarsipkan tidak lagi hanya satu kalimat — cerita, galeri, dan ucapan tetap bisa dibaca; semua form ditutup (POST → 403), tanpa amplop digital & data RSVP pribadi. Pasangan memilih **visibilitas arsip** Publik (default) / Privat di kartu status (privat: publik melihat halaman ringkas, pemilik yang login melihat arsip lengkap). Migration `00020` (`weddings.archive_visibility`).
+- **Ucapan favorit**: tombol ★ di dashboard Ucapan; favorit tampil sebagai "Ucapan Pilihan" di halaman kenangan & arsip. Perubahan langsung terlihat (cache halaman publik dikosongkan). Migration `00021` (`guestbook_entries.is_favorite`).
+- **Kenang-kenangan PDF**: `…/keepsake.pdf` berisi sampul (foto utama), cerita cinta, ringkasan kehadiran, dan semua ucapan yang tampil; tersedia sejak Terbit. Emoji dihapus (font inti PDF).
+- Beranda dashboard saat Kenangan/Arsip: kartu **Abadikan kenangan** (unggah foto hari bahagia, pilih ucapan favorit, unduh PDF).
+
 ### T18 — Landing page & brand
 - Landing page baru sesuai `doc/landing-page-guide.md`: hero "Your Love. Your Story. Your Forever." dengan pratinjau undangan, positioning, alur Create → Invite → Experience → Remember, fitur, galeri tema + undangan contoh, harga (paket bertanda tampil), FAQ, CTA, footer. Mobile-first, tanpa Alpine; Lighthouse mobile 100/100/100/100 (lokal).
 - Brand: logo monogram LV (dari `doc/vector-logo.svg`) + wordmark LOVORIA, favicon, apple-touch-icon, gambar Open Graph; token Tailwind `lovoria-*`; header dashboard memakai logo baru.

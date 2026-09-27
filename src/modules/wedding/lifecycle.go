@@ -2,6 +2,7 @@ package wedding
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -32,8 +33,39 @@ func (w Wedding) AllowsGuestbook() bool {
 // InMemory: hari H sudah lewat (banner terima kasih di halaman undangan).
 func (w Wedding) InMemory() bool { return w.Status == StatusMemory }
 
-// IsArchived: undangan diarsipkan (halaman ringkas).
+// IsArchived: undangan diarsipkan (read-only; lihat ArchivePublic).
 func (w Wedding) IsArchived() bool { return w.Status == StatusArchived }
+
+// ShowsMemoryLayout: undangan tampil sebagai halaman kenangan (setelah hari H:
+// Kenangan & Diarsipkan) — foto hari-H & ucapan favorit di atas, tanpa RSVP (T19).
+func (w Wedding) ShowsMemoryLayout() bool { return w.InMemory() || w.IsArchived() }
+
+// ArchivePublic: arsip boleh dilihat publik (read-only). Arsip privat hanya
+// untuk pemilik; publik mendapat halaman ringkas.
+func (w Wedding) ArchivePublic() bool {
+	return w.IsArchived() && w.ArchiveVisibility != ArchivePrivate
+}
+
+// Visibilitas arsip (T19).
+const (
+	ArchivePublicVisibility = "public"
+	ArchivePrivate          = "private"
+)
+
+// ErrInvalidArchiveVisibility: nilai visibilitas selain public/private.
+var ErrInvalidArchiveVisibility = errors.New("wedding: visibilitas arsip tidak dikenal")
+
+// SetArchiveVisibility mengatur siapa yang bisa melihat undangan setelah diarsipkan.
+func (s *Service) SetArchiveVisibility(ctx context.Context, weddingID uuid.UUID, visibility string) (Wedding, error) {
+	if visibility != ArchivePublicVisibility && visibility != ArchivePrivate {
+		return Wedding{}, fmt.Errorf("%w: %q", ErrInvalidArchiveVisibility, visibility)
+	}
+	row, err := s.repo.q.SetArchiveVisibility(ctx, weddingdb.SetArchiveVisibilityParams{ID: weddingID, ArchiveVisibility: visibility})
+	if err != nil {
+		return Wedding{}, mapErr(err)
+	}
+	return toWedding(row), nil
+}
 
 // IsDraft: belum dipublikasikan.
 func (w Wedding) IsDraft() bool { return w.Status == StatusDraft }

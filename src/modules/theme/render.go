@@ -24,9 +24,10 @@ func Render(v view.View) templ.Component {
 
 	p := def.Parts
 	// Urutan bagian sesuai Produk §7: Opening → Couple (+Date) → Love Story →
-	// Events → Gallery → RSVP → Guestbook → Gift → Closing.
+	// Events → Gallery → RSVP → Guestbook → Gift → Closing. Setelah hari H,
+	// kenangan (foto hari-H + ucapan favorit) tampil tepat setelah pembuka (T19).
 	sections := []templ.Component{
-		p.Hero(v), p.Couple(v), p.LoveStory(v), p.Events(v), p.Gallery(v),
+		p.Hero(v), shared.MemorySection(v), p.Couple(v), p.LoveStory(v), p.Events(v), p.Gallery(v),
 		shared.RSVPSection(v), shared.GuestbookSection(v), shared.GiftSection(v),
 		p.Closing(v),
 	}

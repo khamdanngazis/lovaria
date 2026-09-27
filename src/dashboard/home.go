@@ -41,6 +41,8 @@ type homeData struct {
 	Messages   []guestbook.Entry
 	Gallery    gallery.Summary
 	Onboarding []step
+	// Memory: saran setelah hari H (Kenangan & Arsip, T19); nil sebelum itu.
+	Memory []step
 }
 
 func (d homeData) done() int {
@@ -135,6 +137,20 @@ func (h *Home) load(ctx context.Context, w wedding.Wedding) (homeData, error) {
 		{"Tema", "Pilih tampilan undangan", w.DashboardURL("/theme"), themed},
 		{"Daftar tamu", "Tambah tamu untuk link undangan pribadi", w.DashboardURL("/guests"), d.Guests.Total > 0},
 		{"Publikasikan", "Terbitkan saat semua siap", w.DashboardURL(""), !w.IsDraft()},
+	}
+	if w.ShowsMemoryLayout() {
+		photos, err := h.Gallery.ByCategory(ctx, w.ID, gallery.CategoryWedding, 1)
+		if err != nil {
+			return d, fmt.Errorf("dashboard: foto hari-H: %w", err)
+		}
+		favs, err := h.Guestbook.Favorites(ctx, w.ID, 1)
+		if err != nil {
+			return d, fmt.Errorf("dashboard: ucapan favorit: %w", err)
+		}
+		d.Memory = []step{
+			{"Unggah foto hari bahagia", "Pilih kategori Pernikahan — tampil paling atas di halaman kenangan", w.DashboardURL("/gallery"), len(photos) > 0},
+			{"Pilih ucapan favorit", "Tandai ★ di menu Ucapan — tampil sebagai ucapan pilihan", w.DashboardURL("/guestbook"), len(favs) > 0},
+		}
 	}
 	return d, nil
 }

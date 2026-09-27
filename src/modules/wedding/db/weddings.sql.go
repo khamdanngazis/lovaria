@@ -41,7 +41,7 @@ func (q *Queries) AdminCountWeddings(ctx context.Context, arg AdminCountWeddings
 }
 
 const adminListWeddings = `-- name: AdminListWeddings :many
-SELECT id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone, storage_used_bytes, is_demo FROM weddings
+SELECT id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone, storage_used_bytes, is_demo, archive_visibility FROM weddings
 WHERE NOT is_demo
   AND ($1::text IS NULL OR status = $1)
   AND ($2::date IS NULL OR wedding_date >= $2)
@@ -97,6 +97,7 @@ func (q *Queries) AdminListWeddings(ctx context.Context, arg AdminListWeddingsPa
 			&i.Timezone,
 			&i.StorageUsedBytes,
 			&i.IsDemo,
+			&i.ArchiveVisibility,
 		); err != nil {
 			return nil, err
 		}
@@ -180,7 +181,7 @@ func (q *Queries) CountWeddingsByTheme(ctx context.Context) ([]CountWeddingsByTh
 const createWedding = `-- name: CreateWedding :one
 INSERT INTO weddings (id, owner_user_id, slug, title, wedding_date, description)
 VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone, storage_used_bytes, is_demo
+RETURNING id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone, storage_used_bytes, is_demo, archive_visibility
 `
 
 type CreateWeddingParams struct {
@@ -217,6 +218,7 @@ func (q *Queries) CreateWedding(ctx context.Context, arg CreateWeddingParams) (W
 		&i.Timezone,
 		&i.StorageUsedBytes,
 		&i.IsDemo,
+		&i.ArchiveVisibility,
 	)
 	return i, err
 }
@@ -253,7 +255,7 @@ func (q *Queries) GetSlugRedirect(ctx context.Context, arg GetSlugRedirectParams
 }
 
 const getWedding = `-- name: GetWedding :one
-SELECT id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone, storage_used_bytes, is_demo FROM weddings WHERE id = $1
+SELECT id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone, storage_used_bytes, is_demo, archive_visibility FROM weddings WHERE id = $1
 `
 
 func (q *Queries) GetWedding(ctx context.Context, id uuid.UUID) (Wedding, error) {
@@ -274,12 +276,13 @@ func (q *Queries) GetWedding(ctx context.Context, id uuid.UUID) (Wedding, error)
 		&i.Timezone,
 		&i.StorageUsedBytes,
 		&i.IsDemo,
+		&i.ArchiveVisibility,
 	)
 	return i, err
 }
 
 const getWeddingBySlug = `-- name: GetWeddingBySlug :one
-SELECT id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone, storage_used_bytes, is_demo FROM weddings WHERE slug = $1
+SELECT id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone, storage_used_bytes, is_demo, archive_visibility FROM weddings WHERE slug = $1
 `
 
 func (q *Queries) GetWeddingBySlug(ctx context.Context, slug string) (Wedding, error) {
@@ -300,12 +303,13 @@ func (q *Queries) GetWeddingBySlug(ctx context.Context, slug string) (Wedding, e
 		&i.Timezone,
 		&i.StorageUsedBytes,
 		&i.IsDemo,
+		&i.ArchiveVisibility,
 	)
 	return i, err
 }
 
 const getWeddingForOwner = `-- name: GetWeddingForOwner :one
-SELECT id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone, storage_used_bytes, is_demo FROM weddings WHERE id = $1 AND owner_user_id = $2
+SELECT id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone, storage_used_bytes, is_demo, archive_visibility FROM weddings WHERE id = $1 AND owner_user_id = $2
 `
 
 type GetWeddingForOwnerParams struct {
@@ -331,12 +335,13 @@ func (q *Queries) GetWeddingForOwner(ctx context.Context, arg GetWeddingForOwner
 		&i.Timezone,
 		&i.StorageUsedBytes,
 		&i.IsDemo,
+		&i.ArchiveVisibility,
 	)
 	return i, err
 }
 
 const getWeddingForUpdate = `-- name: GetWeddingForUpdate :one
-SELECT id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone, storage_used_bytes, is_demo FROM weddings WHERE id = $1 FOR UPDATE
+SELECT id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone, storage_used_bytes, is_demo, archive_visibility FROM weddings WHERE id = $1 FOR UPDATE
 `
 
 func (q *Queries) GetWeddingForUpdate(ctx context.Context, id uuid.UUID) (Wedding, error) {
@@ -357,6 +362,7 @@ func (q *Queries) GetWeddingForUpdate(ctx context.Context, id uuid.UUID) (Weddin
 		&i.Timezone,
 		&i.StorageUsedBytes,
 		&i.IsDemo,
+		&i.ArchiveVisibility,
 	)
 	return i, err
 }
@@ -459,7 +465,7 @@ func (q *Queries) ListSlugsWithPrefix(ctx context.Context, base string) ([]strin
 }
 
 const listWeddingsByOwner = `-- name: ListWeddingsByOwner :many
-SELECT id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone, storage_used_bytes, is_demo FROM weddings WHERE owner_user_id = $1 ORDER BY created_at DESC, id DESC
+SELECT id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone, storage_used_bytes, is_demo, archive_visibility FROM weddings WHERE owner_user_id = $1 ORDER BY created_at DESC, id DESC
 `
 
 func (q *Queries) ListWeddingsByOwner(ctx context.Context, ownerUserID uuid.UUID) ([]Wedding, error) {
@@ -486,6 +492,7 @@ func (q *Queries) ListWeddingsByOwner(ctx context.Context, ownerUserID uuid.UUID
 			&i.Timezone,
 			&i.StorageUsedBytes,
 			&i.IsDemo,
+			&i.ArchiveVisibility,
 		); err != nil {
 			return nil, err
 		}
@@ -562,6 +569,38 @@ func (q *Queries) ReserveStorage(ctx context.Context, arg ReserveStorageParams) 
 	return storage_used_bytes, err
 }
 
+const setArchiveVisibility = `-- name: SetArchiveVisibility :one
+UPDATE weddings SET archive_visibility = $2 WHERE id = $1 RETURNING id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone, storage_used_bytes, is_demo, archive_visibility
+`
+
+type SetArchiveVisibilityParams struct {
+	ID                uuid.UUID
+	ArchiveVisibility string
+}
+
+func (q *Queries) SetArchiveVisibility(ctx context.Context, arg SetArchiveVisibilityParams) (Wedding, error) {
+	row := q.db.QueryRow(ctx, setArchiveVisibility, arg.ID, arg.ArchiveVisibility)
+	var i Wedding
+	err := row.Scan(
+		&i.ID,
+		&i.OwnerUserID,
+		&i.Slug,
+		&i.Title,
+		&i.WeddingDate,
+		&i.Description,
+		&i.MainPhotoUrl,
+		&i.Status,
+		&i.ThemeID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Timezone,
+		&i.StorageUsedBytes,
+		&i.IsDemo,
+		&i.ArchiveVisibility,
+	)
+	return i, err
+}
+
 const setMainPhotoURL = `-- name: SetMainPhotoURL :exec
 UPDATE weddings SET main_photo_url = $2 WHERE id = $1
 `
@@ -577,7 +616,7 @@ func (q *Queries) SetMainPhotoURL(ctx context.Context, arg SetMainPhotoURLParams
 }
 
 const setSlug = `-- name: SetSlug :one
-UPDATE weddings SET slug = $2 WHERE id = $1 RETURNING id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone, storage_used_bytes, is_demo
+UPDATE weddings SET slug = $2 WHERE id = $1 RETURNING id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone, storage_used_bytes, is_demo, archive_visibility
 `
 
 type SetSlugParams struct {
@@ -603,6 +642,7 @@ func (q *Queries) SetSlug(ctx context.Context, arg SetSlugParams) (Wedding, erro
 		&i.Timezone,
 		&i.StorageUsedBytes,
 		&i.IsDemo,
+		&i.ArchiveVisibility,
 	)
 	return i, err
 }
@@ -672,7 +712,7 @@ const updateWeddingInfo = `-- name: UpdateWeddingInfo :one
 UPDATE weddings
 SET title = $2, wedding_date = $3, description = $4, main_photo_url = $5, timezone = $6
 WHERE id = $1
-RETURNING id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone, storage_used_bytes, is_demo
+RETURNING id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone, storage_used_bytes, is_demo, archive_visibility
 `
 
 type UpdateWeddingInfoParams struct {
@@ -709,6 +749,7 @@ func (q *Queries) UpdateWeddingInfo(ctx context.Context, arg UpdateWeddingInfoPa
 		&i.Timezone,
 		&i.StorageUsedBytes,
 		&i.IsDemo,
+		&i.ArchiveVisibility,
 	)
 	return i, err
 }

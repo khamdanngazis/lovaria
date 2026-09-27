@@ -379,6 +379,7 @@ func (a *app) routes() *echo.Echo {
 	gifts := gift.NewService(a.pool)
 	a.weddings.SetDomains(a.domains, cfg.BaseURL) // URL kanonik (custom domain aktif)
 	views := &publicsite.ViewBuilder{Weddings: a.weddings, Events: events, Stories: stories, Gallery: photos, Themes: themes, Guestbook: guestbooks, Gifts: gifts}
+	guestbooks.OnChange(views.Invalidate) // favorit/sembunyikan ucapan langsung terlihat di halaman publik (T19)
 	home := &dashboard.Home{
 		Weddings: a.weddings, Events: events, Stories: stories, Gallery: photos, Themes: themes,
 		Guests: guests, Guestbook: guestbooks,
@@ -395,6 +396,8 @@ func (a *app) routes() *echo.Echo {
 	guest.Register(owned, guest.Deps{Service: guests, Weddings: a.weddings})
 	guestbook.Register(owned, guestbook.Deps{Service: guestbooks})
 	gift.Register(owned, gift.Deps{Service: gifts})
+	keepsake := &dashboard.Keepsake{Weddings: a.weddings, Stories: stories, Guests: guests, Guestbook: guestbooks, Photo: dashboard.HTTPPhoto(cfg.BaseURL)}
+	keepsake.Register(owned) // PDF kenang-kenangan (T19)
 	domain.Register(owned, domain.Deps{Service: a.domains})
 	// Panel admin (T16): data modul lain lewat service-nya; paket mengatur kuota
 	// storage & lama arsip; admin bisa melihat dashboard pasangan (lihat saja).

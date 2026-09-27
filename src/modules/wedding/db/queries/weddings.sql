@@ -117,3 +117,6 @@ SELECT * FROM slug_redirects WHERE wedding_id = $1 AND expires_at > $2 ORDER BY 
 
 -- name: MarkDemo :exec
 UPDATE weddings SET is_demo = true WHERE id = $1;
+
+-- name: SetArchiveVisibility :one
+UPDATE weddings SET archive_visibility = $2 WHERE id = $1 RETURNING *;

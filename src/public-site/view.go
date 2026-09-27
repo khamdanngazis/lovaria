@@ -75,13 +75,29 @@ func (b *ViewBuilder) Build(ctx context.Context, w wedding.Wedding, g *guest.Gue
 		},
 		Settings:       settings,
 		Memory:         w.InMemory(),
+		Archived:       w.IsArchived(),
 		AllowRSVP:      w.AllowsRSVP(),
 		AllowGuestbook: w.AllowsGuestbook(),
 	}
 	if w.MainPhotoURL != nil {
 		v.MainPhoto = *w.MainPhotoURL
 	}
-	if v.AllowGuestbook {
+	if w.ShowsMemoryLayout() {
+		photos, err := b.Gallery.ByCategory(ctx, w.ID, gallery.CategoryWedding, 12)
+		if err != nil {
+			return view.View{}, fmt.Errorf("view: foto hari-H: %w", err)
+		}
+		for _, p := range photos {
+			v.MemoryPhotos = append(v.MemoryPhotos, view.Photo{URL: p.URL, ThumbURL: p.ThumbURL, Caption: p.Caption, Width: p.Width, Height: p.Height})
+		}
+		favs, err := b.Guestbook.Favorites(ctx, w.ID, 6)
+		if err != nil {
+			return view.View{}, fmt.Errorf("view: ucapan favorit: %w", err)
+		}
+		v.Guestbook.Favorites = guestbookEntries(favs, w.Timezone)
+	}
+	// Arsip: daftar ucapan tetap tampil (read-only) walau form ditutup.
+	if v.AllowGuestbook || w.IsArchived() {
 		es, more, err := b.Guestbook.Visible(ctx, w.ID, uuid.Nil, guestbook.PublicPage)
 		if err != nil {
 			return view.View{}, fmt.Errorf("view: guestbook: %w", err)
@@ -90,6 +106,9 @@ func (b *ViewBuilder) Build(ctx context.Context, w wedding.Wedding, g *guest.Gue
 		if more {
 			v.Guestbook.MoreBefore = es[len(es)-1].ID.String()
 		}
+	}
+	if w.IsArchived() {
+		gifts = nil // tanda kasih tidak relevan lagi setelah diarsipkan
 	}
 	for _, a := range gifts {
 		v.Gifts = append(v.Gifts, view.Gift{
