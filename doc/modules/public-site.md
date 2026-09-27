@@ -66,7 +66,12 @@ Tampilan (tetap lewat `theme.Render` & template tema, tanpa cabang status di han
 | Tema | `theme.All()` minus tema nonaktif admin; link "Lihat contoh" bila `/w/contoh-<tema>` ada & publik |
 | Harga | `admin.Service.LandingPackages` — paket bertanda **Tampil di landing page** (admin → Paket), berurutan; kosong → bagian & menu Harga disembunyikan |
 
-- **Undangan contoh**: `lovoria demo seed` (idempoten) membuat satu wedding per tema (`/w/contoh-elegant`, …) berisi data fiktif, milik akun sistem `demo@<domain>` yang dinonaktifkan, ditandai `weddings.is_demo` (migration `00018`) → tidak dihitung laporan admin & tidak diproses scheduler lifecycle. Jalankan sekali setelah deploy: `railway ssh --service lovaria -- lovoria demo seed`.
+- **Undangan contoh**: `lovoria demo seed` (idempoten) membuat satu wedding per tema (`/w/contoh-elegant`, …) berisi data fiktif, milik akun sistem `demo@<domain>` yang dinonaktifkan, ditandai `weddings.is_demo` (migration `00018`) → tidak dihitung laporan admin & tidak diproses scheduler lifecycle. Jalankan setelah deploy: `railway ssh --service lovaria -- lovoria demo seed`.
+  - **Foto contoh**: foto dari Unsplash (Unsplash License, kredit di `cmd/server/demomedia/CREDITS.md`) ditanam di binary (± 2,5 MB). Seeder mengunggahnya lewat `gallery.Upload`, jadi di produksi tersimpan di R2.
+  - Isi per tema: sampul (kategori cover → foto utama & OG), 6 foto galeri (pasangan + detail cincin, bunga, dekorasi), dan potret mempelai hasil potongan foto pasangan yang sama. Potret disimpan langsung ke storage, bukan item galeri, supaya tidak tampil ulang di galeri.
+  - Demo juga diberi kutipan contoh (T20).
+  - Demo yang sudah ada tetapi galerinya kosong ikut dilengkapi (`ensureDemoMedia`); demo yang galerinya sudah berisi dilewati.
+  - Kartu tema di landing memakai thumbnail sampul + nama pasangan demo; tanpa foto, kartu kembali ke tampilan warna.
 - **SEO**: landing boleh diindeks (undangan tetap `noindex`), `canonical` & Open Graph (`static/img/brand/og-lovoria.png` 1200×630), `robots.txt` (domain Lovoria: landing/privacy/terms saja; custom domain pasangan: `Disallow: /`), `sitemap.xml` (landing, privacy, terms).
 - **Performa**: tanpa Alpine; `static/js/landing.js` hanya memuat font tanpa memblokir render; CSP publik (`StrictCSP`). Lighthouse mobile lokal: 100 / 100 / 100 / 100.
 

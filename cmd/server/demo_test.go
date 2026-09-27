@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/khamdanngazis/lovaria/src/modules/gallery"
 	"github.com/khamdanngazis/lovaria/src/modules/theme"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding"
 	publicsite "github.com/khamdanngazis/lovaria/src/public-site"
@@ -29,6 +30,39 @@ func TestSeedDemo(t *testing.T) {
 	}
 	if strings.Count(out.String(), "dibuat:") != len(theme.All()) {
 		t.Errorf("output seed: %s", out.String())
+	}
+	// Foto lengkap: sampul (foto utama), potret mempelai, galeri; kutipan contoh.
+	photos := gallery.NewService(gallery.NewRepository(a.pool), a.store, a.weddings, a.cfg.Storage.QuotaBytes, a.log)
+	themes := theme.NewService(a.pool, a.weddings)
+	for _, d := range theme.All() {
+		w, _ := a.weddings.GetWeddingBySlug(ctx, publicsite.DemoSlug(d.ID))
+		items, _ := photos.ListGallery(ctx, w.ID)
+		c, _ := a.weddings.GetCouple(ctx, w.ID)
+		st, _ := themes.Settings(ctx, w.ID)
+		// Sampul (kategori cover, tidak tampil di galeri) + 6 foto galeri;
+		// potret mempelai tidak menjadi item galeri.
+		if len(items) != 7 || w.MainPhotoURL == nil || c.GroomPhotoURL == nil || c.BridePhotoURL == nil || st.QuoteText == "" {
+			t.Errorf("demo %s belum lengkap: %d foto, main=%v, pasangan=%v/%v, kutipan=%q", d.ID, len(items), w.MainPhotoURL, c.GroomPhotoURL, c.BridePhotoURL, st.QuoteText)
+		}
+	}
+	// Demo dari versi lama (tanpa foto & kutipan) dilengkapi saat seed diulang.
+	if _, err := a.pool.Exec(ctx, "DELETE FROM gallery_items; UPDATE wedding_theme_settings SET quote_text = NULL"); err != nil {
+		t.Fatal(err)
+	}
+	out.Reset()
+	if err := a.seedDemo(ctx, &out); err != nil {
+		t.Fatal(err)
+	}
+	if strings.Count(out.String(), "dilengkapi:") != len(theme.All()) {
+		t.Errorf("seed ulang demo lama: %s", out.String())
+	}
+	if w, _ := a.weddings.GetWeddingBySlug(ctx, publicsite.DemoSlug("modern")); true {
+		if items, _ := photos.ListGallery(ctx, w.ID); len(items) != 7 {
+			t.Errorf("dilengkapi: %d foto", len(items))
+		}
+		if st, _ := themes.Settings(ctx, w.ID); st.QuoteText == "" {
+			t.Error("dilengkapi: kutipan")
+		}
 	}
 	// Tidak dihitung laporan admin.
 	if p, _ := a.weddings.AdminList(ctx, wedding.AdminFilter{}, 25); p.Total != 0 {

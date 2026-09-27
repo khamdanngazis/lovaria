@@ -14,10 +14,10 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/khamdanngazis/lovaria/src/modules/auth"
+	"github.com/khamdanngazis/lovaria/src/modules/gallery"
 	"github.com/khamdanngazis/lovaria/src/modules/gift"
 	"github.com/khamdanngazis/lovaria/src/modules/guestbook"
 	"github.com/khamdanngazis/lovaria/src/modules/theme"
-	"github.com/khamdanngazis/lovaria/src/modules/theme/view"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding/event"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding/story"
@@ -48,6 +48,7 @@ func (a *app) seedDemo(ctx context.Context, out io.Writer) error {
 	themes := theme.NewService(a.pool, a.weddings)
 	guestbooks := guestbook.NewService(a.pool, nil)
 	gifts := gift.NewService(a.pool)
+	photos := gallery.NewService(gallery.NewRepository(a.pool), a.store, a.weddings, a.cfg.Storage.QuotaBytes, a.log)
 
 	owner, err := a.demoOwner(ctx)
 	if err != nil {
@@ -60,8 +61,20 @@ func (a *app) seedDemo(ctx context.Context, out io.Writer) error {
 			c = demoCouples["elegant"]
 		}
 		slug := publicsite.DemoSlug(d.ID)
-		if _, err := a.weddings.GetWeddingBySlug(ctx, slug); err == nil {
-			fmt.Fprintf(out, "lewati: /w/%s sudah ada\n", slug)
+		if existing, err := a.weddings.GetWeddingBySlug(ctx, slug); err == nil {
+			// Sudah ada: lengkapi foto & kutipan bila belum (demo dari versi lama).
+			added, err := a.ensureDemoMedia(ctx, photos, existing, d.ID)
+			if err == nil {
+				err = ensureDemoSettings(ctx, themes, existing.ID, d.ID)
+			}
+			if err != nil {
+				return fmt.Errorf("demo %s: %w", d.ID, err)
+			}
+			if added {
+				fmt.Fprintf(out, "dilengkapi: /w/%s (foto & kutipan)\n", slug)
+			} else {
+				fmt.Fprintf(out, "lewati: /w/%s sudah lengkap\n", slug)
+			}
 			continue
 		} else if !errors.Is(err, wedding.ErrNotFound) {
 			return err
@@ -81,7 +94,8 @@ func (a *app) seedDemo(ctx context.Context, out io.Writer) error {
 				_, err := a.weddings.UpdateCouple(ctx, w.ID, wedding.CoupleInput{GroomName: c.Groom, BrideName: c.Bride, GroomDescription: c.GroomDesc, BrideDescription: c.BrideDesc})
 				return err
 			},
-			func() error { _, err := themes.Save(ctx, w.ID, d.ID, view.Settings{}); return err },
+			func() error { _, err := themes.Save(ctx, w.ID, d.ID, demoSettings()); return err },
+			func() error { _, err := a.ensureDemoMedia(ctx, photos, w, d.ID); return err },
 			func() error {
 				day := date.Format("2006-01-02")
 				for _, in := range []event.Input{

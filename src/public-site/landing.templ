@@ -22,6 +22,8 @@ type landingTheme struct {
 	ID, Name, Description string
 	Primary, Surface, Ink string // warna bawaan tema (kartu pratinjau)
 	DemoURL               string // "" bila undangan contoh belum dibuat
+	Photo                 string // thumbnail sampul undangan contoh ("" → kartu warna)
+	Couple                string // "Raka & Nadia"
 }
 
 const landingFonts = "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap"
@@ -346,12 +348,24 @@ templ landingThemes(d landingData) {
 			<ul class="mt-12 grid grid-cols-2 gap-3 sm:mt-14 sm:gap-6 lg:grid-cols-4">
 				for _, t := range d.Themes {
 					<li class="flex flex-col overflow-hidden rounded-2xl border border-lovoria-border bg-white">
-						<div class="flex aspect-[4/5] flex-col items-center justify-center gap-2 px-3 text-center sm:gap-3 sm:px-6" style={ "background:" + t.Surface + ";color:" + t.Ink }>
-							<p class="text-[8px] uppercase tracking-[0.3em] sm:text-[10px]">The Wedding of</p>
-							<p class="font-display text-lg leading-snug sm:text-2xl" style={ "color:" + t.Primary }>Raka &amp; Nadia</p>
-							<div class="h-px w-12" style={ "background:" + t.Primary }></div>
-							<p class="text-[10px] opacity-80 sm:text-xs">14 · 02 · 2027</p>
-						</div>
+						if t.Photo != "" {
+							<a href={ templ.SafeURL(t.DemoURL) } class="relative block aspect-[4/5] overflow-hidden" tabindex="-1" aria-hidden="true">
+								<img src={ t.Photo } alt="" width="384" height="480" loading="lazy" decoding="async" class="h-full w-full object-cover transition duration-500 hover:scale-105"/>
+								<div class="absolute inset-0 bg-[linear-gradient(180deg,transparent_45%,rgba(35,26,38,0.78))]"></div>
+								<div class="absolute inset-x-0 bottom-0 p-3 text-center text-white sm:p-5">
+									<p class="text-[8px] uppercase tracking-[0.3em] opacity-90 sm:text-[10px]">The Wedding of</p>
+									<p class="mt-1 font-display text-lg leading-snug sm:text-2xl">{ t.Couple }</p>
+									<div class="mx-auto mt-2 h-px w-10" style={ "background:" + t.Primary }></div>
+								</div>
+							</a>
+						} else {
+							<div class="flex aspect-[4/5] flex-col items-center justify-center gap-2 px-3 text-center sm:gap-3 sm:px-6" style={ "background:" + t.Surface + ";color:" + t.Ink }>
+								<p class="text-[8px] uppercase tracking-[0.3em] sm:text-[10px]">The Wedding of</p>
+								<p class="font-display text-lg leading-snug sm:text-2xl" style={ "color:" + t.Primary }>Raka &amp; Nadia</p>
+								<div class="h-px w-12" style={ "background:" + t.Primary }></div>
+								<p class="text-[10px] opacity-80 sm:text-xs">14 · 02 · 2027</p>
+							</div>
+						}
 						<div class="flex flex-1 flex-col p-4 sm:p-5">
 							<h3 class="font-display text-lg text-lovoria-deep sm:text-xl">{ t.Name }</h3>
 							<p class="mt-1 flex-1 text-xs leading-relaxed text-lovoria-muted sm:text-sm">{ t.Description }</p>

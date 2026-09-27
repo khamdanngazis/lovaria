@@ -205,6 +205,10 @@ func ValidateField(field, value string) string {
 		if v == "" {
 			return ""
 		}
+		// Storage lokal (development) memakai URL relatif /media/…
+		if strings.HasPrefix(v, "/media/") && len(v) <= 2048 && !strings.ContainsAny(v, "\"'()\\<> \t\r\n") {
+			return ""
+		}
 		u, err := url.Parse(v)
 		if err != nil || (u.Scheme != "https" && u.Scheme != "http") || u.Host == "" || len(v) > 2048 {
 			return "URL foto tidak valid (harus diawali https://)"

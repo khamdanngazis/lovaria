@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/khamdanngazis/lovaria/src/modules/admin"
+	"github.com/khamdanngazis/lovaria/src/modules/gallery"
 	"github.com/khamdanngazis/lovaria/src/modules/theme"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding"
 	"github.com/khamdanngazis/lovaria/src/platform/web"
@@ -46,6 +47,17 @@ func (h *Handler) landing(c echo.Context) (landingData, error) {
 			return d, err
 		case w.IsPublic():
 			lt.DemoURL = "/w/" + w.Slug
+			// Kartu memakai foto sampul & nama pasangan undangan contoh.
+			if covers, err := h.Views.Gallery.ByCategory(ctx, w.ID, gallery.CategoryCover, 1); err != nil {
+				return d, err
+			} else if len(covers) > 0 {
+				lt.Photo = covers[0].ThumbURL
+			}
+			c, err := h.Views.Weddings.GetCouple(ctx, w.ID)
+			if err != nil {
+				return d, err
+			}
+			lt.Couple = firstName(c.GroomName) + " & " + firstName(c.BrideName)
 		}
 		d.Themes = append(d.Themes, lt)
 	}
