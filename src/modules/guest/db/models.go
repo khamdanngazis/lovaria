@@ -24,6 +24,18 @@ type Couple struct {
 	UpdatedAt        time.Time
 }
 
+type CustomDomain struct {
+	ID                 uuid.UUID
+	WeddingID          uuid.UUID
+	Domain             string
+	CfHostnameID       string
+	Status             string
+	VerificationErrors []byte
+	VerifiedAt         *time.Time
+	LastCheckedAt      *time.Time
+	CreatedAt          time.Time
+}
+
 type Event struct {
 	ID          uuid.UUID
 	WeddingID   uuid.UUID

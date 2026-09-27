@@ -26,7 +26,6 @@ type Home struct {
 	Themes    *theme.Service
 	Guests    *guest.Service
 	Guestbook *guestbook.Service
-	BaseURL   string
 }
 
 // step adalah satu langkah checklist onboarding.
@@ -96,8 +95,11 @@ func (h *Home) Widgets(ctx context.Context, w wedding.Wedding) (templ.Component,
 }
 
 func (h *Home) load(ctx context.Context, w wedding.Wedding) (homeData, error) {
-	d := homeData{W: w, Link: h.BaseURL + "/w/" + w.Slug}
+	d := homeData{W: w}
 	var err error
+	if d.Link, err = h.Weddings.CanonicalBaseURL(ctx, w); err != nil {
+		return d, fmt.Errorf("dashboard: link: %w", err)
+	}
 	if d.Guests, err = h.Guests.Stats(ctx, w.ID); err != nil {
 		return d, fmt.Errorf("dashboard: tamu: %w", err)
 	}

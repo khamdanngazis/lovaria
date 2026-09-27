@@ -22,6 +22,8 @@ Satu-satunya tempat yang membaca Host header / slug / kode undangan (Arsitektur 
 
 Hasil (`Resolved{Wedding, Guest, Preview, Origin, Prefix}`) disimpan di context (`publicsite.FromContext`). Kode/slug tidak ditemukan → halaman 404 ramah.
 
+**Custom domain (T15):** host yang bukan milik Lovoria dan bukan custom domain aktif → 404 generik (tidak pernah jatuh ke wedding lain lewat path). Domain aktif → `GET /w/:slug…` dialihkan 301 ke `https://<domain>…`; `/i/:code` tidak dialihkan. Detail: [custom-domain.md](../custom-domain.md).
+
 **Gerbang status** (guard `wedding.IsPublic()`, lihat [wedding-lifecycle.md](wedding-lifecycle.md)): `draft` → hanya pemilik yang login (banner "Preview", `Cache-Control: no-store`), selain itu 404. `memory` → banner terima kasih; `archived` → halaman ringkas. Kunjungan lewat kode tamu mencatat `guest.MarkOpened`, kecuali pemilik yang sedang preview.
 
 ## Rendering

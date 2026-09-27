@@ -65,8 +65,8 @@ func newFixture(t *testing.T) fixture {
 		Weddings: ws, Events: evs, Stories: story.NewService(story.NewRepository(pool)),
 		Gallery: gallery.NewService(gallery.NewRepository(pool), store, ws, 500<<20, log), Themes: theme.NewService(pool, ws),
 		Guests: guest.NewService(guest.NewRepository(pool), "https://lovoria.test"), Guestbook: guestbook.NewService(pool, guestbook.NewWordFilter(guestbook.DefaultBlockedWords)),
-		BaseURL: "https://lovoria.test",
 	}
+	ws.SetDomains(nil, "https://lovoria.test")
 	e := server.New(cfg, log)
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {

@@ -56,8 +56,13 @@ type Resolver struct {
 	Guests   *guest.Service
 	Domains  DomainLookup
 	BaseURL  string // domain utama Lovoria
-	Log      *slog.Logger
-	ownHosts map[string]bool
+	// ExtraHosts: host milik Lovoria selain BASE_URL (mis. domain Railway).
+	ExtraHosts []string
+	// HostHeader: header tepercaya berisi host asli bila proxy di depan aplikasi
+	// menulis ulang Host (Cloudflare Worker, lihat doc/custom-domain.md). Kosong → Host.
+	HostHeader string
+	Log        *slog.Logger
+	ownHosts   map[string]bool
 }
 
 func (r *Resolver) isOwnHost(host string) bool {
@@ -66,12 +71,20 @@ func (r *Resolver) isOwnHost(host string) bool {
 		if u, err := url.Parse(r.BaseURL); err == nil && u.Hostname() != "" {
 			r.ownHosts[strings.ToLower(u.Hostname())] = true
 		}
+		for _, h := range r.ExtraHosts {
+			r.ownHosts[strings.ToLower(h)] = true
+		}
 	}
 	return r.ownHosts[host]
 }
 
-func hostOf(req *http.Request) string {
+func (r *Resolver) hostOf(req *http.Request) string {
 	h := req.Host
+	if r.HostHeader != "" {
+		if v := strings.TrimSpace(strings.Split(req.Header.Get(r.HostHeader), ",")[0]); v != "" {
+			h = v
+		}
+	}
 	if hh, _, err := net.SplitHostPort(h); err == nil {
 		h = hh
 	}
@@ -84,7 +97,7 @@ func hostOf(req *http.Request) string {
 func (r *Resolver) ResolveWedding(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ctx := c.Request().Context()
-		host := hostOf(c.Request())
+		host := r.hostOf(c.Request())
 		res := Resolved{Origin: strings.TrimRight(r.BaseURL, "/")}
 		found := false
 
@@ -101,8 +114,13 @@ func (r *Resolver) ResolveWedding(next echo.HandlerFunc) echo.HandlerFunc {
 				}
 				if err == nil {
 					res.Wedding, found = w, true
-					res.Origin = c.Scheme() + "://" + host
+					res.Origin = "https://" + host // custom domain selalu lewat Cloudflare (TLS)
 				}
+			}
+			// Host asing yang bukan custom domain aktif: 404 generik, jangan
+			// pernah jatuh ke wedding lain lewat path.
+			if !found {
+				return notFound(c)
 			}
 		}
 
@@ -138,6 +156,21 @@ func (r *Resolver) ResolveWedding(next echo.HandlerFunc) echo.HandlerFunc {
 			}
 			res.Wedding, found = w, true
 			res.Prefix = "/w/" + w.Slug
+			// Custom domain aktif → /w/:slug pindah permanen ke sana (link /i/:code
+			// di domain Lovoria tetap dilayani supaya undangan yang terkirim aman).
+			if m := c.Request().Method; (m == http.MethodGet || m == http.MethodHead) && w.IsPublic() {
+				canon, err := r.Weddings.CanonicalBaseURL(ctx, w)
+				if err != nil {
+					return err
+				}
+				if !strings.HasSuffix(canon, "/w/"+w.Slug) {
+					target := canon + strings.TrimPrefix(c.Request().URL.Path, "/w/"+w.Slug)
+					if q := c.Request().URL.RawQuery; q != "" {
+						target += "?" + q
+					}
+					return c.Redirect(http.StatusMovedPermanently, target)
+				}
+			}
 		}
 
 		if !found {

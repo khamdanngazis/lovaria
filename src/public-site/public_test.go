@@ -47,6 +47,16 @@ func (f fakeDomains) WeddingIDByHost(_ context.Context, host string) (uuid.UUID,
 	return id, ok, nil
 }
 
+// ActiveDomain (wedding.DomainSource): domain aktif milik wedding.
+func (f fakeDomains) ActiveDomain(_ context.Context, weddingID uuid.UUID) (string, bool, error) {
+	for host, id := range f {
+		if id == weddingID {
+			return host, true, nil
+		}
+	}
+	return "", false, nil
+}
+
 type fixture struct {
 	e         *echo.Echo
 	weddings  *wedding.Service
@@ -80,6 +90,7 @@ func newFixture(t *testing.T) fixture {
 		Guestbook: gb, Gifts: gf,
 	}
 	domains := fakeDomains{}
+	ws.SetDomains(domains, cfg.BaseURL)
 
 	e := server.New(cfg, log)
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc { // user login dari header (pengganti session)
@@ -92,7 +103,7 @@ func newFixture(t *testing.T) fixture {
 		}
 	})
 	Register(e, Deps{
-		Resolver:       &Resolver{Weddings: ws, Guests: gs, Domains: domains, BaseURL: cfg.BaseURL, Log: log},
+		Resolver:       &Resolver{Weddings: ws, Guests: gs, Domains: domains, BaseURL: cfg.BaseURL, ExtraHosts: []string{"lovaria.up.railway.app"}, HostHeader: "X-Forwarded-Host", Log: log},
 		Handler:        &Handler{Views: views, Guests: gs, Guestbook: gb, Events: evs, Log: log, Secret: []byte(testSecret), now: func() time.Time { return testNow }},
 		RSVPLimit:      RSVPLimit{PerMinute: 60, Burst: 8},
 		GuestbookLimit: GuestbookLimit{PerMinute: 60, Burst: 8},
@@ -270,7 +281,7 @@ func TestCustomDomain(t *testing.T) {
 
 	host := map[string]string{"Host": "khamdansarah.com"}
 	rec := f.get("/", host)
-	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Khamdan") || !strings.Contains(rec.Body.String(), `og:url" content="http://khamdansarah.com"`) {
+	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Khamdan") || !strings.Contains(rec.Body.String(), `og:url" content="https://khamdansarah.com"`) {
 		t.Fatalf("custom domain /: %d", rec.Code)
 	}
 	if rec := f.get("/i/"+g.InvitationCode, host); rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Budi") {
@@ -280,9 +291,12 @@ func TestCustomDomain(t *testing.T) {
 	if rec := f.get("/i/"+gOther.InvitationCode, host); rec.Code != http.StatusNotFound {
 		t.Errorf("kode wedding lain di custom domain: %d", rec.Code)
 	}
-	// Host tak dikenal → "/" tetap landing.
-	if rec := f.get("/", map[string]string{"Host": "unknown.example"}); !strings.Contains(rec.Body.String(), "Undangan pernikahan digital") {
-		t.Error("host tak dikenal harus landing")
+	// Host tak dikenal → 404 generik, tidak pernah wedding lain lewat path (T15).
+	for _, p := range []string{"/", "/w/" + other.Slug, "/i/" + gOther.InvitationCode} {
+		rec := f.get(p, map[string]string{"Host": "unknown.example"})
+		if body := rec.Body.String(); rec.Code != http.StatusNotFound || strings.Contains(body, "Andi") || strings.Contains(body, "Khamdan") {
+			t.Errorf("host tak dikenal %s: %d", p, rec.Code)
+		}
 	}
 }
 
@@ -304,5 +318,52 @@ func TestMemoryAndArchivedPages(t *testing.T) {
 		if rec.Code != http.StatusOK || !strings.Contains(body, "Undangan ini telah diarsipkan") || strings.Contains(body, `id="events"`) {
 			t.Errorf("arsip %s: %d", p, rec.Code)
 		}
+	}
+}
+
+func TestCustomDomainRedirectAndHostHeader(t *testing.T) {
+	f := newFixture(t)
+	owner, w := f.newWedding(t, "a@example.com", "Khamdan", "Sarah")
+	f.publish(w.ID)
+	g, _ := f.guests.Create(ctx, w.ID, guest.Input{Name: "Budi"})
+	f.domains["www.khamdansarah.com"] = w.ID
+
+	// /w/:slug di domain Lovoria → 301 ke custom domain (path & query ikut).
+	rec := f.get("/w/"+w.Slug+"?ref=wa", nil)
+	if rec.Code != http.StatusMovedPermanently || rec.Header().Get("Location") != "https://www.khamdansarah.com?ref=wa" {
+		t.Fatalf("redirect: %d %s", rec.Code, rec.Header().Get("Location"))
+	}
+	rec = f.get("/w/"+w.Slug+"/events/x.ics", nil)
+	if rec.Header().Get("Location") != "https://www.khamdansarah.com/events/x.ics" {
+		t.Errorf("redirect sub-path: %s", rec.Header().Get("Location"))
+	}
+	// Link tamu /i/:code di domain Lovoria tetap dilayani (tidak dialihkan).
+	if rec := f.get("/i/"+g.InvitationCode, nil); rec.Code != http.StatusOK {
+		t.Errorf("/i/:code: %d", rec.Code)
+	}
+	// POST ke /w/:slug/guestbook tidak dialihkan (301 mengubah POST jadi GET).
+	if rec := f.post("/w/"+w.Slug+"/guestbook", gbForm(w.ID, "Ani", "Selamat"), true, ""); rec.Code != http.StatusOK {
+		t.Errorf("POST guestbook: %d", rec.Code)
+	}
+	// Draft: tidak dialihkan (pemilik tetap bisa preview di domain Lovoria).
+	f.setStatus(w.ID, "draft")
+	if rec := f.get("/w/"+w.Slug, map[string]string{"X-Test-User": owner.String()}); rec.Code != http.StatusOK {
+		t.Errorf("draft preview: %d", rec.Code)
+	}
+	f.publish(w.ID)
+
+	// Proxy (Cloudflare Worker) menulis ulang Host ke domain Railway dan mengirim
+	// host asli lewat X-Forwarded-Host.
+	proxied := map[string]string{"Host": "lovaria.up.railway.app", "X-Forwarded-Host": "www.khamdansarah.com"}
+	if rec := f.get("/", proxied); rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Khamdan") {
+		t.Errorf("host header: %d", rec.Code)
+	}
+	// Domain Railway sendiri tetap host Lovoria (landing, bukan 404).
+	if rec := f.get("/", map[string]string{"Host": "lovaria.up.railway.app"}); rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Undangan pernikahan digital") {
+		t.Errorf("extra host: %d", rec.Code)
+	}
+	// Header berisi host tak dikenal → 404.
+	if rec := f.get("/", map[string]string{"Host": "lovaria.up.railway.app", "X-Forwarded-Host": "evil.example"}); rec.Code != http.StatusNotFound {
+		t.Errorf("header host tak dikenal: %d", rec.Code)
 	}
 }
