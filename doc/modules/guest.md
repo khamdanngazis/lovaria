@@ -39,6 +39,7 @@ Semua di bawah `/dashboard/weddings/:weddingID` (RequireAuth + RequireWeddingOwn
 | `DELETE /guests?ids=…` | Hapus massal (ID milik wedding lain diabaikan oleh query). |
 | `GET /guests/paste` → `POST /guests/paste` → `POST /guests/paste/confirm` | Tempel daftar → tabel periksa → simpan (`AddMany`, semua-atau-tidak). |
 | `GET /guests/import` → `POST /guests/import` → `POST /guests/import/confirm` | Import file CSV → pratinjau → simpan baris valid (`Import`). |
+| `GET /guests/import/template` | Template CSV kosong (`sep=,` + judul kolom). |
 | `GET /guests/export` | CSV UTF-8 BOM, termasuk `invitation_link`. |
 
 Form filter (`#guest-filters`) sengaja berada **di luar** area swap supaya input pencarian tidak kehilangan fokus; aksi lain menyertakannya lewat `hx-include`.
@@ -62,7 +63,11 @@ Grup default dari form dipakai untuk baris yang tidak menyebut grup. Hasil parse
 
 ## Import file CSV (`ParseCSV`)
 
-Pemisah `,` atau `;` (dideteksi dari baris judul — Excel Indonesia memakai `;`), BOM diabaikan, nama kolom sama dengan mode tabel di atas; kolom `name` wajib ada. Pratinjau menampilkan nomor baris file untuk setiap error; konfirmasi membawa baris valid sebagai CSV di hidden field, divalidasi ulang, lalu disimpan lewat `COPY` dalam satu transaksi (500 baris ±30 ms). Baris invalid dilewati.
+**Halaman import** (mobile-first): kotak unggah besar di paling atas (klik atau seret file; memilih file langsung mengirim form → pratinjau, tanpa tombol tambahan; `<noscript>` menampilkan tombol biasa), lalu panduan "Belum punya file?" 3 langkah dengan tombol **Unduh template** dan contoh dalam bentuk tabel. Banner di atas mengarahkan ke "Tempel daftar" sebagai cara termudah.
+
+**Template** (`TemplateCSV`): baris `sep=,` + judul kolom `nama,hp,email,grup,jumlah`, sengaja **tanpa contoh tamu** (contoh yang lupa dihapus akan ikut ter-import). Baris `sep=` membuat Excel dengan pengaturan regional Indonesia (pemisah `;`) tetap memecah kolom dengan benar; parser membaca pemisahnya lalu membuang baris itu. Nomor baris di pesan error mengikuti tampilan Excel (baris `sep=` tidak ditampilkan Excel).
+
+Pemisah `,` atau `;` (dari baris `sep=` bila ada, selain itu dideteksi dari baris judul), BOM diabaikan, nama kolom sama dengan mode tabel di atas; kolom `name` wajib ada. Pratinjau menampilkan nomor baris file untuk setiap error; konfirmasi membawa baris valid sebagai CSV di hidden field, divalidasi ulang, lalu disimpan lewat `COPY` dalam satu transaksi (500 baris ±30 ms). Baris invalid dilewati.
 
 ## Export CSV
 

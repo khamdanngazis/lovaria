@@ -69,3 +69,26 @@ func TestCSVSafe(t *testing.T) {
 		}
 	}
 }
+
+func TestTemplateAndSepLine(t *testing.T) {
+	// Template kosong: tidak ada tamu.
+	if _, err := ParseCSV(strings.NewReader(TemplateCSV)); !errors.Is(err, ErrImportEmpty) {
+		t.Errorf("template kosong: %v", err)
+	}
+	// Template yang diisi di Excel (baris sep= tetap ada).
+	filled := TemplateCSV + "Budi,0812 3456 7890,,Keluarga,2\r\nSari,,,,\r\n"
+	p, err := ParseCSV(strings.NewReader(filled))
+	if err != nil || len(p.Valid()) != 2 || p.Rows[0].Input.MaxPax != "2" {
+		t.Fatalf("template terisi: %+v %v", p, err)
+	}
+	// Baris "sep=" tidak ditampilkan Excel, jadi nomor baris mengikuti tampilan Excel
+	// (judul = baris 1, tamu pertama = baris 2).
+	if p.Rows[0].Line != 2 {
+		t.Errorf("nomor baris = %d, want 2", p.Rows[0].Line)
+	}
+	// Excel regional Indonesia menyimpan ulang dengan ; dan sep=;
+	p, err = ParseCSV(strings.NewReader("sep=;\nnama;hp\nBudi;0812 3456 7890\n"))
+	if err != nil || len(p.Valid()) != 1 || p.Rows[0].Input.Phone == "" {
+		t.Errorf("sep=; : %+v %v", p, err)
+	}
+}
