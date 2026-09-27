@@ -101,7 +101,7 @@ func OpenHref(v view.View) string {
 	if v.ShowsMemory() && (len(v.MemoryPhotos) > 0 || len(v.Guestbook.Favorites) > 0) {
 		return "#memories"
 	}
-	return "#couple"
+	return "#undangan"
 }
 
 // OpenText: label tombol pembuka — "Lihat Kenangan" setelah hari H.
@@ -110,6 +110,26 @@ func OpenText(v view.View, normal, memory string) string {
 		return memory
 	}
 	return normal
+}
+
+// GreetingText: teks sapaan di pembuka — isian pasangan (T20) atau bawaan tema.
+func GreetingText(v view.View, def string) string {
+	if v.Greeting != "" {
+		return v.Greeting
+	}
+	return def
+}
+
+// ClosingText: kalimat penutup — isian pasangan (T20), atau bawaan tema
+// (memory: versi setelah hari H).
+func ClosingText(v view.View, def, memory string) string {
+	switch {
+	case v.Closing != "":
+		return v.Closing
+	case v.ShowsMemory() && memory != "":
+		return memory
+	}
+	return def
 }
 
 // EventsSubtitle: setelah hari H acara diringkas sebagai "telah dilangsungkan".
@@ -134,7 +154,7 @@ templ Hero(v view.View) {
 			<h1 class="mt-4 text-5xl leading-tight">{ v.Couple.Names() }</h1>
 			<p class="mt-4 text-sm tracking-wide">{ v.DateText }</p>
 			<div class="mt-10 text-sm">
-				<p class="opacity-80">Kepada Yth.</p>
+				<p class="opacity-80">{ GreetingText(v, "Kepada Yth.") }</p>
 				<p class="mt-1 text-lg font-semibold">{ GuestName(v) }</p>
 			</div>
 			<a href={ templ.SafeURL(OpenHref(v)) } class="mt-8 inline-block rounded-full bg-primary px-6 py-3 text-sm font-medium text-white shadow-lg">{ OpenText(v, "Buka Undangan", "Lihat Kenangan") }</a>
@@ -260,7 +280,7 @@ templ Gallery(v view.View) {
 
 templ Closing(v view.View) {
 	<section id="closing" class="px-6 py-20 text-center">
-		<p class="mx-auto max-w-xs text-sm opacity-80">Merupakan suatu kehormatan dan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir dan memberikan doa restu.</p>
+		<p class="mx-auto max-w-xs whitespace-pre-line text-sm opacity-80">{ ClosingText(v, "Merupakan suatu kehormatan dan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir dan memberikan doa restu.", "Terima kasih atas doa dan restu yang telah Bapak/Ibu/Saudara/i berikan untuk kami.") }</p>
 		<p class="mt-8 text-sm">Kami yang berbahagia,</p>
 		<p class="mt-2 text-4xl text-primary" style="font-family: var(--lv-font-heading)">{ v.Couple.Names() }</p>
 		<p class="mt-16 text-xs opacity-50">Dibuat dengan Lovoria</p>

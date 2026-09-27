@@ -83,6 +83,9 @@ func (h *Handler) Invitation(c echo.Context) error {
 	if !res.Wedding.ShowsMemoryLayout() { // setelah hari H kalender tidak relevan
 		for i := range v.Events {
 			v.Events[i].CalendarURL = res.Prefix + "/events/" + v.Events[i].ID + ".ics"
+			if v.Events[i].ID == v.Countdown.EventID {
+				v.Countdown.CalendarURL = v.Events[i].CalendarURL
+			}
 		}
 	}
 	v.OG = h.og(res, v)

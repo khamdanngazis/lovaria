@@ -93,6 +93,7 @@ func ValidateSettings(s view.Settings) (view.Settings, error) {
 	if s.CoverImage != "" && !safeImageURL(s.CoverImage) {
 		e["cover_image"] = "URL foto sampul harus diawali https://"
 	}
+	validatePersonalization(&s, e)
 	if len(e) > 0 {
 		return view.Settings{}, e
 	}

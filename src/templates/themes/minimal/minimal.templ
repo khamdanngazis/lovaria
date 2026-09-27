@@ -22,7 +22,7 @@ templ Hero(v view.View) {
 		}
 		<div class="flex items-end justify-between gap-4 border-t border-current/20 pt-6">
 			<div>
-				<p class="text-[11px] uppercase tracking-[0.3em] opacity-80">Untuk</p>
+				<p class="text-[11px] uppercase tracking-[0.3em] opacity-80">{ base.GreetingText(v, "Untuk") }</p>
 				<p class="mt-1 font-semibold">{ base.GuestName(v) }</p>
 			</div>
 			<a href={ templ.SafeURL(base.OpenHref(v)) } class="bg-ink px-5 py-3 text-xs uppercase tracking-[0.25em] text-surface" style="background: var(--lv-ink)">{ base.OpenText(v, "Buka", "Kenangan") }</a>
@@ -63,7 +63,7 @@ templ person(name, photo, desc string) {
 
 templ Closing(v view.View) {
 	<section id="closing" class="px-8 py-24">
-		<p class="text-sm opacity-80">Terima kasih atas doa dan kehadiran Anda.</p>
+		<p class="whitespace-pre-line text-sm opacity-80">{ base.ClosingText(v, "Terima kasih atas doa dan kehadiran Anda.", "") }</p>
 		<p class="mt-6 text-3xl font-semibold uppercase tracking-tight">{ v.Couple.Names() }</p>
 		<p class="mt-20 text-[11px] uppercase tracking-[0.3em] opacity-40">Lovoria</p>
 	</section>

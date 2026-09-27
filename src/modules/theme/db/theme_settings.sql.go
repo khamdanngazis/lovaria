@@ -11,8 +11,26 @@ import (
 	"github.com/google/uuid"
 )
 
+const clearMusicUpload = `-- name: ClearMusicUpload :exec
+UPDATE wedding_theme_settings
+SET music_upload_key = NULL, music_upload_bytes = 0,
+    music_url = CASE WHEN music_url = $2::text THEN NULL ELSE music_url END
+WHERE wedding_id = $1
+`
+
+type ClearMusicUploadParams struct {
+	WeddingID uuid.UUID
+	UploadUrl string
+}
+
+// Hapus unggahan; bila sedang dipakai, musik ikut dikosongkan.
+func (q *Queries) ClearMusicUpload(ctx context.Context, arg ClearMusicUploadParams) error {
+	_, err := q.db.Exec(ctx, clearMusicUpload, arg.WeddingID, arg.UploadUrl)
+	return err
+}
+
 const getSettings = `-- name: GetSettings :one
-SELECT wedding_id, primary_color, font_heading, font_body, background_value, cover_image_url, created_at, updated_at FROM wedding_theme_settings WHERE wedding_id = $1
+SELECT wedding_id, primary_color, font_heading, font_body, background_value, cover_image_url, created_at, updated_at, music_url, music_enabled, music_upload_key, music_upload_bytes, quote_text, quote_source, greeting_text, closing_text, hidden_sections, section_order FROM wedding_theme_settings WHERE wedding_id = $1
 `
 
 func (q *Queries) GetSettings(ctx context.Context, weddingID uuid.UUID) (WeddingThemeSetting, error) {
@@ -27,17 +45,61 @@ func (q *Queries) GetSettings(ctx context.Context, weddingID uuid.UUID) (Wedding
 		&i.CoverImageUrl,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.MusicUrl,
+		&i.MusicEnabled,
+		&i.MusicUploadKey,
+		&i.MusicUploadBytes,
+		&i.QuoteText,
+		&i.QuoteSource,
+		&i.GreetingText,
+		&i.ClosingText,
+		&i.HiddenSections,
+		&i.SectionOrder,
 	)
 	return i, err
 }
 
+const setMusicUpload = `-- name: SetMusicUpload :exec
+INSERT INTO wedding_theme_settings (wedding_id, music_upload_key, music_upload_bytes, music_url, music_enabled)
+VALUES ($1, $2, $3, $4, true)
+ON CONFLICT (wedding_id) DO UPDATE
+SET music_upload_key = EXCLUDED.music_upload_key, music_upload_bytes = EXCLUDED.music_upload_bytes,
+    music_url = EXCLUDED.music_url, music_enabled = true
+`
+
+type SetMusicUploadParams struct {
+	WeddingID        uuid.UUID
+	MusicUploadKey   *string
+	MusicUploadBytes int64
+	MusicUrl         *string
+}
+
+// Unggahan musik baru: dipilih & diaktifkan sekaligus (baris dibuat bila belum ada).
+func (q *Queries) SetMusicUpload(ctx context.Context, arg SetMusicUploadParams) error {
+	_, err := q.db.Exec(ctx, setMusicUpload,
+		arg.WeddingID,
+		arg.MusicUploadKey,
+		arg.MusicUploadBytes,
+		arg.MusicUrl,
+	)
+	return err
+}
+
 const upsertSettings = `-- name: UpsertSettings :exec
-INSERT INTO wedding_theme_settings (wedding_id, primary_color, font_heading, font_body, background_value, cover_image_url)
-VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO wedding_theme_settings (
+    wedding_id, primary_color, font_heading, font_body, background_value, cover_image_url,
+    music_url, music_enabled, quote_text, quote_source, greeting_text, closing_text,
+    hidden_sections, section_order
+)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
 ON CONFLICT (wedding_id) DO UPDATE
 SET primary_color = EXCLUDED.primary_color, font_heading = EXCLUDED.font_heading,
     font_body = EXCLUDED.font_body, background_value = EXCLUDED.background_value,
-    cover_image_url = EXCLUDED.cover_image_url
+    cover_image_url = EXCLUDED.cover_image_url,
+    music_url = EXCLUDED.music_url, music_enabled = EXCLUDED.music_enabled,
+    quote_text = EXCLUDED.quote_text, quote_source = EXCLUDED.quote_source,
+    greeting_text = EXCLUDED.greeting_text, closing_text = EXCLUDED.closing_text,
+    hidden_sections = EXCLUDED.hidden_sections, section_order = EXCLUDED.section_order
 `
 
 type UpsertSettingsParams struct {
@@ -47,6 +109,14 @@ type UpsertSettingsParams struct {
 	FontBody        *string
 	BackgroundValue *string
 	CoverImageUrl   *string
+	MusicUrl        *string
+	MusicEnabled    bool
+	QuoteText       *string
+	QuoteSource     *string
+	GreetingText    *string
+	ClosingText     *string
+	HiddenSections  []string
+	SectionOrder    []string
 }
 
 func (q *Queries) UpsertSettings(ctx context.Context, arg UpsertSettingsParams) error {
@@ -57,6 +127,14 @@ func (q *Queries) UpsertSettings(ctx context.Context, arg UpsertSettingsParams) 
 		arg.FontBody,
 		arg.BackgroundValue,
 		arg.CoverImageUrl,
+		arg.MusicUrl,
+		arg.MusicEnabled,
+		arg.QuoteText,
+		arg.QuoteSource,
+		arg.GreetingText,
+		arg.ClosingText,
+		arg.HiddenSections,
+		arg.SectionOrder,
 	)
 	return err
 }

@@ -52,6 +52,10 @@ Tampilan (tetap lewat `theme.Render` & template tema, tanpa cabang status di han
 
 **Cache**: favorit / sembunyikan / hapus ucapan dari dashboard memanggil `guestbook.Service.OnChange` → `ViewBuilder.Invalidate` (di-wire di `cmd/server`), jadi perubahan terlihat di request berikutnya. Visibilitas arsip mengubah `weddings.updated_at` (kunci cache).
 
+## Personalisasi (T20)
+
+`ViewBuilder.Build` mengisi `View.Countdown` dari acara paling awal (`countdown()`; jam sekarang lewat `ViewBuilder.Now` supaya bisa diuji). Handler menautkan `Countdown.CalendarURL` ke `.ics` acara tersebut, tetapi tidak setelah hari H. Musik, kutipan, sapaan, penutup, dan susunan bagian dirender oleh `theme.Render` — lihat [themes.md](../themes.md#personalisasi-t20). Tambahan `invitation.js` (pemutar musik + hitung mundur) ≈ 0,8 KB gzip. Lighthouse mobile undangan lokal: Performance 96–99 (warm), 90 pada cold run pertama.
+
 ## Landing page (T18)
 
 `GET /` di domain Lovoria (custom domain tetap menampilkan undangan). Desain: `doc/landing-page-guide.md` — ivory `#FAF7F5`, Playfair Display + Inter, Dusty Plum `#6B4E71`, aksen champagne `#C9A88A` (teks kecil memakai `lovoria-accent-ink` `#8C6B50` supaya kontras AA). Token Tailwind `lovoria-*`, `font-display`, `font-ui`, `shadow-soft` di `src/styles/app.css`; logo `layouts.BrandMark` / `BrandLogo` (monogram LV dari `doc/vector-logo.svg`, warna `currentColor`), aset di `static/img/brand/`.

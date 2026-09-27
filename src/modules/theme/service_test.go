@@ -6,6 +6,7 @@ import (
 	"io"
 	"log/slog"
 	"os"
+	"reflect"
 	"testing"
 
 	"github.com/khamdanngazis/lovaria/src/modules/auth"
@@ -29,7 +30,7 @@ func TestSaveAndLoadSettings(t *testing.T) {
 	u, _ := au.Register(ctx, auth.RegisterInput{Name: "U", Email: "u@example.com", Password: "password123"})
 	w, _ := ws.CreateWedding(ctx, u.ID, wedding.CreateInput{GroomName: "A", BrideName: "B", Title: "T", WeddingDate: "2026-12-12"})
 
-	if st, err := svc.Settings(ctx, w.ID); err != nil || st != (view.Settings{}) {
+	if st, err := svc.Settings(ctx, w.ID); err != nil || !reflect.DeepEqual(st, view.Settings{}) {
 		t.Fatalf("default: %+v %v", st, err)
 	}
 	if _, err := svc.Save(ctx, w.ID, "tidak-ada", view.Settings{}); !errors.Is(err, ErrUnknownTheme) {
@@ -47,7 +48,7 @@ func TestSaveAndLoadSettings(t *testing.T) {
 	if _, err := svc.Save(ctx, w.ID, "romantic", want); err != nil {
 		t.Fatal(err)
 	}
-	if got, _ := svc.Settings(ctx, w.ID); got != want {
+	if got, _ := svc.Settings(ctx, w.ID); !reflect.DeepEqual(got, want) {
 		t.Errorf("settings = %+v", got)
 	}
 	if got, _ := ws.GetWedding(ctx, w.ID); got.ThemeID != "romantic" {
@@ -57,7 +58,7 @@ func TestSaveAndLoadSettings(t *testing.T) {
 	if _, err := svc.Save(ctx, w.ID, "minimal", view.Settings{}); err != nil {
 		t.Fatal(err)
 	}
-	if got, _ := svc.Settings(ctx, w.ID); got != (view.Settings{}) {
+	if got, _ := svc.Settings(ctx, w.ID); !reflect.DeepEqual(got, view.Settings{}) {
 		t.Errorf("reset: %+v", got)
 	}
 }

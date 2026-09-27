@@ -135,3 +135,65 @@ document.querySelectorAll('link[data-font-css]').forEach(function (l) {
     copy(text).then(function (ok) { show(ok ? 'Tersalin: ' + text : 'Gagal menyalin, silakan salin manual'); });
   });
 })();
+
+// Musik latar (T20): tidak autoplay — mulai saat tamu menekan tombol pembuka
+// ("Buka Undangan"); tombol melayang untuk jeda/putar. Pilihan jeda disimpan di
+// sessionStorage supaya tidak berbunyi lagi saat halaman dimuat ulang.
+(function () {
+  var audio = document.getElementById('lv-music');
+  var btn = document.getElementById('lv-music-btn');
+  if (!audio || !btn) return;
+  var key = 'lv-music-muted';
+  function muted() { try { return sessionStorage.getItem(key) === '1'; } catch (e) { return false; } }
+  function remember(m) { try { sessionStorage.setItem(key, m ? '1' : '0'); } catch (e) { /* mode privat */ } }
+  function sync() {
+    var on = !audio.paused;
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    btn.setAttribute('aria-label', on ? 'Jeda musik' : 'Putar musik');
+    btn.classList.toggle('opacity-60', !on);
+  }
+  function play() {
+    var p = audio.play();
+    if (p && p.catch) p.catch(function () { sync(); });
+  }
+  audio.addEventListener('play', sync);
+  audio.addEventListener('pause', sync);
+  btn.hidden = false;
+  sync();
+  btn.addEventListener('click', function () {
+    if (audio.paused) { remember(false); play(); } else { remember(true); audio.pause(); }
+  });
+  var open = document.querySelector('#opening a[href^="#"]');
+  if (open) {
+    open.addEventListener('click', function () { if (!muted() && audio.paused) play(); });
+  }
+})();
+
+// Hitung mundur (T20): hari/jam/menit/detik menuju acara pertama; tanpa JS
+// halaman menampilkan sisa hari dari server.
+(function () {
+  var box = document.querySelector('[data-countdown]');
+  if (!box) return;
+  var target = Date.parse(box.getAttribute('data-countdown'));
+  if (isNaN(target)) return;
+  var units = box.querySelector('[data-cd-units]');
+  var el = {};
+  ['d', 'h', 'm', 's'].forEach(function (u) { el[u] = box.querySelector('[data-cd="' + u + '"]'); });
+  box.querySelector('[data-cd-days]').hidden = true;
+  units.hidden = false;
+  function pad(n) { return n < 10 ? '0' + n : String(n); }
+  function tick() {
+    var left = Math.floor((target - Date.now()) / 1000);
+    if (left <= 0) {
+      units.hidden = true;
+      box.querySelector('[data-cd-today]').hidden = false;
+      return;
+    }
+    el.d.textContent = Math.floor(left / 86400);
+    el.h.textContent = pad(Math.floor(left % 86400 / 3600));
+    el.m.textContent = pad(Math.floor(left % 3600 / 60));
+    el.s.textContent = pad(left % 60);
+    setTimeout(tick, 1000 - Date.now() % 1000);
+  }
+  tick();
+})();

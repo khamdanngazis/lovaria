@@ -22,7 +22,7 @@ templ Hero(v view.View) {
 		<h1 class="relative mt-2 text-6xl leading-tight text-primary">{ v.Couple.Names() }</h1>
 		<p class="relative mt-3 text-sm">{ v.DateText }</p>
 		<div class="relative mt-8 rounded-2xl bg-white/70 px-6 py-4 shadow-sm">
-			<p class="text-xs opacity-80">Kepada Yth. Bapak/Ibu/Saudara/i</p>
+			<p class="text-xs opacity-80">{ base.GreetingText(v, "Kepada Yth. Bapak/Ibu/Saudara/i") }</p>
 			<p class="mt-1 text-lg font-semibold">{ base.GuestName(v) }</p>
 		</div>
 		<a href={ templ.SafeURL(base.OpenHref(v)) } class="relative mt-6 inline-block rounded-full bg-primary px-8 py-3 text-sm font-medium text-white shadow-lg shadow-primary/30">♡ { base.OpenText(v, "Buka Undangan", "Lihat Kenangan") }</a>
@@ -65,7 +65,7 @@ templ person(name, photo, desc string) {
 templ Closing(v view.View) {
 	<section id="closing" class="relative overflow-hidden px-6 py-24 text-center">
 		@petals()
-		<p class="relative mx-auto max-w-xs text-sm opacity-80">Terima kasih telah menjadi bagian dari hari bahagia kami</p>
+		<p class="relative mx-auto max-w-xs whitespace-pre-line text-sm opacity-80">{ base.ClosingText(v, "Terima kasih telah menjadi bagian dari hari bahagia kami", "") }</p>
 		<p class="relative mt-6 text-6xl text-primary" style="font-family: var(--lv-font-heading)">{ v.Couple.Names() }</p>
 		<p class="relative mt-16 text-xs opacity-50">Dibuat dengan ♡ di Lovoria</p>
 	</section>

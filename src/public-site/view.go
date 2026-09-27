@@ -32,6 +32,9 @@ type ViewBuilder struct {
 	Guestbook *guestbook.Service
 	Gifts     *gift.Service
 
+	// Now: jam sekarang untuk hitung mundur (nil = time.Now; diganti di test).
+	Now func() time.Time
+
 	// CacheTTL: umur cache BuildPublic (0 = default 10 detik, < 0 = tanpa cache).
 	CacheTTL time.Duration
 	cache    viewCache // BuildPublic (halaman undangan publik)
@@ -127,6 +130,7 @@ func (b *ViewBuilder) Build(ctx context.Context, w wedding.Wedding, g *guest.Gue
 			MapsURL: e.MapsURL, Description: e.Description,
 		})
 	}
+	v.Countdown = countdown(evs, w, b.now())
 	for _, s := range sts {
 		v.Stories = append(v.Stories, view.Story{DateText: s.Date.String(), Title: s.Title, Description: s.Description, PhotoURL: s.PhotoURL})
 	}
@@ -137,6 +141,44 @@ func (b *ViewBuilder) Build(ctx context.Context, w wedding.Wedding, g *guest.Gue
 		v.Gallery = append(v.Gallery, view.Photo{URL: p.URL, ThumbURL: p.ThumbURL, Caption: p.Caption, Width: p.Width, Height: p.Height})
 	}
 	return v, nil
+}
+
+func (b *ViewBuilder) now() time.Time {
+	if b.Now != nil {
+		return b.Now()
+	}
+	return time.Now()
+}
+
+// countdown: hitung mundur menuju acara pertama (tanggal + jam mulai di zona
+// waktu wedding; tanpa acara → tanggal pernikahan 00.00). Sisa hari dihitung per
+// hari kalender di zona waktu wedding; setelah hari acara lewat tidak tampil.
+func countdown(evs []event.Event, w wedding.Wedding, now time.Time) view.Countdown {
+	loc, err := time.LoadLocation(w.Timezone)
+	if err != nil {
+		loc = time.UTC
+	}
+	at := func(d time.Time, hhmm string) time.Time {
+		h, m := 0, 0
+		if t, err := time.Parse("15:04", hhmm); err == nil {
+			h, m = t.Hour(), t.Minute()
+		}
+		return time.Date(d.Year(), d.Month(), d.Day(), h, m, 0, 0, loc)
+	}
+	c := view.Countdown{Target: at(w.WeddingDate, "")}
+	first := true
+	for _, e := range evs {
+		if t := at(e.Date, e.StartTime); first || t.Before(c.Target) {
+			c.Target, c.EventID, first = t, e.ID.String(), false
+		}
+	}
+	day := func(t time.Time) time.Time {
+		t = t.In(loc)
+		return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.UTC)
+	}
+	days := int(day(c.Target).Sub(day(now)).Hours() / 24)
+	c.Show, c.Today, c.DaysLeft = days >= 0, days == 0, max(days, 0)
+	return c
 }
 
 // Preview menyusun view untuk preview dashboard: bagian yang masih kosong diisi

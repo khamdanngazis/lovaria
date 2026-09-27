@@ -219,6 +219,35 @@
       },
     }));
 
+    // Contoh kutipan (T20): mengisi kutipan & sumber, tetap bisa diedit.
+    window.Alpine.data('quotePicker', (samples) => ({
+      pick(event) {
+        const q = samples[event.target.value];
+        if (!q) return;
+        this.$root.querySelector('#theme-quote-text').value = q.Text;
+        this.$root.querySelector('#theme-quote-source').value = q.Source || '';
+        this.$root.dispatchEvent(new Event('input', { bubbles: true }));
+      },
+    }));
+
+    // Susunan bagian (T20): naik/turun memindahkan baris (urutan input
+    // section_order ikut berubah); tanpa JS tombol mengirim form (name=move).
+    window.Alpine.data('sectionOrder', () => ({
+      move(event, dir) {
+        const li = event.currentTarget.closest('li');
+        const other = dir < 0 ? li.previousElementSibling : li.nextElementSibling;
+        if (!other) return;
+        if (dir < 0) other.before(li); else other.after(li);
+        const rows = [...li.parentElement.children];
+        rows.forEach((row, i) => {
+          row.querySelector('[value$=":up"]').disabled = i === 0;
+          row.querySelector('[value$=":down"]').disabled = i === rows.length - 1;
+        });
+        event.currentTarget.focus();
+        this.$root.dispatchEvent(new Event('change', { bubbles: true }));
+      },
+    }));
+
     // Warna opsional: checkbox "pakai warna sendiri" + color picker.
     window.Alpine.data('colorField', (initial) => ({
       custom: !!initial,
