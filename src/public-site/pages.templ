@@ -10,3 +10,18 @@ templ landingPage() {
 		</section>
 	}
 }
+
+// notFoundPage: undangan tidak ditemukan / belum dipublikasikan (404 ramah).
+templ notFoundPage() {
+	@layouts.Public(layouts.Meta{Title: "Undangan tidak ditemukan"}) {
+		<section class="py-20 text-center">
+			<p class="font-heading text-5xl text-primary">Oops</p>
+			<h1 class="mt-4 text-xl font-semibold">Undangan tidak ditemukan</h1>
+			<p class="mx-auto mt-3 max-w-xs text-ink/70">
+				Link undangan mungkin salah ketik, sudah tidak aktif, atau belum dipublikasikan oleh pasangan.
+				Coba periksa kembali link yang Anda terima.
+			</p>
+			<a href="/" class="mt-8 inline-block rounded-full bg-primary px-6 py-3 text-sm font-medium text-white">Ke beranda Lovoria</a>
+		</section>
+	}
+}

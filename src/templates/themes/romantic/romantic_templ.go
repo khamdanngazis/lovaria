@@ -88,12 +88,12 @@ func Hero(v view.View) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" alt=\"\" class=\"relative h-72 w-56 rounded-t-full object-cover shadow-xl ring-8 ring-white/70\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" alt=\"\" fetchpriority=\"low\" class=\"relative h-72 w-56 rounded-t-full object-cover shadow-xl ring-8 ring-white/70\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<p class=\"relative mt-8 text-xs uppercase tracking-[0.3em] opacity-70\">The Wedding of</p><h1 class=\"relative mt-2 text-6xl leading-tight text-primary\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<p class=\"relative mt-8 text-xs uppercase tracking-[0.3em] opacity-80\">The Wedding of</p><h1 class=\"relative mt-2 text-6xl leading-tight text-primary\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -119,7 +119,7 @@ func Hero(v view.View) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</p><div class=\"relative mt-8 rounded-2xl bg-white/70 px-6 py-4 shadow-sm\"><p class=\"text-xs opacity-70\">Kepada Yth. Bapak/Ibu/Saudara/i</p><p class=\"mt-1 text-lg font-semibold\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</p><div class=\"relative mt-8 rounded-2xl bg-white/70 px-6 py-4 shadow-sm\"><p class=\"text-xs opacity-80\">Kepada Yth. Bapak/Ibu/Saudara/i</p><p class=\"mt-1 text-lg font-semibold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

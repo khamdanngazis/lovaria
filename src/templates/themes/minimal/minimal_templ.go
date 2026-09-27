@@ -36,40 +36,40 @@ func Hero(v view.View) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section id=\"opening\" class=\"flex min-h-dvh flex-col justify-between px-8 py-12\"><p class=\"text-[11px] uppercase tracking-[0.4em] opacity-60\">The Wedding of</p><div><h1 class=\"text-5xl font-semibold uppercase leading-none tracking-tight\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section id=\"opening\" class=\"flex min-h-dvh flex-col justify-between px-8 py-12\"><p class=\"text-[11px] uppercase tracking-[0.4em] opacity-80\">The Wedding of</p><div><h1 class=\"text-5xl font-semibold uppercase leading-none tracking-tight\"><span class=\"block\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(v.Couple.GroomName)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/themes/minimal/minimal.templ`, Line: 13, Col: 96}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/themes/minimal/minimal.templ`, Line: 14, Col: 44}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</h1><p class=\"my-3 text-sm uppercase tracking-[0.4em] text-primary\">and</p><h1 class=\"text-5xl font-semibold uppercase leading-none tracking-tight\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</span> <span class=\"my-3 block text-sm tracking-[0.4em] text-primary\">and</span> <span class=\"block\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(v.Couple.BrideName)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/themes/minimal/minimal.templ`, Line: 15, Col: 96}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/themes/minimal/minimal.templ`, Line: 16, Col: 44}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</h1><p class=\"mt-6 text-sm\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</span></h1><p class=\"mt-6 text-sm\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(v.DateText)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/themes/minimal/minimal.templ`, Line: 16, Col: 39}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/themes/minimal/minimal.templ`, Line: 18, Col: 39}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -87,25 +87,25 @@ func Hero(v view.View) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.ResolveAttributeValue(base.CoverOf(v))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/themes/minimal/minimal.templ`, Line: 19, Col: 29}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/themes/minimal/minimal.templ`, Line: 21, Col: 29}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" alt=\"\" class=\"my-8 aspect-[4/3] w-full object-cover grayscale-[20%]\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" alt=\"\" fetchpriority=\"low\" class=\"my-8 aspect-[4/3] w-full object-cover grayscale-[20%]\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div class=\"flex items-end justify-between gap-4 border-t border-current/20 pt-6\"><div><p class=\"text-[11px] uppercase tracking-[0.3em] opacity-60\">Untuk</p><p class=\"mt-1 font-semibold\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div class=\"flex items-end justify-between gap-4 border-t border-current/20 pt-6\"><div><p class=\"text-[11px] uppercase tracking-[0.3em] opacity-80\">Untuk</p><p class=\"mt-1 font-semibold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(base.GuestName(v))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/themes/minimal/minimal.templ`, Line: 24, Col: 53}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/themes/minimal/minimal.templ`, Line: 26, Col: 53}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -140,7 +140,7 @@ func Couple(v view.View) templ.Component {
 			templ_7745c5c3_Var7 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<section id=\"couple\" class=\"px-8 py-20\"><p class=\"text-[11px] uppercase tracking-[0.4em] text-primary\">Mempelai</p>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<section id=\"couple\" class=\"px-8 py-20\"><h2 class=\"text-[11px] uppercase tracking-[0.4em] text-primary\">Mempelai</h2>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -152,14 +152,14 @@ func Couple(v view.View) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<div class=\"mt-16 border-l-2 border-primary pl-5\"><p class=\"text-[11px] uppercase tracking-[0.4em] opacity-60\">Tanggal</p><p class=\"mt-2 text-2xl font-semibold\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<div class=\"mt-16 border-l-2 border-primary pl-5\"><p class=\"text-[11px] uppercase tracking-[0.4em] opacity-80\">Tanggal</p><p class=\"mt-2 text-2xl font-semibold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(v.DateText)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/themes/minimal/minimal.templ`, Line: 38, Col: 54}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/themes/minimal/minimal.templ`, Line: 40, Col: 54}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
@@ -177,7 +177,7 @@ func Couple(v view.View) templ.Component {
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(v.Description)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/themes/minimal/minimal.templ`, Line: 40, Col: 74}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/themes/minimal/minimal.templ`, Line: 42, Col: 74}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -229,7 +229,7 @@ func person(name, photo, desc string) templ.Component {
 			var templ_7745c5c3_Var11 string
 			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.ResolveAttributeValue(photo)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/themes/minimal/minimal.templ`, Line: 49, Col: 19}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/themes/minimal/minimal.templ`, Line: 51, Col: 19}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
 			if templ_7745c5c3_Err != nil {
@@ -242,7 +242,7 @@ func person(name, photo, desc string) templ.Component {
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.ResolveAttributeValue(name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/themes/minimal/minimal.templ`, Line: 49, Col: 32}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/themes/minimal/minimal.templ`, Line: 51, Col: 32}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12)
 			if templ_7745c5c3_Err != nil {
@@ -265,7 +265,7 @@ func person(name, photo, desc string) templ.Component {
 		var templ_7745c5c3_Var13 string
 		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/themes/minimal/minimal.templ`, Line: 54, Col: 44}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/themes/minimal/minimal.templ`, Line: 56, Col: 44}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 		if templ_7745c5c3_Err != nil {
@@ -276,14 +276,14 @@ func person(name, photo, desc string) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if desc != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<p class=\"mt-1 whitespace-pre-line text-sm opacity-70\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<p class=\"mt-1 whitespace-pre-line text-sm opacity-80\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(desc)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/themes/minimal/minimal.templ`, Line: 56, Col: 65}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/themes/minimal/minimal.templ`, Line: 58, Col: 65}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
@@ -323,14 +323,14 @@ func Closing(v view.View) templ.Component {
 			templ_7745c5c3_Var15 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<section id=\"closing\" class=\"px-8 py-24\"><p class=\"text-sm opacity-70\">Terima kasih atas doa dan kehadiran Anda.</p><p class=\"mt-6 text-3xl font-semibold uppercase tracking-tight\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<section id=\"closing\" class=\"px-8 py-24\"><p class=\"text-sm opacity-80\">Terima kasih atas doa dan kehadiran Anda.</p><p class=\"mt-6 text-3xl font-semibold uppercase tracking-tight\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var16 string
 		templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(v.Couple.Names())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/themes/minimal/minimal.templ`, Line: 65, Col: 84}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/themes/minimal/minimal.templ`, Line: 67, Col: 84}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 		if templ_7745c5c3_Err != nil {

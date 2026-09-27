@@ -29,6 +29,9 @@ type View struct {
 	CSS      string
 	FontsURL string
 
+	// OG: meta Open Graph / Twitter untuk preview link (WhatsApp dll.), diisi public site.
+	OG OG
+
 	// Preview: tampilkan banner "Preview" (owner melihat draft / dashboard).
 	Preview bool
 	// Sample: data contoh dipakai untuk bagian yang masih kosong (preview dashboard).
@@ -62,6 +65,7 @@ type Guest struct {
 }
 
 type Event struct {
+	ID              string
 	Name, TypeLabel string
 	DateText        string // "Sabtu, 12 Desember 2026"
 	TimeText        string // "08.00–10.00 WIB"
@@ -69,6 +73,14 @@ type Event struct {
 	MapsURL         string
 	CalendarURL     string // .ics (T09)
 	Description     string
+}
+
+// OG adalah meta preview link. URL wajib absolut.
+type OG struct {
+	Title       string
+	Description string
+	Image       string
+	URL         string // URL kanonik halaman
 }
 
 type Story struct {

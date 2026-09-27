@@ -68,6 +68,14 @@ func New(cfg config.Config, log *slog.Logger) *echo.Echo {
 		ReferrerPolicy:     "strict-origin-when-cross-origin",
 	}))
 	e.Use(csrf(cfg))
+	// Kompres respons teks (HTML/CSS/JS/JSON). Foto sudah terkompresi → dilewati.
+	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
+		Level:     5,
+		MinLength: 1024,
+		Skipper: func(c echo.Context) bool {
+			return strings.HasPrefix(c.Request().URL.Path, "/media/")
+		},
+	}))
 
 	return e
 }

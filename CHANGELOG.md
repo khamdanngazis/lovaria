@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### T09 — Public site
+- `Resolver.ResolveWedding`: satu-satunya resolusi wedding (Host/custom domain via `DomainLookup` stub → `/i/:code` → `/w/:slug`), ditegakkan `TestSingleResolver`. Gerbang status: draft/archived hanya untuk pemilik (banner Preview), selain itu 404 ramah.
+- Halaman undangan `/w/:slug` & `/i/:code` (sapaan personal, `MarkOpened`), `/` di custom domain; meta OG/Twitter (nama pasangan, tanggal, foto sampul absolut, URL kanonik); `noindex`.
+- File kalender `.ics` per acara (zona waktu wedding → UTC, `time/tzdata` di-embed).
+- `invitation.js`: lightbox galeri (swipe/Esc) + fade-in saat scroll.
+- Cache `public, max-age=60` + ETag/304; HTML undangan tanpa token CSRF per pengunjung (`layouts.Meta.Cacheable`); gzip untuk respons teks.
+- Performa & aksesibilitas: font non-blocking, tanpa Alpine di halaman undangan, prioritas foto sampul rendah, heading berurutan, label link galeri, favicon, warna tema bawaan lolos kontras AA. Lighthouse mobile keempat tema: Performance 100, Accessibility 100; JS ±18 KB gzip.
+- Dashboard: tautan "Lihat undangan" (preview untuk draft) di ringkasan wedding.
+- Dokumentasi: `doc/modules/public-site.md`.
+
 ### T08 — Theme system & registry
 - Modul `theme`: registry (satu-satunya pemetaan tema → komponen), `Render(view)` sebagai satu-satunya pintu masuk render undangan, kontrak DTO `theme/view.View`.
 - 4 tema: `elegant` (default), `minimal`, `romantic`, `modern` — masing-masing meng-override Hero/Couple/Events/Closing; bagian lain dari tema `base`. Placeholder `shared.RSVPSection`, `GuestbookSection`, `GiftSection` (tampil hanya di preview, diisi T10/T11).

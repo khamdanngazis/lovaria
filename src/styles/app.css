@@ -43,3 +43,41 @@
 .lv-invitation h3 {
   font-family: var(--lv-font-heading);
 }
+
+/* Undangan: fade-in saat scroll (invitation.js) & lightbox galeri. */
+.lv-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.lv-reveal.lv-shown {
+  opacity: 1;
+  transform: none;
+}
+.lv-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 0.92);
+}
+.lv-lightbox[hidden] {
+  display: none;
+}
+.lv-lightbox img {
+  max-width: 100%;
+  max-height: 90dvh;
+  object-fit: contain;
+}
+.lv-lightbox button {
+  position: absolute;
+  color: #fff;
+  font-size: 2.5rem;
+  line-height: 1;
+  padding: 0.5rem 1rem;
+}
+.lv-lb-close { top: 0.5rem; right: 0.5rem; }
+.lv-lb-prev { left: 0; top: 50%; transform: translateY(-50%); }
+.lv-lb-next { right: 0; top: 50%; transform: translateY(-50%); }
