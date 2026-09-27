@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Perbaikan — beranda akun admin
+- Admin tanpa wedding kini diarahkan ke `/admin` setelah login (sebelumnya ke wizard "Buat website pernikahan"); header dashboard menampilkan link **Admin** untuk akun admin.
+- Test performa daftar 1.000 wedding memakai waktu terbaik dari 3 percobaan (tidak flaky saat suite paralel).
+
 ### T16 — Panel admin
 - Halaman `/admin`: ringkasan, Customers (cari, detail, nonaktifkan), Weddings (filter status/tanggal/cari, urut storage, detail, ubah status sebagai admin, buka website), Tema (jumlah pemakai, nonaktifkan untuk pasangan baru), Paket, Storage (top 20), Domain (kuota 100), Audit log.
 - Migration `00012` (`users.disabled_at`: login & sesi ditolak), `00013` (`packages`, `wedding_packages`, `admin_audit_logs`), `00014` (`disabled_themes`).

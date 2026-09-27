@@ -114,6 +114,9 @@ templ Dashboard(meta Meta) {
 					<div class="hidden items-center sm:flex sm:gap-4" :class="open && '!flex flex-col items-end absolute right-0 top-6 z-10 gap-2 rounded bg-white p-3 shadow'">
 						<a href="/dashboard">Beranda</a>
 						if u, ok := web.CurrentUser(ctx); ok {
+							if u.Role == "admin" {
+								<a href="/admin" class="font-medium text-primary">Admin</a>
+							}
 							<span class="text-slate-400">{ u.Name }</span>
 							<form method="post" action="/logout">
 								@CSRFField()

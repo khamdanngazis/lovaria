@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 
+	"github.com/khamdanngazis/lovaria/src/modules/auth"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding"
 	"github.com/khamdanngazis/lovaria/src/platform/web"
 )
@@ -22,8 +23,8 @@ type Deps struct {
 }
 
 func Register(g *echo.Group, deps Deps) {
-	// GET /dashboard: belum punya wedding → wizard; satu → langsung ke wedding itu;
-	// lebih dari satu → daftar.
+	// GET /dashboard: belum punya wedding → wizard (admin → panel admin); satu →
+	// langsung ke wedding itu; lebih dari satu → daftar.
 	g.GET("", func(c echo.Context) error {
 		u, ok := web.CurrentUser(c.Request().Context())
 		if !ok {
@@ -35,6 +36,9 @@ func Register(g *echo.Group, deps Deps) {
 		}
 		switch len(ws) {
 		case 0:
+			if u.Role == auth.RoleAdmin {
+				return web.Redirect(c, "/admin")
+			}
 			return web.Redirect(c, "/dashboard/weddings/new")
 		case 1:
 			return web.Redirect(c, "/dashboard/weddings/"+ws[0].ID.String())
