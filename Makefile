@@ -63,7 +63,9 @@ tools: $(TAILWIND) $(SQLC) ## Unduh Tailwind & sqlc ke ./bin
 # ---------- Kode generate ----------
 
 .PHONY: generate
-generate: sqlc ## Generate kode templ + sqlc
+generate: sqlc ## Format + generate kode templ, generate sqlc
+	@# fmt dulu: `templ fmt` menggeser nomor baris yang ikut tertulis di *_templ.go.
+	$(TEMPL) fmt .
 	$(TEMPL) generate
 
 .PHONY: sqlc

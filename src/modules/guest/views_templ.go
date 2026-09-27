@@ -2175,7 +2175,7 @@ func pastePage(w wedding.Wedding, text, group, errMsg string, groups []string) t
 			var templ_7745c5c3_Var100 templ.SafeURL
 			templ_7745c5c3_Var100, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(base(w)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 495, Col: 38}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 494, Col: 38}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var100))
 			if templ_7745c5c3_Err != nil {
@@ -2204,7 +2204,7 @@ func pastePage(w wedding.Wedding, text, group, errMsg string, groups []string) t
 				var templ_7745c5c3_Var102 templ.SafeURL
 				templ_7745c5c3_Var102, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(base(w) + "/paste"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 505, Col: 66}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 506, Col: 66}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var102))
 				if templ_7745c5c3_Err != nil {
@@ -2229,7 +2229,7 @@ func pastePage(w wedding.Wedding, text, group, errMsg string, groups []string) t
 				var templ_7745c5c3_Var103 string
 				templ_7745c5c3_Var103, templ_7745c5c3_Err = templ.JoinStringErrs(text)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 509, Col: 210}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 510, Col: 210}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var103))
 				if templ_7745c5c3_Err != nil {
@@ -2242,7 +2242,7 @@ func pastePage(w wedding.Wedding, text, group, errMsg string, groups []string) t
 				var templ_7745c5c3_Var104 string
 				templ_7745c5c3_Var104, templ_7745c5c3_Err = templ.ResolveAttributeValue(group)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 513, Col: 56}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 514, Col: 56}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var104)
 				if templ_7745c5c3_Err != nil {
@@ -2260,7 +2260,7 @@ func pastePage(w wedding.Wedding, text, group, errMsg string, groups []string) t
 					var templ_7745c5c3_Var105 string
 					templ_7745c5c3_Var105, templ_7745c5c3_Err = templ.ResolveAttributeValue(g)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 516, Col: 25}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 517, Col: 25}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var105)
 					if templ_7745c5c3_Err != nil {
@@ -2344,7 +2344,7 @@ func reviewPage(w wedding.Wedding, rows []Input, errs map[int]ValidationError, g
 			var templ_7745c5c3_Var108 templ.SafeURL
 			templ_7745c5c3_Var108, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(base(w) + "/paste"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 531, Col: 49}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 532, Col: 49}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var108))
 			if templ_7745c5c3_Err != nil {
@@ -2357,7 +2357,7 @@ func reviewPage(w wedding.Wedding, rows []Input, errs map[int]ValidationError, g
 			var templ_7745c5c3_Var109 templ.SafeURL
 			templ_7745c5c3_Var109, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(base(w) + "/paste/confirm"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 532, Col: 73}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 533, Col: 73}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var109))
 			if templ_7745c5c3_Err != nil {
@@ -2370,7 +2370,7 @@ func reviewPage(w wedding.Wedding, rows []Input, errs map[int]ValidationError, g
 			var templ_7745c5c3_Var110 string
 			templ_7745c5c3_Var110, templ_7745c5c3_Err = templ.ResolveAttributeValue(fmt.Sprintf("{ count: %d }", len(rows)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 532, Col: 124}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 533, Col: 124}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var110)
 			if templ_7745c5c3_Err != nil {
@@ -2391,7 +2391,7 @@ func reviewPage(w wedding.Wedding, rows []Input, errs map[int]ValidationError, g
 			var templ_7745c5c3_Var111 string
 			templ_7745c5c3_Var111, templ_7745c5c3_Err = templ.ResolveAttributeValue(group)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 534, Col: 51}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 535, Col: 51}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var111)
 			if templ_7745c5c3_Err != nil {
@@ -2404,7 +2404,7 @@ func reviewPage(w wedding.Wedding, rows []Input, errs map[int]ValidationError, g
 			var templ_7745c5c3_Var112 string
 			templ_7745c5c3_Var112, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(len(rows)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 536, Col: 101}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 537, Col: 101}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var112))
 			if templ_7745c5c3_Err != nil {
@@ -2512,7 +2512,7 @@ func reviewRow(in Input, errs ValidationError) templ.Component {
 		var templ_7745c5c3_Var117 string
 		templ_7745c5c3_Var117, templ_7745c5c3_Err = templ.ResolveAttributeValue(in.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 563, Col: 37}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 564, Col: 37}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var117)
 		if templ_7745c5c3_Err != nil {
@@ -2547,7 +2547,7 @@ func reviewRow(in Input, errs ValidationError) templ.Component {
 		var templ_7745c5c3_Var120 string
 		templ_7745c5c3_Var120, templ_7745c5c3_Err = templ.ResolveAttributeValue(in.Phone)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 567, Col: 50}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 568, Col: 50}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var120)
 		if templ_7745c5c3_Err != nil {
@@ -2573,7 +2573,7 @@ func reviewRow(in Input, errs ValidationError) templ.Component {
 		var templ_7745c5c3_Var122 string
 		templ_7745c5c3_Var122, templ_7745c5c3_Err = templ.ResolveAttributeValue(in.GroupName)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 568, Col: 48}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 569, Col: 48}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var122)
 		if templ_7745c5c3_Err != nil {
@@ -2595,7 +2595,7 @@ func reviewRow(in Input, errs ValidationError) templ.Component {
 		var templ_7745c5c3_Var124 string
 		templ_7745c5c3_Var124, templ_7745c5c3_Err = templ.ResolveAttributeValue(orOne(in.MaxPax))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 569, Col: 80}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 570, Col: 80}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var124)
 		if templ_7745c5c3_Err != nil {
@@ -2621,7 +2621,7 @@ func reviewRow(in Input, errs ValidationError) templ.Component {
 		var templ_7745c5c3_Var126 string
 		templ_7745c5c3_Var126, templ_7745c5c3_Err = templ.ResolveAttributeValue(in.Email)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 571, Col: 52}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 572, Col: 52}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var126)
 		if templ_7745c5c3_Err != nil {
@@ -2639,7 +2639,7 @@ func reviewRow(in Input, errs ValidationError) templ.Component {
 			var templ_7745c5c3_Var127 string
 			templ_7745c5c3_Var127, templ_7745c5c3_Err = templ.JoinStringErrs(errorList(errs))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 573, Col: 57}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 574, Col: 57}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var127))
 			if templ_7745c5c3_Err != nil {
