@@ -1,6 +1,9 @@
 package theme
 
-import "github.com/labstack/echo/v4"
+import (
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+)
 
 type Deps struct {
 	Service   *Service
@@ -14,4 +17,6 @@ func Register(w *echo.Group, deps Deps) {
 	w.GET("/theme", h.Page)
 	w.PATCH("/theme", h.Save)
 	w.GET("/theme/preview", h.Preview)
+	w.POST("/theme/music", h.UploadMusic, middleware.BodyLimit("9M")) // MP3 ≤ 8 MB + overhead multipart
+	w.DELETE("/theme/music", h.DeleteMusic)
 }

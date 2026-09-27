@@ -380,6 +380,8 @@ func (a *app) routes() *echo.Echo {
 	a.weddings.SetDomains(a.domains, cfg.BaseURL) // URL kanonik (custom domain aktif)
 	views := &publicsite.ViewBuilder{Weddings: a.weddings, Events: events, Stories: stories, Gallery: photos, Themes: themes, Guestbook: guestbooks, Gifts: gifts}
 	guestbooks.OnChange(views.Invalidate) // favorit/sembunyikan ucapan langsung terlihat di halaman publik (T19)
+	themes.SetMusicStore(photos)          // musik latar: pustaka R2 music/ + unggahan (kuota sama dengan foto, T20)
+	themes.OnChange(views.Invalidate)     // pengaturan tampilan langsung terlihat di halaman publik
 	home := &dashboard.Home{
 		Weddings: a.weddings, Events: events, Stories: stories, Gallery: photos, Themes: themes,
 		Guests: guests, Guestbook: guestbooks,

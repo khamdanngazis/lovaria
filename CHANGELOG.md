@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### T20 — Personalisasi undangan
+- **Hitung mundur** menuju acara pertama (hari/jam/menit/detik, zona waktu wedding): "Hari ini!" pada hari H, hilang setelahnya; tanpa JS menampilkan sisa hari. Ditautkan ke "Simpan ke Kalender".
+- **Kutipan / ayat** pembuka dengan contoh siap pakai (Islam, Kristen, umum) yang bisa diedit; **teks sapaan** di pembuka dan **kalimat penutup** bisa diubah di keempat tema.
+- **Susunan bagian**: sembunyikan hitung mundur/kutipan/cerita/galeri/ucapan/hadiah dan ubah urutan dengan tombol naik/turun. Preview dashboard langsung mengikuti.
+- **Musik latar**: pilih dari pustaka bebas royalti (manifest `music_library.json`, berkas di R2 `music/`) atau unggah MP3 sendiri (≤ 8 MB, kuota storage paket). Tidak autoplay: diputar setelah tamu menekan "Buka Undangan", dengan tombol jeda melayang.
+- Migration `00022` (kolom personalisasi di `wedding_theme_settings`). Syarat & Ketentuan: tanggung jawab hak cipta musik unggahan.
+
 ### T19 — Remember: halaman kenangan, arsip, & keepsake
 - **Mode Kenangan**: undangan berganti tata letak — tombol pembuka "Lihat Kenangan", bagian **Kenangan Hari Bahagia** (foto kategori Pernikahan + ucapan favorit) tepat setelah pembuka, acara "Telah dilangsungkan pada …" tanpa tombol kalender. Berlaku di keempat tema.
 - **Arsip read-only**: wedding yang diarsipkan tidak lagi hanya satu kalimat — cerita, galeri, dan ucapan tetap bisa dibaca; semua form ditutup (POST → 403), tanpa amplop digital & data RSVP pribadi. Pasangan memilih **visibilitas arsip** Publik (default) / Privat di kartu status (privat: publik melihat halaman ringkas, pemilik yang login melihat arsip lengkap). Migration `00020` (`weddings.archive_visibility`).

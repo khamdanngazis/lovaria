@@ -238,12 +238,22 @@ type WeddingStatusHistory struct {
 }
 
 type WeddingThemeSetting struct {
-	WeddingID       uuid.UUID
-	PrimaryColor    *string
-	FontHeading     *string
-	FontBody        *string
-	BackgroundValue *string
-	CoverImageUrl   *string
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
+	WeddingID        uuid.UUID
+	PrimaryColor     *string
+	FontHeading      *string
+	FontBody         *string
+	BackgroundValue  *string
+	CoverImageUrl    *string
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+	MusicUrl         *string
+	MusicEnabled     bool
+	MusicUploadKey   *string
+	MusicUploadBytes int64
+	QuoteText        *string
+	QuoteSource      *string
+	GreetingText     *string
+	ClosingText      *string
+	HiddenSections   []string
+	SectionOrder     []string
 }

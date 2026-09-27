@@ -29,7 +29,7 @@ templ Hero(v view.View) {
 			</h1>
 			@ornament()
 			<p class="text-sm tracking-widest">{ v.DateText }</p>
-			<p class="mt-10 text-xs uppercase tracking-[0.3em] opacity-80">Kepada Yth.</p>
+			<p class="mt-10 text-xs uppercase tracking-[0.3em] opacity-80">{ base.GreetingText(v, "Kepada Yth.") }</p>
 			<p class="mt-2 text-xl" style="font-family: var(--lv-font-heading)">{ base.GuestName(v) }</p>
 			<a href={ templ.SafeURL(base.OpenHref(v)) } class="mt-8 inline-block border border-current px-8 py-3 text-xs uppercase tracking-[0.3em]">{ base.OpenText(v, "Buka Undangan", "Lihat Kenangan") }</a>
 		</div>

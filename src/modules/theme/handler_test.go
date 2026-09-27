@@ -35,6 +35,7 @@ type app struct {
 	weddings *wedding.Service
 	themes   *theme.Service
 	auth     *auth.Service
+	gallery  *gallery.Service
 }
 
 func newApp(t *testing.T) app {
@@ -51,9 +52,11 @@ func newApp(t *testing.T) app {
 	store, _ := storage.NewLocal(t.TempDir(), "/media")
 	ws := wedding.NewService(wedding.NewRepository(pool))
 	themes := theme.NewService(pool, ws)
+	photos := gallery.NewService(gallery.NewRepository(pool), store, ws, 500<<20, log)
+	themes.SetMusicStore(photos)
 	views := &publicsite.ViewBuilder{
 		Weddings: ws, Events: event.NewService(event.NewRepository(pool)), Stories: story.NewService(story.NewRepository(pool)),
-		Gallery: gallery.NewService(gallery.NewRepository(pool), store, ws, 500<<20, log), Themes: themes,
+		Gallery: photos, Themes: themes, CacheTTL: -1,
 		Guestbook: guestbook.NewService(pool, nil), Gifts: gift.NewService(pool),
 	}
 	e := server.New(cfg, log)
@@ -68,7 +71,7 @@ func newApp(t *testing.T) app {
 	})
 	owned := wedding.Register(e.Group("/dashboard/weddings"), wedding.Deps{Service: ws})
 	theme.Register(owned, theme.Deps{Service: themes, Previewer: views})
-	return app{e: e, weddings: ws, themes: themes, auth: auth.NewService(auth.NewRepository(pool), &mail.LogMailer{Log: log}, "http://x", log)}
+	return app{e: e, weddings: ws, themes: themes, gallery: photos, auth: auth.NewService(auth.NewRepository(pool), &mail.LogMailer{Log: log}, "http://x", log)}
 }
 
 func (a app) newWedding(t *testing.T, email string) (uuid.UUID, wedding.Wedding) {
@@ -175,6 +178,8 @@ func TestThemeRoutesOwnerOnly(t *testing.T) {
 		{http.MethodGet, base, nil},
 		{http.MethodGet, base + "/preview", nil},
 		{http.MethodPatch, base, url.Values{"theme_id": {"modern"}}},
+		{http.MethodPost, base + "/music", url.Values{}},
+		{http.MethodDelete, base + "/music", nil},
 	} {
 		if rec := a.do(bob, c.method, c.path, c.form); rec.Code != http.StatusNotFound {
 			t.Errorf("bob %s %s: %d, want 404", c.method, c.path, rec.Code)

@@ -22,15 +22,27 @@ func Render(v view.View) templ.Component {
 	v.CSS = TokensCSS(def.ID, v.Tokens)
 	v.FontsURL = GoogleFontsURL(v.Tokens.FontHeading, v.Tokens.FontBody)
 
+	v.Quote = view.Quote{Text: v.Settings.QuoteText, Source: v.Settings.QuoteSource}
+	v.Greeting, v.Closing = v.Settings.Greeting, v.Settings.Closing
+	v.Music = view.Music{URL: v.Settings.MusicURL, Enabled: v.Settings.MusicEnabled}
+
 	p := def.Parts
-	// Urutan bagian sesuai Produk §7: Opening → Couple (+Date) → Love Story →
-	// Events → Gallery → RSVP → Guestbook → Gift → Closing. Setelah hari H,
-	// kenangan (foto hari-H + ucapan favorit) tampil tepat setelah pembuka (T19).
-	sections := []templ.Component{
-		p.Hero(v), shared.MemorySection(v), p.Couple(v), p.LoveStory(v), p.Events(v), p.Gallery(v),
-		shared.RSVPSection(v), shared.GuestbookSection(v), shared.GiftSection(v),
-		p.Closing(v),
+	// Urutan bawaan sesuai Produk §7 (Opening → Couple → … → Gift → Closing);
+	// bagian tengah bisa diurutkan & disembunyikan pasangan (T20, registry
+	// Sections). Setelah hari H, kenangan (foto hari-H + ucapan favorit) tampil
+	// tepat setelah pembuka (T19).
+	parts := map[string]templ.Component{
+		"couple": p.Couple(v), "countdown": shared.CountdownSection(v), "quote": shared.QuoteSection(v),
+		"events": p.Events(v), "story": p.LoveStory(v), "gallery": p.Gallery(v),
+		"rsvp": shared.RSVPSection(v), "guestbook": shared.GuestbookSection(v), "gift": shared.GiftSection(v),
 	}
+	sections := []templ.Component{p.Hero(v), shared.MemorySection(v), shared.ContentAnchor()}
+	for _, d := range OrderedSections(v.Settings) {
+		if !SectionHidden(v.Settings, d.ID) {
+			sections = append(sections, parts[d.ID])
+		}
+	}
+	sections = append(sections, p.Closing(v), shared.MusicButton(v))
 	body := templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
 		for _, s := range sections {
 			if err := s.Render(ctx, w); err != nil {

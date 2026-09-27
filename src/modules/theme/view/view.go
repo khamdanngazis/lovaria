@@ -48,10 +48,42 @@ type View struct {
 	Guestbook GuestbookView
 	Gifts     []Gift
 
+	// Personalisasi (T20). Music, Quote, Greeting & Closing diisi theme.Render
+	// dari Settings; Countdown diisi penyusun view (butuh acara & jam sekarang).
+	Music     Music
+	Countdown Countdown
+	Quote     Quote
+	Greeting  string
+	Closing   string
+
 	// Preview: tampilkan banner "Preview" (owner melihat draft / dashboard).
 	Preview bool
 	// Sample: data contoh dipakai untuk bagian yang masih kosong (preview dashboard).
 	Sample bool
+}
+
+// Music: musik latar — diputar setelah tamu menekan "Buka Undangan", tidak autoplay.
+type Music struct {
+	URL     string
+	Enabled bool
+}
+
+// On: tombol musik & <audio> dirender.
+func (m Music) On() bool { return m.Enabled && m.URL != "" }
+
+// Countdown: hitung mundur menuju acara pertama (zona waktu wedding).
+type Countdown struct {
+	Show        bool      // false setelah hari acara lewat / tanpa tanggal
+	Target      time.Time // mulai acara pertama (UTC)
+	DaysLeft    int       // sisa hari kalender (teks tanpa JS)
+	Today       bool      // hari H → "Hari ini!"
+	EventID     string    // acara pertama (untuk tautan kalender)
+	CalendarURL string    // .ics acara pertama, diisi public site
+}
+
+// Quote: kutipan / ayat pembuka pilihan pasangan.
+type Quote struct {
+	Text, Source string
 }
 
 type Couple struct {
@@ -165,6 +197,17 @@ type Settings struct {
 	FontBody     string
 	Background   string // #rrggbb atau URL gambar https
 	CoverImage   string // URL gambar https
+
+	// Personalisasi (T20).
+	MusicURL     string // lagu bawaan (R2 music/) atau unggahan wedding
+	MusicEnabled bool
+	QuoteText    string // ≤ 500 karakter; kosong → bagian kutipan tidak tampil
+	QuoteSource  string // mis. "QS. Ar-Rum: 21"
+	Greeting     string // teks sapaan di pembuka; kosong → bawaan tema
+	Closing      string // kalimat penutup; kosong → bawaan tema
+	// HiddenSections & SectionOrder: ID bagian dari registry theme (SectionIDs).
+	HiddenSections []string
+	SectionOrder   []string
 }
 
 // Tokens adalah nilai tampilan final yang dipakai CSS & komponen.
