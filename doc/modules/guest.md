@@ -26,7 +26,7 @@ Satu-satunya query lintas wedding: `GetGuestByCode` (`-- tenant:ignore`).
 | `Responses(ctx, weddingID, status, page)` | Halaman RSVP dashboard: tamu yang sudah menjawab, terbaru dulu, filter `attending`/`declined`. |
 | `MarkOpened(ctx, weddingID, guestID)` | T09. |
 | `Stats(ctx, weddingID)` | Dashboard (T13): jumlah tamu & pax per status, jumlah yang sudah membuka undangan. |
-| `InvitationURL(code)` | `BASE_URL + /i/{code}`. |
+| `Origin(ctx, weddingID)` + `Link(origin, code)` | Link undangan tamu `…/i/{code}` — origin = custom domain aktif (via `SetOrigins(wedding.CanonicalOrigin)`), selain itu `BASE_URL`. Dipakai editor, export CSV, dan tombol bagikan. |
 
 ## Route dashboard
 
@@ -70,6 +70,19 @@ Grup default dari form dipakai untuk baris yang tidak menyebut grup. Hasil parse
 **Template** (`TemplateCSV`): baris `sep=,` + judul kolom `nama,hp,email,grup,jumlah`, sengaja **tanpa contoh tamu** (contoh yang lupa dihapus akan ikut ter-import). Baris `sep=` membuat Excel dengan pengaturan regional Indonesia (pemisah `;`) tetap memecah kolom dengan benar; parser membaca pemisahnya lalu membuang baris itu. Nomor baris di pesan error mengikuti tampilan Excel (baris `sep=` tidak ditampilkan Excel).
 
 Pemisah `,` atau `;` (dari baris `sep=` bila ada, selain itu dideteksi dari baris judul), BOM diabaikan, nama kolom sama dengan mode tabel di atas; kolom `name` wajib ada. Pratinjau menampilkan nomor baris file untuk setiap error; konfirmasi membawa baris valid sebagai CSV di hidden field, divalidasi ulang, lalu disimpan lewat `COPY` dalam satu transaksi (500 baris ±30 ms). Baris invalid dilewati.
+
+## Bagikan undangan (T14)
+
+**Template pesan** (`share_templates`, migration `00016`, satu per wedding; tanpa baris = bawaan Bahasa Indonesia): placeholder `{guest_name}`, `{couple}` (nama depan "Khamdan & Sarah"), `{date}` (sesuai bahasa), `{link}` — wajib ada supaya pesan selalu berisi link. Bahasa `id`/`en`, maks. 2000 karakter; teks di antara `*bintang*` tampil tebal di WhatsApp.
+
+**Halaman Bagikan** `GET …/share` (menu Tamu → Bagikan):
+- Link undangan umum = `wedding.CanonicalBaseURL` (custom domain bila aktif) + Salin, **Bagikan…** (Web Share API, hanya muncul bila browser mendukung), Kirim lewat WhatsApp (`wa.me/?text=`, pilih kontak), Salin pesan.
+- Editor template dengan **preview langsung** (Alpine `sharePreview`, nilai contoh "Budi Santoso"; preview dirender sebagai teks, bukan HTML). `POST …/share/template`, `POST …/share/template/reset`.
+- Ganti alamat undangan (form ke `PATCH …/slug`, modul wedding) + daftar alamat lama yang masih dialihkan.
+
+**Per tamu di daftar tamu**: **Kirim WA** (`https://wa.me/{62…}?text=…`; tanpa nomor → `wa.me/?text=` untuk memilih kontak), **Salin link**, **Salin pesan**. Klik salah satunya memanggil `POST …/guests/:id/shared` (204) yang mengisi `shared_at` (migration `00015`) dan menampilkan badge "Sudah dibagikan". Filter daftar: Semua / Belum dibagikan / Sudah dibagikan (`shared=no|yes`).
+
+**Encoding WhatsApp** (`WhatsAppURL`): `url.QueryEscape` dengan spasi `%20` (bukan `+`); baris baru `%0A`, emoji UTF-8, `& # ?` ter-encode — diuji dengan decode ulang. Nomor tidak dinormalisasi ulang (sudah `62…` dari T07).
 
 ## Export CSV
 

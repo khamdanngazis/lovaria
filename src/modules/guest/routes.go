@@ -2,19 +2,26 @@ package guest
 
 import (
 	"github.com/labstack/echo/v4"
+
+	"github.com/khamdanngazis/lovaria/src/modules/wedding"
 	"github.com/labstack/echo/v4/middleware"
 )
 
 type Deps struct {
-	Service *Service
+	Service  *Service
+	Weddings *wedding.Service
 }
 
 // Register memasang route tamu di group /dashboard/weddings/:weddingID
 // (sudah RequireAuth + RequireWeddingOwner).
 func Register(w *echo.Group, deps Deps) {
-	h := NewHandler(deps.Service)
+	h := NewHandler(deps.Service, deps.Weddings)
 	w.GET("/guests", h.List)
 	w.GET("/rsvp", h.RSVP)
+	w.GET("/share", h.SharePage)
+	w.POST("/share/template", h.SaveShareTemplate)
+	w.POST("/share/template/reset", h.ResetShareTemplate)
+	w.POST("/guests/:guestID/shared", h.MarkShared)
 	w.POST("/guests", h.Create)
 	w.DELETE("/guests", h.BulkDelete)
 	w.GET("/guests/new", h.New)

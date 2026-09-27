@@ -17,17 +17,19 @@ SELECT count(*) FROM guests
 WHERE wedding_id = $1
   AND ($2::text IS NULL OR rsvp_status = $2)
   AND ($3::text IS NULL OR group_name = $3)
-  AND ($4::text IS NULL
-       OR name ILIKE '%' || $4 || '%'
-       OR phone LIKE '%' || $4 || '%'
-       OR email::text ILIKE '%' || $4 || '%'
-       OR invitation_code = upper($4))
+  AND ($4::boolean IS NULL OR (shared_at IS NOT NULL) = $4)
+  AND ($5::text IS NULL
+       OR name ILIKE '%' || $5 || '%'
+       OR phone LIKE '%' || $5 || '%'
+       OR email::text ILIKE '%' || $5 || '%'
+       OR invitation_code = upper($5))
 `
 
 type CountGuestsParams struct {
 	WeddingID uuid.UUID
 	Status    *string
 	GroupName *string
+	Shared    *bool
 	Q         *string
 }
 
@@ -36,6 +38,7 @@ func (q *Queries) CountGuests(ctx context.Context, arg CountGuestsParams) (int64
 		arg.WeddingID,
 		arg.Status,
 		arg.GroupName,
+		arg.Shared,
 		arg.Q,
 	)
 	var count int64
@@ -65,7 +68,7 @@ func (q *Queries) CountRSVPResponses(ctx context.Context, arg CountRSVPResponses
 const createGuest = `-- name: CreateGuest :one
 INSERT INTO guests (id, wedding_id, name, phone, email, group_name, max_pax, invitation_code, notes)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-RETURNING id, wedding_id, name, phone, email, group_name, max_pax, invitation_code, rsvp_status, rsvp_pax, rsvp_message, rsvp_at, attendance_status, notes, last_opened_at, created_at, updated_at
+RETURNING id, wedding_id, name, phone, email, group_name, max_pax, invitation_code, rsvp_status, rsvp_pax, rsvp_message, rsvp_at, attendance_status, notes, last_opened_at, created_at, updated_at, shared_at
 `
 
 type CreateGuestParams struct {
@@ -111,6 +114,7 @@ func (q *Queries) CreateGuest(ctx context.Context, arg CreateGuestParams) (Guest
 		&i.LastOpenedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.SharedAt,
 	)
 	return i, err
 }
@@ -149,8 +153,17 @@ func (q *Queries) DeleteGuests(ctx context.Context, arg DeleteGuestsParams) (int
 	return result.RowsAffected(), nil
 }
 
+const deleteShareTemplate = `-- name: DeleteShareTemplate :exec
+DELETE FROM share_templates WHERE wedding_id = $1
+`
+
+func (q *Queries) DeleteShareTemplate(ctx context.Context, weddingID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteShareTemplate, weddingID)
+	return err
+}
+
 const getGuest = `-- name: GetGuest :one
-SELECT id, wedding_id, name, phone, email, group_name, max_pax, invitation_code, rsvp_status, rsvp_pax, rsvp_message, rsvp_at, attendance_status, notes, last_opened_at, created_at, updated_at FROM guests WHERE id = $1 AND wedding_id = $2
+SELECT id, wedding_id, name, phone, email, group_name, max_pax, invitation_code, rsvp_status, rsvp_pax, rsvp_message, rsvp_at, attendance_status, notes, last_opened_at, created_at, updated_at, shared_at FROM guests WHERE id = $1 AND wedding_id = $2
 `
 
 type GetGuestParams struct {
@@ -179,12 +192,13 @@ func (q *Queries) GetGuest(ctx context.Context, arg GetGuestParams) (Guest, erro
 		&i.LastOpenedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.SharedAt,
 	)
 	return i, err
 }
 
 const getGuestByCode = `-- name: GetGuestByCode :one
-SELECT id, wedding_id, name, phone, email, group_name, max_pax, invitation_code, rsvp_status, rsvp_pax, rsvp_message, rsvp_at, attendance_status, notes, last_opened_at, created_at, updated_at FROM guests WHERE invitation_code = $1
+SELECT id, wedding_id, name, phone, email, group_name, max_pax, invitation_code, rsvp_status, rsvp_pax, rsvp_message, rsvp_at, attendance_status, notes, last_opened_at, created_at, updated_at, shared_at FROM guests WHERE invitation_code = $1
 `
 
 // tenant:ignore kode undangan unik global; wedding di-resolve dari hasilnya (resolver T09)
@@ -208,6 +222,23 @@ func (q *Queries) GetGuestByCode(ctx context.Context, invitationCode string) (Gu
 		&i.Notes,
 		&i.LastOpenedAt,
 		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.SharedAt,
+	)
+	return i, err
+}
+
+const getShareTemplate = `-- name: GetShareTemplate :one
+SELECT wedding_id, language, body, updated_at FROM share_templates WHERE wedding_id = $1
+`
+
+func (q *Queries) GetShareTemplate(ctx context.Context, weddingID uuid.UUID) (ShareTemplate, error) {
+	row := q.db.QueryRow(ctx, getShareTemplate, weddingID)
+	var i ShareTemplate
+	err := row.Scan(
+		&i.WeddingID,
+		&i.Language,
+		&i.Body,
 		&i.UpdatedAt,
 	)
 	return i, err
@@ -262,7 +293,7 @@ type InsertGuestsParams struct {
 }
 
 const listAllGuests = `-- name: ListAllGuests :many
-SELECT id, wedding_id, name, phone, email, group_name, max_pax, invitation_code, rsvp_status, rsvp_pax, rsvp_message, rsvp_at, attendance_status, notes, last_opened_at, created_at, updated_at FROM guests WHERE wedding_id = $1 ORDER BY lower(name), id
+SELECT id, wedding_id, name, phone, email, group_name, max_pax, invitation_code, rsvp_status, rsvp_pax, rsvp_message, rsvp_at, attendance_status, notes, last_opened_at, created_at, updated_at, shared_at FROM guests WHERE wedding_id = $1 ORDER BY lower(name), id
 `
 
 func (q *Queries) ListAllGuests(ctx context.Context, weddingID uuid.UUID) ([]Guest, error) {
@@ -292,6 +323,7 @@ func (q *Queries) ListAllGuests(ctx context.Context, weddingID uuid.UUID) ([]Gue
 			&i.LastOpenedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.SharedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -330,23 +362,25 @@ func (q *Queries) ListGroups(ctx context.Context, weddingID uuid.UUID) ([]string
 }
 
 const listGuests = `-- name: ListGuests :many
-SELECT id, wedding_id, name, phone, email, group_name, max_pax, invitation_code, rsvp_status, rsvp_pax, rsvp_message, rsvp_at, attendance_status, notes, last_opened_at, created_at, updated_at FROM guests
+SELECT id, wedding_id, name, phone, email, group_name, max_pax, invitation_code, rsvp_status, rsvp_pax, rsvp_message, rsvp_at, attendance_status, notes, last_opened_at, created_at, updated_at, shared_at FROM guests
 WHERE wedding_id = $1
   AND ($2::text IS NULL OR rsvp_status = $2)
   AND ($3::text IS NULL OR group_name = $3)
-  AND ($4::text IS NULL
-       OR name ILIKE '%' || $4 || '%'
-       OR phone LIKE '%' || $4 || '%'
-       OR email::text ILIKE '%' || $4 || '%'
-       OR invitation_code = upper($4))
+  AND ($4::boolean IS NULL OR (shared_at IS NOT NULL) = $4)
+  AND ($5::text IS NULL
+       OR name ILIKE '%' || $5 || '%'
+       OR phone LIKE '%' || $5 || '%'
+       OR email::text ILIKE '%' || $5 || '%'
+       OR invitation_code = upper($5))
 ORDER BY lower(name), id
-LIMIT $6 OFFSET $5
+LIMIT $7 OFFSET $6
 `
 
 type ListGuestsParams struct {
 	WeddingID uuid.UUID
 	Status    *string
 	GroupName *string
+	Shared    *bool
 	Q         *string
 	Off       int32
 	Lim       int32
@@ -357,6 +391,7 @@ func (q *Queries) ListGuests(ctx context.Context, arg ListGuestsParams) ([]Guest
 		arg.WeddingID,
 		arg.Status,
 		arg.GroupName,
+		arg.Shared,
 		arg.Q,
 		arg.Off,
 		arg.Lim,
@@ -386,6 +421,7 @@ func (q *Queries) ListGuests(ctx context.Context, arg ListGuestsParams) ([]Guest
 			&i.LastOpenedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.SharedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -398,7 +434,7 @@ func (q *Queries) ListGuests(ctx context.Context, arg ListGuestsParams) ([]Guest
 }
 
 const listRSVPResponses = `-- name: ListRSVPResponses :many
-SELECT id, wedding_id, name, phone, email, group_name, max_pax, invitation_code, rsvp_status, rsvp_pax, rsvp_message, rsvp_at, attendance_status, notes, last_opened_at, created_at, updated_at FROM guests
+SELECT id, wedding_id, name, phone, email, group_name, max_pax, invitation_code, rsvp_status, rsvp_pax, rsvp_message, rsvp_at, attendance_status, notes, last_opened_at, created_at, updated_at, shared_at FROM guests
 WHERE wedding_id = $1
   AND rsvp_at IS NOT NULL
   AND ($2::text IS NULL OR rsvp_status = $2)
@@ -445,6 +481,7 @@ func (q *Queries) ListRSVPResponses(ctx context.Context, arg ListRSVPResponsesPa
 			&i.LastOpenedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.SharedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -471,11 +508,29 @@ func (q *Queries) MarkOpened(ctx context.Context, arg MarkOpenedParams) error {
 	return err
 }
 
+const markShared = `-- name: MarkShared :execrows
+UPDATE guests SET shared_at = $3 WHERE id = $1 AND wedding_id = $2
+`
+
+type MarkSharedParams struct {
+	ID        uuid.UUID
+	WeddingID uuid.UUID
+	SharedAt  *time.Time
+}
+
+func (q *Queries) MarkShared(ctx context.Context, arg MarkSharedParams) (int64, error) {
+	result, err := q.db.Exec(ctx, markShared, arg.ID, arg.WeddingID, arg.SharedAt)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const updateGuest = `-- name: UpdateGuest :one
 UPDATE guests
 SET name = $3, phone = $4, email = $5, group_name = $6, max_pax = $7, notes = $8
 WHERE id = $1 AND wedding_id = $2
-RETURNING id, wedding_id, name, phone, email, group_name, max_pax, invitation_code, rsvp_status, rsvp_pax, rsvp_message, rsvp_at, attendance_status, notes, last_opened_at, created_at, updated_at
+RETURNING id, wedding_id, name, phone, email, group_name, max_pax, invitation_code, rsvp_status, rsvp_pax, rsvp_message, rsvp_at, attendance_status, notes, last_opened_at, created_at, updated_at, shared_at
 `
 
 type UpdateGuestParams struct {
@@ -519,6 +574,7 @@ func (q *Queries) UpdateGuest(ctx context.Context, arg UpdateGuestParams) (Guest
 		&i.LastOpenedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.SharedAt,
 	)
 	return i, err
 }
@@ -527,7 +583,7 @@ const updateRSVP = `-- name: UpdateRSVP :one
 UPDATE guests
 SET rsvp_status = $3, rsvp_pax = $4, rsvp_message = $5, rsvp_at = $6
 WHERE id = $1 AND wedding_id = $2
-RETURNING id, wedding_id, name, phone, email, group_name, max_pax, invitation_code, rsvp_status, rsvp_pax, rsvp_message, rsvp_at, attendance_status, notes, last_opened_at, created_at, updated_at
+RETURNING id, wedding_id, name, phone, email, group_name, max_pax, invitation_code, rsvp_status, rsvp_pax, rsvp_message, rsvp_at, attendance_status, notes, last_opened_at, created_at, updated_at, shared_at
 `
 
 type UpdateRSVPParams struct {
@@ -567,6 +623,23 @@ func (q *Queries) UpdateRSVP(ctx context.Context, arg UpdateRSVPParams) (Guest, 
 		&i.LastOpenedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.SharedAt,
 	)
 	return i, err
+}
+
+const upsertShareTemplate = `-- name: UpsertShareTemplate :exec
+INSERT INTO share_templates (wedding_id, language, body) VALUES ($1, $2, $3)
+ON CONFLICT (wedding_id) DO UPDATE SET language = EXCLUDED.language, body = EXCLUDED.body
+`
+
+type UpsertShareTemplateParams struct {
+	WeddingID uuid.UUID
+	Language  string
+	Body      string
+}
+
+func (q *Queries) UpsertShareTemplate(ctx context.Context, arg UpsertShareTemplateParams) error {
+	_, err := q.db.Exec(ctx, upsertShareTemplate, arg.WeddingID, arg.Language, arg.Body)
+	return err
 }

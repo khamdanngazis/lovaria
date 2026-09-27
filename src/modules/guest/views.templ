@@ -21,13 +21,14 @@ func (f form) v(k string) string { return f.Values[k] }
 func (f form) e(k string) string { return f.Errors[k] }
 
 type listState struct {
-	W        wedding.Wedding
-	Filter   Filter
-	Page     Page
-	Stats    Stats
-	Groups   []string
-	Notice   string
-	LinkBase string // basis link undangan, mis. https://lovoria.com/i/
+	W      wedding.Wedding
+	Filter Filter
+	Page   Page
+	Stats  Stats
+	Groups []string
+	Notice string
+	// Share: template pesan, pasangan, tanggal, & origin link (Kirim WA / Salin, T14).
+	Share shareCtx
 }
 
 func base(w wedding.Wedding) string { return w.DashboardURL("/guests") }
@@ -54,6 +55,9 @@ func (s listState) query(page int) string {
 	}
 	if s.Filter.Group != "" {
 		v.Set("group", s.Filter.Group)
+	}
+	if s.Filter.Shared != "" {
+		v.Set("shared", s.Filter.Shared)
 	}
 	if page > 1 {
 		v.Set("page", strconv.Itoa(page))
@@ -130,7 +134,7 @@ templ statCard(label string, n int, sub string) {
 
 // filters berada di luar #guests supaya input pencarian tidak kehilangan fokus.
 templ filters(s listState) {
-	<form id="guest-filters" method="get" action={ templ.SafeURL(base(s.W)) } hx-get={ base(s.W) } hx-target="#guests" hx-swap="outerHTML" hx-push-url="true" hx-trigger="input changed delay:300ms from:input[name=q], change from:select, submit" class="grid gap-2 sm:grid-cols-[1fr_auto_auto]">
+	<form id="guest-filters" method="get" action={ templ.SafeURL(base(s.W)) } hx-get={ base(s.W) } hx-target="#guests" hx-swap="outerHTML" hx-push-url="true" hx-trigger="input changed delay:300ms from:input[name=q], change from:select, submit" class="grid gap-2 sm:grid-cols-[1fr_auto_auto_auto]">
 		<input type="search" name="q" value={ s.Filter.Q } placeholder="Cari nama, HP, email, atau kode…" aria-label="Cari tamu" class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-base"/>
 		<select name="status" aria-label="Filter status" class="rounded-lg border border-slate-300 bg-white px-3 py-2">
 			<option value="">Semua status</option>
@@ -139,6 +143,11 @@ templ filters(s listState) {
 			}
 		</select>
 		@groupSelect(s, false)
+		<select name="shared" aria-label="Filter dibagikan" class="rounded-lg border border-slate-300 bg-white px-3 py-2">
+			<option value="">Semua</option>
+			<option value="no" selected?={ s.Filter.Shared == "no" }>Belum dibagikan</option>
+			<option value="yes" selected?={ s.Filter.Shared == "yes" }>Sudah dibagikan</option>
+		</select>
 		<noscript><button type="submit" class="rounded-lg border px-3 py-2">Terapkan</button></noscript>
 	</form>
 }
@@ -215,7 +224,7 @@ func idsJSON(gs []Guest) string {
 }
 
 templ row(s listState, g Guest) {
-	<li id={ "guest-" + g.ID.String() } class="flex gap-3 rounded-xl bg-white p-3 shadow-sm ring-1 ring-black/5">
+	<li id={ "guest-" + g.ID.String() } class="flex flex-wrap gap-3 rounded-xl bg-white p-3 shadow-sm ring-1 ring-black/5" x-data={ shareRowData(guestURL(s.W, g.ID, "/shared"), g.SharedAt != nil) }>
 		<input type="checkbox" name="ids" value={ g.ID.String() } x-model="selected" aria-label={ "Pilih " + g.Name } class="mt-1 h-4 w-4 flex-none"/>
 		<div class="min-w-0 flex-1">
 			<div class="flex flex-wrap items-center gap-2">
@@ -245,7 +254,29 @@ templ row(s listState, g Guest) {
 			<a href={ templ.SafeURL(guestURL(s.W, g.ID, "/edit")) } hx-get={ guestURL(s.W, g.ID, "/edit") } hx-target="#guest-editor" hx-swap="innerHTML" class="text-primary hover:underline">Ubah</a>
 			<button type="button" hx-delete={ guestURL(s.W, g.ID, "") } hx-include="#guest-filters" hx-target="#guests" hx-swap="outerHTML" hx-confirm={ "Hapus " + g.Name + "?" } class="text-red-600 hover:underline">Hapus</button>
 		</div>
+		@shareActions(s, g)
 	</li>
+}
+
+// shareActions: Kirim WA / Salin link / Salin pesan; klik menandai tamu "dibagikan".
+templ shareActions(s listState, g Guest) {
+	<div class="flex w-full flex-wrap items-center gap-2 border-t border-slate-100 pt-2 text-sm">
+		<a
+			href={ templ.SafeURL(s.Share.WhatsApp(g)) }
+			target="_blank"
+			rel="noopener"
+			@click="mark()"
+			class="inline-flex items-center gap-1 rounded-lg bg-green-600 px-3 py-1.5 font-medium text-white hover:bg-green-700"
+		>
+			Kirim WA
+			if g.Phone == "" {
+				<span class="text-xs font-normal opacity-80">(pilih kontak)</span>
+			}
+		</a>
+		<button type="button" x-cloak @click={ "copy(" + jsString(s.Share.Link(g)) + ", 'link')" } class="rounded-lg border border-slate-300 px-3 py-1.5 hover:bg-slate-50" x-text="copied === 'link' ? 'Tersalin ✓' : 'Salin link'">Salin link</button>
+		<button type="button" x-cloak @click={ "copy(" + jsString(s.Share.Message(g)) + ", 'msg')" } class="rounded-lg border border-slate-300 px-3 py-1.5 hover:bg-slate-50" x-text="copied === 'msg' ? 'Tersalin ✓' : 'Salin pesan'">Salin pesan</button>
+		<span x-show="shared" x-cloak class="ml-auto rounded-full bg-sky-100 px-2 py-0.5 text-xs text-sky-800">Sudah dibagikan</span>
+	</div>
 }
 
 templ pagination(s listState) {

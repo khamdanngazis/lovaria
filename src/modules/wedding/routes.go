@@ -32,6 +32,7 @@ func Register(g *echo.Group, deps Deps) *echo.Group {
 	w.GET("/couple", h.CouplePage)
 	w.PATCH("/couple", h.UpdateCouple)
 	w.PATCH("/status", h.UpdateStatus)
+	w.PATCH("/slug", h.UpdateSlug)
 	return w
 }
 

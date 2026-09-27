@@ -364,7 +364,8 @@ func (a *app) routes() *echo.Echo {
 	story.Register(owned, story.Deps{Service: stories})
 	gallery.Register(owned, gallery.Deps{Service: photos, Weddings: a.weddings})
 	theme.Register(owned, theme.Deps{Service: themes, Previewer: views})
-	guest.Register(owned, guest.Deps{Service: guests})
+	guests.SetOrigins(a.weddings.CanonicalOrigin) // link tamu memakai custom domain bila aktif
+	guest.Register(owned, guest.Deps{Service: guests, Weddings: a.weddings})
 	guestbook.Register(owned, guestbook.Deps{Service: guestbooks})
 	gift.Register(owned, gift.Deps{Service: gifts})
 	domain.Register(owned, domain.Deps{Service: a.domains})

@@ -119,6 +119,7 @@ type Guest struct {
 	LastOpenedAt     *time.Time
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
+	SharedAt         *time.Time
 }
 
 type GuestbookEntry struct {
@@ -171,6 +172,20 @@ type Session struct {
 	UserAgent  string
 	CreatedAt  time.Time
 	LastSeenAt time.Time
+}
+
+type ShareTemplate struct {
+	WeddingID uuid.UUID
+	Language  string
+	Body      string
+	UpdatedAt time.Time
+}
+
+type SlugRedirect struct {
+	OldSlug   string
+	WeddingID uuid.UUID
+	ExpiresAt time.Time
+	CreatedAt time.Time
 }
 
 type User struct {

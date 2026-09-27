@@ -61,6 +61,72 @@
       },
     }));
 
+    // ---------- Bagikan undangan (T14) ----------
+    const csrf = () => (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
+    async function copyToClipboard(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch (e) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.cssText = 'position:fixed;opacity:0;font-size:16px';
+        document.body.appendChild(ta);
+        ta.select();
+        ta.setSelectionRange(0, text.length);
+        let ok = false;
+        try { ok = document.execCommand('copy'); } catch (e2) { ok = false; }
+        ta.remove();
+        return ok;
+      }
+    }
+    // Baris tamu: salin link/pesan & tandai "sudah dibagikan" (POST, tanpa menunggu).
+    window.Alpine.data('shareRow', (markURL, shared) => ({
+      shared,
+      copied: '',
+      mark() {
+        this.shared = true;
+        fetch(markURL, { method: 'POST', headers: { 'X-CSRF-Token': csrf() }, keepalive: true }).catch(() => {});
+      },
+      async copy(text, what) {
+        if (await copyToClipboard(text)) {
+          this.copied = what;
+          setTimeout(() => { this.copied = ''; }, 2000);
+        }
+        this.mark();
+      },
+    }));
+    // Link umum: salin & Web Share API (menu bagikan bawaan ponsel).
+    window.Alpine.data('shareGeneral', (link, text) => ({
+      link,
+      text,
+      copied: '',
+      canShare: !!navigator.share,
+      async copy(value, what) {
+        if (await copyToClipboard(value)) {
+          this.copied = what;
+          setTimeout(() => { this.copied = ''; }, 2000);
+        }
+      },
+      nativeShare() {
+        navigator.share({ text: this.text }).catch(() => {});
+      },
+    }));
+    // Editor template: preview langsung dengan nilai contoh.
+    window.Alpine.data('sharePreview', (cfg) => ({
+      body: cfg.body,
+      lang: cfg.lang,
+      useDefault() { this.body = cfg.defaults[this.lang]; },
+      preview() {
+        const s = cfg.sample;
+        return this.body
+          .split('{guest_name}').join(s.guest_name)
+          .split('{couple}').join(s.couple)
+          .split('{date}').join(this.lang === 'en' ? s.date_en : s.date_id)
+          .split('{link}').join(s.link);
+      },
+    }));
+
     window.Alpine.data('galleryUploader', (uploadURL, refreshURL) => ({
       category: 'wedding',
       files: [],

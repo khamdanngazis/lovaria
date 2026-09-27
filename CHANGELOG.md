@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### T14 — Bagikan undangan & custom slug
+- Halaman **Bagikan**: link undangan umum (custom domain bila aktif) + Salin, Web Share API, WhatsApp; editor template pesan (Indonesia/English, placeholder `{guest_name}` `{couple}` `{date}` `{link}`) dengan preview langsung.
+- Daftar tamu: **Kirim WA** (nomor tamu, atau pilih kontak bila tanpa nomor), **Salin link**, **Salin pesan**; penanda `shared_at` + filter "belum dibagikan".
+- Ganti alamat undangan (slug): validasi & kata terlarang, slug lama dialihkan 301 selama 90 hari (`slug_redirects`).
+- Link tamu, export CSV, dan halaman Bagikan memakai custom domain bila aktif (`wedding.CanonicalOrigin`).
+- Migration `00015` (`guests.shared_at`), `00016` (`share_templates`), `00017` (`slug_redirects`).
+
 ### Perbaikan — domain Railway lama 404
 - Setelah domain sendiri didaftarkan di Railway, `RAILWAY_PUBLIC_DOMAIN` berganti sehingga domain `*.up.railway.app` lama dianggap host asing dan link undangan lama menjadi 404. Config baru `EXTRA_HOSTS` (dipisah koma) untuk tetap mengenali host lama.
 - Script Worker di `doc/custom-domain.md` meneruskan trafik domain Lovoria sendiri tanpa diubah (`OWN_ZONE`).

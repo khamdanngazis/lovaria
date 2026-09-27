@@ -73,6 +73,7 @@ type Guest struct {
 	RSVPPax        int
 	RSVPMessage    string
 	RSVPAt         *time.Time
+	SharedAt       *time.Time
 	Notes          string
 	LastOpenedAt   *time.Time
 	CreatedAt      time.Time
@@ -93,7 +94,8 @@ type Filter struct {
 	Q      string
 	Status string
 	Group  string
-	Page   int // mulai 1
+	Shared string // "" | "no" (belum dibagikan) | "yes"
+	Page   int    // mulai 1
 }
 
 type Page struct {
@@ -116,14 +118,12 @@ type Service struct {
 	repo    *Repository
 	baseURL string
 	now     func() time.Time
+	origins func(ctx context.Context, weddingID uuid.UUID) (string, error) // custom domain (T14/T15)
 }
 
 func NewService(repo *Repository, baseURL string) *Service {
 	return &Service{repo: repo, baseURL: strings.TrimRight(baseURL, "/"), now: time.Now}
 }
-
-// InvitationURL adalah link undangan personal tamu.
-func (s *Service) InvitationURL(code string) string { return s.baseURL + "/i/" + code }
 
 // ---------- Validasi ----------
 
@@ -365,12 +365,18 @@ func (s *Service) List(ctx context.Context, weddingID uuid.UUID, f Filter) (Page
 	group := optional(f.Group)
 	page := max(1, f.Page)
 
-	total, err := s.repo.q.CountGuests(ctx, guestdb.CountGuestsParams{WeddingID: weddingID, Status: status, GroupName: group, Q: q})
+	var shared *bool
+	switch f.Shared {
+	case "yes", "no":
+		v := f.Shared == "yes"
+		shared = &v
+	}
+	total, err := s.repo.q.CountGuests(ctx, guestdb.CountGuestsParams{WeddingID: weddingID, Status: status, GroupName: group, Q: q, Shared: shared})
 	if err != nil {
 		return Page{}, err
 	}
 	rows, err := s.repo.q.ListGuests(ctx, guestdb.ListGuestsParams{
-		WeddingID: weddingID, Status: status, GroupName: group, Q: q,
+		WeddingID: weddingID, Status: status, GroupName: group, Q: q, Shared: shared,
 		Lim: PerPage, Off: int32((page - 1) * PerPage), //nolint:gosec // G115: halaman kecil
 	})
 	if err != nil {

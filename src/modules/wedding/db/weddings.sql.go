@@ -217,6 +217,37 @@ func (q *Queries) CreateWedding(ctx context.Context, arg CreateWeddingParams) (W
 	return i, err
 }
 
+const deleteSlugRedirect = `-- name: DeleteSlugRedirect :exec
+DELETE FROM slug_redirects WHERE old_slug = $1 AND wedding_id = $2
+`
+
+type DeleteSlugRedirectParams struct {
+	OldSlug   string
+	WeddingID uuid.UUID
+}
+
+func (q *Queries) DeleteSlugRedirect(ctx context.Context, arg DeleteSlugRedirectParams) error {
+	_, err := q.db.Exec(ctx, deleteSlugRedirect, arg.OldSlug, arg.WeddingID)
+	return err
+}
+
+const getSlugRedirect = `-- name: GetSlugRedirect :one
+SELECT wedding_id FROM slug_redirects WHERE old_slug = $1 AND expires_at > $2
+`
+
+type GetSlugRedirectParams struct {
+	OldSlug   string
+	ExpiresAt time.Time
+}
+
+// tenant:ignore resolver public site: slug lama → wedding (slug unik global)
+func (q *Queries) GetSlugRedirect(ctx context.Context, arg GetSlugRedirectParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, getSlugRedirect, arg.OldSlug, arg.ExpiresAt)
+	var wedding_id uuid.UUID
+	err := row.Scan(&wedding_id)
+	return wedding_id, err
+}
+
 const getWedding = `-- name: GetWedding :one
 SELECT id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone, storage_used_bytes FROM weddings WHERE id = $1
 `
@@ -349,6 +380,40 @@ func (q *Queries) ListLifecycleCandidates(ctx context.Context, until time.Time) 
 			&i.Status,
 			&i.WeddingDate,
 			&i.Timezone,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listSlugRedirects = `-- name: ListSlugRedirects :many
+SELECT old_slug, wedding_id, expires_at, created_at FROM slug_redirects WHERE wedding_id = $1 AND expires_at > $2 ORDER BY created_at DESC
+`
+
+type ListSlugRedirectsParams struct {
+	WeddingID uuid.UUID
+	ExpiresAt time.Time
+}
+
+func (q *Queries) ListSlugRedirects(ctx context.Context, arg ListSlugRedirectsParams) ([]SlugRedirect, error) {
+	rows, err := q.db.Query(ctx, listSlugRedirects, arg.WeddingID, arg.ExpiresAt)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []SlugRedirect{}
+	for rows.Next() {
+		var i SlugRedirect
+		if err := rows.Scan(
+			&i.OldSlug,
+			&i.WeddingID,
+			&i.ExpiresAt,
+			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -493,6 +558,36 @@ func (q *Queries) SetMainPhotoURL(ctx context.Context, arg SetMainPhotoURLParams
 	return err
 }
 
+const setSlug = `-- name: SetSlug :one
+UPDATE weddings SET slug = $2 WHERE id = $1 RETURNING id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone, storage_used_bytes
+`
+
+type SetSlugParams struct {
+	ID   uuid.UUID
+	Slug string
+}
+
+func (q *Queries) SetSlug(ctx context.Context, arg SetSlugParams) (Wedding, error) {
+	row := q.db.QueryRow(ctx, setSlug, arg.ID, arg.Slug)
+	var i Wedding
+	err := row.Scan(
+		&i.ID,
+		&i.OwnerUserID,
+		&i.Slug,
+		&i.Title,
+		&i.WeddingDate,
+		&i.Description,
+		&i.MainPhotoUrl,
+		&i.Status,
+		&i.ThemeID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Timezone,
+		&i.StorageUsedBytes,
+	)
+	return i, err
+}
+
 const setStatus = `-- name: SetStatus :exec
 UPDATE weddings SET status = $2 WHERE id = $1
 `
@@ -522,6 +617,25 @@ func (q *Queries) SetThemeID(ctx context.Context, arg SetThemeIDParams) (int64, 
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const slugTaken = `-- name: SlugTaken :one
+SELECT (EXISTS (SELECT 1 FROM weddings WHERE slug = $1::citext AND id <> $2)
+    OR EXISTS (SELECT 1 FROM slug_redirects WHERE old_slug = $1::citext AND wedding_id <> $2 AND expires_at > $3))::boolean AS taken
+`
+
+type SlugTakenParams struct {
+	Slug      string
+	WeddingID uuid.UUID
+	Now       time.Time
+}
+
+// tenant:ignore slug unik global (weddings + redirect aktif wedding lain)
+func (q *Queries) SlugTaken(ctx context.Context, arg SlugTakenParams) (bool, error) {
+	row := q.db.QueryRow(ctx, slugTaken, arg.Slug, arg.WeddingID, arg.Now)
+	var taken bool
+	err := row.Scan(&taken)
+	return taken, err
 }
 
 const storageTotal = `-- name: StorageTotal :one
@@ -577,4 +691,20 @@ func (q *Queries) UpdateWeddingInfo(ctx context.Context, arg UpdateWeddingInfoPa
 		&i.StorageUsedBytes,
 	)
 	return i, err
+}
+
+const upsertSlugRedirect = `-- name: UpsertSlugRedirect :exec
+INSERT INTO slug_redirects (old_slug, wedding_id, expires_at) VALUES ($1, $2, $3)
+ON CONFLICT (old_slug) DO UPDATE SET wedding_id = EXCLUDED.wedding_id, expires_at = EXCLUDED.expires_at, created_at = now()
+`
+
+type UpsertSlugRedirectParams struct {
+	OldSlug   string
+	WeddingID uuid.UUID
+	ExpiresAt time.Time
+}
+
+func (q *Queries) UpsertSlugRedirect(ctx context.Context, arg UpsertSlugRedirectParams) error {
+	_, err := q.db.Exec(ctx, upsertSlugRedirect, arg.OldSlug, arg.WeddingID, arg.ExpiresAt)
+	return err
 }
