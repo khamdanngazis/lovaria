@@ -142,7 +142,7 @@ func shareGeneral(s shareState) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" aria-label=\"Link undangan umum\" onfocus=\"this.select()\" class=\"min-w-0 flex-1 rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm\"> <button type=\"button\" x-cloak @click=\"copy(link, 'link')\" class=\"flex-none rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium hover:bg-slate-50\" x-text=\"copied === 'link' ? 'Tersalin ✓' : 'Salin'\">Salin</button></div><div class=\"mt-3 flex flex-wrap gap-2 text-sm\" x-data=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" aria-label=\"Link undangan umum\" data-select-on-focus class=\"min-w-0 flex-1 rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm\"> <button type=\"button\" x-cloak @click=\"copy(link, 'link')\" class=\"flex-none rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium hover:bg-slate-50\" x-text=\"copied === 'link' ? 'Tersalin ✓' : 'Salin'\">Salin</button></div><div class=\"mt-3 flex flex-wrap gap-2 text-sm\" x-data=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -410,7 +410,7 @@ func shareTemplateEditor(s shareState) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "\" onsubmit=\"return confirm('Kembalikan ke template bawaan? Template Anda akan dihapus.')\" class=\"mt-3\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "\" data-confirm=\"Kembalikan ke template bawaan? Template Anda akan dihapus.\" class=\"mt-3\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

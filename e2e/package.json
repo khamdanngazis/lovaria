@@ -1,0 +1,11 @@
+{
+  "name": "lovoria-e2e",
+  "private": true,
+  "description": "E2E smoke test Lovoria (Playwright) — lihat e2e/README.md",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.55.1"
+  }
+}

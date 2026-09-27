@@ -126,6 +126,14 @@ test: ## Jalankan semua test (integration test DB di-skip bila DATABASE_URL_TEST
 test-integration: db-up ## Jalankan semua test termasuk integration test Postgres
 	DATABASE_URL_TEST="$(DATABASE_URL_TEST)" LOVORIA_REQUIRE_DB_TESTS=true go test -race -count=1 ./...
 
+.PHONY: e2e
+e2e: ## E2E smoke test Playwright terhadap E2E_BASE_URL (default http://localhost:8080; server harus sudah jalan)
+	cd e2e && npm ci --no-audit --no-fund && npx playwright test
+
+.PHONY: loadtest
+loadtest: ## Load test k6 skenario H-1 (BASE_URL, DATA dari tools/loadseed) — JANGAN ke produksi tanpa izin
+	k6 run -e BASE_URL=$${BASE_URL:-http://localhost:8080} -e DATA=$${DATA:-/tmp/lovoria-load.json} tools/load/h1.js
+
 .PHONY: lint
 lint: lint-tenant ## gofmt, templ fmt, go vet, golangci-lint, lint-tenant
 	@files=$$(find . -name '*.go' -not -name '*_templ.go' -not -path './bin/*' -not -path './tmp/*'); \

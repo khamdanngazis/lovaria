@@ -107,6 +107,7 @@ func (h *Handler) GuestbookPost(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	h.Views.Invalidate(res.Wedding.ID)                  // halaman undangan langsung memuat ucapan baru
 	if v, err = h.guestbookView(ctx, res); err != nil { // daftar terbaru memuat pesan baru
 		return err
 	}

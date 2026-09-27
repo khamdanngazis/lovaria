@@ -25,7 +25,7 @@ templ quickActions(d homeData) {
 	@ui.Card() {
 		<p class="text-xs uppercase tracking-wide text-slate-400">Link undangan umum</p>
 		<div class="mt-2 flex items-center gap-2" x-data={ copyData(d.Link) }>
-			<input type="text" readonly value={ d.Link } aria-label="Link undangan umum" class="min-w-0 flex-1 rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-700" onfocus="this.select()"/>
+			<input type="text" readonly value={ d.Link } aria-label="Link undangan umum" class="min-w-0 flex-1 rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-700" data-select-on-focus/>
 			<button type="button" x-cloak @click="copy()" class="flex-none rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium hover:bg-slate-50" x-text="copied ? 'Tersalin ✓' : 'Salin'">Salin</button>
 		</div>
 		<p class="mt-2 text-xs text-slate-500">Untuk tamu tertentu, pakai link pribadi dari menu Tamu supaya nama tamu tampil & bisa RSVP.</p>

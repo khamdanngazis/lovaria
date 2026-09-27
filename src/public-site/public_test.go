@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -59,6 +60,7 @@ func (f fakeDomains) ActiveDomain(_ context.Context, weddingID uuid.UUID) (strin
 
 type fixture struct {
 	e         *echo.Echo
+	views     *ViewBuilder
 	weddings  *wedding.Service
 	guests    *guest.Service
 	events    *event.Service
@@ -88,6 +90,7 @@ func newFixture(t *testing.T) fixture {
 		Weddings: ws, Events: evs, Stories: story.NewService(story.NewRepository(pool)),
 		Gallery: gallery.NewService(gallery.NewRepository(pool), store, ws, 500<<20, log), Themes: theme.NewService(pool, ws),
 		Guestbook: gb, Gifts: gf,
+		CacheTTL: -1, // test lama menguji isi halaman; perilaku cache diuji di TestPublicViewCache
 	}
 	domains := fakeDomains{}
 	ws.SetDomains(domains, cfg.BaseURL)
@@ -109,7 +112,7 @@ func newFixture(t *testing.T) fixture {
 		GuestbookLimit: GuestbookLimit{PerMinute: 60, Burst: 8},
 	})
 	return fixture{
-		e: e, weddings: ws, guests: gs, events: evs, domains: domains, guestbook: gb, gifts: gf,
+		e: e, views: views, weddings: ws, guests: gs, events: evs, domains: domains, guestbook: gb, gifts: gf,
 		auth: auth.NewService(auth.NewRepository(pool), &mail.LogMailer{Log: log}, "http://x", log),
 		publish: func(id uuid.UUID) {
 			if _, err := pool.Exec(ctx, `UPDATE weddings SET status = 'published' WHERE id = $1`, id); err != nil {
@@ -392,5 +395,80 @@ func TestOldSlugRedirects(t *testing.T) {
 	}
 	if rec := f.get("/w/tidak-pernah-ada", nil); rec.Code != http.StatusNotFound {
 		t.Errorf("slug tak dikenal: %d", rec.Code)
+	}
+}
+
+// Regresi: isOwnHost dulu mengisi map secara lazy tanpa sinkronisasi → request
+// paralel pertama setelah start membuat proses crash (concurrent map writes).
+func TestResolverConcurrentFirstRequests(t *testing.T) {
+	f := newFixture(t)
+	_, w := f.newWedding(t, "a@example.com", "Khamdan", "Sarah")
+	f.publish(w.ID)
+	var wg sync.WaitGroup
+	for i := 0; i < 50; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if rec := f.get("/w/"+w.Slug, nil); rec.Code != http.StatusOK {
+				t.Errorf("status %d", rec.Code)
+			}
+		}()
+	}
+	wg.Wait()
+}
+
+// last_opened_at diperbarui paling sering tiap 15 menit per tamu (hemat UPDATE saat ramai).
+func TestMarkOpenedThrottled(t *testing.T) {
+	f := newFixture(t)
+	_, w := f.newWedding(t, "a@example.com", "Khamdan", "Sarah")
+	f.publish(w.ID)
+	g, _ := f.guests.Create(ctx, w.ID, guest.Input{Name: "Budi"})
+	f.get("/i/"+g.InvitationCode, nil)
+	first, _ := f.guests.Get(ctx, w.ID, g.ID)
+	if first.LastOpenedAt == nil {
+		t.Fatal("kunjungan pertama harus tercatat")
+	}
+	f.get("/i/"+g.InvitationCode, nil)
+	if again, _ := f.guests.Get(ctx, w.ID, g.ID); !again.LastOpenedAt.Equal(*first.LastOpenedAt) {
+		t.Error("kunjungan ulang < 15 menit tidak boleh menulis ulang")
+	}
+}
+
+func TestPublicViewCache(t *testing.T) {
+	f := newFixture(t)
+	f.views.CacheTTL = time.Hour // cache aktif di test ini
+	owner, w := f.newWedding(t, "a@example.com", "Khamdan", "Sarah")
+	f.publish(w.ID)
+	g, _ := f.guests.Create(ctx, w.ID, guest.Input{Name: "Budi"})
+	gift1 := gift.Input{Type: gift.TypeBank, Provider: "BCA", AccountNumber: "1111111111", AccountName: "K"}
+
+	f.get("/w/"+w.Slug, nil)         // isi cache
+	f.gifts.Create(ctx, w.ID, gift1) //nolint:errcheck
+	if strings.Contains(f.get("/w/"+w.Slug, nil).Body.String(), "1111111111") {
+		t.Error("dalam TTL, perubahan dashboard belum terlihat (cache dipakai)")
+	}
+	// Data tamu selalu segar: jawaban RSVP langsung terlihat.
+	f.guests.UpdateRSVP(ctx, w.ID, g.ID, guest.StatusAttending, 1, "") //nolint:errcheck
+	if !strings.Contains(f.get("/i/"+g.InvitationCode, nil).Body.String(), "Konfirmasi Anda: Hadir") {
+		t.Error("status RSVP tamu harus segar walau data wedding di-cache")
+	}
+	// Ucapan baru dari tamu mengosongkan cache.
+	if rec := f.post("/w/"+w.Slug+"/guestbook", gbForm(w.ID, "Ani", "Ucapan baru dari Ani"), false, ""); rec.Code != http.StatusSeeOther {
+		t.Fatalf("post: %d", rec.Code)
+	}
+	body := f.get("/w/"+w.Slug+"?guestbook=ok", nil).Body.String()
+	if !strings.Contains(body, "Ucapan baru dari Ani") || !strings.Contains(body, "1111111111") {
+		t.Error("setelah ucapan baru, halaman memuat data terbaru")
+	}
+	// Preview pemilik (draft) tidak memakai cache.
+	f.setStatus(w.ID, "draft")
+	f.gifts.Create(ctx, w.ID, gift.Input{Type: gift.TypeBank, Provider: "BNI", AccountNumber: "2222222222", AccountName: "K"}) //nolint:errcheck
+	if !strings.Contains(f.get("/w/"+w.Slug, map[string]string{"X-Test-User": owner.String()}).Body.String(), "2222222222") {
+		t.Error("preview pemilik harus tanpa cache")
+	}
+	// Ganti status mengganti kunci cache (Kenangan langsung tampil).
+	f.setStatus(w.ID, wedding.StatusMemory)
+	if !strings.Contains(f.get("/w/"+w.Slug, nil).Body.String(), "Terima kasih telah menjadi bagian") {
+		t.Error("perubahan status harus langsung terlihat")
 	}
 }

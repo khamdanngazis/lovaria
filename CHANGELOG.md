@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### T17 — Hardening & launch readiness
+- **Perbaikan kritis**: resolver public site bisa membuat proses crash (`concurrent map writes`) saat request paralel pertama setelah start — ditemukan load test, diperbaiki (`sync.Once`) + test `-race`.
+- **Performa**: cache data wedding 10 detik untuk halaman undangan publik (dikosongkan saat ucapan baru; preview pemilik tanpa cache), `last_opened_at` paling sering tiap 15 menit, default `DB_MAX_CONNS` 25. Load test H-1 (200 page view + 50 RSVP/detik): p95 halaman 2,91 s → 45 ms, RSVP 1,2 s → 77 ms (lokal). Script `tools/load/h1.js` + `tools/loadseed`.
+- **Keamanan**: CSP (undangan tanpa eval; dashboard `'unsafe-eval'` untuk Alpine), HSTS, Permissions-Policy, `no-store` untuk dashboard/admin; semua handler inline dipindah ke `data-confirm` / `data-select-on-focus`; test isolasi tenant otomatis untuk **setiap** route dashboard (68 route).
+- **Error**: halaman 404/500 bergaya (JSON bila diminta, toast untuk htmx), detail 5xx tidak bocor; Sentry opsional (`SENTRY_DSN`); log request memuat `wedding_id` & `user_id`.
+- **Backup**: `lovoria backup run|list|restore`, backup harian ke bucket R2 privat (`BACKUP_BUCKET`, retensi 14 hari, advisory lock); restore teruji ke database baru (Postgres 16 & 18). Image memuat `postgresql18-client` (= server produksi).
+- **E2E**: Playwright smoke test (register → … → ucapan) di job CI `e2e`.
+- Halaman Kebijakan Privasi & Syarat Ketentuan (draf); Dockerfile memakai Go 1.26 (sesuai `go.mod`); `doc/runbook.md` dengan checklist launch.
+
 ### T07 — Pilih dari kontak di form tamu
 - Tambah cepat & form tamu lengkap: tombol **Pilih dari kontak HP** (Contact Picker API, Android) mengisi No. HP dan Nama (bila kosong). Disembunyikan di iPhone & desktop yang tidak mendukung.
 

@@ -25,7 +25,7 @@ func TestLoadDefaults(t *testing.T) {
 	if !cfg.StaticFromDisk {
 		t.Error("StaticFromDisk harus true di development")
 	}
-	if cfg.DB.MaxConns != 10 || cfg.DB.MinConns != 0 || cfg.DB.MaxConnLifetime != 30*time.Minute ||
+	if cfg.DB.MaxConns != 25 || cfg.DB.MinConns != 0 || cfg.DB.MaxConnLifetime != 30*time.Minute ||
 		cfg.DB.MaxConnIdleTime != 5*time.Minute || cfg.DB.ConnectTimeout != 5*time.Second {
 		t.Errorf("unexpected DB defaults: %+v", cfg.DB)
 	}
@@ -163,7 +163,7 @@ func TestLoadInvalid(t *testing.T) {
 	cases := map[string]map[string]string{
 		"noDB":      {"APP_ENV": "production"},
 		"maxConns":  {"DB_MAX_CONNS": "0"},
-		"minConns":  {"DB_MIN_CONNS": "20"},
+		"minConns":  {"DB_MIN_CONNS": "30"},
 		"lifetime":  {"DB_MAX_CONN_LIFETIME": "soon"},
 		"env":       {"APP_ENV": "staging"},
 		"port":      {"PORT": "abc"},

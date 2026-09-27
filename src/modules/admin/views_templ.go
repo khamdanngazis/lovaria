@@ -1695,7 +1695,7 @@ func userPage(u auth.User, ws []wedding.Wedding, f flash) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				if u.DisabledAt == nil {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 128, " onsubmit=\"return confirm('Nonaktifkan akun ini? User langsung keluar dari semua sesi dan tidak bisa login.')\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 128, " data-confirm=\"Nonaktifkan akun ini? User langsung keluar dari semua sesi dan tidak bisa login.\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -2826,10 +2826,6 @@ func weddingPage(d weddingData) templ.Component {
 						return templ_7745c5c3_Err
 					}
 					for _, to := range d.Transitions {
-						templ_7745c5c3_Err = templ.RenderScriptItems(ctx, templ_7745c5c3_Buffer, templ.ComponentScript{Call: "return confirm('Ubah status menjadi " + wedding.StatusLabel(to) + "?')"})
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
 						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 225, "<form method=\"post\" action=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
@@ -2843,12 +2839,16 @@ func weddingPage(d weddingData) templ.Component {
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 226, "\" onsubmit=\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 226, "\" data-confirm=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						var templ_7745c5c3_Var171 templ.ComponentScript = templ.ComponentScript{Call: "return confirm('Ubah status menjadi " + wedding.StatusLabel(to) + "?')"}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var171.Call)
+						var templ_7745c5c3_Var171 string
+						templ_7745c5c3_Var171, templ_7745c5c3_Err = templ.ResolveAttributeValue("Ubah status menjadi " + wedding.StatusLabel(to) + "?")
+						if templ_7745c5c3_Err != nil {
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/admin/views.templ`, Line: 410, Col: 170}
+						}
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var171)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -3512,7 +3512,7 @@ func packagesPage(ps []Package, f flash) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 281, "\" onsubmit=\"return confirm('Hapus paket ini?')\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 281, "\" data-confirm=\"Hapus paket ini?\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

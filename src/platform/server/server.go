@@ -36,6 +36,7 @@ func New(cfg config.Config, log *slog.Logger) *echo.Echo {
 	e.Server.ReadTimeout = 30 * time.Second
 	e.Server.WriteTimeout = 60 * time.Second
 	e.Server.IdleTimeout = 120 * time.Second
+	e.HTTPErrorHandler = errorHandler(log)
 
 	// Batas body global dipasang paling awal: MethodOverride & CSRF membaca form
 	// sebelum middleware per route, jadi tanpa ini body raksasa sempat dibaca
@@ -64,9 +65,13 @@ func New(cfg config.Config, log *slog.Logger) *echo.Echo {
 	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
 		XSSProtection:      "0",
 		ContentTypeNosniff: "nosniff",
-		XFrameOptions:      "SAMEORIGIN",
+		XFrameOptions:      "SAMEORIGIN", // preview tema memakai iframe dari origin sendiri
 		ReferrerPolicy:     "strict-origin-when-cross-origin",
+		// HSTS hanya terkirim lewat HTTPS (X-Forwarded-Proto dari Railway/Cloudflare).
+		// Tanpa includeSubDomains: host pasangan (custom domain) tidak boleh ikut terkunci.
+		HSTSMaxAge: 31536000,
 	}))
+	e.Use(securityHeaders)
 	e.Use(csrf(cfg))
 	// Kompres respons teks (HTML/CSS/JS/JSON). Foto sudah terkompresi → dilewati.
 	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
@@ -156,6 +161,14 @@ func requestLogger(log *slog.Logger) echo.MiddlewareFunc {
 				slog.Int("status", v.Status),
 				slog.Duration("latency", v.Latency),
 				slog.String("remote_ip", v.RemoteIP),
+			}
+			// wedding & user (diisi middleware auth / RequireWeddingOwner) supaya
+			// log bisa difilter per wedding saat menangani keluhan pasangan.
+			if id, ok := web.WeddingID(c.Request().Context()); ok {
+				attrs = append(attrs, slog.String("wedding_id", id.String()))
+			}
+			if u, ok := web.CurrentUser(c.Request().Context()); ok {
+				attrs = append(attrs, slog.String("user_id", u.ID.String()))
 			}
 			level := slog.LevelInfo
 			if v.Error != nil {

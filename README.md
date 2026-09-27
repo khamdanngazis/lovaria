@@ -61,6 +61,10 @@ Semua lewat environment variable (lihat [`.env.example`](.env.example)), dibaca 
 | `R2_ENDPOINT` | `https://<account>.r2.cloudflarestorage.com` | Override endpoint S3 (opsional) |
 | `APP_SECRET` | acak per proses | Kunci HMAC token form RSVP publik (min. 32 karakter). **Isi di production**, mis. `openssl rand -hex 32` |
 | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ZONE_ID`, `CUSTOM_DOMAIN_CNAME_TARGET` | – | Custom domain per wedding (Cloudflare for SaaS). Isi ketiganya atau kosongkan semua. Lihat [doc/custom-domain.md](doc/custom-domain.md) |
+| `BACKUP_BUCKET` | – | Bucket R2 **privat** untuk backup database harian (kredensial `R2_*`); atau `BACKUP_DIR` (folder, development). Lihat [doc/runbook.md](doc/runbook.md) |
+| `BACKUP_RETENTION_DAYS`, `BACKUP_HOUR_UTC` | `14`, `19` | Retensi backup (hari) & jam backup harian UTC (19 = 02.00 WIB) |
+| `PG_DUMP_PATH`, `PG_RESTORE_PATH` | `pg_dump`, `pg_restore` | Binary Postgres client (versi mayor harus = server) |
+| `SENTRY_DSN` | – | Kirim error 5xx ke Sentry (opsional, tanpa data pribadi) |
 | `EXTRA_HOSTS` | – | Host Lovoria tambahan selain `BASE_URL`/`RAILWAY_PUBLIC_DOMAIN`, dipisah koma — mis. domain `*.up.railway.app` lama setelah pindah ke domain sendiri, supaya link undangan lama tetap jalan |
 | `CUSTOM_DOMAIN_HOST_HEADER` | – | Header berisi host asli bila Cloudflare Worker menulis ulang Host (mis. `X-Lovoria-Host`) |
 | `GUESTBOOK_BLOCKED_WORDS` | – | Kata kasar tambahan untuk filter buku ucapan, dipisah koma (ditambahkan ke daftar bawaan) |

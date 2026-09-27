@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -30,6 +31,10 @@ type ViewBuilder struct {
 	Themes    *theme.Service
 	Guestbook *guestbook.Service
 	Gifts     *gift.Service
+
+	// CacheTTL: umur cache BuildPublic (0 = default 10 detik, < 0 = tanpa cache).
+	CacheTTL time.Duration
+	cache    viewCache // BuildPublic (halaman undangan publik)
 }
 
 // Build menyusun data undangan wedding w; g boleh nil (akses tanpa kode tamu).
