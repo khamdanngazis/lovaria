@@ -55,6 +55,9 @@ templ Layout(v view.View) {
 			</div>
 		}
 		<main class="mx-auto min-h-dvh w-full max-w-md overflow-hidden bg-surface shadow-2xl shadow-black/10">
+			if v.Memory {
+				<p class="bg-primary px-4 py-3 text-center text-sm text-white">Terima kasih telah menjadi bagian dari hari kami ♡</p>
+			}
 			{ children... }
 		</main>
 	}

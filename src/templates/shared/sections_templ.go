@@ -104,7 +104,7 @@ func RSVPSection(v view.View) templ.Component {
 			templ_7745c5c3_Var5 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		if v.Preview {
+		if v.Preview && v.AllowRSVP {
 			templ_7745c5c3_Err = placeholder("rsvp", "Konfirmasi Kehadiran", "Form RSVP untuk tamu akan tampil di sini.").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -136,7 +136,7 @@ func GuestbookSection(v view.View) templ.Component {
 			templ_7745c5c3_Var6 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		if v.Preview {
+		if v.Preview && v.AllowGuestbook {
 			templ_7745c5c3_Err = placeholder("guestbook", "Ucapan & Doa", "Buku tamu akan tampil di sini.").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err

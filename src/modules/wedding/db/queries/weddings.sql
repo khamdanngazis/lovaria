@@ -50,3 +50,14 @@ WHERE starts_with(main_photo_url, sqlc.arg(old_prefix)::text);
 
 -- name: SetThemeID :execrows
 UPDATE weddings SET theme_id = $2 WHERE id = $1;
+
+-- name: GetWeddingForUpdate :one
+SELECT * FROM weddings WHERE id = $1 FOR UPDATE;
+
+-- name: SetStatus :exec
+UPDATE weddings SET status = $2 WHERE id = $1;
+
+-- name: ListLifecycleCandidates :many
+-- Wedding yang mungkin perlu maju status otomatis (dicek per zona waktu di Go).
+SELECT id, status, wedding_date, timezone FROM weddings
+WHERE status IN ('published', 'wedding_day', 'memory') AND wedding_date <= sqlc.arg(until)::date;

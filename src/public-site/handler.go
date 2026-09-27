@@ -48,6 +48,9 @@ func (h *Handler) Home(c echo.Context) error {
 func (h *Handler) Invitation(c echo.Context) error {
 	ctx := c.Request().Context()
 	res, _ := FromContext(ctx)
+	if res.Wedding.IsArchived() {
+		return h.archived(c, res)
+	}
 	v, err := h.Views.Build(ctx, res.Wedding, res.Guest)
 	if err != nil {
 		return err
@@ -83,6 +86,17 @@ func (h *Handler) Invitation(c echo.Context) error {
 		}
 	}
 	return c.HTMLBlob(http.StatusOK, buf.Bytes())
+}
+
+// archived: halaman ringkas untuk undangan yang telah diarsipkan.
+func (h *Handler) archived(c echo.Context, res Resolved) error {
+	couple, err := h.Views.Weddings.GetCouple(c.Request().Context(), res.Wedding.ID)
+	if err != nil {
+		return err
+	}
+	c.Response().Header().Set("Cache-Control", "public, max-age=300")
+	c.Response().Header().Set("X-Robots-Tag", "noindex")
+	return web.Render(c, http.StatusOK, archivedPage(firstName(couple.GroomName)+" & "+firstName(couple.BrideName), web.FormatDateID(res.Wedding.WeddingDate)))
 }
 
 // og menyusun meta preview link (WhatsApp dll.): nama pasangan, tanggal, foto sampul.

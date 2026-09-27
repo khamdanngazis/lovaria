@@ -49,11 +49,6 @@ func FromContext(ctx context.Context) (Resolved, bool) {
 	return r, ok
 }
 
-// publicStatuses: status yang boleh dilihat publik; selain itu hanya owner (preview).
-var publicStatuses = map[string]bool{
-	wedding.StatusPublished: true, wedding.StatusWeddingDay: true, wedding.StatusMemory: true,
-}
-
 // Resolver adalah SATU-SATUNYA tempat resolusi wedding dari request
 // (Arsitektur §3 aturan 5): Host header (custom domain) → path /i/:code → /w/:slug.
 type Resolver struct {
@@ -152,8 +147,8 @@ func (r *Resolver) ResolveWedding(next echo.HandlerFunc) echo.HandlerFunc {
 			return next(c) // "/" di domain utama → landing page
 		}
 
-		// Gerbang status: belum publik hanya untuk owner (preview).
-		if !publicStatuses[res.Wedding.Status] {
+		// Gerbang status (wedding.IsPublic): draft hanya untuk owner (preview).
+		if !res.Wedding.IsPublic() {
 			u, ok := web.CurrentUser(ctx)
 			if !ok || u.ID != res.Wedding.OwnerUserID {
 				return notFound(c)

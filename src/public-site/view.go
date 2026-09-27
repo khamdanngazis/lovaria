@@ -58,7 +58,10 @@ func (b *ViewBuilder) Build(ctx context.Context, w wedding.Wedding, g *guest.Gue
 			GroomPhoto: deref(c.GroomPhotoURL), BridePhoto: deref(c.BridePhotoURL),
 			GroomDesc: c.GroomDescription, BrideDesc: c.BrideDescription,
 		},
-		Settings: settings,
+		Settings:       settings,
+		Memory:         w.InMemory(),
+		AllowRSVP:      w.AllowsRSVP(),
+		AllowGuestbook: w.AllowsGuestbook(),
 	}
 	if w.MainPhotoURL != nil {
 		v.MainPhoto = *w.MainPhotoURL
@@ -94,6 +97,8 @@ func (b *ViewBuilder) Preview(ctx context.Context, w wedding.Wedding) (view.View
 		return view.View{}, err
 	}
 	v.Preview = true
+	// Preview dashboard menampilkan semua bagian supaya tampilan tema terlihat utuh.
+	v.AllowRSVP, v.AllowGuestbook = true, true
 	FillSample(&v)
 	return v, nil
 }

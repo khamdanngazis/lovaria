@@ -73,7 +73,7 @@ func TestRenderSettingsOverrideAndFallback(t *testing.T) {
 	v := sample()
 	v.ThemeID = "tidak-ada"
 	v.Settings = view.Settings{PrimaryColor: "#123456", FontHeading: "Cinzel", CoverImage: "https://pub-x.r2.dev/cover.jpg"}
-	v.Preview = true
+	v.Preview, v.AllowRSVP = true, true
 	html := render(t, v)
 	for _, want := range []string{`data-theme="elegant"`, "--lv-primary:#123456;", "family=Cinzel", "cover.jpg", `id="rsvp"`, "Preview"} {
 		if !strings.Contains(html, want) {

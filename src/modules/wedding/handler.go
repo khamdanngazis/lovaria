@@ -13,11 +13,12 @@ import (
 )
 
 type Handler struct {
-	svc *Service
+	svc         *Service
+	archiveDays int
 }
 
 func NewHandler(svc *Service) *Handler {
-	return &Handler{svc: svc}
+	return &Handler{svc: svc, archiveDays: 365}
 }
 
 var (
@@ -154,12 +155,66 @@ func mustWedding(c echo.Context) Wedding {
 
 // GET /dashboard/weddings/:weddingID
 func (h *Handler) Overview(c echo.Context) error {
-	w := mustWedding(c)
-	couple, err := h.svc.GetCouple(c.Request().Context(), w.ID)
+	o, err := h.overview(c, mustWedding(c))
 	if err != nil {
 		return err
 	}
-	return web.Render(c, http.StatusOK, overviewPage(w, couple, c.QueryParam("welcome") == "1"))
+	o.Welcome = c.QueryParam("welcome") == "1"
+	switch c.QueryParam("status") {
+	case StatusPublished:
+		o.Notice = "Undangan dipublikasikan. Bagikan link ke tamu dari menu Tamu."
+	case StatusDraft:
+		o.Notice = "Publikasi ditarik. Undangan kembali hanya bisa dilihat Anda."
+	}
+	return web.Render(c, http.StatusOK, overviewPage(o))
+}
+
+func (h *Handler) overview(c echo.Context, w Wedding) (overviewState, error) {
+	ctx := c.Request().Context()
+	couple, err := h.svc.GetCouple(ctx, w.ID)
+	if err != nil {
+		return overviewState{}, err
+	}
+	checklist, err := h.svc.Checklist(ctx, w.ID)
+	if err != nil {
+		return overviewState{}, err
+	}
+	history, err := h.svc.History(ctx, w.ID, 10)
+	if err != nil {
+		return overviewState{}, err
+	}
+	return overviewState{W: w, Couple: couple, Checklist: checklist, History: history}, nil
+}
+
+// PATCH /dashboard/weddings/:weddingID/status (status=published|draft) — Publish/Unpublish.
+func (h *Handler) UpdateStatus(c echo.Context) error {
+	w := mustWedding(c)
+	u, err := currentUser(c)
+	if err != nil {
+		return err
+	}
+	to := c.FormValue("status")
+	updated, err := h.svc.Transition(c.Request().Context(), w.ID, to, Actor{Kind: ActorUser, UserID: u.ID})
+	var te *TransitionError
+	var ce *ChecklistError
+	if errors.As(err, &te) || errors.As(err, &ce) {
+		o, oerr := h.overview(c, w)
+		if oerr != nil {
+			return oerr
+		}
+		o.Error = err.Error()
+		return web.Render(c, http.StatusUnprocessableEntity, overviewPage(o))
+	}
+	if err != nil {
+		return err
+	}
+	// Dipublikasikan pada/sesudah hari H → langsung ke status yang sesuai tanggal.
+	if to == StatusPublished {
+		if err := h.svc.AdvanceNow(c.Request().Context(), updated.ID, h.archiveDays); err != nil {
+			return err
+		}
+	}
+	return c.Redirect(http.StatusSeeOther, weddingURL(updated, "?status="+to))
 }
 
 func infoValues(w Wedding) form {

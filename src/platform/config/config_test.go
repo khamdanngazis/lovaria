@@ -87,6 +87,9 @@ func TestMailDefaultsToLog(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if cfg.ArchiveAfterDays != 365 {
+		t.Errorf("ArchiveAfterDays = %d", cfg.ArchiveAfterDays)
+	}
 	if cfg.Mail.Driver != "log" || cfg.Mail.SMTPPort != 587 || cfg.CookieSecure() {
 		t.Errorf("unexpected: %+v secure=%v", cfg.Mail, cfg.CookieSecure())
 	}
@@ -156,6 +159,7 @@ func TestLoadInvalid(t *testing.T) {
 		"resend":   {"MAIL_DRIVER": "resend"},
 		"smtpPort": {"SMTP_PORT": "x"},
 		"storDrv":  {"STORAGE_DRIVER": "ftp"},
+		"archive":  {"LIFECYCLE_ARCHIVE_DAYS": "0"},
 		"quota":    {"STORAGE_QUOTA_MB": "0"},
 	}
 	for name, env := range cases {

@@ -347,6 +347,12 @@ func (s *Service) GetEvent(ctx context.Context, weddingID, id uuid.UUID) (Event,
 	return toEvent(e), nil
 }
 
+// CountEvents menghitung acara wedding (dipakai checklist publikasi, T12).
+func (s *Service) CountEvents(ctx context.Context, weddingID uuid.UUID) (int, error) {
+	n, err := s.repo.q.CountEvents(ctx, weddingID)
+	return int(n), err
+}
+
 // ListEvents mengembalikan acara wedding sesuai urutan tampil (dipakai public site, T09).
 func (s *Service) ListEvents(ctx context.Context, weddingID uuid.UUID) ([]Event, error) {
 	rows, err := s.repo.q.ListEvents(ctx, weddingID)

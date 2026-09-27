@@ -59,6 +59,7 @@ Semua lewat environment variable (lihat [`.env.example`](.env.example)), dibaca 
 | `R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` / `R2_BUCKET` | — | Wajib untuk `STORAGE_DRIVER=r2` |
 | `R2_PUBLIC_URL` | — | URL publik bucket, mis. `https://media.lovoria.com` atau `https://pub-xxx.r2.dev` |
 | `R2_ENDPOINT` | `https://<account>.r2.cloudflarestorage.com` | Override endpoint S3 (opsional) |
+| `LIFECYCLE_ARCHIVE_DAYS` | `365` | Wedding berstatus Kenangan diarsipkan otomatis setelah N hari |
 | `DATABASE_URL_TEST` | — | Hanya untuk integration test (user harus boleh `CREATE DATABASE`) |
 | `SHUTDOWN_TIMEOUT` | `10s` | Batas graceful shutdown |
 | `STATIC_FROM_DISK` | `true` di dev | `false` → aset dari embed binary |

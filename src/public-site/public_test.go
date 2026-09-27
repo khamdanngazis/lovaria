@@ -42,13 +42,14 @@ func (f fakeDomains) WeddingIDByHost(_ context.Context, host string) (uuid.UUID,
 }
 
 type fixture struct {
-	e        *echo.Echo
-	weddings *wedding.Service
-	guests   *guest.Service
-	events   *event.Service
-	auth     *auth.Service
-	domains  fakeDomains
-	publish  func(uuid.UUID)
+	e         *echo.Echo
+	weddings  *wedding.Service
+	guests    *guest.Service
+	events    *event.Service
+	auth      *auth.Service
+	domains   fakeDomains
+	publish   func(uuid.UUID)
+	setStatus func(uuid.UUID, string)
 }
 
 func newFixture(t *testing.T) fixture {
@@ -88,6 +89,11 @@ func newFixture(t *testing.T) fixture {
 		auth: auth.NewService(auth.NewRepository(pool), &mail.LogMailer{Log: log}, "http://x", log),
 		publish: func(id uuid.UUID) {
 			if _, err := pool.Exec(ctx, `UPDATE weddings SET status = 'published' WHERE id = $1`, id); err != nil {
+				t.Fatal(err)
+			}
+		},
+		setStatus: func(id uuid.UUID, status string) {
+			if _, err := pool.Exec(ctx, `UPDATE weddings SET status = $2 WHERE id = $1`, id, status); err != nil {
 				t.Fatal(err)
 			}
 		},
@@ -264,5 +270,26 @@ func TestCustomDomain(t *testing.T) {
 	// Host tak dikenal → "/" tetap landing.
 	if rec := f.get("/", map[string]string{"Host": "unknown.example"}); !strings.Contains(rec.Body.String(), "Undangan pernikahan digital") {
 		t.Error("host tak dikenal harus landing")
+	}
+}
+
+func TestMemoryAndArchivedPages(t *testing.T) {
+	f := newFixture(t)
+	_, w := f.newWedding(t, "a@example.com", "Khamdan", "Sarah")
+	g, _ := f.guests.Create(ctx, w.ID, guest.Input{Name: "Budi"})
+
+	f.setStatus(w.ID, wedding.StatusMemory)
+	rec := f.get("/i/"+g.InvitationCode, nil)
+	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Terima kasih telah menjadi bagian dari hari kami") {
+		t.Errorf("kenangan: %d", rec.Code)
+	}
+
+	f.setStatus(w.ID, wedding.StatusArchived)
+	for _, p := range []string{"/w/" + w.Slug, "/i/" + g.InvitationCode} {
+		rec = f.get(p, nil)
+		body := rec.Body.String()
+		if rec.Code != http.StatusOK || !strings.Contains(body, "Undangan ini telah diarsipkan") || strings.Contains(body, `id="events"`) {
+			t.Errorf("arsip %s: %d", p, rec.Code)
+		}
 	}
 }
