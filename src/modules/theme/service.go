@@ -87,3 +87,43 @@ func (s *Service) Configured(ctx context.Context, weddingID uuid.UUID) (bool, er
 	}
 	return err == nil, err
 }
+
+// ---------- Ketersediaan tema (admin, T16) ----------
+
+// Disabled: tema yang dinonaktifkan admin untuk pasangan baru.
+func (s *Service) Disabled(ctx context.Context) (map[string]bool, error) {
+	ids, err := s.q.ListDisabledThemes(ctx)
+	out := map[string]bool{}
+	for _, id := range ids {
+		out[id] = true
+	}
+	return out, err
+}
+
+// SetEnabled mengaktifkan/menonaktifkan tema. Wedding yang sudah memakai tema
+// yang dinonaktifkan tetap memakainya.
+func (s *Service) SetEnabled(ctx context.Context, themeID string, enabled bool) error {
+	if !Exists(themeID) {
+		return ErrUnknownTheme
+	}
+	if enabled {
+		return s.q.EnableTheme(ctx, themeID)
+	}
+	return s.q.DisableTheme(ctx, themeID)
+}
+
+// Choices: tema yang bisa dipilih wedding — semua tema aktif ditambah tema
+// yang sedang dipakai (walau sudah dinonaktifkan).
+func (s *Service) Choices(ctx context.Context, current string) ([]ThemeDef, error) {
+	off, err := s.Disabled(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var out []ThemeDef
+	for _, d := range All() {
+		if !off[d.ID] || d.ID == current {
+			out = append(out, d)
+		}
+	}
+	return out, nil
+}

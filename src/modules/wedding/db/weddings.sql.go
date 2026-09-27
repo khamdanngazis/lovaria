@@ -12,6 +12,99 @@ import (
 	"github.com/google/uuid"
 )
 
+const adminCountWeddings = `-- name: AdminCountWeddings :one
+SELECT count(*) FROM weddings
+WHERE ($1::text IS NULL OR status = $1)
+  AND ($2::date IS NULL OR wedding_date >= $2)
+  AND ($3::date IS NULL OR wedding_date <= $3)
+  AND ($4::text IS NULL OR title ILIKE '%' || $4 || '%' OR slug::text ILIKE '%' || $4 || '%')
+`
+
+type AdminCountWeddingsParams struct {
+	Status   *string
+	DateFrom *time.Time
+	DateTo   *time.Time
+	Q        *string
+}
+
+func (q *Queries) AdminCountWeddings(ctx context.Context, arg AdminCountWeddingsParams) (int64, error) {
+	row := q.db.QueryRow(ctx, adminCountWeddings,
+		arg.Status,
+		arg.DateFrom,
+		arg.DateTo,
+		arg.Q,
+	)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const adminListWeddings = `-- name: AdminListWeddings :many
+SELECT id, owner_user_id, slug, title, wedding_date, description, main_photo_url, status, theme_id, created_at, updated_at, timezone, storage_used_bytes FROM weddings
+WHERE ($1::text IS NULL OR status = $1)
+  AND ($2::date IS NULL OR wedding_date >= $2)
+  AND ($3::date IS NULL OR wedding_date <= $3)
+  AND ($4::text IS NULL OR title ILIKE '%' || $4 || '%' OR slug::text ILIKE '%' || $4 || '%')
+ORDER BY
+  CASE WHEN $5::text = 'storage' THEN storage_used_bytes END DESC,
+  CASE WHEN $5::text = 'date' THEN wedding_date END ASC,
+  created_at DESC, id DESC
+LIMIT $7 OFFSET $6
+`
+
+type AdminListWeddingsParams struct {
+	Status   *string
+	DateFrom *time.Time
+	DateTo   *time.Time
+	Q        *string
+	Sort     string
+	Off      int32
+	Lim      int32
+}
+
+// Panel admin (T16): semua wedding dengan filter & urutan. Laporan lintas tenant.
+func (q *Queries) AdminListWeddings(ctx context.Context, arg AdminListWeddingsParams) ([]Wedding, error) {
+	rows, err := q.db.Query(ctx, adminListWeddings,
+		arg.Status,
+		arg.DateFrom,
+		arg.DateTo,
+		arg.Q,
+		arg.Sort,
+		arg.Off,
+		arg.Lim,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Wedding{}
+	for rows.Next() {
+		var i Wedding
+		if err := rows.Scan(
+			&i.ID,
+			&i.OwnerUserID,
+			&i.Slug,
+			&i.Title,
+			&i.WeddingDate,
+			&i.Description,
+			&i.MainPhotoUrl,
+			&i.Status,
+			&i.ThemeID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Timezone,
+			&i.StorageUsedBytes,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const countMainPhotoPrefix = `-- name: CountMainPhotoPrefix :one
 SELECT count(*) FROM weddings WHERE starts_with(main_photo_url, $1::text)
 `
@@ -21,6 +114,64 @@ func (q *Queries) CountMainPhotoPrefix(ctx context.Context, oldPrefix string) (i
 	var count int64
 	err := row.Scan(&count)
 	return count, err
+}
+
+const countWeddingsByStatus = `-- name: CountWeddingsByStatus :many
+SELECT status, count(*) AS n FROM weddings GROUP BY status
+`
+
+type CountWeddingsByStatusRow struct {
+	Status string
+	N      int64
+}
+
+func (q *Queries) CountWeddingsByStatus(ctx context.Context) ([]CountWeddingsByStatusRow, error) {
+	rows, err := q.db.Query(ctx, countWeddingsByStatus)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []CountWeddingsByStatusRow{}
+	for rows.Next() {
+		var i CountWeddingsByStatusRow
+		if err := rows.Scan(&i.Status, &i.N); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const countWeddingsByTheme = `-- name: CountWeddingsByTheme :many
+SELECT theme_id, count(*) AS n FROM weddings GROUP BY theme_id
+`
+
+type CountWeddingsByThemeRow struct {
+	ThemeID string
+	N       int64
+}
+
+func (q *Queries) CountWeddingsByTheme(ctx context.Context) ([]CountWeddingsByThemeRow, error) {
+	rows, err := q.db.Query(ctx, countWeddingsByTheme)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []CountWeddingsByThemeRow{}
+	for rows.Next() {
+		var i CountWeddingsByThemeRow
+		if err := rows.Scan(&i.ThemeID, &i.N); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const createWedding = `-- name: CreateWedding :one
@@ -371,6 +522,17 @@ func (q *Queries) SetThemeID(ctx context.Context, arg SetThemeIDParams) (int64, 
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const storageTotal = `-- name: StorageTotal :one
+SELECT COALESCE(sum(storage_used_bytes), 0)::bigint FROM weddings
+`
+
+func (q *Queries) StorageTotal(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, storageTotal)
+	var column_1 int64
+	err := row.Scan(&column_1)
+	return column_1, err
 }
 
 const updateWeddingInfo = `-- name: UpdateWeddingInfo :one

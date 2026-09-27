@@ -1,10 +1,571 @@
 package admin
 
-import "github.com/khamdanngazis/lovaria/src/templates/layouts"
+import (
+	"fmt"
+	"net/url"
+	"strconv"
+	"time"
 
-templ homePage() {
-	@layouts.Dashboard(layouts.Meta{Title: "Admin"}) {
-		<h1 class="text-2xl font-semibold">Panel admin</h1>
-		<p class="mt-2 text-slate-600">Segera hadir (T16).</p>
+	"github.com/google/uuid"
+
+	"github.com/khamdanngazis/lovaria/src/modules/auth"
+	"github.com/khamdanngazis/lovaria/src/modules/domain"
+	"github.com/khamdanngazis/lovaria/src/modules/gallery"
+	"github.com/khamdanngazis/lovaria/src/modules/guest"
+	"github.com/khamdanngazis/lovaria/src/modules/theme"
+	"github.com/khamdanngazis/lovaria/src/modules/wedding"
+	"github.com/khamdanngazis/lovaria/src/platform/web"
+	"github.com/khamdanngazis/lovaria/src/templates/layouts"
+	"github.com/khamdanngazis/lovaria/src/templates/ui"
+)
+
+type homeData struct {
+	Users, Weddings int
+	ByStatus        map[string]int
+	Storage         int64
+	ActiveDomains   int
+	QuotaWarn       int
+	Audit           []AuditEntry
+}
+
+type weddingData struct {
+	W           wedding.Wedding
+	Couple      wedding.Couple
+	Owner       auth.User
+	Guests      guest.Stats
+	Usage       gallery.Usage
+	Domain      *domain.Domain
+	Package     Package
+	HasPackage  bool
+	Packages    []Package
+	History     []wedding.StatusChange
+	Audit       []AuditEntry
+	Transitions []string
+	Flash       flash
+}
+
+var statuses = wedding.AllStatuses()
+
+func bytesText(n int64) string {
+	switch {
+	case n >= 1<<30:
+		return fmt.Sprintf("%.1f GB", float64(n)/(1<<30))
+	case n >= 1<<20:
+		return fmt.Sprintf("%.1f MB", float64(n)/(1<<20))
+	default:
+		return fmt.Sprintf("%d KB", (n+1023)/1024)
+	}
+}
+
+func when(t time.Time) string { return t.Format("02/01/2006 15:04") }
+
+func pct(a, b int64) int {
+	if b <= 0 {
+		return 0
+	}
+	return int(min(100, a*100/b))
+}
+
+// pageURL: URL daftar dengan query yang sama, halaman berbeda.
+func pageURL(path string, q url.Values, page int) string {
+	v := url.Values{}
+	for k, vs := range q {
+		v[k] = vs
+	}
+	v.Set("page", strconv.Itoa(page))
+	return path + "?" + v.Encode()
+}
+
+var tabs = []struct{ Path, Label string }{
+	{"/admin", "Ringkasan"}, {"/admin/users", "Customers"}, {"/admin/weddings", "Weddings"}, {"/admin/themes", "Tema"},
+	{"/admin/packages", "Paket"}, {"/admin/storage", "Storage"}, {"/admin/domains", "Domain"}, {"/admin/audit", "Audit log"},
+}
+
+templ shell(title, active string) {
+	@layouts.Dashboard(layouts.Meta{Title: "Admin · " + title}) {
+		<p class="text-xs font-medium uppercase tracking-wide text-primary">Panel admin</p>
+		<h1 class="mt-1 text-2xl font-semibold">{ title }</h1>
+		<nav class="scrollbar-none -mx-4 mt-4 overflow-x-auto border-b border-slate-200 px-4" aria-label="Menu admin">
+			<ul class="flex gap-5 whitespace-nowrap text-sm">
+				for _, t := range tabs {
+					<li>
+						<a href={ templ.SafeURL(t.Path) } class={ "-mb-px block border-b-2 pb-2", templ.KV("border-primary font-medium text-slate-900", active == t.Path), templ.KV("border-transparent text-slate-500 hover:text-slate-800", active != t.Path) }>{ t.Label }</a>
+					</li>
+				}
+			</ul>
+		</nav>
+		<div class="mt-6 space-y-4">
+			{ children... }
+		</div>
+	}
+}
+
+templ flashMsg(f flash) {
+	@ui.Notice(f.Notice)
+	@ui.Alert(f.Error)
+}
+
+templ stat(label, value, sub string) {
+	<div class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
+		<p class="text-xs text-slate-500">{ label }</p>
+		<p class="mt-1 text-2xl font-semibold">{ value }</p>
+		if sub != "" {
+			<p class="text-xs text-slate-500">{ sub }</p>
+		}
+	</div>
+}
+
+templ pager(path string, q url.Values, page, total int) {
+	if pages := max(1, (total+PerPage-1)/PerPage); pages > 1 {
+		<nav class="flex items-center justify-between text-sm" aria-label="Halaman">
+			if page > 1 {
+				<a href={ templ.SafeURL(pageURL(path, q, page-1)) } class="rounded-lg border border-slate-300 bg-white px-3 py-1.5">‹ Sebelumnya</a>
+			} else {
+				<span></span>
+			}
+			<span class="text-slate-500">Halaman { strconv.Itoa(page) } dari { strconv.Itoa(pages) } · { strconv.Itoa(total) } data</span>
+			if page < pages {
+				<a href={ templ.SafeURL(pageURL(path, q, page+1)) } class="rounded-lg border border-slate-300 bg-white px-3 py-1.5">Berikutnya ›</a>
+			} else {
+				<span></span>
+			}
+		</nav>
+	}
+}
+
+const th = "px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-slate-500"
+const td = "px-3 py-2 align-top"
+
+templ table() {
+	<div class="overflow-x-auto rounded-2xl bg-white shadow-sm ring-1 ring-black/5">
+		<table class="min-w-full divide-y divide-slate-100 text-sm">
+			{ children... }
+		</table>
+	</div>
+}
+
+templ auditTable(es []AuditEntry) {
+	@table() {
+		<thead><tr><th class={ th }>Waktu</th><th class={ th }>Admin</th><th class={ th }>Aksi</th><th class={ th }>Target</th><th class={ th }>Detail</th></tr></thead>
+		<tbody class="divide-y divide-slate-100">
+			if len(es) == 0 {
+				<tr><td colspan="5" class={ td + " text-slate-500" }>Belum ada aksi admin.</td></tr>
+			}
+			for _, e := range es {
+				<tr>
+					<td class={ td + " whitespace-nowrap" }>{ when(e.CreatedAt) }</td>
+					<td class={ td }>{ e.AdminEmail }</td>
+					<td class={ td + " font-mono text-xs" }>{ e.Action }</td>
+					<td class={ td + " font-mono text-xs" }>
+						if e.TargetType == "wedding" {
+							<a href={ templ.SafeURL("/admin/weddings/" + e.TargetID) } class="text-primary hover:underline">{ e.TargetType }:{ e.TargetID[:min(8, len(e.TargetID))] }</a>
+						} else if e.TargetType == "user" {
+							<a href={ templ.SafeURL("/admin/users/" + e.TargetID) } class="text-primary hover:underline">{ e.TargetType }:{ e.TargetID[:min(8, len(e.TargetID))] }</a>
+						} else {
+							{ e.TargetType }:{ e.TargetID }
+						}
+					</td>
+					<td class={ td + " text-xs text-slate-600" }>
+						for k, v := range e.Details {
+							<span class="mr-2">{ k }={ v }</span>
+						}
+					</td>
+				</tr>
+			}
+		</tbody>
+	}
+}
+
+// ---------- Ringkasan ----------
+templ homePage(d homeData) {
+	@shell("Ringkasan", "/admin") {
+		<div class="grid grid-cols-2 gap-3 md:grid-cols-4">
+			@stat("Customers", strconv.Itoa(d.Users), "")
+			@stat("Wedding", strconv.Itoa(d.Weddings), "semua status")
+			@stat("Storage terpakai", bytesText(d.Storage), "")
+			@stat("Custom domain aktif", fmt.Sprintf("%d / 100", d.ActiveDomains), "kuota gratis Cloudflare for SaaS")
+		</div>
+		if d.ActiveDomains >= d.QuotaWarn {
+			@ui.Alert(fmt.Sprintf("Custom domain aktif sudah %d dari kuota gratis 100. Siapkan anggaran untuk hostname tambahan.", d.ActiveDomains))
+		}
+		<div class="flex flex-wrap gap-2 text-sm">
+			for _, st := range statuses {
+				<a href={ templ.SafeURL("/admin/weddings?status=" + st) } class="rounded-full bg-white px-3 py-1.5 ring-1 ring-slate-300">{ wedding.StatusLabel(st) } · { strconv.Itoa(d.ByStatus[st]) }</a>
+			}
+		</div>
+		<h2 class="pt-2 font-semibold">Aksi admin terbaru</h2>
+		@auditTable(d.Audit)
+	}
+}
+
+// ---------- Customers ----------
+templ usersPage(q string, p auth.UserPage) {
+	@shell("Customers", "/admin/users") {
+		<form method="get" class="flex gap-2">
+			<input type="search" name="q" value={ q } placeholder="Cari nama atau email…" aria-label="Cari customer" class="min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2"/>
+			<button type="submit" class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white">Cari</button>
+		</form>
+		@table() {
+			<thead><tr><th class={ th }>Nama</th><th class={ th }>Email</th><th class={ th }>Peran</th><th class={ th }>Daftar</th><th class={ th }>Status</th></tr></thead>
+			<tbody class="divide-y divide-slate-100">
+				if len(p.Users) == 0 {
+					<tr><td colspan="5" class={ td + " text-slate-500" }>Tidak ada customer yang cocok.</td></tr>
+				}
+				for _, u := range p.Users {
+					<tr>
+						<td class={ td }><a href={ templ.SafeURL("/admin/users/" + u.ID.String()) } class="font-medium text-primary hover:underline">{ u.Name }</a></td>
+						<td class={ td }>{ u.Email }</td>
+						<td class={ td }>{ u.Role }</td>
+						<td class={ td + " whitespace-nowrap" }>{ web.FormatDateID(u.CreatedAt) }</td>
+						<td class={ td }>
+							if u.DisabledAt != nil {
+								<span class="rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-700">Nonaktif</span>
+							} else {
+								<span class="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-800">Aktif</span>
+							}
+						</td>
+					</tr>
+				}
+			</tbody>
+		}
+		@pager("/admin/users", url.Values{"q": {q}}, p.Page, p.Total)
+	}
+}
+
+templ userPage(u auth.User, ws []wedding.Wedding, f flash) {
+	@shell(u.Name, "/admin/users") {
+		@flashMsg(f)
+		@ui.Card() {
+			<dl class="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-[auto_1fr]">
+				<dt class="text-slate-500">Email</dt>
+				<dd>{ u.Email }</dd>
+				<dt class="text-slate-500">Peran</dt>
+				<dd>{ u.Role }</dd>
+				<dt class="text-slate-500">Terdaftar</dt>
+				<dd>{ when(u.CreatedAt) }</dd>
+				<dt class="text-slate-500">Status</dt>
+				<dd>
+					if u.DisabledAt != nil {
+						Nonaktif sejak { when(*u.DisabledAt) }
+					} else {
+						Aktif
+					}
+				</dd>
+			</dl>
+			<div class="mt-4 flex flex-wrap gap-2">
+				<a href={ templ.SafeURL("mailto:" + u.Email) } class="rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50">Kirim email</a>
+				<form
+					method="post"
+					action={ templ.SafeURL("/admin/users/" + u.ID.String() + "/disabled") }
+					if u.DisabledAt == nil {
+						onsubmit="return confirm('Nonaktifkan akun ini? User langsung keluar dari semua sesi dan tidak bisa login.')"
+					}
+				>
+					@layouts.CSRFField()
+					if u.DisabledAt != nil {
+						<input type="hidden" name="disabled" value="0"/>
+						<button type="submit" class="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white">Aktifkan kembali</button>
+					} else {
+						<input type="hidden" name="disabled" value="1"/>
+						<button type="submit" class="rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50">Nonaktifkan akun</button>
+					}
+				</form>
+			</div>
+		}
+		<h2 class="font-semibold">Wedding milik user ini</h2>
+		@weddingTable(ws, nil)
+	}
+}
+
+// ---------- Weddings ----------
+templ weddingTable(ws []wedding.Wedding, owners map[string]string) {
+	@table() {
+		<thead>
+			<tr>
+				<th class={ th }>Wedding</th>
+				<th class={ th }>Tanggal</th>
+				<th class={ th }>Status</th>
+				<th class={ th }>Storage</th>
+				if owners != nil {
+					<th class={ th }>Pemilik</th>
+				}
+			</tr>
+		</thead>
+		<tbody class="divide-y divide-slate-100">
+			if len(ws) == 0 {
+				<tr><td colspan="5" class={ td + " text-slate-500" }>Tidak ada wedding.</td></tr>
+			}
+			for _, w := range ws {
+				<tr>
+					<td class={ td }>
+						<a href={ templ.SafeURL("/admin/weddings/" + w.ID.String()) } class="font-medium text-primary hover:underline">{ w.Title }</a>
+						<p class="text-xs text-slate-500">/w/{ w.Slug }</p>
+					</td>
+					<td class={ td + " whitespace-nowrap" }>{ w.WeddingDate.Format("02/01/2006") }</td>
+					<td class={ td }>{ wedding.StatusLabel(w.Status) }</td>
+					<td class={ td + " whitespace-nowrap" }>{ bytesText(w.StorageUsedBytes) }</td>
+					if owners != nil {
+						<td class={ td }>{ owners[w.OwnerUserID.String()] }</td>
+					}
+				</tr>
+			}
+		</tbody>
+	}
+}
+
+func ownerEmails(m map[uuid.UUID]string) map[string]string {
+	out := map[string]string{}
+	for k, v := range m {
+		out[k.String()] = v
+	}
+	return out
+}
+
+func filterQuery(f wedding.AdminFilter) url.Values {
+	return url.Values{"status": {f.Status}, "from": {f.From}, "to": {f.To}, "q": {f.Q}, "sort": {f.Sort}}
+}
+
+templ weddingsPage(f wedding.AdminFilter, p wedding.WeddingPage, owners map[uuid.UUID]string) {
+	@shell("Weddings", "/admin/weddings") {
+		<form method="get" class="grid gap-2 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-black/5 sm:grid-cols-6">
+			<input type="search" name="q" value={ f.Q } placeholder="Judul / slug" aria-label="Cari wedding" class="rounded-lg border border-slate-300 px-3 py-2 sm:col-span-2"/>
+			<select name="status" aria-label="Status" class="rounded-lg border border-slate-300 px-3 py-2">
+				<option value="">Semua status</option>
+				for _, st := range statuses {
+					<option value={ st } selected?={ f.Status == st }>{ wedding.StatusLabel(st) }</option>
+				}
+			</select>
+			<input type="date" name="from" value={ f.From } aria-label="Tanggal dari" class="rounded-lg border border-slate-300 px-3 py-2"/>
+			<input type="date" name="to" value={ f.To } aria-label="Tanggal sampai" class="rounded-lg border border-slate-300 px-3 py-2"/>
+			<select name="sort" aria-label="Urutkan" class="rounded-lg border border-slate-300 px-3 py-2">
+				<option value="created" selected?={ f.Sort == "" || f.Sort == "created" }>Terbaru dibuat</option>
+				<option value="date" selected?={ f.Sort == "date" }>Tanggal pernikahan</option>
+				<option value="storage" selected?={ f.Sort == "storage" }>Storage terbesar</option>
+			</select>
+			<button type="submit" class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white sm:col-span-6 sm:justify-self-end">Terapkan</button>
+		</form>
+		@weddingTable(p.Weddings, ownerEmails(owners))
+		@pager("/admin/weddings", filterQuery(f), p.Page, p.Total)
+	}
+}
+
+templ weddingPage(d weddingData) {
+	@shell(d.W.Title, "/admin/weddings") {
+		@flashMsg(d.Flash)
+		<div class="grid gap-4 md:grid-cols-2">
+			@ui.Card() {
+				<dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
+					<dt class="text-slate-500">Pasangan</dt>
+					<dd>{ d.Couple.GroomName } &amp; { d.Couple.BrideName }</dd>
+					<dt class="text-slate-500">Tanggal</dt>
+					<dd>{ web.FormatDateID(d.W.WeddingDate) }</dd>
+					<dt class="text-slate-500">Status</dt>
+					<dd class="font-medium">{ wedding.StatusLabel(d.W.Status) }</dd>
+					<dt class="text-slate-500">Pemilik</dt>
+					<dd><a href={ templ.SafeURL("/admin/users/" + d.Owner.ID.String()) } class="text-primary hover:underline">{ d.Owner.Email }</a></dd>
+					<dt class="text-slate-500">Tema</dt>
+					<dd>{ d.W.ThemeID }</dd>
+					<dt class="text-slate-500">Domain</dt>
+					<dd>
+						if d.Domain != nil {
+							{ d.Domain.Domain } · { domain.StatusLabel(d.Domain.Status) }
+						} else {
+							—
+						}
+					</dd>
+				</dl>
+				<div class="mt-4 flex flex-wrap gap-2 text-sm">
+					<a href={ templ.SafeURL("/w/" + d.W.Slug) } target="_blank" rel="noopener" class="rounded-lg border border-slate-300 px-3 py-2 hover:bg-slate-50">Buka website ↗</a>
+					<form method="post" action={ templ.SafeURL("/admin/weddings/" + d.W.ID.String() + "/view") }>
+						@layouts.CSRFField()
+						<button type="submit" class="rounded-lg border border-slate-300 px-3 py-2 hover:bg-slate-50">Lihat dashboard (lihat saja)</button>
+					</form>
+				</div>
+			}
+			@ui.Card() {
+				<p class="text-xs uppercase tracking-wide text-slate-400">Tamu & RSVP</p>
+				<p class="mt-1 text-sm">{ strconv.Itoa(d.Guests.Total) } tamu · { strconv.Itoa(d.Guests.Attending) } hadir ({ strconv.Itoa(d.Guests.PaxAttending) } orang) · { strconv.Itoa(d.Guests.Declined) } tidak · { strconv.Itoa(d.Guests.Pending) } belum</p>
+				<p class="mt-3 text-xs uppercase tracking-wide text-slate-400">Storage</p>
+				<p class="mt-1 text-sm">{ bytesText(d.Usage.UsedBytes) } dari { bytesText(d.Usage.QuotaBytes) } ({ strconv.Itoa(pct(d.Usage.UsedBytes, d.Usage.QuotaBytes)) }%)</p>
+				<p class="mt-3 text-xs uppercase tracking-wide text-slate-400">Paket</p>
+				<form method="post" action={ templ.SafeURL("/admin/weddings/" + d.W.ID.String() + "/package") } class="mt-1 flex gap-2">
+					@layouts.CSRFField()
+					<select name="package_id" aria-label="Paket" class="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm">
+						<option value="">Default (config)</option>
+						for _, p := range d.Packages {
+							<option value={ p.ID.String() } selected?={ d.HasPackage && d.Package.ID == p.ID }>{ p.Name } · { strconv.Itoa(p.StorageMB) } MB · arsip { strconv.Itoa(p.ArchiveDays) } hari</option>
+						}
+					</select>
+					<button type="submit" class="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white">Simpan</button>
+				</form>
+			}
+		</div>
+		@ui.Card() {
+			<p class="text-xs uppercase tracking-wide text-slate-400">Ubah status (admin)</p>
+			if len(d.Transitions) == 0 {
+				<p class="mt-1 text-sm text-slate-500">Tidak ada perubahan status yang bisa dilakukan admin dari { wedding.StatusLabel(d.W.Status) }.</p>
+			} else {
+				<div class="mt-2 flex flex-wrap gap-2">
+					for _, to := range d.Transitions {
+						<form method="post" action={ templ.SafeURL("/admin/weddings/" + d.W.ID.String() + "/status") } onsubmit={ templ.ComponentScript{Call: "return confirm('Ubah status menjadi " + wedding.StatusLabel(to) + "?')"} }>
+							@layouts.CSRFField()
+							<input type="hidden" name="status" value={ to }/>
+							<button type="submit" class="rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50">→ { wedding.StatusLabel(to) }</button>
+						</form>
+					}
+				</div>
+			}
+			if len(d.History) > 0 {
+				<ul class="mt-3 space-y-1 text-xs text-slate-600">
+					for _, h := range d.History {
+						<li>{ when(h.At) } — { wedding.StatusLabel(h.From) } → { wedding.StatusLabel(h.To) } ({ string(h.Actor) })</li>
+					}
+				</ul>
+			}
+		}
+		<h2 class="font-semibold">Audit untuk wedding ini</h2>
+		@auditTable(d.Audit)
+	}
+}
+
+// ---------- Tema, paket, storage, domain, audit ----------
+templ themesPage(ts []theme.ThemeDef, counts map[string]int, off map[string]bool, f flash) {
+	@shell("Tema", "/admin/themes") {
+		@flashMsg(f)
+		<p class="text-sm text-slate-600">Tema yang dinonaktifkan tidak bisa dipilih pasangan baru; wedding yang sudah memakainya tetap bisa.</p>
+		@table() {
+			<thead><tr><th class={ th }>Tema</th><th class={ th }>Dipakai</th><th class={ th }>Status</th><th class={ th }></th></tr></thead>
+			<tbody class="divide-y divide-slate-100">
+				for _, t := range ts {
+					<tr>
+						<td class={ td }><span class="font-medium">{ t.Name }</span> <span class="font-mono text-xs text-slate-500">{ t.ID }</span></td>
+						<td class={ td }>{ strconv.Itoa(counts[t.ID]) } wedding</td>
+						<td class={ td }>
+							if off[t.ID] {
+								<span class="rounded-full bg-slate-200 px-2 py-0.5 text-xs">Nonaktif</span>
+							} else {
+								<span class="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-800">Aktif</span>
+							}
+						</td>
+						<td class={ td + " text-right" }>
+							<form method="post" action={ templ.SafeURL("/admin/themes/" + t.ID) }>
+								@layouts.CSRFField()
+								if off[t.ID] {
+									<input type="hidden" name="enabled" value="1"/>
+									<button type="submit" class="text-primary hover:underline">Aktifkan</button>
+								} else {
+									<input type="hidden" name="enabled" value="0"/>
+									<button type="submit" class="text-slate-600 hover:underline">Nonaktifkan</button>
+								}
+							</form>
+						</td>
+					</tr>
+				}
+			</tbody>
+		}
+	}
+}
+
+templ packageFields(p Package, idPrefix string) {
+	<input type="text" name="name" value={ p.Name } placeholder="Nama paket" aria-label="Nama paket" required maxlength="60" class="rounded-lg border border-slate-300 px-3 py-2"/>
+	<input type="number" name="storage_mb" value={ strconv.Itoa(p.StorageMB) } min="1" max="102400" aria-label="Storage (MB)" required class="rounded-lg border border-slate-300 px-3 py-2"/>
+	<input type="number" name="archive_days" value={ strconv.Itoa(p.ArchiveDays) } min="1" max="3650" aria-label="Arsip setelah (hari)" required class="rounded-lg border border-slate-300 px-3 py-2"/>
+	<input type="text" name="price_display" value={ p.PriceDisplay } placeholder="Rp 99.000" aria-label="Harga (tampilan)" maxlength="40" class="rounded-lg border border-slate-300 px-3 py-2"/>
+}
+
+templ packagesPage(ps []Package, f flash) {
+	@shell("Paket", "/admin/packages") {
+		@flashMsg(f)
+		<p class="text-sm text-slate-600">Paket menentukan kuota storage & lama arsip wedding (tanpa pembayaran). Wedding tanpa paket memakai nilai default dari config.</p>
+		<div class="hidden grid-cols-[2fr_1fr_1fr_1fr_auto] gap-2 px-1 text-xs font-medium uppercase tracking-wide text-slate-500 sm:grid">
+			<span>Nama</span><span>Storage (MB)</span><span>Arsip (hari)</span><span>Harga</span><span></span>
+		</div>
+		for _, p := range ps {
+			<div class="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-black/5">
+				<form method="post" action={ templ.SafeURL("/admin/packages/" + p.ID.String()) } class="grid gap-2 sm:grid-cols-[2fr_1fr_1fr_1fr_auto]">
+					@layouts.CSRFField()
+					@packageFields(p, p.ID.String())
+					<button type="submit" class="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white">Simpan</button>
+				</form>
+				<div class="mt-2 flex items-center justify-between text-xs text-slate-500">
+					<span>Dipakai { strconv.Itoa(p.Weddings) } wedding</span>
+					<form method="post" action={ templ.SafeURL("/admin/packages/" + p.ID.String() + "/delete") } onsubmit="return confirm('Hapus paket ini?')">
+						@layouts.CSRFField()
+						<button type="submit" class="text-red-600 hover:underline">Hapus</button>
+					</form>
+				</div>
+			</div>
+		}
+		<div class="rounded-2xl border border-dashed border-slate-300 p-3">
+			<p class="mb-2 text-sm font-medium">Paket baru</p>
+			<form method="post" action="/admin/packages" class="grid gap-2 sm:grid-cols-[2fr_1fr_1fr_1fr_auto]">
+				@layouts.CSRFField()
+				@packageFields(Package{StorageMB: 500, ArchiveDays: 365}, "new")
+				<button type="submit" class="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white">Tambah</button>
+			</form>
+		</div>
+	}
+}
+
+templ storagePage(total int64, weddings int, top []wedding.Wedding, usage []gallery.Usage) {
+	@shell("Storage", "/admin/storage") {
+		<div class="grid grid-cols-2 gap-3 md:grid-cols-4">
+			@stat("Total terpakai", bytesText(total), strconv.Itoa(weddings)+" wedding")
+		</div>
+		<h2 class="font-semibold">20 wedding terbesar</h2>
+		@table() {
+			<thead><tr><th class={ th }>Wedding</th><th class={ th }>Terpakai</th><th class={ th }>Kuota</th><th class={ th }>%</th></tr></thead>
+			<tbody class="divide-y divide-slate-100">
+				for i, w := range top {
+					<tr>
+						<td class={ td }><a href={ templ.SafeURL("/admin/weddings/" + w.ID.String()) } class="text-primary hover:underline">{ w.Title }</a></td>
+						<td class={ td }>{ bytesText(usage[i].UsedBytes) }</td>
+						<td class={ td }>{ bytesText(usage[i].QuotaBytes) }</td>
+						<td class={ td }>{ strconv.Itoa(pct(usage[i].UsedBytes, usage[i].QuotaBytes)) }%</td>
+					</tr>
+				}
+			</tbody>
+		}
+	}
+}
+
+templ domainsPage(ds []domain.Domain, total, page, active, warn int) {
+	@shell("Custom domain", "/admin/domains") {
+		<div class="grid grid-cols-2 gap-3 md:grid-cols-4">
+			@stat("Aktif", fmt.Sprintf("%d / 100", active), "kuota gratis Cloudflare for SaaS")
+			@stat("Terdaftar", strconv.Itoa(total), "semua status")
+		</div>
+		if active >= warn {
+			@ui.Alert(fmt.Sprintf("Domain aktif sudah %d — mendekati kuota gratis 100.", active))
+		}
+		@table() {
+			<thead><tr><th class={ th }>Domain</th><th class={ th }>Status</th><th class={ th }>Didaftarkan</th><th class={ th }>Dicek</th><th class={ th }>Wedding</th></tr></thead>
+			<tbody class="divide-y divide-slate-100">
+				if len(ds) == 0 {
+					<tr><td colspan="5" class={ td + " text-slate-500" }>Belum ada custom domain.</td></tr>
+				}
+				for _, d := range ds {
+					<tr>
+						<td class={ td + " font-medium" }>{ d.Domain }</td>
+						<td class={ td }>{ domain.StatusLabel(d.Status) }</td>
+						<td class={ td + " whitespace-nowrap" }>{ when(d.CreatedAt) }</td>
+						<td class={ td + " whitespace-nowrap" }>
+							if d.LastCheckedAt != nil {
+								{ when(*d.LastCheckedAt) }
+							}
+						</td>
+						<td class={ td }><a href={ templ.SafeURL("/admin/weddings/" + d.WeddingID.String()) } class="text-primary hover:underline">Buka</a></td>
+					</tr>
+				}
+			</tbody>
+		}
+		@pager("/admin/domains", url.Values{}, page, total)
+	}
+}
+
+templ auditPage(es []AuditEntry, total, page int) {
+	@shell("Audit log", "/admin/audit") {
+		@auditTable(es)
+		@pager("/admin/audit", url.Values{}, page, total)
 	}
 }

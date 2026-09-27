@@ -13,6 +13,7 @@ const (
 	userKey ctxKey = iota
 	csrfKey
 	weddingKey
+	readOnlyKey
 )
 
 // User adalah identitas user yang sedang login, disimpan di context request oleh
@@ -44,6 +45,18 @@ func WithWeddingID(ctx context.Context, id uuid.UUID) context.Context {
 func WeddingID(ctx context.Context) (uuid.UUID, bool) {
 	id, ok := ctx.Value(weddingKey).(uuid.UUID)
 	return id, ok
+}
+
+// WithReadOnly menandai request dashboard sebagai mode lihat-saja (admin
+// melihat dashboard pasangan, T16). Layout menampilkan banner.
+func WithReadOnly(ctx context.Context) context.Context {
+	return context.WithValue(ctx, readOnlyKey, true)
+}
+
+// ReadOnly: request sedang dalam mode lihat-saja.
+func ReadOnly(ctx context.Context) bool {
+	v, _ := ctx.Value(readOnlyKey).(bool)
+	return v
 }
 
 func WithCSRFToken(ctx context.Context, token string) context.Context {

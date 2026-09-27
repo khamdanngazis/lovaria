@@ -148,6 +148,8 @@ type Service struct {
 	now     func() time.Time
 	domains DomainSource // nil → tanpa custom domain
 	baseURL string
+	admin   AdminAccess                                                       // nil → tanpa akses admin lihat-saja
+	archive func(ctx context.Context, weddingID uuid.UUID) (int, bool, error) // lama arsip per wedding (paket, T16)
 }
 
 func NewService(repo *Repository) *Service {

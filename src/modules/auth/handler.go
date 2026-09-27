@@ -89,8 +89,8 @@ func (h *Handler) Login(c echo.Context) error {
 		return render(c, http.StatusUnprocessableEntity, loginForm(f), loginPage(f, ""))
 	}
 	u, err := h.svc.Authenticate(c.Request().Context(), f.v("email"), password)
-	if errors.Is(err, ErrInvalidCredentials) {
-		f.Message = ErrInvalidCredentials.Error()
+	if errors.Is(err, ErrInvalidCredentials) || errors.Is(err, ErrAccountDisabled) {
+		f.Message = err.Error()
 		return render(c, http.StatusUnprocessableEntity, loginForm(f), loginPage(f, ""))
 	}
 	if err != nil {

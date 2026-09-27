@@ -385,3 +385,24 @@ func (s *Service) ActiveDomain(ctx context.Context, weddingID uuid.UUID) (string
 	s.mu.Unlock()
 	return e.host, e.ok, nil
 }
+
+// ListAll: semua domain (panel admin T16), terbaru dulu, halaman mulai 1.
+func (s *Service) ListAll(ctx context.Context, page, perPage int) ([]Domain, int, error) {
+	page = max(1, page)
+	total, err := s.q.CountAllDomains(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	rows, err := s.q.ListAllDomains(ctx, domaindb.ListAllDomainsParams{Lim: int32(perPage), Off: int32((page - 1) * perPage)}) //nolint:gosec // G115: halaman kecil
+	if err != nil {
+		return nil, 0, err
+	}
+	out := make([]Domain, len(rows))
+	for i, r := range rows {
+		out[i] = toDomain(r)
+	}
+	return out, int(total), nil
+}
+
+// QuotaWarn: ambang peringatan kuota (ditampilkan di panel admin).
+func (s *Service) QuotaWarn() int { return s.cfg.QuotaWarn }

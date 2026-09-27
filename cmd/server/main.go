@@ -308,10 +308,11 @@ func readLine(r io.Reader) (string, error) {
 func (a *app) serve(ctx context.Context) error {
 	a.log.Info("starting lovoria", slog.String("version", version), slog.String("base_url", a.cfg.BaseURL))
 	static.Configure(a.cfg.StaticFromDisk, "static")
+	e := a.routes() // merakit service lebih dulu (SetArchiveDaysSource dll.) sebelum scheduler jalan
 	go a.auth.RunCleanup(ctx, time.Hour)
 	go a.weddings.RunLifecycle(ctx, 10*time.Minute, a.cfg.ArchiveAfterDays, a.log)
 	go a.domains.RunPolling(ctx, 5*time.Minute) // verifikasi custom domain (T15)
-	return server.Run(ctx, a.routes(), a.cfg, a.log)
+	return server.Run(ctx, e, a.cfg, a.log)
 }
 
 // routes merakit seluruh HTTP handler aplikasi (dipakai serve & test wiring).
@@ -338,6 +339,8 @@ func (a *app) routes() *echo.Echo {
 			Service: example.NewService(example.NewMemoryRepository()),
 		})
 	}
+	secret := appSecret(cfg, log)
+
 	// Service modul (dibuat dulu: beranda dashboard mengagregasi semuanya).
 	events := event.NewService(event.NewRepository(a.pool))
 	a.weddings.SetEventCounter(events) // checklist publikasi
@@ -365,10 +368,19 @@ func (a *app) routes() *echo.Echo {
 	guestbook.Register(owned, guestbook.Deps{Service: guestbooks})
 	gift.Register(owned, gift.Deps{Service: gifts})
 	domain.Register(owned, domain.Deps{Service: a.domains})
-	admin.Register(e.Group("/admin", authMW.RequireAuth, authMW.RequireRole(auth.RoleAdmin)), admin.Deps{})
+	// Panel admin (T16): data modul lain lewat service-nya; paket mengatur kuota
+	// storage & lama arsip; admin bisa melihat dashboard pasangan (lihat saja).
+	admins := admin.NewService(admin.Deps{
+		Pool: a.pool, Users: a.auth, Weddings: a.weddings, Guests: guests, Gallery: photos, Domains: a.domains, Themes: themes,
+		Secret: secret, CookieSecure: cfg.CookieSecure(), Log: log,
+	})
+	a.weddings.SetAdminAccess(admins)
+	a.weddings.SetArchiveDaysSource(admins.ArchiveDays)
+	photos.SetQuotaSource(admins.QuotaBytes)
+	admin.Register(e.Group("/admin", authMW.RequireAuth, authMW.RequireRole(auth.RoleAdmin)), admins)
 	publicsite.Register(e, publicsite.Deps{
 		Resolver: &publicsite.Resolver{Weddings: a.weddings, Guests: guests, Domains: a.domains, BaseURL: cfg.BaseURL, ExtraHosts: cfg.ExtraHosts, HostHeader: cfg.Domain.HostHeader, Log: log},
-		Handler:  &publicsite.Handler{Views: views, Guests: guests, Guestbook: guestbooks, Events: events, Log: log, Secret: appSecret(cfg, log)},
+		Handler:  &publicsite.Handler{Views: views, Guests: guests, Guestbook: guestbooks, Events: events, Log: log, Secret: secret},
 	})
 	return e
 }

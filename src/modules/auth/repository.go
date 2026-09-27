@@ -53,6 +53,7 @@ func toUser(u authdb.User) User {
 		Name:            u.Name,
 		Role:            u.Role,
 		EmailVerifiedAt: u.EmailVerifiedAt,
+		DisabledAt:      u.DisabledAt,
 		CreatedAt:       u.CreatedAt,
 		passwordHash:    u.PasswordHash,
 	}

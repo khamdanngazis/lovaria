@@ -32,3 +32,11 @@ SELECT * FROM custom_domains WHERE status = 'pending_verification' ORDER BY crea
 -- name: CountActive :one
 -- tenant:ignore pemantauan kuota Cloudflare for SaaS (100 hostname gratis)
 SELECT count(*) FROM custom_domains WHERE status = 'active';
+
+-- name: ListAllDomains :many
+-- tenant:ignore laporan panel admin (T16) lintas wedding
+SELECT * FROM custom_domains ORDER BY created_at DESC, id DESC LIMIT sqlc.arg(lim) OFFSET sqlc.arg(off);
+
+-- name: CountAllDomains :one
+-- tenant:ignore laporan panel admin (T16) lintas wedding
+SELECT count(*) FROM custom_domains;

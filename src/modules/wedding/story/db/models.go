@@ -11,6 +11,17 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type AdminAuditLog struct {
+	ID          uuid.UUID
+	AdminUserID *uuid.UUID
+	AdminEmail  string
+	Action      string
+	TargetType  string
+	TargetID    string
+	Details     []byte
+	CreatedAt   time.Time
+}
+
 type Couple struct {
 	ID               uuid.UUID
 	WeddingID        uuid.UUID
@@ -34,6 +45,11 @@ type CustomDomain struct {
 	VerifiedAt         *time.Time
 	LastCheckedAt      *time.Time
 	CreatedAt          time.Time
+}
+
+type DisabledTheme struct {
+	ThemeID    string
+	DisabledAt time.Time
 }
 
 type Event struct {
@@ -129,6 +145,16 @@ type LoveStory struct {
 	UpdatedAt   time.Time
 }
 
+type Package struct {
+	ID           uuid.UUID
+	Name         string
+	StorageMb    int32
+	ArchiveDays  int32
+	PriceDisplay string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+}
+
 type PasswordResetToken struct {
 	ID        []byte
 	UserID    uuid.UUID
@@ -156,6 +182,7 @@ type User struct {
 	EmailVerifiedAt *time.Time
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
+	DisabledAt      *time.Time
 }
 
 type Wedding struct {
@@ -172,6 +199,12 @@ type Wedding struct {
 	UpdatedAt        time.Time
 	Timezone         string
 	StorageUsedBytes int64
+}
+
+type WeddingPackage struct {
+	WeddingID  uuid.UUID
+	PackageID  uuid.UUID
+	AssignedAt time.Time
 }
 
 type WeddingStatusHistory struct {
