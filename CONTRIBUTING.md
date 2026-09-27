@@ -48,6 +48,7 @@ tools/linttenant/      cek aturan wedding_id pada query & index (make lint-tenan
 
 Konvensi schema, migration, sqlc, transaksi, dan integration test: **[doc/database.md](doc/database.md)**.
 Dokumentasi teknis per modul (route, alur, aturan khusus): **[doc/modules/](doc/modules/)** — tambahkan/ubah saat modul berubah.
+Sistem tema undangan & cara menambah tema: **[doc/themes.md](doc/themes.md)**.
 
 ## Pola Modul
 

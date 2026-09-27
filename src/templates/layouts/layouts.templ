@@ -35,6 +35,14 @@ func (m Meta) title() string {
 }
 
 templ base(meta Meta, bodyClass string) {
+	@Document(meta, nil, bodyClass) {
+		{ children... }
+	}
+}
+
+// Document adalah kerangka HTML lengkap. head (boleh nil) disisipkan di akhir
+// <head> — dipakai tema undangan untuk font, token CSS, dan meta OG.
+templ Document(meta Meta, head templ.Component, bodyClass string) {
 	<!DOCTYPE html>
 	<html lang="id" data-theme={ meta.theme() }>
 		<head>
@@ -50,6 +58,9 @@ templ base(meta Meta, bodyClass string) {
 			<script src={ static.URL("js/htmx.min.js") } defer></script>
 			<script src={ static.URL("js/lovoria.js") } defer></script>
 			<script src={ static.URL("js/alpine.min.js") } defer></script>
+			if head != nil {
+				@head
+			}
 		</head>
 		<body class={ bodyClass } hx-headers={ web.HXHeaders(ctx) }>
 			{ children... }

@@ -32,6 +32,7 @@ import (
 	"github.com/khamdanngazis/lovaria/src/modules/example"
 	"github.com/khamdanngazis/lovaria/src/modules/gallery"
 	"github.com/khamdanngazis/lovaria/src/modules/guest"
+	"github.com/khamdanngazis/lovaria/src/modules/theme"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding/event"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding/story"
@@ -315,12 +316,16 @@ func (a *app) routes() *echo.Echo {
 	dash := e.Group("/dashboard", authMW.RequireAuth)
 	dashboard.Register(dash, dashboard.Deps{Weddings: a.weddings})
 	owned := wedding.Register(dash.Group("/weddings"), wedding.Deps{Service: a.weddings})
-	event.Register(owned, event.Deps{Service: event.NewService(event.NewRepository(a.pool))})
-	story.Register(owned, story.Deps{Service: story.NewService(story.NewRepository(a.pool))})
-	gallery.Register(owned, gallery.Deps{
-		Service:  gallery.NewService(gallery.NewRepository(a.pool), a.store, a.weddings, cfg.Storage.QuotaBytes, log),
-		Weddings: a.weddings,
-	})
+	events := event.NewService(event.NewRepository(a.pool))
+	stories := story.NewService(story.NewRepository(a.pool))
+	photos := gallery.NewService(gallery.NewRepository(a.pool), a.store, a.weddings, cfg.Storage.QuotaBytes, log)
+	themes := theme.NewService(a.pool, a.weddings)
+	views := &publicsite.ViewBuilder{Weddings: a.weddings, Events: events, Stories: stories, Gallery: photos, Themes: themes}
+
+	event.Register(owned, event.Deps{Service: events})
+	story.Register(owned, story.Deps{Service: stories})
+	gallery.Register(owned, gallery.Deps{Service: photos, Weddings: a.weddings})
+	theme.Register(owned, theme.Deps{Service: themes, Previewer: views})
 	guest.Register(owned, guest.Deps{Service: guest.NewService(guest.NewRepository(a.pool), cfg.BaseURL)})
 	admin.Register(e.Group("/admin", authMW.RequireAuth, authMW.RequireRole(auth.RoleAdmin)), admin.Deps{})
 	publicsite.Register(e, publicsite.Deps{})

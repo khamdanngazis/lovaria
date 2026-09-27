@@ -1,0 +1,148 @@
+package theme
+
+import (
+	"github.com/khamdanngazis/lovaria/src/modules/theme/view"
+	"github.com/khamdanngazis/lovaria/src/modules/wedding"
+	"github.com/khamdanngazis/lovaria/src/templates/layouts"
+	"github.com/khamdanngazis/lovaria/src/templates/ui"
+)
+
+type pageState struct {
+	W        wedding.Wedding
+	ThemeID  string
+	Settings view.Settings
+	Errors   map[string]string
+	Notice   string
+}
+
+func pageURL(w wedding.Wedding) string { return w.DashboardURL("/theme") }
+
+// headingFonts: font judul default semua tema (untuk contoh di kartu tema).
+func headingFonts() []string {
+	var out []string
+	for _, d := range All() {
+		out = append(out, d.Tokens.FontHeading)
+	}
+	return out
+}
+
+func fontOptions(allowScript bool) []ui.Option {
+	out := []ui.Option{{Value: "", Label: "Bawaan tema"}}
+	for _, f := range Fonts {
+		if f.Script && !allowScript {
+			continue
+		}
+		out = append(out, ui.Option{Value: f.Name, Label: f.Name})
+	}
+	return out
+}
+
+func orDefault(v, def string) string {
+	if v == "" {
+		return def
+	}
+	return v
+}
+
+templ page(s pageState) {
+	@wedding.Shell(s.W, "/theme") {
+		<link rel="stylesheet" href={ GoogleFontsURL(headingFonts()...) }/>
+		<div class="grid gap-6 lg:grid-cols-[1fr_24rem]">
+			<form
+				x-ref="form"
+				method="post"
+				action={ templ.SafeURL(pageURL(s.W)) }
+				class="space-y-6"
+				x-data={ templ.JSFuncCall("themePreview", pageURL(s.W)+"/preview").CallInline }
+				@input="refresh()"
+				@change="refresh()"
+				@image-change="refresh()"
+			>
+				@layouts.CSRFField()
+				<input type="hidden" name="_method" value="PATCH"/>
+				@ui.Notice(s.Notice)
+				if len(s.Errors) > 0 {
+					@ui.Alert("Periksa kembali pengaturan yang ditandai.")
+				}
+				<fieldset>
+					<legend class="text-lg font-semibold">Pilih tema</legend>
+					<div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+						for _, d := range All() {
+							<label class="block cursor-pointer">
+								<input type="radio" name="theme_id" value={ d.ID } checked?={ d.ID == s.ThemeID } class="peer sr-only"/>
+								<span class="block overflow-hidden rounded-2xl bg-white ring-1 ring-black/10 transition peer-checked:ring-4 peer-checked:ring-primary peer-focus-visible:ring-4">
+									<span class="flex h-20 items-center justify-center text-2xl" style={ "background:" + d.Tokens.Surface + ";color:" + d.Tokens.Primary + ";font-family:" + d.Tokens.FontHeading }>A &amp; B</span>
+									<span class="flex h-2">
+										<span class="flex-1" style={ "background:" + d.Tokens.Primary }></span>
+										<span class="flex-1" style={ "background:" + d.Tokens.Ink }></span>
+									</span>
+									<span class="block p-2">
+										<span class="block text-sm font-semibold">{ d.Name }</span>
+										<span class="block text-xs text-slate-500">{ d.Description }</span>
+									</span>
+								</span>
+							</label>
+						}
+					</div>
+				</fieldset>
+				@ui.Card() {
+					<h2 class="font-semibold">Sesuaikan</h2>
+					<p class="text-sm text-slate-500">Kosongkan untuk memakai bawaan tema.</p>
+					<div class="mt-4 space-y-4">
+						<div x-data={ templ.JSFuncCall("colorField", s.Settings.PrimaryColor).CallInline }>
+							<label class="flex items-center gap-2 text-sm font-medium text-slate-800">
+								<input type="checkbox" x-model="custom" class="h-4 w-4"/>
+								Warna utama sendiri
+							</label>
+							<div class="mt-2 flex items-center gap-3" x-show="custom">
+								<input type="color" x-model="color" aria-label="Warna utama" class="h-10 w-16 cursor-pointer rounded border border-slate-300"/>
+								<span class="font-mono text-sm" x-text="color"></span>
+							</div>
+							<input type="hidden" name="primary_color" :value="custom ? color : ''" value={ s.Settings.PrimaryColor }/>
+							<p class="mt-1 text-sm text-red-600">{ s.Errors["primary_color"] }</p>
+						</div>
+						<div class="grid gap-4 sm:grid-cols-2">
+							@ui.Select(ui.Field{ID: "theme-font-heading", Name: "font_heading", Label: "Font judul", Value: s.Settings.FontHeading, Error: s.Errors["font_heading"]}, fontOptions(true))
+							@ui.Select(ui.Field{ID: "theme-font-body", Name: "font_body", Label: "Font isi", Value: s.Settings.FontBody, Error: s.Errors["font_body"]}, fontOptions(false))
+						</div>
+						<div x-data={ templ.JSFuncCall("colorField", bgColor(s.Settings.Background)).CallInline }>
+							<label class="flex items-center gap-2 text-sm font-medium text-slate-800">
+								<input type="checkbox" x-model="custom" class="h-4 w-4"/>
+								Warna latar sendiri
+							</label>
+							<div class="mt-2 flex items-center gap-3" x-show="custom">
+								<input type="color" x-model="color" aria-label="Warna latar" class="h-10 w-16 cursor-pointer rounded border border-slate-300"/>
+								<span class="font-mono text-sm" x-text="color"></span>
+							</div>
+							<input type="hidden" name="background" :value="custom ? color : ''" value={ bgColor(s.Settings.Background) }/>
+							<p class="mt-1 text-sm text-red-600">{ s.Errors["background"] }</p>
+						</div>
+						@ui.ImageUpload(ui.Field{ID: "theme-cover", Name: "cover_image", Label: "Foto sampul (pembuka undangan)", Value: s.Settings.CoverImage, Error: s.Errors["cover_image"]}, s.W.DashboardURL("/gallery/items"), "cover")
+					</div>
+				}
+				<div class="sticky bottom-0 -mx-4 border-t border-slate-200 bg-slate-50/95 px-4 py-3 backdrop-blur lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0">
+					@ui.PrimaryButton("Simpan tema")
+				</div>
+			</form>
+			<div class="lg:sticky lg:top-4 lg:self-start">
+				<div class="flex items-center justify-between">
+					<p class="text-sm font-medium">Preview</p>
+					<a href={ templ.SafeURL(pageURL(s.W) + "/preview") } target="_blank" class="text-sm text-primary hover:underline">Buka layar penuh ↗</a>
+				</div>
+				<iframe
+					id="theme-preview"
+					title="Preview undangan"
+					src={ pageURL(s.W) + "/preview" }
+					class="mt-2 h-[640px] w-full rounded-2xl bg-white shadow-sm ring-1 ring-black/10"
+				></iframe>
+			</div>
+		</div>
+	}
+}
+
+func bgColor(bg string) string {
+	if len(bg) > 0 && bg[0] == '#' {
+		return bg
+	}
+	return ""
+}

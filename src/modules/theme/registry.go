@@ -1,0 +1,109 @@
+// Package theme: registry tema undangan, token tampilan per wedding, dan
+// Render — satu-satunya pintu masuk merender halaman undangan (Arsitektur §6).
+// Tidak boleh ada logic "tema X pakai layout Y" di luar paket ini.
+package theme
+
+import (
+	"sort"
+
+	"github.com/a-h/templ"
+
+	"github.com/khamdanngazis/lovaria/src/modules/theme/view"
+	"github.com/khamdanngazis/lovaria/src/templates/themes/base"
+	"github.com/khamdanngazis/lovaria/src/templates/themes/elegant"
+	"github.com/khamdanngazis/lovaria/src/templates/themes/minimal"
+	"github.com/khamdanngazis/lovaria/src/templates/themes/modern"
+	"github.com/khamdanngazis/lovaria/src/templates/themes/romantic"
+)
+
+// Part adalah satu bagian halaman undangan.
+type Part func(v view.View) templ.Component
+
+// Parts adalah komponen sebuah tema. Bagian yang nil diisi dari tema base.
+// Layout membungkus bagian lain (templ children).
+type Parts struct {
+	Layout, Hero, Couple, LoveStory, Events, Gallery, Closing Part
+}
+
+// ThemeDef mendefinisikan satu tema.
+type ThemeDef struct {
+	ID          string
+	Name        string
+	Description string
+	Tokens      view.Tokens
+	Parts       Parts
+	// Islands: komponen interaktif berat (Svelte) yang dimuat tema ini — kosong di MVP.
+	Islands []string
+	order   int
+}
+
+// DefaultID adalah tema bila theme_id wedding tidak dikenal.
+const DefaultID = "elegant"
+
+var registry = map[string]ThemeDef{}
+
+// register menambah tema. Menambah tema baru = folder templates/themes/<id> +
+// satu panggilan register di init() di bawah (lihat doc/themes.md).
+func register(d ThemeDef) {
+	b := d.Parts
+	fill := func(p *Part, def Part) {
+		if *p == nil {
+			*p = def
+		}
+	}
+	fill(&b.Layout, base.Layout)
+	fill(&b.Hero, base.Hero)
+	fill(&b.Couple, base.Couple)
+	fill(&b.LoveStory, base.LoveStory)
+	fill(&b.Events, base.Events)
+	fill(&b.Gallery, base.Gallery)
+	fill(&b.Closing, base.Closing)
+	d.Parts = b
+	d.order = len(registry)
+	registry[d.ID] = d
+}
+
+func init() {
+	register(ThemeDef{
+		ID: "elegant", Name: "Elegan", Description: "Klasik dengan aksen emas, serif, dan bingkai tipis.",
+		Tokens: view.Tokens{Primary: "#9c7c4a", Surface: "#fbf8f3", Ink: "#2b2b2b", FontHeading: "Cormorant Garamond", FontBody: "Lato"},
+		Parts:  Parts{Hero: elegant.Hero, Couple: elegant.Couple, Events: elegant.Events},
+	})
+	register(ThemeDef{
+		ID: "minimal", Name: "Minimalis", Description: "Bersih dan lega, huruf kapital, tanpa ornamen.",
+		Tokens: view.Tokens{Primary: "#8a8a8a", Surface: "#ffffff", Ink: "#1f1f1f", FontHeading: "Josefin Sans", FontBody: "Inter"},
+		Parts:  Parts{Hero: minimal.Hero, Couple: minimal.Couple, Closing: minimal.Closing},
+	})
+	register(ThemeDef{
+		ID: "romantic", Name: "Romantis", Description: "Lembut dengan warna merah muda, tulisan tangan, foto melengkung.",
+		Tokens: view.Tokens{Primary: "#b76e79", Surface: "#fff6f6", Ink: "#4a3b3b", FontHeading: "Great Vibes", FontBody: "Lora"},
+		Parts:  Parts{Hero: romantic.Hero, Couple: romantic.Couple, Closing: romantic.Closing},
+	})
+	register(ThemeDef{
+		ID: "modern", Name: "Modern", Description: "Tegas dengan blok warna penuh dan huruf sans tebal.",
+		Tokens: view.Tokens{Primary: "#2f7d6d", Surface: "#f4f6f5", Ink: "#16201e", FontHeading: "Montserrat", FontBody: "Poppins"},
+		Parts:  Parts{Hero: modern.Hero, Couple: modern.Couple, Events: modern.Events},
+	})
+}
+
+// Get mengembalikan tema; ok=false bila ID tidak terdaftar.
+func Get(id string) (ThemeDef, bool) {
+	d, ok := registry[id]
+	return d, ok
+}
+
+// All mengembalikan semua tema terurut sesuai pendaftaran.
+func All() []ThemeDef {
+	out := make([]ThemeDef, 0, len(registry))
+	for _, d := range registry {
+		out = append(out, d)
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].order < out[j].order })
+	return out
+}
+
+// Exists: apakah ID tema terdaftar.
+func Exists(id string) bool {
+	_, ok := registry[id]
+	return ok
+}

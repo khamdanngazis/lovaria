@@ -22,7 +22,7 @@ import (
 // Prefix adalah path URL tempat aset disajikan.
 const Prefix = "/static"
 
-//go:embed all:css js
+//go:embed all:css js img
 var embedded embed.FS
 
 var (

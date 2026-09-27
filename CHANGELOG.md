@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### T08 — Theme system & registry
+- Modul `theme`: registry (satu-satunya pemetaan tema → komponen), `Render(view)` sebagai satu-satunya pintu masuk render undangan, kontrak DTO `theme/view.View`.
+- 4 tema: `elegant` (default), `minimal`, `romantic`, `modern` — masing-masing meng-override Hero/Couple/Events/Closing; bagian lain dari tema `base`. Placeholder `shared.RSVPSection`, `GuestbookSection`, `GiftSection` (tampil hanya di preview, diisi T10/T11).
+- Token CSS per tema + override per wedding (warna utama, font judul/isi, latar warna/gambar, foto sampul); whitelist 12 Google Fonts, font tulisan tangan hanya untuk judul; validasi hex & URL aman (anti CSS injection). Google Fonts hanya memuat font yang dipakai.
+- Migration `00007_create_wedding_theme_settings.sql`; `wedding.Service.SetThemeID`.
+- Dashboard Tema: kartu pilihan tema, pengaturan, preview live di iframe (data wedding + data contoh untuk bagian kosong), `publicsite.ViewBuilder` (dipakai juga T09).
+- `layouts.Document` dengan slot `<head>`; komponen `ImageUpload` memicu event `image-change`.
+- Test: render keempat tema, escape nama tamu, fallback tema, larangan logic tema di luar modul (`TestNoThemeLogicOutsideModule`), regresi select opsional & style font-family. Dicek visual di 375px & 1280px.
+- Dokumentasi: `doc/themes.md` (termasuk cara menambah tema).
+
 ### Fix — URL publik foto R2
 - Config menolak `R2_PUBLIC_URL` berupa endpoint S3 API (`*.r2.cloudflarestorage.com`), yang membuat foto gagal dibuka browser (`InvalidArgument: Authorization`), dengan pesan yang menunjuk ke URL Public access / custom domain.
 - Perintah `lovoria media rebase-urls --from <url-lama> [--to <url-baru>] [--apply]`: memindah basis URL foto yang sudah tersimpan (gallery, foto utama, foto pasangan, foto cerita); simulasi secara default, idempoten. Setiap modul mengubah tabelnya sendiri lewat service (`RebaseMediaURLs`).

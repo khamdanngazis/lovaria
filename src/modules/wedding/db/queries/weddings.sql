@@ -47,3 +47,6 @@ SELECT count(*) FROM weddings WHERE starts_with(main_photo_url, sqlc.arg(old_pre
 UPDATE weddings
 SET main_photo_url = sqlc.arg(new_prefix)::text || substr(main_photo_url, length(sqlc.arg(old_prefix)::text) + 1)
 WHERE starts_with(main_photo_url, sqlc.arg(old_prefix)::text);
+
+-- name: SetThemeID :execrows
+UPDATE weddings SET theme_id = $2 WHERE id = $1;
