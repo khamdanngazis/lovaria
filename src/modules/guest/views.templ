@@ -313,7 +313,7 @@ templ editor(w wedding.Wedding, id uuid.UUID, g Guest, f form, link string) {
 		hx-swap="outerHTML"
 		hx-include="#guest-filters"
 		hx-disabled-elt="find button"
-		x-data
+		x-data="contactFill()"
 		x-init="$el.scrollIntoView({ behavior: 'smooth', block: 'start' })"
 		class="scroll-mt-4 space-y-4 rounded-2xl bg-white p-4 shadow-sm ring-2 ring-primary/40 sm:p-5"
 	>
@@ -333,7 +333,10 @@ templ editor(w wedding.Wedding, id uuid.UUID, g Guest, f form, link string) {
 		}
 		@ui.Input(ui.Field{ID: formID(id) + "-name", Name: "name", Label: "Nama", Type: "text", Value: f.v("name"), Error: f.e("name"), Placeholder: "Bapak Budi & Keluarga", Required: true, MaxLength: 100})
 		<div class="grid gap-4 sm:grid-cols-2">
-			@ui.Input(ui.Field{ID: formID(id) + "-phone", Name: "phone", Label: "No. HP / WhatsApp", Type: "tel", Value: f.v("phone"), Error: f.e("phone"), Placeholder: "0812-3456-7890"})
+			<div>
+				@ui.Input(ui.Field{ID: formID(id) + "-phone", Name: "phone", Label: "No. HP / WhatsApp", Type: "tel", Value: f.v("phone"), Error: f.e("phone"), Placeholder: "0812-3456-7890"})
+				<button type="button" x-show="supported" x-cloak @click="pick()" class="mt-1 text-sm text-primary hover:underline">Pilih dari kontak HP</button>
+			</div>
 			@ui.Input(ui.Field{ID: formID(id) + "-email", Name: "email", Label: "Email", Type: "email", Value: f.v("email"), Error: f.e("email")})
 		</div>
 		<div class="grid grid-cols-[1fr_7rem] gap-4">
@@ -541,6 +544,7 @@ templ quickAdd(w wedding.Wedding, f form, focus bool) {
 		if focus {
 			hx-swap-oob="true"
 		}
+		x-data="contactFill()"
 		class="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-black/5 sm:p-4"
 	>
 		@layouts.CSRFField()
@@ -563,7 +567,10 @@ templ quickAdd(w wedding.Wedding, f form, focus bool) {
 				}
 				class={ "col-span-2 rounded-lg border bg-white px-3 py-2 text-base sm:col-span-1", templ.KV("border-red-400", f.e("name") != ""), templ.KV("border-slate-300", f.e("name") == "") }
 			/>
-			<input name="phone" type="tel" value={ f.v("phone") } placeholder="No. HP (opsional)" aria-label="No. HP" autocomplete="off" class={ "rounded-lg border bg-white px-3 py-2 text-base", templ.KV("border-red-400", f.e("phone") != ""), templ.KV("border-slate-300", f.e("phone") == "") }/>
+			<div class="relative">
+				<input name="phone" type="tel" value={ f.v("phone") } placeholder="No. HP (opsional)" aria-label="No. HP" autocomplete="off" class={ "w-full rounded-lg border bg-white px-3 py-2 text-base", templ.KV("border-red-400", f.e("phone") != ""), templ.KV("border-slate-300", f.e("phone") == "") } :class="supported && 'pr-10'"/>
+				@contactButton()
+			</div>
 			<input name="group_name" value={ f.v("group_name") } list="guest-groups" placeholder="Grup" aria-label="Grup" maxlength="50" autocomplete="off" class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-base"/>
 			<button type="submit" class="col-span-2 rounded-lg bg-primary px-4 py-2 font-medium text-white sm:col-span-1">Tambah</button>
 		</div>
@@ -664,4 +671,12 @@ templ reviewRow(in Input, errs ValidationError) {
 			<p class="mt-1 text-xs text-red-600">{ errorList(errs) }</p>
 		}
 	</li>
+}
+
+// contactButton: ikon kontak di dalam kolom No. HP (Tambah cepat); hanya
+// tampil bila browser mendukung Contact Picker API (Android).
+templ contactButton() {
+	<button type="button" x-show="supported" x-cloak @click="pick()" aria-label="Pilih dari kontak HP" title="Pilih dari kontak HP" class="absolute inset-y-0 right-0 flex items-center px-3 text-slate-500 hover:text-primary">
+		<svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-1a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v1M10 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM19 8v6M22 11h-6"></path></svg>
+	</button>
 }

@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### T07 — Pilih dari kontak di form tamu
+- Tambah cepat & form tamu lengkap: tombol **Pilih dari kontak HP** (Contact Picker API, Android) mengisi No. HP dan Nama (bila kosong). Disembunyikan di iPhone & desktop yang tidak mendukung.
+
 ### T14 — Bagikan undangan & custom slug
 - Halaman **Bagikan**: link undangan umum (custom domain bila aktif) + Salin, Web Share API, WhatsApp; editor template pesan (Indonesia/English, placeholder `{guest_name}` `{couple}` `{date}` `{link}`) dengan preview langsung.
 - Daftar tamu: **Kirim WA** (nomor tamu, atau pilih kontak bila tanpa nomor), **Salin link**, **Salin pesan**; penanda `shared_at` + filter "belum dibagikan".
