@@ -304,3 +304,26 @@ func (s *Service) RebaseMediaURLs(ctx context.Context, oldPrefix, newPrefix stri
 	}
 	return s.repo.q.RebaseItemURLs(ctx, gallerydb.RebaseItemURLsParams{OldPrefix: oldPrefix, NewPrefix: newPrefix})
 }
+
+// Summary: ringkasan galeri untuk beranda dashboard (T13).
+type Summary struct {
+	Count  int
+	Thumbs []string // thumbnail n foto pertama sesuai urutan tampil
+	Usage  Usage
+}
+
+func (s *Service) Summary(ctx context.Context, weddingID uuid.UUID, n int) (Summary, error) {
+	items, err := s.ListGallery(ctx, weddingID)
+	if err != nil {
+		return Summary{}, err
+	}
+	sum := Summary{Count: len(items)}
+	for _, it := range items {
+		if len(sum.Thumbs) == n {
+			break
+		}
+		sum.Thumbs = append(sum.Thumbs, it.ThumbURL)
+	}
+	sum.Usage, err = s.StorageUsage(ctx, weddingID)
+	return sum, err
+}

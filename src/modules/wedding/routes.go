@@ -6,6 +6,8 @@ type Deps struct {
 	Service *Service
 	// ArchiveDays: lama Kenangan sebelum diarsipkan (config LIFECYCLE_ARCHIVE_DAYS).
 	ArchiveDays int
+	// Home: widget beranda wedding dari paket dashboard (T13); boleh nil.
+	Home HomeWidgets
 }
 
 // Register memasang route dashboard wedding pada group /dashboard/weddings
@@ -13,6 +15,7 @@ type Deps struct {
 // (/:weddingID, dilindungi RequireWeddingOwner) tempat sub-modul memasang route-nya.
 func Register(g *echo.Group, deps Deps) *echo.Group {
 	h := NewHandler(deps.Service)
+	h.home = deps.Home
 	if deps.ArchiveDays > 0 {
 		h.archiveDays = deps.ArchiveDays
 	}

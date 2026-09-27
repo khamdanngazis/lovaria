@@ -78,3 +78,12 @@ func (s *Service) Save(ctx context.Context, weddingID uuid.UUID, themeID string,
 	})
 	return st, err
 }
+
+// Configured: pasangan sudah pernah menyimpan pilihan tema (checklist onboarding T13).
+func (s *Service) Configured(ctx context.Context, weddingID uuid.UUID) (bool, error) {
+	_, err := s.q.GetSettings(ctx, weddingID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return false, nil
+	}
+	return err == nil, err
+}
