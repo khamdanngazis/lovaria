@@ -308,3 +308,25 @@ func TestExportCSV(t *testing.T) {
 		t.Errorf("formula injection harus dinetralkan: %q", row["name"])
 	}
 }
+
+func TestAddManyAllOrNothing(t *testing.T) {
+	f := newFixture(t)
+	_, w := f.newWedding(t, "a@example.com")
+	inputs := []Input{{Name: "A", Phone: "0812 3456 7890"}, {Name: "", Phone: "1"}, {Name: "C", MaxPax: "2"}}
+
+	n, errs, err := f.svc.AddMany(ctx, w.ID, inputs)
+	if err != nil || n != 0 || len(errs) != 1 || errs[1]["name"] == "" || errs[1]["phone"] == "" {
+		t.Fatalf("n=%d errs=%v err=%v", n, errs, err)
+	}
+	if st, _ := f.svc.Stats(ctx, w.ID); st.Total != 0 {
+		t.Fatal("tidak boleh ada yang tersimpan bila ada baris invalid")
+	}
+	inputs[1] = Input{Name: "B"}
+	n, errs, err = f.svc.AddMany(ctx, w.ID, inputs)
+	if err != nil || errs != nil || n != 3 {
+		t.Fatalf("n=%d errs=%v err=%v", n, errs, err)
+	}
+	if _, _, err := f.svc.AddMany(ctx, w.ID, nil); !errors.Is(err, ErrImportEmpty) {
+		t.Errorf("kosong: %v", err)
+	}
+}

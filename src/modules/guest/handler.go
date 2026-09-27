@@ -152,18 +152,33 @@ func (h *Handler) New(c echo.Context) error {
 	return web.Render(c, http.StatusOK, page(s, ed))
 }
 
-// POST .../guests
+// POST .../guests (quick=1 → dari baris "Tambah cepat")
 func (h *Handler) Create(c echo.Context) error {
 	w := ctxWedding(c)
 	f := formFrom(c)
+	quick := c.FormValue("quick") == "1"
 	g, err := h.svc.Create(c.Request().Context(), w.ID, f.input())
 	var v ValidationError
 	if errors.As(err, &v) {
 		f.Errors = v
+		if quick && web.IsHTMX(c) {
+			web.Retarget(c, "#guest-quick")
+			return web.Render(c, http.StatusUnprocessableEntity, quickAdd(w, f, false))
+		}
 		return h.invalid(c, w, uuid.Nil, Guest{}, f)
 	}
 	if err != nil {
 		return err
+	}
+	if quick && web.IsHTMX(c) {
+		// Daftar terbaru + baris tambah cepat dikosongkan (grup diingat) & fokus ke Nama.
+		s, err := h.state(c, w, filterFrom(c))
+		if err != nil {
+			return err
+		}
+		s.Notice = g.Name + " ditambahkan."
+		next := form{Values: map[string]string{"group_name": f.v("group_name")}, Errors: map[string]string{}}
+		return web.Render(c, http.StatusOK, templ.Join(list(s), quickAdd(w, next, true)))
 	}
 	return h.done(c, w, g.Name+" ditambahkan.")
 }
@@ -290,6 +305,78 @@ func (h *Handler) ImportConfirm(c echo.Context) error {
 	n, err := h.svc.Import(c.Request().Context(), w.ID, p.Rows)
 	if err != nil {
 		return err
+	}
+	return c.Redirect(http.StatusSeeOther, fmt.Sprintf("%s?imported=%d", base(w), n))
+}
+
+// ---------- Tempel daftar ----------
+
+// GET .../guests/paste
+func (h *Handler) PastePage(c echo.Context) error {
+	w := ctxWedding(c)
+	groups, err := h.svc.Groups(c.Request().Context(), w.ID)
+	if err != nil {
+		return err
+	}
+	return web.Render(c, http.StatusOK, pastePage(w, "", "", "", groups))
+}
+
+// POST .../guests/paste (text, group) → tabel periksa yang bisa diedit.
+func (h *Handler) PasteReview(c echo.Context) error {
+	w := ctxWedding(c)
+	text, group := c.FormValue("text"), c.FormValue("group")
+	p, err := ParseList(text, group)
+	if err != nil {
+		groups, gerr := h.svc.Groups(c.Request().Context(), w.ID)
+		if gerr != nil {
+			return gerr
+		}
+		return web.Render(c, http.StatusUnprocessableEntity, pastePage(w, text, group, err.Error(), groups))
+	}
+	rows := make([]Input, len(p.Rows))
+	errs := map[int]ValidationError{}
+	for i, r := range p.Rows {
+		rows[i] = r.Input
+		if len(r.Errors) > 0 {
+			errs[i] = r.Errors
+		}
+	}
+	return web.Render(c, http.StatusOK, reviewPage(w, rows, errs, group))
+}
+
+// POST .../guests/paste/confirm (name[], phone[], group_name[], max_pax[], email[])
+func (h *Handler) PasteConfirm(c echo.Context) error {
+	w := ctxWedding(c)
+	r := c.Request()
+	if err := r.ParseForm(); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest)
+	}
+	col := func(key string, i int) string {
+		if vals := r.PostForm[key]; i < len(vals) {
+			return vals[i]
+		}
+		return ""
+	}
+	var inputs []Input
+	for i := range r.PostForm["name"] {
+		in := Input{Name: col("name", i), Phone: col("phone", i), GroupName: col("group_name", i), MaxPax: col("max_pax", i), Email: col("email", i)}
+		if strings.TrimSpace(in.Name+in.Phone+in.Email) == "" {
+			continue // baris kosong (mis. dari "+ Tambah baris") diabaikan
+		}
+		inputs = append(inputs, in)
+	}
+	n, errs, err := h.svc.AddMany(r.Context(), w.ID, inputs)
+	if errors.Is(err, ErrImportEmpty) {
+		return c.Redirect(http.StatusSeeOther, base(w)+"/paste")
+	}
+	if errors.Is(err, ErrImportTooMany) {
+		return echo.NewHTTPError(http.StatusUnprocessableEntity, err.Error())
+	}
+	if err != nil {
+		return err
+	}
+	if errs != nil {
+		return web.Render(c, http.StatusUnprocessableEntity, reviewPage(w, inputs, errs, c.FormValue("group")))
 	}
 	return c.Redirect(http.StatusSeeOther, fmt.Sprintf("%s?imported=%d", base(w), n))
 }

@@ -231,3 +231,104 @@ func TestGuestRoutesOwnerOnly(t *testing.T) {
 		t.Fatalf("tamu alice berubah/terhapus: %+v %v", got, err)
 	}
 }
+
+func TestQuickAdd(t *testing.T) {
+	f := newFixture(t)
+	e := newTestServer(t, f)
+	owner, w := f.newWedding(t, "a@example.com")
+	base := w.DashboardURL("/guests")
+
+	rec := send(e, owner, formReq(http.MethodPost, base, url.Values{"quick": {"1"}, "name": {"Budi"}, "phone": {"0812 3456 7890"}, "group_name": {"Keluarga"}}), true)
+	body := rec.Body.String()
+	if rec.Code != http.StatusOK || !strings.Contains(body, "Budi ditambahkan.") {
+		t.Fatalf("quick add: %d", rec.Code)
+	}
+	// Baris tambah cepat dikirim ulang (OOB): kosong, grup diingat, fokus ke nama.
+	i := strings.Index(body, `id="guest-quick"`)
+	if i < 0 {
+		t.Fatal("form tambah cepat tidak dikirim ulang")
+	}
+	quick := body[i:]
+	if !strings.Contains(quick, `hx-swap-oob="true"`) || !strings.Contains(quick, `name="group_name" value="Keluarga"`) || !strings.Contains(quick, `name="name" value=""`) || !strings.Contains(quick, "autofocus") {
+		t.Errorf("form tambah cepat: %s", quick[:min(len(quick), 1500)])
+	}
+
+	// Error → hanya form tambah cepat yang dirender ulang, nilai dipertahankan.
+	rec = send(e, owner, formReq(http.MethodPost, base, url.Values{"quick": {"1"}, "name": {""}, "phone": {"12"}}), true)
+	if rec.Code != http.StatusUnprocessableEntity || rec.Header().Get("HX-Retarget") != "#guest-quick" || !strings.Contains(rec.Body.String(), "Nama wajib diisi") {
+		t.Errorf("quick invalid: %d %q", rec.Code, rec.Header().Get("HX-Retarget"))
+	}
+}
+
+func TestPasteFlow(t *testing.T) {
+	f := newFixture(t)
+	e := newTestServer(t, f)
+	owner, w := f.newWedding(t, "a@example.com")
+	base := w.DashboardURL("/guests")
+
+	if rec := send(e, owner, get(base+"/paste"), false); rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Tempel daftar tamu") {
+		t.Fatalf("paste page: %d", rec.Code)
+	}
+	text := "1. Budi 0812-3456-7890\n2. Bu Sari (2 orang)\n3. 081299998888\n"
+	rec := send(e, owner, formReq(http.MethodPost, base+"/paste", url.Values{"text": {text}, "group": {"Keluarga"}}), false)
+	body := rec.Body.String()
+	if rec.Code != http.StatusOK || !strings.Contains(body, "Periksa daftar") || !strings.Contains(body, `value="Budi"`) || !strings.Contains(body, "1 baris perlu diperbaiki") {
+		t.Fatalf("review: %d %s", rec.Code, body)
+	}
+	if st, _ := f.svc.Stats(ctx, w.ID); st.Total != 0 {
+		t.Fatal("review tidak boleh menyimpan")
+	}
+
+	// Simpan dengan baris 3 masih tanpa nama → 422, tidak ada yang tersimpan.
+	form := url.Values{
+		"name":       {"Budi", "Bu Sari", ""},
+		"phone":      {"0812-3456-7890", "", "081299998888"},
+		"group_name": {"Keluarga", "Keluarga", "Keluarga"},
+		"max_pax":    {"1", "2", "1"},
+		"email":      {"", "", ""},
+	}
+	rec = send(e, owner, formReq(http.MethodPost, base+"/paste/confirm", form), false)
+	if rec.Code != http.StatusUnprocessableEntity || !strings.Contains(rec.Body.String(), "Nama wajib diisi") {
+		t.Fatalf("confirm invalid: %d", rec.Code)
+	}
+	if st, _ := f.svc.Stats(ctx, w.ID); st.Total != 0 {
+		t.Fatal("semua-atau-tidak: tidak boleh ada yang tersimpan")
+	}
+	// Perbaiki nama + tambah satu baris kosong (diabaikan) → tersimpan 3.
+	form["name"][2] = "Pak Andi"
+	for k := range form {
+		form[k] = append(form[k], "")
+	}
+	rec = send(e, owner, formReq(http.MethodPost, base+"/paste/confirm", form), false)
+	if rec.Code != http.StatusSeeOther || rec.Header().Get("Location") != base+"?imported=3" {
+		t.Fatalf("confirm: %d %s", rec.Code, rec.Header().Get("Location"))
+	}
+	if st, _ := f.svc.Stats(ctx, w.ID); st.Total != 3 || st.PaxInvited != 4 {
+		t.Errorf("stats = %+v", st)
+	}
+	// Tempel kosong → kembali ke form dengan pesan.
+	if rec := send(e, owner, formReq(http.MethodPost, base+"/paste", url.Values{"text": {"  \n"}}), false); rec.Code != http.StatusUnprocessableEntity {
+		t.Errorf("paste kosong: %d", rec.Code)
+	}
+}
+
+func TestPasteRoutesOwnerOnly(t *testing.T) {
+	f := newFixture(t)
+	e := newTestServer(t, f)
+	_, w := f.newWedding(t, "alice@example.com")
+	bob, _ := f.newWedding(t, "bob@example.com")
+	base := w.DashboardURL("/guests")
+	for _, r := range []*http.Request{
+		get(base + "/paste"),
+		formReq(http.MethodPost, base+"/paste", url.Values{"text": {"Budi"}}),
+		formReq(http.MethodPost, base+"/paste/confirm", url.Values{"name": {"Budi"}}),
+		formReq(http.MethodPost, base, url.Values{"quick": {"1"}, "name": {"Budi"}}),
+	} {
+		if rec := send(e, bob, r, true); rec.Code != http.StatusNotFound {
+			t.Errorf("bob %s %s: %d, want 404", r.Method, r.URL.Path, rec.Code)
+		}
+	}
+	if st, _ := f.svc.Stats(ctx, w.ID); st.Total != 0 {
+		t.Error("bob berhasil menambah tamu ke wedding alice")
+	}
+}

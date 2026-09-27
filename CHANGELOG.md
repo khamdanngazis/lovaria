@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### T07b — UX tamu
+- **Tambah cepat**: baris Nama/HP/Grup selalu terbuka; Enter menyimpan, form dikosongkan, grup terakhir diingat, fokus kembali ke Nama (`POST /guests` dengan `quick=1`).
+- **Tempel daftar tamu** (`/guests/paste`): tempel dari catatan HP/chat/Excel, parser teks bebas & tabel (`ParseList`), tabel periksa yang bisa diedit (hapus/tambah baris), simpan semua-atau-tidak (`AddMany`).
+- **Pilih dari kontak HP** (Contact Picker API, Chrome Android).
+- Kartu statistik lebih ringkas di mobile; ikon emoji dihapus (tidak tampil di sebagian HP).
+- Dokumentasi teknis modul: `doc/modules/guest.md`; revisi scope di `doc/lovoria-tasks/T07-guest-management.md`.
+
 ### T07 — Guest management
 - Migration `00006_create_guests.sql`: tabel `guests` (HP ternormalisasi `62…`, grup, `max_pax` 1–20, `invitation_code` unik global + CHECK format, data RSVP, `attendance_status`, `last_opened_at`).
 - Modul `guest` (sqlc `guestdb`): tambah/ubah/hapus, hapus massal, daftar dengan pencarian (nama, HP format lokal/internasional, email, kode; wildcard diperlakukan literal), filter status & grup, pagination 25/halaman; `GetByCode` (lintas wedding, untuk T09), `UpdateRSVP` (T10), `Stats` (T13), `MarkOpened`.
