@@ -1,0 +1,58 @@
+package publicsite
+
+import (
+	"context"
+	"errors"
+	"strings"
+
+	"github.com/labstack/echo/v4"
+
+	"github.com/khamdanngazis/lovaria/src/modules/admin"
+	"github.com/khamdanngazis/lovaria/src/modules/theme"
+	"github.com/khamdanngazis/lovaria/src/modules/wedding"
+	"github.com/khamdanngazis/lovaria/src/platform/web"
+	"github.com/khamdanngazis/lovaria/static"
+)
+
+// LandingPackages: sumber paket untuk bagian harga landing (admin.Service).
+type LandingPackages interface {
+	LandingPackages(ctx context.Context) ([]admin.Package, error)
+}
+
+// DemoSlug: alamat undangan contoh per tema (dibuat `lovoria demo seed`).
+func DemoSlug(themeID string) string { return "contoh-" + themeID }
+
+// landing menyusun data landing page (T18): tema aktif (+ undangan contoh
+// bila ada), paket bertanda tampil, dan status login.
+func (h *Handler) landing(c echo.Context) (landingData, error) {
+	ctx := c.Request().Context()
+	base := strings.TrimRight(h.BaseURL, "/")
+	d := landingData{URL: base + "/", OGImage: base + static.URL("img/brand/og-lovoria.png")}
+	_, d.LoggedIn = web.CurrentUser(ctx)
+
+	off, err := h.Views.Themes.Disabled(ctx)
+	if err != nil {
+		return d, err
+	}
+	for _, t := range theme.All() {
+		if off[t.ID] {
+			continue // tema dinonaktifkan admin (T16) tidak ditawarkan
+		}
+		lt := landingTheme{ID: t.ID, Name: t.Name, Description: t.Description, Primary: t.Tokens.Primary, Surface: t.Tokens.Surface, Ink: t.Tokens.Ink}
+		w, err := h.Views.Weddings.GetWeddingBySlug(ctx, DemoSlug(t.ID))
+		switch {
+		case errors.Is(err, wedding.ErrNotFound):
+		case err != nil:
+			return d, err
+		case w.IsPublic():
+			lt.DemoURL = "/w/" + w.Slug
+		}
+		d.Themes = append(d.Themes, lt)
+	}
+	if h.Packages != nil {
+		if d.Packages, err = h.Packages.LandingPackages(ctx); err != nil {
+			return d, err
+		}
+	}
+	return d, nil
+}

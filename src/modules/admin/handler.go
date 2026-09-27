@@ -303,7 +303,10 @@ func (h *Handler) Packages(c echo.Context) error {
 }
 
 func packageInput(c echo.Context) PackageInput {
-	return PackageInput{Name: c.FormValue("name"), StorageMB: c.FormValue("storage_mb"), ArchiveDays: c.FormValue("archive_days"), PriceDisplay: c.FormValue("price_display")}
+	return PackageInput{
+		Name: c.FormValue("name"), StorageMB: c.FormValue("storage_mb"), ArchiveDays: c.FormValue("archive_days"),
+		PriceDisplay: c.FormValue("price_display"), SortOrder: c.FormValue("sort_order"), ShowOnLanding: c.FormValue("show_on_landing") == "1",
+	}
 }
 
 func (h *Handler) CreatePackage(c echo.Context) error {

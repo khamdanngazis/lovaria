@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
+
 	weddingdb "github.com/khamdanngazis/lovaria/src/modules/wedding/db"
 )
 
@@ -91,4 +93,10 @@ func (s *Service) CountByTheme(ctx context.Context) (map[string]int, error) {
 // StorageTotal: total pemakaian storage semua wedding (byte).
 func (s *Service) StorageTotal(ctx context.Context) (int64, error) {
 	return s.repo.q.StorageTotal(ctx)
+}
+
+// MarkDemo menandai wedding sebagai undangan contoh landing page (T18): tidak
+// dihitung di laporan admin dan tidak diproses scheduler lifecycle.
+func (s *Service) MarkDemo(ctx context.Context, weddingID uuid.UUID) error {
+	return s.repo.q.MarkDemo(ctx, weddingID)
 }

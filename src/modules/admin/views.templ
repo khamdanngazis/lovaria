@@ -471,12 +471,22 @@ templ packageFields(p Package, idPrefix string) {
 	<input type="number" name="storage_mb" value={ strconv.Itoa(p.StorageMB) } min="1" max="102400" aria-label="Storage (MB)" required class="rounded-lg border border-slate-300 px-3 py-2"/>
 	<input type="number" name="archive_days" value={ strconv.Itoa(p.ArchiveDays) } min="1" max="3650" aria-label="Arsip setelah (hari)" required class="rounded-lg border border-slate-300 px-3 py-2"/>
 	<input type="text" name="price_display" value={ p.PriceDisplay } placeholder="Rp 99.000" aria-label="Harga (tampilan)" maxlength="40" class="rounded-lg border border-slate-300 px-3 py-2"/>
+	<div class="flex items-center gap-3 text-sm sm:col-span-4">
+		<label class="flex items-center gap-2">
+			<input type="checkbox" name="show_on_landing" value="1" checked?={ p.ShowOnLanding } class="h-4 w-4"/>
+			Tampil di landing page
+		</label>
+		<label class="flex items-center gap-2">
+			Urutan
+			<input type="number" name="sort_order" value={ strconv.Itoa(p.SortOrder) } min="0" max="999" aria-label="Urutan di landing" class="w-20 rounded-lg border border-slate-300 px-2 py-1"/>
+		</label>
+	</div>
 }
 
 templ packagesPage(ps []Package, f flash) {
 	@shell("Paket", "/admin/packages") {
 		@flashMsg(f)
-		<p class="text-sm text-slate-600">Paket menentukan kuota storage & lama arsip wedding (tanpa pembayaran). Wedding tanpa paket memakai nilai default dari config.</p>
+		<p class="text-sm text-slate-600">Paket menentukan kuota storage & lama arsip wedding (tanpa pembayaran). Wedding tanpa paket memakai nilai default dari config. Centang "Tampil di landing page" untuk menampilkan paket di bagian harga beranda; tanpa paket yang dicentang, bagian harga disembunyikan.</p>
 		<div class="hidden grid-cols-[2fr_1fr_1fr_1fr_auto] gap-2 px-1 text-xs font-medium uppercase tracking-wide text-slate-500 sm:grid">
 			<span>Nama</span><span>Storage (MB)</span><span>Arsip (hari)</span><span>Harga</span><span></span>
 		</div>

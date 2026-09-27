@@ -41,17 +41,19 @@ func (q *Queries) CountAuditLogs(ctx context.Context, targetID *string) (int64, 
 }
 
 const createPackage = `-- name: CreatePackage :one
-INSERT INTO packages (id, name, storage_mb, archive_days, price_display)
-VALUES ($1, $2, $3, $4, $5)
-RETURNING id, name, storage_mb, archive_days, price_display, created_at, updated_at
+INSERT INTO packages (id, name, storage_mb, archive_days, price_display, show_on_landing, sort_order)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+RETURNING id, name, storage_mb, archive_days, price_display, created_at, updated_at, show_on_landing, sort_order
 `
 
 type CreatePackageParams struct {
-	ID           uuid.UUID
-	Name         string
-	StorageMb    int32
-	ArchiveDays  int32
-	PriceDisplay string
+	ID            uuid.UUID
+	Name          string
+	StorageMb     int32
+	ArchiveDays   int32
+	PriceDisplay  string
+	ShowOnLanding bool
+	SortOrder     int32
 }
 
 func (q *Queries) CreatePackage(ctx context.Context, arg CreatePackageParams) (Package, error) {
@@ -61,6 +63,8 @@ func (q *Queries) CreatePackage(ctx context.Context, arg CreatePackageParams) (P
 		arg.StorageMb,
 		arg.ArchiveDays,
 		arg.PriceDisplay,
+		arg.ShowOnLanding,
+		arg.SortOrder,
 	)
 	var i Package
 	err := row.Scan(
@@ -71,6 +75,8 @@ func (q *Queries) CreatePackage(ctx context.Context, arg CreatePackageParams) (P
 		&i.PriceDisplay,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.ShowOnLanding,
+		&i.SortOrder,
 	)
 	return i, err
 }
@@ -88,7 +94,7 @@ func (q *Queries) DeletePackage(ctx context.Context, id uuid.UUID) (int64, error
 }
 
 const getPackage = `-- name: GetPackage :one
-SELECT id, name, storage_mb, archive_days, price_display, created_at, updated_at FROM packages WHERE id = $1
+SELECT id, name, storage_mb, archive_days, price_display, created_at, updated_at, show_on_landing, sort_order FROM packages WHERE id = $1
 `
 
 func (q *Queries) GetPackage(ctx context.Context, id uuid.UUID) (Package, error) {
@@ -102,12 +108,14 @@ func (q *Queries) GetPackage(ctx context.Context, id uuid.UUID) (Package, error)
 		&i.PriceDisplay,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.ShowOnLanding,
+		&i.SortOrder,
 	)
 	return i, err
 }
 
 const getWeddingPackage = `-- name: GetWeddingPackage :one
-SELECT p.id, p.name, p.storage_mb, p.archive_days, p.price_display, p.created_at, p.updated_at FROM wedding_packages wp JOIN packages p ON p.id = wp.package_id
+SELECT p.id, p.name, p.storage_mb, p.archive_days, p.price_display, p.created_at, p.updated_at, p.show_on_landing, p.sort_order FROM wedding_packages wp JOIN packages p ON p.id = wp.package_id
 WHERE wp.wedding_id = $1
 `
 
@@ -122,6 +130,8 @@ func (q *Queries) GetWeddingPackage(ctx context.Context, weddingID uuid.UUID) (P
 		&i.PriceDisplay,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.ShowOnLanding,
+		&i.SortOrder,
 	)
 	return i, err
 }
@@ -198,21 +208,57 @@ func (q *Queries) ListAuditLogs(ctx context.Context, arg ListAuditLogsParams) ([
 	return items, nil
 }
 
+const listLandingPackages = `-- name: ListLandingPackages :many
+SELECT id, name, storage_mb, archive_days, price_display, created_at, updated_at, show_on_landing, sort_order FROM packages WHERE show_on_landing ORDER BY sort_order, storage_mb, name
+`
+
+func (q *Queries) ListLandingPackages(ctx context.Context) ([]Package, error) {
+	rows, err := q.db.Query(ctx, listLandingPackages)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Package{}
+	for rows.Next() {
+		var i Package
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.StorageMb,
+			&i.ArchiveDays,
+			&i.PriceDisplay,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.ShowOnLanding,
+			&i.SortOrder,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listPackages = `-- name: ListPackages :many
 
-SELECT p.id, p.name, p.storage_mb, p.archive_days, p.price_display, p.created_at, p.updated_at, (SELECT count(*) FROM wedding_packages wp WHERE wp.package_id = p.id) AS weddings -- tenant:ignore hitung pemakai paket
-FROM packages p ORDER BY p.storage_mb, p.name
+SELECT p.id, p.name, p.storage_mb, p.archive_days, p.price_display, p.created_at, p.updated_at, p.show_on_landing, p.sort_order, (SELECT count(*) FROM wedding_packages wp WHERE wp.package_id = p.id) AS weddings -- tenant:ignore hitung pemakai paket
+FROM packages p ORDER BY p.sort_order, p.storage_mb, p.name
 `
 
 type ListPackagesRow struct {
-	ID           uuid.UUID
-	Name         string
-	StorageMb    int32
-	ArchiveDays  int32
-	PriceDisplay string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
-	Weddings     int64
+	ID            uuid.UUID
+	Name          string
+	StorageMb     int32
+	ArchiveDays   int32
+	PriceDisplay  string
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	ShowOnLanding bool
+	SortOrder     int32
+	Weddings      int64
 }
 
 // Modul admin hanya menyentuh tabel miliknya sendiri: packages,
@@ -234,6 +280,8 @@ func (q *Queries) ListPackages(ctx context.Context) ([]ListPackagesRow, error) {
 			&i.PriceDisplay,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.ShowOnLanding,
+			&i.SortOrder,
 			&i.Weddings,
 		); err != nil {
 			return nil, err
@@ -259,17 +307,20 @@ func (q *Queries) UnassignPackage(ctx context.Context, weddingID uuid.UUID) (int
 }
 
 const updatePackage = `-- name: UpdatePackage :one
-UPDATE packages SET name = $2, storage_mb = $3, archive_days = $4, price_display = $5
+UPDATE packages SET name = $2, storage_mb = $3, archive_days = $4, price_display = $5,
+    show_on_landing = $6, sort_order = $7
 WHERE id = $1
-RETURNING id, name, storage_mb, archive_days, price_display, created_at, updated_at
+RETURNING id, name, storage_mb, archive_days, price_display, created_at, updated_at, show_on_landing, sort_order
 `
 
 type UpdatePackageParams struct {
-	ID           uuid.UUID
-	Name         string
-	StorageMb    int32
-	ArchiveDays  int32
-	PriceDisplay string
+	ID            uuid.UUID
+	Name          string
+	StorageMb     int32
+	ArchiveDays   int32
+	PriceDisplay  string
+	ShowOnLanding bool
+	SortOrder     int32
 }
 
 func (q *Queries) UpdatePackage(ctx context.Context, arg UpdatePackageParams) (Package, error) {
@@ -279,6 +330,8 @@ func (q *Queries) UpdatePackage(ctx context.Context, arg UpdatePackageParams) (P
 		arg.StorageMb,
 		arg.ArchiveDays,
 		arg.PriceDisplay,
+		arg.ShowOnLanding,
+		arg.SortOrder,
 	)
 	var i Package
 	err := row.Scan(
@@ -289,6 +342,8 @@ func (q *Queries) UpdatePackage(ctx context.Context, arg UpdatePackageParams) (P
 		&i.PriceDisplay,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.ShowOnLanding,
+		&i.SortOrder,
 	)
 	return i, err
 }

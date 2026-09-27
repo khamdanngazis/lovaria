@@ -52,6 +52,14 @@ Setiap task ukurannya sedang (±1–3 hari kerja agent), punya scope jelas, dan 
 | T16 | Admin panel | T12 |
 | T17 | Hardening & launch readiness | semua |
 
+### Pasca-MVP (dari `doc/brand-positioning.md`)
+
+| # | Task | Depends on |
+|---|---|---|
+| T18 | Landing page & brand | T08, T09, T16, T17 |
+| T19 | Remember: halaman kenangan, arsip, & keepsake | T06, T11, T12, T16 |
+| T20 | Personalisasi undangan: musik, hitung mundur, kutipan, susunan bagian | T06, T08, T09 |
+
 ## Urutan & Paralelisasi
 
 ```text

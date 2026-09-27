@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### T18 — Landing page & brand
+- Landing page baru sesuai `doc/landing-page-guide.md`: hero "Your Love. Your Story. Your Forever." dengan pratinjau undangan, positioning, alur Create → Invite → Experience → Remember, fitur, galeri tema + undangan contoh, harga (paket bertanda tampil), FAQ, CTA, footer. Mobile-first, tanpa Alpine; Lighthouse mobile 100/100/100/100 (lokal).
+- Brand: logo monogram LV (dari `doc/vector-logo.svg`) + wordmark LOVORIA, favicon, apple-touch-icon, gambar Open Graph; token Tailwind `lovoria-*`; header dashboard memakai logo baru.
+- `lovoria demo seed`: undangan contoh per tema (`/w/contoh-<tema>`), `weddings.is_demo` (migration `00018`) dikecualikan dari laporan admin & scheduler.
+- Admin → Paket: "Tampil di landing page" + urutan (migration `00019`).
+- `robots.txt` & `sitemap.xml` (custom domain pasangan tidak diindeks).
+
 ### T17 — Hardening & launch readiness
 - **Perbaikan kritis**: resolver public site bisa membuat proses crash (`concurrent map writes`) saat request paralel pertama setelah start — ditemukan load test, diperbaiki (`sync.Once`) + test `-race`.
 - **Performa**: cache data wedding 10 detik untuk halaman undangan publik (dikosongkan saat ucapan baru; preview pemilik tanpa cache), `last_opened_at` paling sering tiap 15 menit, default `DB_MAX_CONNS` 25. Load test H-1 (200 page view + 50 RSVP/detik): p95 halaman 2,91 s → 45 ms, RSVP 1,2 s → 77 ms (lokal). Script `tools/load/h1.js` + `tools/loadseed`.
