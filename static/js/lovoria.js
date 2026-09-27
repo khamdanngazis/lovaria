@@ -78,6 +78,23 @@
       clearDone() { this.files = this.files.filter((f) => f.status === 'waiting' || f.status === 'uploading'); },
     }));
 
+    // "Pilih dari kontak HP" (Contact Picker API — Chrome Android). Menambahkan
+    // "Nama Nomor" per kontak ke textarea x-ref="text".
+    window.Alpine.data('contactPicker', () => ({
+      supported: 'contacts' in navigator && 'select' in navigator.contacts,
+      async pick() {
+        try {
+          const picked = await navigator.contacts.select(['name', 'tel'], { multiple: true });
+          const lines = picked
+            .map((c) => [(c.name || [])[0], (c.tel || [])[0]].filter(Boolean).join(' '))
+            .filter(Boolean);
+          if (!lines.length) return;
+          const ta = this.$refs.text;
+          ta.value = (ta.value.trim() ? ta.value.trimEnd() + '\n' : '') + lines.join('\n');
+        } catch (_) { /* dibatalkan user */ }
+      },
+    }));
+
     // Field satu foto: upload lalu isi input tersembunyi dengan URL hasilnya.
     window.Alpine.data('imageUpload', (uploadURL, category, initial) => ({
       value: initial || '',

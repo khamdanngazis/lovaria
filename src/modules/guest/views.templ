@@ -86,9 +86,10 @@ templ page(s listState, editor templ.Component) {
 	@wedding.Shell(s.W, "/guests") {
 		<div class="space-y-4">
 			@stats(s, false)
+			@quickAdd(s.W, form{Values: map[string]string{}, Errors: map[string]string{}}, false)
 			<div class="flex gap-2 overflow-x-auto whitespace-nowrap scrollbar-none">
-				<a href={ templ.SafeURL(base(s.W) + "/new") } hx-get={ base(s.W) + "/new" } hx-target="#guest-editor" hx-swap="innerHTML" class="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white">+ Tambah tamu</a>
-				<a href={ templ.SafeURL(base(s.W) + "/import") } class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-50">Import CSV</a>
+				<a href={ templ.SafeURL(base(s.W) + "/paste") } class="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white">Tempel daftar tamu</a>
+				<a href={ templ.SafeURL(base(s.W) + "/import") } class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-50">Import file CSV</a>
 				<a href={ templ.SafeURL(base(s.W) + "/export") } class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-50" download>Export CSV</a>
 			</div>
 			<div id="guest-editor">
@@ -108,7 +109,7 @@ templ stats(s listState, oob bool) {
 		if oob {
 			hx-swap-oob="true"
 		}
-		class="grid grid-cols-2 gap-3 sm:grid-cols-4"
+		class="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3"
 	>
 		@statCard("Total tamu", s.Stats.Total, fmt.Sprintf("%d orang diundang", s.Stats.PaxInvited))
 		@statCard("Hadir", s.Stats.Attending, fmt.Sprintf("%d orang", s.Stats.PaxAttending))
@@ -118,9 +119,9 @@ templ stats(s listState, oob bool) {
 }
 
 templ statCard(label string, n int, sub string) {
-	<div class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
+	<div class="rounded-2xl bg-white px-3 py-2.5 shadow-sm ring-1 ring-black/5 sm:p-4">
 		<p class="text-xs text-slate-500">{ label }</p>
-		<p class="mt-1 text-2xl font-semibold">{ strconv.Itoa(n) }</p>
+		<p class="text-xl font-semibold sm:mt-1 sm:text-2xl">{ strconv.Itoa(n) }</p>
 		if sub != "" {
 			<p class="text-xs text-slate-500">{ sub }</p>
 		}
@@ -168,7 +169,7 @@ templ list(s listState) {
 		if len(s.Page.Guests) == 0 {
 			<div class="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-slate-500">
 				if s.Stats.Total == 0 {
-					Belum ada tamu. Tambahkan satu per satu atau import dari CSV.
+					Belum ada tamu. Ketik nama di kolom "Tambah cepat" di atas, atau tempel daftar dari catatan HP / Excel.
 				} else {
 					Tidak ada tamu yang cocok dengan pencarian.
 				}
@@ -431,4 +432,146 @@ func errorList(v ValidationError) string {
 // clearEditor menutup form tambah/ubah setelah berhasil disimpan (out-of-band).
 templ clearEditor() {
 	<div id="guest-editor" hx-swap-oob="true"></div>
+}
+
+// ---------- Tambah cepat ----------
+
+// quickAdd: baris tambah cepat yang selalu terbuka. Enter menyimpan, lalu form
+// dikosongkan (grup terakhir diingat) dan kursor kembali ke Nama.
+templ quickAdd(w wedding.Wedding, f form, focus bool) {
+	<form
+		id="guest-quick"
+		method="post"
+		action={ templ.SafeURL(base(w)) }
+		hx-post={ base(w) }
+		hx-target="#guests"
+		hx-swap="outerHTML"
+		hx-include="#guest-filters"
+		hx-disabled-elt="find button"
+		if focus {
+			hx-swap-oob="true"
+		}
+		class="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-black/5 sm:p-4"
+	>
+		@layouts.CSRFField()
+		<input type="hidden" name="quick" value="1"/>
+		<p class="mb-2 text-sm font-medium">Tambah cepat <span class="font-normal text-slate-500">— ketik lalu tekan Enter, lanjut ke tamu berikutnya</span></p>
+		<div class="grid grid-cols-2 gap-2 sm:grid-cols-[2fr_1.3fr_1fr_auto]">
+			<input
+				name="name"
+				value={ f.v("name") }
+				placeholder="Nama tamu"
+				aria-label="Nama tamu"
+				required
+				maxlength="100"
+				autocomplete="off"
+				enterkeyhint="done"
+				if focus {
+					autofocus
+					x-data
+					x-init="$el.focus()"
+				}
+				class={ "col-span-2 rounded-lg border bg-white px-3 py-2 text-base sm:col-span-1", templ.KV("border-red-400", f.e("name") != ""), templ.KV("border-slate-300", f.e("name") == "") }
+			/>
+			<input name="phone" type="tel" value={ f.v("phone") } placeholder="No. HP (opsional)" aria-label="No. HP" autocomplete="off" class={ "rounded-lg border bg-white px-3 py-2 text-base", templ.KV("border-red-400", f.e("phone") != ""), templ.KV("border-slate-300", f.e("phone") == "") }/>
+			<input name="group_name" value={ f.v("group_name") } list="guest-groups" placeholder="Grup" aria-label="Grup" maxlength="50" autocomplete="off" class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-base"/>
+			<button type="submit" class="col-span-2 rounded-lg bg-primary px-4 py-2 font-medium text-white sm:col-span-1">Tambah</button>
+		</div>
+		if f.e("name") != "" || f.e("phone") != "" {
+			<p class="mt-1 text-sm text-red-600" role="alert">{ f.e("name") } { f.e("phone") }</p>
+		}
+		<p class="mt-1 text-xs text-slate-500">
+			Butuh email, jumlah orang, atau catatan?
+			<a href={ templ.SafeURL(base(w) + "/new") } hx-get={ base(w) + "/new" } hx-target="#guest-editor" hx-swap="innerHTML" class="text-primary hover:underline">Pakai form lengkap</a>
+		</p>
+	</form>
+}
+
+// ---------- Tempel daftar ----------
+templ pastePage(w wedding.Wedding, text, group, errMsg string, groups []string) {
+	@wedding.Shell(w, "/guests") {
+		<div class="mx-auto max-w-2xl space-y-4">
+			<p><a href={ templ.SafeURL(base(w)) } class="text-sm text-slate-500 hover:underline">‹ Kembali ke daftar tamu</a></p>
+			@ui.Card() {
+				<h2 class="text-lg font-semibold">Tempel daftar tamu</h2>
+				<p class="mt-1 text-sm text-slate-600">
+					Salin daftar dari catatan HP, chat WhatsApp, atau kolom Excel / Google Sheets, lalu tempel di bawah.
+					<b>Satu baris untuk satu tamu.</b> Nomor HP boleh ditulis di mana saja dalam baris.
+				</p>
+				<pre class="mt-3 overflow-x-auto rounded-lg bg-slate-50 p-3 text-xs text-slate-600">
+					Budi Santoso 0812-3456-7890
+					Bu Sari - 081311112222 (2 orang)
+					Pak RT &amp; keluarga
+				</pre>
+				<form method="post" action={ templ.SafeURL(base(w) + "/paste") } class="mt-4 space-y-3" x-data="contactPicker()">
+					@layouts.CSRFField()
+					@ui.Alert(errMsg)
+					<label for="paste-text" class="sr-only">Daftar tamu</label>
+					<textarea id="paste-text" name="text" rows="10" required x-ref="text" placeholder="Tempel daftar tamu di sini…" class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base">{ text }</textarea>
+					<button type="button" x-show="supported" x-cloak @click="pick()" class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-50">Pilih dari kontak HP</button>
+					<div>
+						<label for="paste-group" class="block text-sm font-medium text-slate-800">Masukkan ke grup <span class="font-normal text-slate-400">(opsional)</span></label>
+						<input id="paste-group" name="group" value={ group } list="paste-groups" maxlength="50" placeholder="mis. Keluarga pria" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base"/>
+						<datalist id="paste-groups">
+							for _, g := range groups {
+								<option value={ g }></option>
+							}
+						</datalist>
+					</div>
+					@ui.PrimaryButton("Lanjut: periksa daftar")
+				</form>
+			}
+		</div>
+	}
+}
+
+// reviewPage: tabel hasil tempel yang bisa diedit sebelum disimpan.
+templ reviewPage(w wedding.Wedding, rows []Input, errs map[int]ValidationError, group string) {
+	@wedding.Shell(w, "/guests") {
+		<div class="mx-auto max-w-3xl space-y-4">
+			<p><a href={ templ.SafeURL(base(w) + "/paste") } class="text-sm text-slate-500 hover:underline">‹ Tempel ulang</a></p>
+			<form method="post" action={ templ.SafeURL(base(w) + "/paste/confirm") } x-data={ fmt.Sprintf("{ count: %d }", len(rows)) } class="space-y-3">
+				@layouts.CSRFField()
+				<input type="hidden" name="group" value={ group }/>
+				<div>
+					<h2 class="text-lg font-semibold">Periksa daftar (<span x-text="count">{ strconv.Itoa(len(rows)) }</span> tamu)</h2>
+					if len(errs) > 0 {
+						@ui.Alert(fmt.Sprintf("%d baris perlu diperbaiki (ditandai merah). Perbaiki atau hapus barisnya, lalu simpan lagi.", len(errs)))
+					} else {
+						<p class="text-sm text-slate-600">Ubah langsung bila ada yang keliru. Hapus baris yang bukan tamu dengan tombol ✕.</p>
+					}
+				</div>
+				<ol class="space-y-2" x-ref="list">
+					for i, r := range rows {
+						@reviewRow(r, errs[i])
+					}
+				</ol>
+				<template x-ref="blank">
+					@reviewRow(Input{GroupName: group}, nil)
+				</template>
+				<button type="button" @click="$refs.list.insertAdjacentHTML('beforeend', $refs.blank.innerHTML); count++" class="text-sm text-primary hover:underline">+ Tambah baris</button>
+				<div class="sticky bottom-0 -mx-4 border-t border-slate-200 bg-slate-50/95 px-4 py-3 backdrop-blur">
+					<button type="submit" class="w-full rounded-lg bg-primary px-4 py-2.5 font-medium text-white" x-text="'Simpan ' + count + ' tamu'">Simpan</button>
+				</div>
+			</form>
+		</div>
+	}
+}
+
+templ reviewRow(in Input, errs ValidationError) {
+	<li class={ "rounded-xl bg-white p-3 shadow-sm ring-1", templ.KV("ring-red-300", len(errs) > 0), templ.KV("ring-black/5", len(errs) == 0) }>
+		<div class="flex gap-2">
+			<input name="name" value={ in.Name } placeholder="Nama" aria-label="Nama" maxlength="100" class={ "min-w-0 flex-1 rounded-lg border px-2 py-1.5 text-base", templ.KV("border-red-400", errs["name"] != ""), templ.KV("border-slate-300", errs["name"] == "") }/>
+			<button type="button" @click="$el.closest('li').remove(); count--" aria-label="Hapus baris" class="h-9 w-9 flex-none rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50">✕</button>
+		</div>
+		<div class="mt-2 grid grid-cols-[1.4fr_1fr_4rem] gap-2">
+			<input name="phone" type="tel" value={ in.Phone } placeholder="No. HP" aria-label="No. HP" class={ "min-w-0 rounded-lg border px-2 py-1.5 text-sm", templ.KV("border-red-400", errs["phone"] != ""), templ.KV("border-slate-300", errs["phone"] == "") }/>
+			<input name="group_name" value={ in.GroupName } placeholder="Grup" aria-label="Grup" maxlength="50" class="min-w-0 rounded-lg border border-slate-300 px-2 py-1.5 text-sm"/>
+			<input name="max_pax" type="number" min="1" max="20" value={ orOne(in.MaxPax) } aria-label="Jumlah orang" title="Jumlah orang" class={ "min-w-0 rounded-lg border px-2 py-1.5 text-sm", templ.KV("border-red-400", errs["max_pax"] != ""), templ.KV("border-slate-300", errs["max_pax"] == "") }/>
+		</div>
+		<input type="hidden" name="email" value={ in.Email }/>
+		if len(errs) > 0 {
+			<p class="mt-1 text-xs text-red-600">{ errorList(errs) }</p>
+		}
+	</li>
 }

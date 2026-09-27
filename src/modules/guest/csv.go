@@ -198,6 +198,33 @@ func (s *Service) Import(ctx context.Context, weddingID uuid.UUID, rows []Import
 	return 0, errors.New("guest: import gagal membuat kode unik")
 }
 
+// AddMany menyimpan banyak tamu sekaligus (hasil "Tempel daftar" yang sudah
+// diedit user). Semua-atau-tidak: bila ada baris invalid, tidak ada yang disimpan
+// dan errors berisi pesan per indeks baris.
+func (s *Service) AddMany(ctx context.Context, weddingID uuid.UUID, inputs []Input) (added int, errs map[int]ValidationError, err error) {
+	if len(inputs) == 0 {
+		return 0, nil, ErrImportEmpty
+	}
+	if len(inputs) > MaxImportRows {
+		return 0, nil, ErrImportTooMany
+	}
+	rows := make([]ImportRow, len(inputs))
+	for i, in := range inputs {
+		if _, v := validate(in); v != nil {
+			if errs == nil {
+				errs = map[int]ValidationError{}
+			}
+			errs[i] = v
+		}
+		rows[i] = ImportRow{Line: i + 1, Input: in}
+	}
+	if errs != nil {
+		return 0, errs, nil
+	}
+	added, err = s.Import(ctx, weddingID, rows)
+	return added, nil, err
+}
+
 // ExportCSV menulis semua tamu sebagai CSV UTF-8 dengan BOM (Excel & Google Sheets).
 func (s *Service) ExportCSV(ctx context.Context, weddingID uuid.UUID, w io.Writer) error {
 	guests, err := s.All(ctx, weddingID)
