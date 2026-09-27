@@ -276,6 +276,12 @@ func (h *Handler) ImportPage(c echo.Context) error {
 	return web.Render(c, http.StatusOK, importPage(ctxWedding(c), ""))
 }
 
+// GET .../guests/import/template → template CSV kosong untuk diisi.
+func (h *Handler) ImportTemplate(c echo.Context) error {
+	c.Response().Header().Set(echo.HeaderContentDisposition, `attachment; filename="template-tamu-lovoria.csv"`)
+	return c.Blob(http.StatusOK, "text/csv; charset=utf-8", []byte(TemplateCSV))
+}
+
 // POST .../guests/import (multipart: file) → pratinjau.
 func (h *Handler) ImportPreview(c echo.Context) error {
 	w := ctxWedding(c)

@@ -332,3 +332,24 @@ func TestPasteRoutesOwnerOnly(t *testing.T) {
 		t.Error("bob berhasil menambah tamu ke wedding alice")
 	}
 }
+
+func TestImportPageAndTemplate(t *testing.T) {
+	f := newFixture(t)
+	e := newTestServer(t, f)
+	owner, w := f.newWedding(t, "a@example.com")
+	bob, _ := f.newWedding(t, "bob@example.com")
+	base := w.DashboardURL("/guests")
+
+	rec := send(e, owner, get(base+"/import"), false)
+	body := rec.Body.String()
+	if rec.Code != http.StatusOK || !strings.Contains(body, "Pilih file CSV") || !strings.Contains(body, base+"/import/template") || !strings.Contains(body, base+"/paste") {
+		t.Fatalf("halaman import: %d", rec.Code)
+	}
+	rec = send(e, owner, get(base+"/import/template"), false)
+	if rec.Code != http.StatusOK || rec.Body.String() != TemplateCSV || !strings.Contains(rec.Header().Get("Content-Disposition"), "template-tamu-lovoria.csv") {
+		t.Errorf("template: %d %q", rec.Code, rec.Body.String())
+	}
+	if rec := send(e, bob, get(base+"/import/template"), false); rec.Code != http.StatusNotFound {
+		t.Errorf("bob → template alice: %d", rec.Code)
+	}
+}

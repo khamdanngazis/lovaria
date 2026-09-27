@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### T07c — Halaman import file lebih ramah
+- Kotak unggah besar (klik atau seret file) di paling atas; memilih file langsung membuka pratinjau.
+- Tombol "Unduh template" (`GET /guests/import/template`, CSV dengan `sep=,` untuk Excel regional Indonesia); parser mendukung baris `sep=`.
+- Panduan 3 langkah & contoh dalam bentuk tabel (menggantikan contoh CSV di `<pre>` yang ikut ter-indent oleh `templ fmt`); banner ke "Tempel daftar".
+
 ### T07b — UX tamu
 - **Tambah cepat**: baris Nama/HP/Grup selalu terbuka; Enter menyimpan, form dikosongkan, grup terakhir diingat, fokus kembali ke Nama (`POST /guests` dengan `quick=1`).
 - **Tempel daftar tamu** (`/guests/paste`): tempel dari catatan HP/chat/Excel, parser teks bebas & tabel (`ParseList`), tabel periksa yang bisa diedit (hapus/tambah baris), simpan semua-atau-tidak (`AddMany`).

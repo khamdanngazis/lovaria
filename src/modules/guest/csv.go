@@ -85,10 +85,17 @@ func ParseCSV(r io.Reader) (ImportPreview, error) {
 	}
 
 	firstLine, _, _ := bufio.NewReader(bytes.NewReader(data)).ReadLine()
-	cr := csv.NewReader(bytes.NewReader(data))
-	if bytes.Count(firstLine, []byte(";")) > bytes.Count(firstLine, []byte(",")) {
-		cr.Comma = ';'
+	comma := ','
+	// Baris "sep=," (dari template) memberi tahu Excel pemisahnya; lewati.
+	if l := bytes.ToLower(bytes.TrimSpace(firstLine)); bytes.HasPrefix(l, []byte("sep=")) && len(l) == 5 {
+		comma = rune(l[4])
+		data = data[len(firstLine):]
+		data = bytes.TrimLeft(data, "\r\n")
+	} else if bytes.Count(firstLine, []byte(";")) > bytes.Count(firstLine, []byte(",")) {
+		comma = ';'
 	}
+	cr := csv.NewReader(bytes.NewReader(data))
+	cr.Comma = comma
 	cr.FieldsPerRecord = -1
 	cr.TrimLeadingSpace = true
 
@@ -224,6 +231,11 @@ func (s *Service) AddMany(ctx context.Context, weddingID uuid.UUID, inputs []Inp
 	added, err = s.Import(ctx, weddingID, rows)
 	return added, nil, err
 }
+
+// TemplateCSV adalah template import: baris "sep=," (supaya Excel dengan
+// pengaturan regional Indonesia tetap memisah kolom dengan benar) + judul kolom.
+// Sengaja tanpa contoh tamu supaya contoh tidak ikut ter-import.
+const TemplateCSV = "sep=,\r\nnama,hp,email,grup,jumlah\r\n"
 
 // ExportCSV menulis semua tamu sebagai CSV UTF-8 dengan BOM (Excel & Google Sheets).
 func (s *Service) ExportCSV(ctx context.Context, weddingID uuid.UUID, w io.Writer) error {

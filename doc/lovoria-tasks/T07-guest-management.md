@@ -50,4 +50,10 @@ Daftar tamu + invitation code personal adalah dasar personalized invitation dan 
 - [x] Semua route baru hanya untuk owner wedding (404 untuk user lain)
 - [x] Diuji di viewport 375px dengan input keyboard sungguhan
 
+### Revisi lanjutan — T07c (halaman import file)
+- Kotak unggah besar di paling atas halaman (klik / seret file), memilih file langsung membuka pratinjau.
+- Tombol **Unduh template** (CSV dengan `sep=,` supaya rapi di Excel regional Indonesia) + panduan 3 langkah; contoh ditampilkan sebagai tabel, bukan teks CSV mentah.
+- Banner ke "Tempel daftar" sebagai cara termudah.
+- [x] Kotak unggah terlihat tanpa scroll di viewport 375px
+
 Detail teknis: [`doc/modules/guest.md`](../modules/guest.md).
