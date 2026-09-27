@@ -82,10 +82,10 @@ func (q *Queries) ExtendSession(ctx context.Context, arg ExtendSessionParams) er
 }
 
 const getActiveSession = `-- name: GetActiveSession :one
-SELECT sessions.id, sessions.user_id, sessions.expires_at, sessions.ip, sessions.user_agent, sessions.created_at, sessions.last_seen_at, users.id, users.email, users.password_hash, users.name, users.role, users.email_verified_at, users.created_at, users.updated_at
+SELECT sessions.id, sessions.user_id, sessions.expires_at, sessions.ip, sessions.user_agent, sessions.created_at, sessions.last_seen_at, users.id, users.email, users.password_hash, users.name, users.role, users.email_verified_at, users.created_at, users.updated_at, users.disabled_at
 FROM sessions
 JOIN users ON users.id = sessions.user_id
-WHERE sessions.id = $1 AND sessions.expires_at > $2
+WHERE sessions.id = $1 AND sessions.expires_at > $2 AND users.disabled_at IS NULL
 `
 
 type GetActiveSessionParams struct {
@@ -117,6 +117,7 @@ func (q *Queries) GetActiveSession(ctx context.Context, arg GetActiveSessionPara
 		&i.User.EmailVerifiedAt,
 		&i.User.CreatedAt,
 		&i.User.UpdatedAt,
+		&i.User.DisabledAt,
 	)
 	return i, err
 }

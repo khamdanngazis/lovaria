@@ -95,6 +95,7 @@ type Service struct {
 	store    storage.Storage
 	weddings WeddingStorage
 	quota    int64
+	quotaSrc func(ctx context.Context, weddingID uuid.UUID) (int64, bool, error)
 	log      *slog.Logger
 }
 
@@ -130,7 +131,11 @@ func (s *Service) Upload(ctx context.Context, weddingID uuid.UUID, category stri
 	}
 
 	size := int64(len(res.Main) + len(res.Thumb))
-	if err := s.weddings.ReserveStorage(ctx, weddingID, size, s.quota); err != nil {
+	quota, err := s.quotaFor(ctx, weddingID)
+	if err != nil {
+		return Item{}, err
+	}
+	if err := s.weddings.ReserveStorage(ctx, weddingID, size, quota); err != nil {
 		if errors.Is(err, wedding.ErrQuotaExceeded) {
 			return Item{}, ErrQuotaExceeded
 		}
@@ -293,7 +298,11 @@ func (s *Service) StorageUsage(ctx context.Context, weddingID uuid.UUID) (Usage,
 	if err != nil {
 		return Usage{}, err
 	}
-	return Usage{UsedBytes: used, QuotaBytes: s.quota}, nil
+	quota, err := s.quotaFor(ctx, weddingID)
+	if err != nil {
+		return Usage{}, err
+	}
+	return Usage{UsedBytes: used, QuotaBytes: quota}, nil
 }
 
 // RebaseMediaURLs mengganti basis URL foto & thumbnail gallery (objek di storage
@@ -326,4 +335,21 @@ func (s *Service) Summary(ctx context.Context, weddingID uuid.UUID, n int) (Summ
 	}
 	sum.Usage, err = s.StorageUsage(ctx, weddingID)
 	return sum, err
+}
+
+// SetQuotaSource memasang kuota storage per wedding (paket, T16). ok=false →
+// kuota default dari config (STORAGE_QUOTA_MB).
+func (s *Service) SetQuotaSource(f func(ctx context.Context, weddingID uuid.UUID) (bytes int64, ok bool, err error)) {
+	s.quotaSrc = f
+}
+
+func (s *Service) quotaFor(ctx context.Context, weddingID uuid.UUID) (int64, error) {
+	if s.quotaSrc == nil {
+		return s.quota, nil
+	}
+	q, ok, err := s.quotaSrc(ctx, weddingID)
+	if err != nil || !ok {
+		return s.quota, err
+	}
+	return q, nil
 }

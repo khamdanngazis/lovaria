@@ -297,7 +297,11 @@ func (s *Service) AdvanceDue(ctx context.Context, archiveDays int) (int, error) 
 	}
 	total := 0
 	for _, r := range rows {
-		target := dueStatus(r.Status, r.WeddingDate, r.Timezone, now, archiveDays)
+		days, err := s.archiveDaysFor(ctx, r.ID, archiveDays)
+		if err != nil {
+			return total, err
+		}
+		target := dueStatus(r.Status, r.WeddingDate, r.Timezone, now, days)
 		if target == r.Status {
 			continue
 		}
@@ -351,7 +355,11 @@ func (s *Service) AdvanceNow(ctx context.Context, weddingID uuid.UUID, archiveDa
 	if err != nil {
 		return err
 	}
-	if target := dueStatus(w.Status, w.WeddingDate, w.Timezone, s.clock(), archiveDays); target != w.Status {
+	days, err := s.archiveDaysFor(ctx, w.ID, archiveDays)
+	if err != nil {
+		return err
+	}
+	if target := dueStatus(w.Status, w.WeddingDate, w.Timezone, s.clock(), days); target != w.Status {
 		_, err = s.advance(ctx, weddingID, target)
 	}
 	return err
@@ -406,4 +414,37 @@ func (s *Service) RunLifecycle(ctx context.Context, every time.Duration, archive
 			tick()
 		}
 	}
+}
+
+// SetArchiveDaysSource memasang sumber lama arsip per wedding (paket, T16).
+// ok=false → pakai nilai default dari config.
+func (s *Service) SetArchiveDaysSource(f func(ctx context.Context, weddingID uuid.UUID) (days int, ok bool, err error)) {
+	s.archive = f
+}
+
+func (s *Service) archiveDaysFor(ctx context.Context, weddingID uuid.UUID, def int) (int, error) {
+	if s.archive == nil {
+		return def, nil
+	}
+	days, ok, err := s.archive(ctx, weddingID)
+	if err != nil || !ok {
+		return def, err
+	}
+	return days, nil
+}
+
+// AllStatuses: seluruh status lifecycle berurutan (filter & laporan admin).
+func AllStatuses() []string {
+	return []string{StatusDraft, StatusPublished, StatusWeddingDay, StatusMemory, StatusArchived}
+}
+
+// TargetsFor: status tujuan yang boleh dipilih aktor dari status `from`.
+func TargetsFor(from string, actor ActorKind) []string {
+	var out []string
+	for _, to := range AllStatuses() {
+		if CanTransition(from, to, actor) {
+			out = append(out, to)
+		}
+	}
+	return out
 }

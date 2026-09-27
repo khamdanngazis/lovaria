@@ -9,7 +9,7 @@ Pasangan bisa memakai domain sendiri (`www.khamdansarah.com`) untuk undangannya.
 
 ## 2. Fallback origin & target CNAME
 
-1. Buat record DNS **proxied** (awan oranye) untuk fallback origin, mis. `origin.lovoria.com` → CNAME ke domain aplikasi (Railway: `lovaria-production.up.railway.app`).
+1. Buat record DNS **proxied** (awan oranye) untuk fallback origin, mis. `origin.lovoria.com`. Dengan Worker (opsi A di bawah) cukup record *originless* `AAAA origin 100::` — Worker yang meneruskan ke Railway. Tanpa Worker (opsi B): CNAME ke server aplikasi.
 2. **SSL/TLS → Custom Hostnames → Fallback Origin** = `origin.lovoria.com`. Tunggu sampai status *Active*.
 3. Buat target CNAME untuk pasangan, mis. `domains.lovoria.com` → CNAME ke `origin.lovoria.com` (proxied). Inilah nilai `CUSTOM_DOMAIN_CNAME_TARGET`.
 4. **SSL/TLS → Overview**: mode **Full** (Railway melayani HTTPS). *Edge Certificates → Always Use HTTPS*: on.
@@ -21,7 +21,8 @@ Cloudflare meneruskan request custom hostname ke origin dengan `Host: www.khamda
 **A. Cloudflare Worker (disarankan untuk Railway).** Worker menulis ulang Host ke domain Railway dan mengirim host asli lewat header yang dibaca aplikasi (`CUSTOM_DOMAIN_HOST_HEADER`):
 
 ```js
-// Worker "lovoria-custom-domains", route: */*  (zona lovoria.com — berlaku juga untuk custom hostname)
+// Worker "lovoria-custom-domains", route: */* di zona lovoria.com — menurut dokumentasi
+// Cloudflare, route */* juga menangkap trafik custom hostname. Variabel Worker: ORIGIN_HOST.
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);

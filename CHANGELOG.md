@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### T16 — Panel admin
+- Halaman `/admin`: ringkasan, Customers (cari, detail, nonaktifkan), Weddings (filter status/tanggal/cari, urut storage, detail, ubah status sebagai admin, buka website), Tema (jumlah pemakai, nonaktifkan untuk pasangan baru), Paket, Storage (top 20), Domain (kuota 100), Audit log.
+- Migration `00012` (`users.disabled_at`: login & sesi ditolak), `00013` (`packages`, `wedding_packages`, `admin_audit_logs`), `00014` (`disabled_themes`).
+- Paket mengatur kuota storage galeri & lama arsip per wedding (`gallery.SetQuotaSource`, `wedding.SetArchiveDaysSource`).
+- "Lihat dashboard" sebagai pasangan: cookie HMAC 1 jam, hanya GET/HEAD, banner + form nonaktif, tercatat di audit.
+- Setiap aksi tulis admin tercatat di `admin_audit_logs`; admin hanya menyentuh tabelnya sendiri (test).
+- Perbaikan: halaman tema kini menampilkan error pilihan tema; scheduler dimulai setelah wiring service selesai (hindari race).
+- Dokumentasi: `doc/modules/admin.md`; `doc/custom-domain.md` memakai fallback origin originless (`AAAA 100::`) untuk setup Worker.
+
 ### T15 — Custom domain (Cloudflare for SaaS)
 - Modul `domain` (migration `00011`): daftar domain per wedding, validasi & normalisasi, client Cloudflare Custom Hostnames (create/get/delete), status `pending_verification → active / failed (72 jam) / removed`, scheduler 5 menit dengan advisory lock, hapus domain menghapus hostname di Cloudflare dulu.
 - Dashboard menu **Domain**: form, instruksi CNAME untuk orang awam (Host `www`/`@`, target, peringatan domain utama), badge status, Cek ulang, Hapus.

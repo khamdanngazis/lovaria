@@ -96,6 +96,16 @@ templ Public(meta Meta) {
 // Dashboard adalah layout dasar UI couple.
 templ Dashboard(meta Meta) {
 	@base(meta, "min-h-dvh bg-slate-50 text-slate-900 antialiased") {
+		if web.ReadOnly(ctx) {
+			// Admin melihat dashboard pasangan (T16): semua perubahan ditolak server.
+			<div class="sticky top-0 z-50 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-amber-500 px-4 py-2 text-center text-sm font-medium text-slate-900">
+				<span>Mode admin — lihat saja. Perubahan tidak bisa disimpan.</span>
+				<form method="post" action="/admin/view/stop">
+					@CSRFField()
+					<button type="submit" class="rounded bg-slate-900 px-2 py-0.5 text-xs text-white">Keluar</button>
+				</form>
+			</div>
+		}
 		<header class="border-b border-slate-200 bg-white">
 			<div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
 				<a href="/dashboard" class="font-heading text-lg font-semibold text-primary">Lovoria</a>
@@ -115,7 +125,14 @@ templ Dashboard(meta Meta) {
 			</div>
 		</header>
 		<main class="mx-auto w-full max-w-5xl px-4 py-6">
-			{ children... }
+			if web.ReadOnly(ctx) {
+				// Semua kontrol form dinonaktifkan; server tetap menolak perubahan (403).
+				<fieldset disabled class="lv-readonly m-0 min-w-0 border-0 p-0">
+					{ children... }
+				</fieldset>
+			} else {
+				{ children... }
+			}
 		</main>
 	}
 }

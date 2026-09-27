@@ -24,6 +24,18 @@ func (q *Queries) CountActive(ctx context.Context) (int64, error) {
 	return count, err
 }
 
+const countAllDomains = `-- name: CountAllDomains :one
+SELECT count(*) FROM custom_domains
+`
+
+// tenant:ignore laporan panel admin (T16) lintas wedding
+func (q *Queries) CountAllDomains(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, countAllDomains)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const deleteByWedding = `-- name: DeleteByWedding :execrows
 DELETE FROM custom_domains WHERE wedding_id = $1
 `
@@ -141,6 +153,46 @@ func (q *Queries) InsertDomain(ctx context.Context, arg InsertDomainParams) (Cus
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const listAllDomains = `-- name: ListAllDomains :many
+SELECT id, wedding_id, domain, cf_hostname_id, status, verification_errors, verified_at, last_checked_at, created_at FROM custom_domains ORDER BY created_at DESC, id DESC LIMIT $2 OFFSET $1
+`
+
+type ListAllDomainsParams struct {
+	Off int32
+	Lim int32
+}
+
+// tenant:ignore laporan panel admin (T16) lintas wedding
+func (q *Queries) ListAllDomains(ctx context.Context, arg ListAllDomainsParams) ([]CustomDomain, error) {
+	rows, err := q.db.Query(ctx, listAllDomains, arg.Off, arg.Lim)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []CustomDomain{}
+	for rows.Next() {
+		var i CustomDomain
+		if err := rows.Scan(
+			&i.ID,
+			&i.WeddingID,
+			&i.Domain,
+			&i.CfHostnameID,
+			&i.Status,
+			&i.VerificationErrors,
+			&i.VerifiedAt,
+			&i.LastCheckedAt,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listPending = `-- name: ListPending :many

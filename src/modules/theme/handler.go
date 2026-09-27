@@ -48,7 +48,16 @@ func (h *Handler) Page(c echo.Context) error {
 	if c.QueryParam("saved") == "1" {
 		s.Notice = "Tema tersimpan."
 	}
-	return web.Render(c, http.StatusOK, page(s))
+	return h.render(c, http.StatusOK, s)
+}
+
+// render mengisi daftar tema yang bisa dipilih lalu merender halaman.
+func (h *Handler) render(c echo.Context, status int, s pageState) error {
+	var err error
+	if s.Themes, err = h.svc.Choices(c.Request().Context(), s.W.ThemeID); err != nil {
+		return err
+	}
+	return web.Render(c, status, page(s))
 }
 
 // PATCH .../theme (theme_id, primary_color, font_heading, font_body, background, cover_image)
@@ -56,13 +65,23 @@ func (h *Handler) Save(c echo.Context) error {
 	w := ctxWedding(c)
 	themeID := c.FormValue("theme_id")
 	in := settingsFrom(c.FormValue)
+	// Tema yang dinonaktifkan admin hanya boleh dipakai wedding yang sudah memakainya.
+	if themeID != w.ThemeID {
+		off, err := h.svc.Disabled(c.Request().Context())
+		if err != nil {
+			return err
+		}
+		if off[themeID] {
+			return h.render(c, http.StatusUnprocessableEntity, pageState{W: w, ThemeID: w.ThemeID, Settings: in, Errors: map[string]string{"theme_id": "Tema ini sedang tidak tersedia"}})
+		}
+	}
 	_, err := h.svc.Save(c.Request().Context(), w.ID, themeID, in)
 	var se SettingsError
 	switch {
 	case errors.As(err, &se):
-		return web.Render(c, http.StatusUnprocessableEntity, page(pageState{W: w, ThemeID: themeID, Settings: in, Errors: se}))
+		return h.render(c, http.StatusUnprocessableEntity, pageState{W: w, ThemeID: themeID, Settings: in, Errors: se})
 	case errors.Is(err, ErrUnknownTheme):
-		return web.Render(c, http.StatusUnprocessableEntity, page(pageState{W: w, ThemeID: w.ThemeID, Settings: in, Errors: map[string]string{"theme_id": "Pilih salah satu tema"}}))
+		return h.render(c, http.StatusUnprocessableEntity, pageState{W: w, ThemeID: w.ThemeID, Settings: in, Errors: map[string]string{"theme_id": "Pilih salah satu tema"}})
 	case err != nil:
 		return err
 	}

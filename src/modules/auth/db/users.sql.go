@@ -7,14 +7,27 @@ package authdb
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 )
 
+const countSearchUsers = `-- name: CountSearchUsers :one
+SELECT count(*) FROM users
+WHERE $1::text IS NULL OR name ILIKE '%' || $1 || '%' OR email::text ILIKE '%' || $1 || '%'
+`
+
+func (q *Queries) CountSearchUsers(ctx context.Context, q_ *string) (int64, error) {
+	row := q.db.QueryRow(ctx, countSearchUsers, q_)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (id, email, password_hash, name, role)
 VALUES ($1, $2, $3, $4, $5)
-RETURNING id, email, password_hash, name, role, email_verified_at, created_at, updated_at
+RETURNING id, email, password_hash, name, role, email_verified_at, created_at, updated_at, disabled_at
 `
 
 type CreateUserParams struct {
@@ -43,12 +56,13 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.EmailVerifiedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DisabledAt,
 	)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, email, password_hash, name, role, email_verified_at, created_at, updated_at FROM users WHERE email = $1
+SELECT id, email, password_hash, name, role, email_verified_at, created_at, updated_at, disabled_at FROM users WHERE email = $1
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
@@ -63,12 +77,13 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.EmailVerifiedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DisabledAt,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, email, password_hash, name, role, email_verified_at, created_at, updated_at FROM users WHERE id = $1
+SELECT id, email, password_hash, name, role, email_verified_at, created_at, updated_at, disabled_at FROM users WHERE id = $1
 `
 
 func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
@@ -83,6 +98,77 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.EmailVerifiedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DisabledAt,
+	)
+	return i, err
+}
+
+const searchUsers = `-- name: SearchUsers :many
+SELECT id, email, password_hash, name, role, email_verified_at, created_at, updated_at, disabled_at FROM users
+WHERE $1::text IS NULL OR name ILIKE '%' || $1 || '%' OR email::text ILIKE '%' || $1 || '%'
+ORDER BY created_at DESC, id DESC
+LIMIT $3 OFFSET $2
+`
+
+type SearchUsersParams struct {
+	Q   *string
+	Off int32
+	Lim int32
+}
+
+// Panel admin (T16): cari nama/email, terbaru dulu.
+func (q *Queries) SearchUsers(ctx context.Context, arg SearchUsersParams) ([]User, error) {
+	rows, err := q.db.Query(ctx, searchUsers, arg.Q, arg.Off, arg.Lim)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []User{}
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(
+			&i.ID,
+			&i.Email,
+			&i.PasswordHash,
+			&i.Name,
+			&i.Role,
+			&i.EmailVerifiedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DisabledAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const setUserDisabled = `-- name: SetUserDisabled :one
+UPDATE users SET disabled_at = $2 WHERE id = $1 RETURNING id, email, password_hash, name, role, email_verified_at, created_at, updated_at, disabled_at
+`
+
+type SetUserDisabledParams struct {
+	ID         uuid.UUID
+	DisabledAt *time.Time
+}
+
+func (q *Queries) SetUserDisabled(ctx context.Context, arg SetUserDisabledParams) (User, error) {
+	row := q.db.QueryRow(ctx, setUserDisabled, arg.ID, arg.DisabledAt)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.PasswordHash,
+		&i.Name,
+		&i.Role,
+		&i.EmailVerifiedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DisabledAt,
 	)
 	return i, err
 }

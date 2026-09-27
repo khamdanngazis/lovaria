@@ -13,6 +13,8 @@ type pageState struct {
 	Settings view.Settings
 	Errors   map[string]string
 	Notice   string
+	// Themes: tema yang bisa dipilih (tema aktif + tema yang sedang dipakai).
+	Themes []ThemeDef
 }
 
 func pageURL(w wedding.Wedding) string { return w.DashboardURL("/theme") }
@@ -66,8 +68,11 @@ templ page(s pageState) {
 				}
 				<fieldset>
 					<legend class="text-lg font-semibold">Pilih tema</legend>
+					if s.Errors["theme_id"] != "" {
+						<p role="alert" class="mt-1 text-sm text-red-600">{ s.Errors["theme_id"] }</p>
+					}
 					<div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-						for _, d := range All() {
+						for _, d := range s.Themes {
 							<label class="block cursor-pointer">
 								<input type="radio" name="theme_id" value={ d.ID } checked?={ d.ID == s.ThemeID } class="peer sr-only"/>
 								<span class="block overflow-hidden rounded-2xl bg-white ring-1 ring-black/10 transition peer-checked:ring-4 peer-checked:ring-primary peer-focus-visible:ring-4">

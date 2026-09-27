@@ -48,7 +48,7 @@ tools/linttenant/      cek aturan wedding_id pada query & index (make lint-tenan
 
 Konvensi schema, migration, sqlc, transaksi, dan integration test: **[doc/database.md](doc/database.md)**.
 Dokumentasi teknis per modul (route, alur, aturan khusus): **[doc/modules/](doc/modules/)** — tambahkan/ubah saat modul berubah.
-Sistem tema undangan & cara menambah tema: **[doc/themes.md](doc/themes.md)**. Halaman undangan publik: **[doc/modules/public-site.md](doc/modules/public-site.md)**. Beranda & navigasi dashboard: **[doc/modules/dashboard.md](doc/modules/dashboard.md)**. Custom domain: **[doc/custom-domain.md](doc/custom-domain.md)**. Buku ucapan & hadiah: **[doc/modules/guestbook-gift.md](doc/modules/guestbook-gift.md)**. Status wedding: **[doc/modules/wedding-lifecycle.md](doc/modules/wedding-lifecycle.md)** — modul lain memakai guard (`AllowsRSVP()` dll.), bukan membandingkan string status.
+Sistem tema undangan & cara menambah tema: **[doc/themes.md](doc/themes.md)**. Halaman undangan publik: **[doc/modules/public-site.md](doc/modules/public-site.md)**. Beranda & navigasi dashboard: **[doc/modules/dashboard.md](doc/modules/dashboard.md)**. Panel admin: **[doc/modules/admin.md](doc/modules/admin.md)** — aksi tulis admin wajib lewat `admin.Service` (tercatat di audit log). Custom domain: **[doc/custom-domain.md](doc/custom-domain.md)**. Buku ucapan & hadiah: **[doc/modules/guestbook-gift.md](doc/modules/guestbook-gift.md)**. Status wedding: **[doc/modules/wedding-lifecycle.md](doc/modules/wedding-lifecycle.md)** — modul lain memakai guard (`AllowsRSVP()` dll.), bukan membandingkan string status.
 
 ## Pola Modul
 

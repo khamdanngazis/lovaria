@@ -1,19 +1,28 @@
 package admin
 
-import (
-	"net/http"
-
-	"github.com/labstack/echo/v4"
-
-	"github.com/khamdanngazis/lovaria/src/platform/web"
-)
-
-type Deps struct{}
+import "github.com/labstack/echo/v4"
 
 // Register memasang route panel admin. Group wajib sudah dilindungi
 // RequireAuth + RequireRole(admin) di cmd/server/main.go.
-func Register(g *echo.Group, _ Deps) {
-	g.GET("", func(c echo.Context) error {
-		return web.Render(c, http.StatusOK, homePage())
-	})
+func Register(g *echo.Group, svc *Service) {
+	h := &Handler{svc: svc}
+	g.GET("", h.Home)
+	g.GET("/users", h.Users)
+	g.GET("/users/:userID", h.User)
+	g.POST("/users/:userID/disabled", h.SetUserDisabled)
+	g.GET("/weddings", h.Weddings)
+	g.GET("/weddings/:weddingID", h.Wedding)
+	g.POST("/weddings/:weddingID/status", h.SetWeddingStatus)
+	g.POST("/weddings/:weddingID/package", h.AssignPackage)
+	g.POST("/weddings/:weddingID/view", h.StartView)
+	g.POST("/view/stop", h.StopView)
+	g.GET("/themes", h.Themes)
+	g.POST("/themes/:themeID", h.SetThemeEnabled)
+	g.GET("/packages", h.Packages)
+	g.POST("/packages", h.CreatePackage)
+	g.POST("/packages/:packageID", h.UpdatePackage)
+	g.POST("/packages/:packageID/delete", h.DeletePackage)
+	g.GET("/storage", h.Storage)
+	g.GET("/domains", h.Domains)
+	g.GET("/audit", h.Audit)
 }

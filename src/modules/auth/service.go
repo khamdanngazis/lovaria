@@ -46,8 +46,11 @@ const (
 var (
 	// ErrInvalidCredentials sengaja generik: tidak membedakan email tidak ada vs password salah.
 	ErrInvalidCredentials = errors.New("email atau password salah")
-	ErrSessionInvalid     = errors.New("session tidak valid atau kedaluwarsa")
-	ErrInvalidResetToken  = errors.New("link reset password tidak valid atau sudah kedaluwarsa")
+	ErrUserNotFound       = errors.New("user tidak ditemukan")
+	// ErrAccountDisabled hanya dikembalikan setelah password benar (tidak membocorkan akun).
+	ErrAccountDisabled   = errors.New("akun ini dinonaktifkan. Hubungi admin Lovoria untuk bantuan")
+	ErrSessionInvalid    = errors.New("session tidak valid atau kedaluwarsa")
+	ErrInvalidResetToken = errors.New("link reset password tidak valid atau sudah kedaluwarsa")
 )
 
 // ValidationError memetakan nama field ke pesan error yang siap ditampilkan.
@@ -68,7 +71,9 @@ type User struct {
 	Name            string
 	Role            string
 	EmailVerifiedAt *time.Time
-	CreatedAt       time.Time
+	// DisabledAt: dinonaktifkan admin (T16) — tidak bisa login.
+	DisabledAt *time.Time
+	CreatedAt  time.Time
 
 	passwordHash string
 }
@@ -197,6 +202,9 @@ func (s *Service) Authenticate(ctx context.Context, email, password string) (Use
 	}
 	if !ok {
 		return User{}, ErrInvalidCredentials
+	}
+	if row.DisabledAt != nil {
+		return User{}, ErrAccountDisabled
 	}
 	if rehash {
 		if h, err := HashPassword(password); err == nil {
@@ -388,3 +396,71 @@ func truncate(s string, n int) string {
 }
 
 func ptr[T any](v T) *T { return &v }
+
+// ---------- Admin (T16) ----------
+
+// UserPage adalah satu halaman hasil pencarian user.
+type UserPage struct {
+	Users   []User
+	Total   int
+	Page    int
+	PerPage int
+}
+
+func (p UserPage) Pages() int { return max(1, (p.Total+p.PerPage-1)/p.PerPage) }
+
+// SearchUsers: daftar user untuk panel admin (cari nama/email), halaman mulai 1.
+func (s *Service) SearchUsers(ctx context.Context, q string, page, perPage int) (UserPage, error) {
+	var qp *string
+	if q = strings.TrimSpace(q); q != "" {
+		q = strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`).Replace(q)
+		qp = &q
+	}
+	page = max(1, page)
+	total, err := s.repo.q.CountSearchUsers(ctx, qp)
+	if err != nil {
+		return UserPage{}, err
+	}
+	rows, err := s.repo.q.SearchUsers(ctx, authdb.SearchUsersParams{Q: qp, Lim: int32(perPage), Off: int32((page - 1) * perPage)}) //nolint:gosec // G115: halaman kecil
+	if err != nil {
+		return UserPage{}, err
+	}
+	out := UserPage{Users: make([]User, len(rows)), Total: int(total), Page: page, PerPage: perPage}
+	for i, r := range rows {
+		out.Users[i] = toUser(r)
+	}
+	return out, nil
+}
+
+// GetUser mengembalikan user berdasarkan ID (ErrUserNotFound bila tidak ada).
+func (s *Service) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
+	row, err := s.repo.q.GetUserByID(ctx, id)
+	if err := mapErr(err); errors.Is(err, errNotFound) {
+		return User{}, ErrUserNotFound
+	} else if err != nil {
+		return User{}, err
+	}
+	return toUser(row), nil
+}
+
+// SetDisabled menonaktifkan (dan mengeluarkan dari semua sesi) atau
+// mengaktifkan kembali akun.
+func (s *Service) SetDisabled(ctx context.Context, id uuid.UUID, disabled bool) (User, error) {
+	var at *time.Time
+	if disabled {
+		now := s.now()
+		at = &now
+	}
+	row, err := s.repo.q.SetUserDisabled(ctx, authdb.SetUserDisabledParams{ID: id, DisabledAt: at})
+	if err := mapErr(err); errors.Is(err, errNotFound) {
+		return User{}, ErrUserNotFound
+	} else if err != nil {
+		return User{}, err
+	}
+	if disabled {
+		if err := s.repo.q.DeleteUserSessions(ctx, id); err != nil {
+			return User{}, err
+		}
+	}
+	return toUser(row), nil
+}

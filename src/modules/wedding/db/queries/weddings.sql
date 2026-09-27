@@ -61,3 +61,32 @@ UPDATE weddings SET status = $2 WHERE id = $1;
 -- Wedding yang mungkin perlu maju status otomatis (dicek per zona waktu di Go).
 SELECT id, status, wedding_date, timezone FROM weddings
 WHERE status IN ('published', 'wedding_day', 'memory') AND wedding_date <= sqlc.arg(until)::date;
+
+-- name: AdminListWeddings :many
+-- Panel admin (T16): semua wedding dengan filter & urutan. Laporan lintas tenant.
+SELECT * FROM weddings
+WHERE (sqlc.narg(status)::text IS NULL OR status = sqlc.narg(status))
+  AND (sqlc.narg(date_from)::date IS NULL OR wedding_date >= sqlc.narg(date_from))
+  AND (sqlc.narg(date_to)::date IS NULL OR wedding_date <= sqlc.narg(date_to))
+  AND (sqlc.narg(q)::text IS NULL OR title ILIKE '%' || sqlc.narg(q) || '%' OR slug::text ILIKE '%' || sqlc.narg(q) || '%')
+ORDER BY
+  CASE WHEN sqlc.arg(sort)::text = 'storage' THEN storage_used_bytes END DESC,
+  CASE WHEN sqlc.arg(sort)::text = 'date' THEN wedding_date END ASC,
+  created_at DESC, id DESC
+LIMIT sqlc.arg(lim) OFFSET sqlc.arg(off);
+
+-- name: AdminCountWeddings :one
+SELECT count(*) FROM weddings
+WHERE (sqlc.narg(status)::text IS NULL OR status = sqlc.narg(status))
+  AND (sqlc.narg(date_from)::date IS NULL OR wedding_date >= sqlc.narg(date_from))
+  AND (sqlc.narg(date_to)::date IS NULL OR wedding_date <= sqlc.narg(date_to))
+  AND (sqlc.narg(q)::text IS NULL OR title ILIKE '%' || sqlc.narg(q) || '%' OR slug::text ILIKE '%' || sqlc.narg(q) || '%');
+
+-- name: CountWeddingsByStatus :many
+SELECT status, count(*) AS n FROM weddings GROUP BY status;
+
+-- name: CountWeddingsByTheme :many
+SELECT theme_id, count(*) AS n FROM weddings GROUP BY theme_id;
+
+-- name: StorageTotal :one
+SELECT COALESCE(sum(storage_used_bytes), 0)::bigint FROM weddings;
