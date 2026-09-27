@@ -353,3 +353,22 @@ func (s *Service) quotaFor(ctx context.Context, weddingID uuid.UUID) (int64, err
 	}
 	return q, nil
 }
+
+// ByCategory: foto kategori tertentu sesuai urutan tampil, paling banyak limit
+// (mis. foto hari-H untuk halaman kenangan, T19).
+func (s *Service) ByCategory(ctx context.Context, weddingID uuid.UUID, category string, limit int) ([]Item, error) {
+	items, err := s.ListGallery(ctx, weddingID)
+	if err != nil {
+		return nil, err
+	}
+	var out []Item
+	for _, it := range items {
+		if it.Category == category {
+			out = append(out, it)
+			if len(out) == limit {
+				break
+			}
+		}
+	}
+	return out, nil
+}

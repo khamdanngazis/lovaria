@@ -123,13 +123,14 @@ type Guest struct {
 }
 
 type GuestbookEntry struct {
-	ID        uuid.UUID
-	WeddingID uuid.UUID
-	GuestID   *uuid.UUID
-	GuestName string
-	Message   string
-	IsHidden  bool
-	CreatedAt time.Time
+	ID         uuid.UUID
+	WeddingID  uuid.UUID
+	GuestID    *uuid.UUID
+	GuestName  string
+	Message    string
+	IsHidden   bool
+	CreatedAt  time.Time
+	IsFavorite bool
 }
 
 type LoveStory struct {
@@ -203,20 +204,21 @@ type User struct {
 }
 
 type Wedding struct {
-	ID               uuid.UUID
-	OwnerUserID      uuid.UUID
-	Slug             string
-	Title            string
-	WeddingDate      time.Time
-	Description      string
-	MainPhotoUrl     *string
-	Status           string
-	ThemeID          string
-	CreatedAt        time.Time
-	UpdatedAt        time.Time
-	Timezone         string
-	StorageUsedBytes int64
-	IsDemo           bool
+	ID                uuid.UUID
+	OwnerUserID       uuid.UUID
+	Slug              string
+	Title             string
+	WeddingDate       time.Time
+	Description       string
+	MainPhotoUrl      *string
+	Status            string
+	ThemeID           string
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
+	Timezone          string
+	StorageUsedBytes  int64
+	IsDemo            bool
+	ArchiveVisibility string
 }
 
 type WeddingPackage struct {

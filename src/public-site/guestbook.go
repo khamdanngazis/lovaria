@@ -118,7 +118,8 @@ func (h *Handler) GuestbookPost(c echo.Context) error {
 func (h *Handler) GuestbookMore(c echo.Context) error {
 	ctx := c.Request().Context()
 	res, _ := FromContext(ctx)
-	if !res.Wedding.AllowsGuestbook() {
+	// Arsip publik (T19): daftar ucapan tetap bisa dibaca walau form ditutup.
+	if !res.Wedding.AllowsGuestbook() && !res.Wedding.ArchivePublic() && !h.isOwner(ctx, res) {
 		return notFound(c)
 	}
 	before, err := uuid.Parse(c.QueryParam("before"))

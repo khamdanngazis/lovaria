@@ -2,6 +2,7 @@ package publicsite
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -65,7 +66,9 @@ func (h *Handler) Home(c echo.Context) error {
 func (h *Handler) Invitation(c echo.Context) error {
 	ctx := c.Request().Context()
 	res, _ := FromContext(ctx)
-	if res.Wedding.IsArchived() {
+	// Arsip (T19): tampil read-only bila publik atau dibuka pemiliknya;
+	// arsip privat untuk publik tetap halaman ringkas.
+	if res.Wedding.IsArchived() && !res.Wedding.ArchivePublic() && !h.isOwner(ctx, res) {
 		return h.archived(c, res)
 	}
 	build := h.Views.BuildPublic
@@ -77,8 +80,10 @@ func (h *Handler) Invitation(c echo.Context) error {
 		return err
 	}
 	v.Preview = res.Preview
-	for i := range v.Events {
-		v.Events[i].CalendarURL = res.Prefix + "/events/" + v.Events[i].ID + ".ics"
+	if !res.Wedding.ShowsMemoryLayout() { // setelah hari H kalender tidak relevan
+		for i := range v.Events {
+			v.Events[i].CalendarURL = res.Prefix + "/events/" + v.Events[i].ID + ".ics"
+		}
 	}
 	v.OG = h.og(res, v)
 	if !res.Preview {
@@ -112,7 +117,10 @@ func (h *Handler) Invitation(c echo.Context) error {
 	if res.Preview {
 		hdr.Set("Cache-Control", "no-store")
 	} else {
-		if res.Guest != nil {
+		if res.Wedding.IsArchived() && !res.Wedding.ArchivePublic() {
+			// Arsip privat yang dibuka pemilik: jangan sampai tersimpan di cache bersama.
+			hdr.Set("Cache-Control", "private, no-store")
+		} else if res.Guest != nil {
 			// Halaman tamu memuat status RSVP-nya: selalu validasi ulang (ETag → 304)
 			// supaya jawaban yang baru dikirim langsung terlihat saat link dibuka lagi.
 			hdr.Set("Cache-Control", "private, no-cache")
@@ -127,6 +135,12 @@ func (h *Handler) Invitation(c echo.Context) error {
 		}
 	}
 	return c.HTMLBlob(http.StatusOK, buf.Bytes())
+}
+
+// isOwner: request dari pemilik wedding yang sedang login.
+func (h *Handler) isOwner(ctx context.Context, res Resolved) bool {
+	u, ok := web.CurrentUser(ctx)
+	return ok && u.ID == res.Wedding.OwnerUserID
 }
 
 // archived: halaman ringkas untuk undangan yang telah diarsipkan.

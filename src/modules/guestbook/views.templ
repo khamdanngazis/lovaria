@@ -51,7 +51,7 @@ templ page(s pageState) {
 templ section(s pageState) {
 	<section id="guestbook" class="space-y-4">
 		<p class="text-sm text-slate-600">
-			Ucapan & doa dari tamu. Pesan yang mengandung kata kasar otomatis disembunyikan; tampilkan lagi bila ternyata aman.
+			Ucapan & doa dari tamu. Pesan yang mengandung kata kasar otomatis disembunyikan; tampilkan lagi bila ternyata aman. Tandai ★ ucapan favorit — setelah hari H, ucapan favorit tampil paling atas di halaman kenangan.
 		</p>
 		<nav class="flex gap-2 overflow-x-auto whitespace-nowrap text-sm scrollbar-none" aria-label="Filter pesan">
 			@filterLink(s, "", "Semua · "+strconv.Itoa(s.Stats.Total))
@@ -112,10 +112,24 @@ templ item(s pageState, e Entry) {
 			if e.Hidden {
 				<span class="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-800">Disembunyikan</span>
 			}
+			if e.Favorite {
+				<span class="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">★ Favorit</span>
+			}
 		</div>
 		<p class="mt-1 whitespace-pre-line break-words text-sm text-slate-700">{ e.Message }</p>
 		<div class="mt-2 flex items-center gap-4 border-t border-slate-100 pt-2 text-sm">
 			<span class="flex-1 text-xs text-slate-500">{ s.when(e.CreatedAt) }</span>
+			<form method="post" action={ templ.SafeURL(u + "/favorite") } hx-patch={ u + "/favorite" } hx-include="#guestbook-state" hx-target="#guestbook" hx-swap="outerHTML">
+				@layouts.CSRFField()
+				<input type="hidden" name="_method" value="PATCH"/>
+				if e.Favorite {
+					<input type="hidden" name="favorite" value="0"/>
+					<button type="submit" class="text-lg leading-none text-primary" aria-label={ "Lepas favorit: ucapan " + e.Name } title="Lepas dari favorit">★</button>
+				} else {
+					<input type="hidden" name="favorite" value="1"/>
+					<button type="submit" class="text-lg leading-none text-slate-300 hover:text-primary" aria-label={ "Jadikan favorit: ucapan " + e.Name } title="Jadikan favorit (tampil paling atas setelah hari H)">☆</button>
+				}
+			</form>
 			<form method="post" action={ templ.SafeURL(u) } hx-patch={ u } hx-include="#guestbook-state" hx-target="#guestbook" hx-swap="outerHTML">
 				@layouts.CSRFField()
 				<input type="hidden" name="_method" value="PATCH"/>

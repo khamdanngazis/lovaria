@@ -32,3 +32,14 @@ RETURNING *;
 
 -- name: DeleteEntry :execrows
 DELETE FROM guestbook_entries WHERE id = $1 AND wedding_id = $2;
+
+-- name: SetFavorite :one
+UPDATE guestbook_entries SET is_favorite = $3
+WHERE id = $1 AND wedding_id = $2
+RETURNING *;
+
+-- name: ListFavorites :many
+SELECT * FROM guestbook_entries
+WHERE wedding_id = $1 AND is_favorite AND NOT is_hidden
+ORDER BY created_at DESC, id DESC
+LIMIT sqlc.arg(lim);

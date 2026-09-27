@@ -257,3 +257,41 @@ func TestPublishOnOrAfterWeddingDayAdvancesImmediately(t *testing.T) {
 		t.Errorf("status = %s, want memory (hari H sudah lewat)", got)
 	}
 }
+
+func TestArchiveVisibilityViaHTTP(t *testing.T) {
+	f := newFixture(t)
+	e := newTestServer(t, f)
+	owner, bob := f.user(t, "a@example.com"), f.user(t, "bob@example.com")
+	w, _ := f.svc.CreateWedding(ctx, owner, validInput())
+	base := "/dashboard/weddings/" + w.ID.String()
+
+	// Sebelum hari H pilihan visibilitas belum tampil.
+	if strings.Contains(req(e, owner, http.MethodGet, base, nil, false).Body.String(), "Visibilitas arsip") {
+		t.Error("draft: pilihan visibilitas arsip tidak perlu tampil")
+	}
+	if _, err := f.svc.repo.pool.Exec(ctx, `UPDATE weddings SET status = 'memory' WHERE id = $1`, w.ID); err != nil {
+		t.Fatal(err)
+	}
+	if body := req(e, owner, http.MethodGet, base, nil, false).Body.String(); !strings.Contains(body, "Visibilitas arsip") || !strings.Contains(body, "halaman kenangan") {
+		t.Fatal("kenangan: pilihan visibilitas arsip harus tampil")
+	}
+	rec := req(e, owner, http.MethodPost, base+"/archive-visibility", url.Values{"_method": {"PATCH"}, "visibility": {ArchivePrivate}}, false)
+	if rec.Code != http.StatusSeeOther {
+		t.Fatalf("simpan: %d", rec.Code)
+	}
+	if got, _ := f.svc.GetWedding(ctx, w.ID); got.ArchiveVisibility != ArchivePrivate {
+		t.Errorf("visibilitas = %q", got.ArchiveVisibility)
+	}
+	if body := req(e, owner, http.MethodGet, rec.Header().Get("Location"), nil, false).Body.String(); !strings.Contains(body, "Visibilitas arsip disimpan") {
+		t.Error("notice simpan tidak tampil")
+	}
+	if rec := req(e, owner, http.MethodPatch, base+"/archive-visibility", url.Values{"visibility": {"semua"}}, false); rec.Code != http.StatusUnprocessableEntity {
+		t.Errorf("nilai tak dikenal: %d", rec.Code)
+	}
+	if rec := req(e, bob, http.MethodPatch, base+"/archive-visibility", url.Values{"visibility": {ArchivePublicVisibility}}, false); rec.Code != http.StatusNotFound {
+		t.Errorf("bob: %d", rec.Code)
+	}
+	if got, _ := f.svc.GetWedding(ctx, w.ID); got.ArchiveVisibility != ArchivePrivate || got.ArchivePublic() {
+		t.Errorf("setelah percobaan bob: %q", got.ArchiveVisibility)
+	}
+}

@@ -174,6 +174,9 @@ func (h *Handler) Overview(c echo.Context) error {
 	case StatusDraft:
 		o.Notice = "Publikasi ditarik. Undangan kembali hanya bisa dilihat Anda."
 	}
+	if c.QueryParam("archive") == "saved" {
+		o.Notice = "Visibilitas arsip disimpan."
+	}
 	return web.Render(c, http.StatusOK, overviewPage(o))
 }
 
@@ -229,6 +232,24 @@ func (h *Handler) UpdateStatus(c echo.Context) error {
 		}
 	}
 	return c.Redirect(http.StatusSeeOther, weddingURL(updated, "?status="+to))
+}
+
+// PATCH /dashboard/weddings/:weddingID/archive-visibility (T19)
+func (h *Handler) UpdateArchiveVisibility(c echo.Context) error {
+	w := mustWedding(c)
+	updated, err := h.svc.SetArchiveVisibility(c.Request().Context(), w.ID, c.FormValue("visibility"))
+	if errors.Is(err, ErrInvalidArchiveVisibility) {
+		o, oerr := h.overview(c, w)
+		if oerr != nil {
+			return oerr
+		}
+		o.Error = "Pilih visibilitas arsip: Publik atau Privat."
+		return web.Render(c, http.StatusUnprocessableEntity, overviewPage(o))
+	}
+	if err != nil {
+		return err
+	}
+	return c.Redirect(http.StatusSeeOther, weddingURL(updated, "?archive=saved"))
 }
 
 func infoValues(w Wedding) form {

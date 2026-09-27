@@ -50,6 +50,7 @@ type Entry struct {
 	Name      string
 	Message   string
 	Hidden    bool
+	Favorite  bool // dipilih pasangan: tampil paling atas saat Kenangan & arsip (T19)
 	CreatedAt time.Time
 }
 
@@ -59,8 +60,19 @@ type Stats struct{ Total, Hidden int }
 func (s Stats) Visible() int { return s.Total - s.Hidden }
 
 type Service struct {
-	q      *guestbookdb.Queries
-	filter *WordFilter
+	q        *guestbookdb.Queries
+	filter   *WordFilter
+	onChange func(weddingID uuid.UUID) // mis. kosongkan cache halaman publik
+}
+
+// OnChange memasang fungsi yang dipanggil setelah pasangan mengubah ucapan
+// (sembunyikan, favorit, hapus) — dipakai untuk mengosongkan cache undangan.
+func (s *Service) OnChange(f func(weddingID uuid.UUID)) { s.onChange = f }
+
+func (s *Service) changed(weddingID uuid.UUID) {
+	if s.onChange != nil {
+		s.onChange(weddingID)
+	}
 }
 
 // NewService: filter boleh nil (tanpa penyaringan kata kasar).
@@ -69,7 +81,7 @@ func NewService(pool *pgxpool.Pool, filter *WordFilter) *Service {
 }
 
 func toEntry(r guestbookdb.GuestbookEntry) Entry {
-	return Entry{ID: r.ID, WeddingID: r.WeddingID, GuestID: r.GuestID, Name: r.GuestName, Message: r.Message, Hidden: r.IsHidden, CreatedAt: r.CreatedAt}
+	return Entry{ID: r.ID, WeddingID: r.WeddingID, GuestID: r.GuestID, Name: r.GuestName, Message: r.Message, Hidden: r.IsHidden, Favorite: r.IsFavorite, CreatedAt: r.CreatedAt}
 }
 
 // Post menyimpan ucapan baru. Pesan yang mengandung kata kasar tetap disimpan
@@ -152,6 +164,7 @@ func (s *Service) SetHidden(ctx context.Context, weddingID, id uuid.UUID, hidden
 	if err != nil {
 		return Entry{}, err
 	}
+	s.changed(weddingID)
 	return toEntry(row), nil
 }
 
@@ -163,12 +176,39 @@ func (s *Service) Delete(ctx context.Context, weddingID, id uuid.UUID) error {
 	if n == 0 {
 		return ErrNotFound
 	}
+	s.changed(weddingID)
 	return nil
 }
 
 // Recent: n pesan terbaru (termasuk yang disembunyikan) untuk beranda dashboard.
 func (s *Service) Recent(ctx context.Context, weddingID uuid.UUID, n int) ([]Entry, error) {
 	rows, err := s.q.ListEntries(ctx, guestbookdb.ListEntriesParams{WeddingID: weddingID, Lim: int32(n)}) //nolint:gosec // G115: n kecil
+	if err != nil {
+		return nil, err
+	}
+	out := make([]Entry, len(rows))
+	for i, r := range rows {
+		out[i] = toEntry(r)
+	}
+	return out, nil
+}
+
+// SetFavorite menandai / melepas ucapan favorit (T19).
+func (s *Service) SetFavorite(ctx context.Context, weddingID, id uuid.UUID, favorite bool) (Entry, error) {
+	row, err := s.q.SetFavorite(ctx, guestbookdb.SetFavoriteParams{ID: id, WeddingID: weddingID, IsFavorite: favorite})
+	if errors.Is(err, pgx.ErrNoRows) {
+		return Entry{}, ErrNotFound
+	}
+	if err != nil {
+		return Entry{}, err
+	}
+	s.changed(weddingID)
+	return toEntry(row), nil
+}
+
+// Favorites: ucapan favorit yang tampil (tidak disembunyikan), terbaru dulu.
+func (s *Service) Favorites(ctx context.Context, weddingID uuid.UUID, n int) ([]Entry, error) {
+	rows, err := s.q.ListFavorites(ctx, guestbookdb.ListFavoritesParams{WeddingID: weddingID, Lim: int32(n)}) //nolint:gosec // G115: n kecil
 	if err != nil {
 		return nil, err
 	}

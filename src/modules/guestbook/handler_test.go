@@ -118,6 +118,8 @@ func TestDashboardOwnerOnly(t *testing.T) {
 		{http.MethodGet, w.DashboardURL("/guestbook"), nil},
 		{http.MethodPatch, item, url.Values{"hidden": {"1"}}},
 		{http.MethodDelete, item, nil},
+		{http.MethodPatch, item + "/favorite", url.Values{"favorite": {"1"}}},
+		{http.MethodPatch, wb.DashboardURL("/guestbook/" + en.ID.String() + "/favorite"), url.Values{"favorite": {"1"}}},
 		// ID entri alice lewat URL wedding bob sendiri.
 		{http.MethodPatch, wb.DashboardURL("/guestbook/" + en.ID.String()), url.Values{"hidden": {"1"}}},
 		{http.MethodDelete, wb.DashboardURL("/guestbook/" + en.ID.String()), nil},
@@ -128,5 +130,43 @@ func TestDashboardOwnerOnly(t *testing.T) {
 	}
 	if es, _, _ := f.svc.Visible(ctx, w.ID, uuid.Nil, 10); len(es) != 1 {
 		t.Error("entri alice berubah")
+	}
+}
+
+func TestDashboardFavorite(t *testing.T) {
+	f := newFixture(t)
+	e := newTestServer(t, f)
+	owner, w := f.newWedding(t, "a@example.com")
+	a := f.post(t, w.ID, "Ani", "Semoga sakinah")
+	b := f.post(t, w.ID, "Budi", "Selamat menempuh hidup baru")
+	base := w.DashboardURL("/guestbook")
+
+	// Tandai favorit lewat htmx: daftar kembali dengan badge favorit.
+	rec := req(e, owner, http.MethodPatch, base+"/"+a.ID.String()+"/favorite", url.Values{"favorite": {"1"}}, true)
+	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "★ Favorit") || !strings.Contains(rec.Body.String(), "Lepas favorit: ucapan Ani") {
+		t.Fatalf("favorit: %d", rec.Code)
+	}
+	// Tanpa JS → redirect.
+	if rec := req(e, owner, http.MethodPost, base+"/"+b.ID.String()+"/favorite", url.Values{"_method": {"PATCH"}, "favorite": {"1"}}, false); rec.Code != http.StatusSeeOther {
+		t.Fatalf("favorit tanpa JS: %d", rec.Code)
+	}
+	favs, _ := f.svc.Favorites(ctx, w.ID, 10)
+	if len(favs) != 2 || favs[0].ID != b.ID {
+		t.Fatalf("favorit (terbaru dulu) = %v", favs)
+	}
+	// Ucapan tersembunyi tidak tampil sebagai favorit publik.
+	if _, err := f.svc.SetHidden(ctx, w.ID, b.ID, true); err != nil {
+		t.Fatal(err)
+	}
+	req(e, owner, http.MethodPatch, base+"/"+a.ID.String()+"/favorite", url.Values{"favorite": {"0"}}, true)
+	if favs, _ := f.svc.Favorites(ctx, w.ID, 10); len(favs) != 0 {
+		t.Errorf("setelah lepas & sembunyi: %d favorit", len(favs))
+	}
+	// Perubahan memicu OnChange (pengosongan cache halaman publik).
+	var changed []uuid.UUID
+	f.svc.OnChange(func(id uuid.UUID) { changed = append(changed, id) })
+	req(e, owner, http.MethodPatch, base+"/"+a.ID.String()+"/favorite", url.Values{"favorite": {"1"}}, true)
+	if len(changed) != 1 || changed[0] != w.ID {
+		t.Errorf("OnChange = %v", changed)
 	}
 }

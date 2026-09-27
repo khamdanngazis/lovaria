@@ -14,7 +14,7 @@ import (
 const createEntry = `-- name: CreateEntry :one
 INSERT INTO guestbook_entries (id, wedding_id, guest_id, guest_name, message, is_hidden)
 VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, wedding_id, guest_id, guest_name, message, is_hidden, created_at
+RETURNING id, wedding_id, guest_id, guest_name, message, is_hidden, created_at, is_favorite
 `
 
 type CreateEntryParams struct {
@@ -44,6 +44,7 @@ func (q *Queries) CreateEntry(ctx context.Context, arg CreateEntryParams) (Guest
 		&i.Message,
 		&i.IsHidden,
 		&i.CreatedAt,
+		&i.IsFavorite,
 	)
 	return i, err
 }
@@ -83,7 +84,7 @@ func (q *Queries) EntryStats(ctx context.Context, weddingID uuid.UUID) (EntrySta
 }
 
 const listEntries = `-- name: ListEntries :many
-SELECT id, wedding_id, guest_id, guest_name, message, is_hidden, created_at FROM guestbook_entries
+SELECT id, wedding_id, guest_id, guest_name, message, is_hidden, created_at, is_favorite FROM guestbook_entries
 WHERE wedding_id = $1
   AND ($2::boolean IS NULL OR is_hidden = $2)
 ORDER BY created_at DESC, id DESC
@@ -119,6 +120,48 @@ func (q *Queries) ListEntries(ctx context.Context, arg ListEntriesParams) ([]Gue
 			&i.Message,
 			&i.IsHidden,
 			&i.CreatedAt,
+			&i.IsFavorite,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listFavorites = `-- name: ListFavorites :many
+SELECT id, wedding_id, guest_id, guest_name, message, is_hidden, created_at, is_favorite FROM guestbook_entries
+WHERE wedding_id = $1 AND is_favorite AND NOT is_hidden
+ORDER BY created_at DESC, id DESC
+LIMIT $2
+`
+
+type ListFavoritesParams struct {
+	WeddingID uuid.UUID
+	Lim       int32
+}
+
+func (q *Queries) ListFavorites(ctx context.Context, arg ListFavoritesParams) ([]GuestbookEntry, error) {
+	rows, err := q.db.Query(ctx, listFavorites, arg.WeddingID, arg.Lim)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GuestbookEntry{}
+	for rows.Next() {
+		var i GuestbookEntry
+		if err := rows.Scan(
+			&i.ID,
+			&i.WeddingID,
+			&i.GuestID,
+			&i.GuestName,
+			&i.Message,
+			&i.IsHidden,
+			&i.CreatedAt,
+			&i.IsFavorite,
 		); err != nil {
 			return nil, err
 		}
@@ -131,7 +174,7 @@ func (q *Queries) ListEntries(ctx context.Context, arg ListEntriesParams) ([]Gue
 }
 
 const listVisible = `-- name: ListVisible :many
-SELECT id, wedding_id, guest_id, guest_name, message, is_hidden, created_at FROM guestbook_entries e
+SELECT id, wedding_id, guest_id, guest_name, message, is_hidden, created_at, is_favorite FROM guestbook_entries e
 WHERE e.wedding_id = $1
   AND NOT e.is_hidden
   AND ($2::uuid IS NULL OR (e.created_at, e.id) < (
@@ -165,6 +208,7 @@ func (q *Queries) ListVisible(ctx context.Context, arg ListVisibleParams) ([]Gue
 			&i.Message,
 			&i.IsHidden,
 			&i.CreatedAt,
+			&i.IsFavorite,
 		); err != nil {
 			return nil, err
 		}
@@ -176,10 +220,38 @@ func (q *Queries) ListVisible(ctx context.Context, arg ListVisibleParams) ([]Gue
 	return items, nil
 }
 
+const setFavorite = `-- name: SetFavorite :one
+UPDATE guestbook_entries SET is_favorite = $3
+WHERE id = $1 AND wedding_id = $2
+RETURNING id, wedding_id, guest_id, guest_name, message, is_hidden, created_at, is_favorite
+`
+
+type SetFavoriteParams struct {
+	ID         uuid.UUID
+	WeddingID  uuid.UUID
+	IsFavorite bool
+}
+
+func (q *Queries) SetFavorite(ctx context.Context, arg SetFavoriteParams) (GuestbookEntry, error) {
+	row := q.db.QueryRow(ctx, setFavorite, arg.ID, arg.WeddingID, arg.IsFavorite)
+	var i GuestbookEntry
+	err := row.Scan(
+		&i.ID,
+		&i.WeddingID,
+		&i.GuestID,
+		&i.GuestName,
+		&i.Message,
+		&i.IsHidden,
+		&i.CreatedAt,
+		&i.IsFavorite,
+	)
+	return i, err
+}
+
 const setHidden = `-- name: SetHidden :one
 UPDATE guestbook_entries SET is_hidden = $3
 WHERE id = $1 AND wedding_id = $2
-RETURNING id, wedding_id, guest_id, guest_name, message, is_hidden, created_at
+RETURNING id, wedding_id, guest_id, guest_name, message, is_hidden, created_at, is_favorite
 `
 
 type SetHiddenParams struct {
@@ -199,6 +271,7 @@ func (q *Queries) SetHidden(ctx context.Context, arg SetHiddenParams) (Guestbook
 		&i.Message,
 		&i.IsHidden,
 		&i.CreatedAt,
+		&i.IsFavorite,
 	)
 	return i, err
 }

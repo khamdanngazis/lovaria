@@ -23,7 +23,7 @@ templ Hero(v view.View) {
 				<p class="font-semibold">{ base.GuestName(v) }</p>
 				<p class="mt-2 text-sm">{ v.DateText }</p>
 			</div>
-			<a href="#couple" class="justify-self-end rounded-xl bg-ink px-5 py-4 text-sm font-semibold text-surface" style="background: var(--lv-ink)">Buka Undangan →</a>
+			<a href={ templ.SafeURL(base.OpenHref(v)) } class="justify-self-end rounded-xl bg-ink px-5 py-4 text-sm font-semibold text-surface" style="background: var(--lv-ink)">{ base.OpenText(v, "Buka Undangan", "Lihat Kenangan") } →</a>
 		</div>
 	</section>
 }
@@ -63,7 +63,11 @@ templ person(name, photo, desc, role string) {
 templ Events(v view.View) {
 	if len(v.Events) > 0 {
 		<section id="events" class="px-6 py-16">
-			<h2 class="mb-8 text-4xl font-semibold">Acara</h2>
+			<h2 class="text-4xl font-semibold">Acara</h2>
+			if sub := base.EventsSubtitle(v); sub != "" {
+				<p class="mt-2 text-sm opacity-80">{ sub }</p>
+			}
+			<div class="mb-8"></div>
 			<div class="space-y-4">
 				for _, e := range v.Events {
 					@base.EventCard(e, "rounded-3xl bg-primary p-7 text-left text-white [&_.text-primary]:text-white/80 [&_a]:!border-white [&_a]:!text-white [&_a.bg-primary]:!bg-white/20")

@@ -21,8 +21,9 @@ templ RSVPSection(v view.View) {
 				@rsvpForm(v)
 			}
 		</section>
-	} else if v.Guest != nil && v.Guest.RSVPStatus != "pending" && v.Guest.RSVPStatus != "" {
-		// RSVP ditutup (Kenangan): tampilkan jawaban tamu apa adanya.
+	} else if !v.Archived && v.Guest != nil && v.Guest.RSVPStatus != "pending" && v.Guest.RSVPStatus != "" {
+		// RSVP ditutup (Kenangan): tampilkan jawaban tamu apa adanya. Arsip
+		// tidak memuat data RSVP pribadi (T19).
 		<section id="rsvp" class="px-6 py-16">
 			@rsvpTitle()
 			<p class="rounded-2xl bg-primary/5 p-6 text-center text-sm">{ rsvpSummary(v.Guest) }</p>
@@ -142,53 +143,101 @@ templ rsvpError(v view.View, field string) {
 	}
 }
 
+// MemorySection: setelah hari H (Kenangan & Arsip, T19) — foto hari bahagia
+// (galeri kategori Pernikahan) dan ucapan favorit pilihan pasangan, tepat
+// setelah pembuka.
+templ MemorySection(v view.View) {
+	if v.ShowsMemory() && (len(v.MemoryPhotos) > 0 || len(v.Guestbook.Favorites) > 0) {
+		<section id="memories" class="px-6 py-16">
+			<div class="mb-8 text-center">
+				<h2 class="text-3xl text-primary">Kenangan Hari Bahagia</h2>
+				<p class="mt-2 text-sm opacity-80">Momen yang kami rayakan bersama orang-orang tersayang</p>
+			</div>
+			if len(v.MemoryPhotos) > 0 {
+				<div class="grid grid-cols-2 gap-2">
+					for i, p := range v.MemoryPhotos {
+						<a href={ templ.SafeURL(p.URL) } target="_blank" rel="noopener" class={ "block overflow-hidden rounded-xl", templ.KV("col-span-2", i == 0 || (i == len(v.MemoryPhotos)-1 && i%2 == 1)) }>
+							<img src={ p.ThumbURL } alt={ memoryAlt(p, i) } loading="lazy" decoding="async" class={ "w-full object-cover", templ.KV("aspect-[4/3]", i == 0), templ.KV("aspect-square", i != 0) }/>
+						</a>
+					}
+				</div>
+			}
+			if len(v.Guestbook.Favorites) > 0 {
+				<h3 class="mb-4 mt-10 text-center text-xl text-primary">Ucapan Pilihan</h3>
+				<div class="space-y-3">
+					for _, e := range v.Guestbook.Favorites {
+						<figure class="rounded-2xl bg-white/70 p-5 shadow-sm ring-1 ring-primary/15">
+							<blockquote class="whitespace-pre-line break-words text-sm italic">“{ e.Message }”</blockquote>
+							<figcaption class="mt-3 text-xs opacity-70"><span class="font-semibold not-italic text-primary">{ e.Name }</span> · { e.DateText }</figcaption>
+						</figure>
+					}
+				</div>
+			}
+		</section>
+	}
+}
+
+func memoryAlt(p view.Photo, i int) string {
+	if p.Caption != "" {
+		return p.Caption
+	}
+	return fmt.Sprintf("Foto hari bahagia %d", i+1)
+}
+
 // GuestbookSection: ucapan & doa (T11) — form + daftar pesan terbaru dengan
-// "Muat lebih banyak". Tetap terbuka saat Kenangan.
+// "Muat lebih banyak". Tetap terbuka saat Kenangan; saat Arsip hanya daftar
+// pesan (read-only, T19).
 templ GuestbookSection(v view.View) {
-	if v.AllowGuestbook {
+	if v.AllowGuestbook || v.Archived {
 		{{ g := v.Guestbook }}
 		<section id="guestbook" class="px-6 py-16">
 			<div class="mb-8 text-center">
 				<h2 class="text-3xl text-primary">Ucapan & Doa</h2>
-				<p class="mt-2 text-sm opacity-80">Kirimkan doa dan ucapan untuk kedua mempelai</p>
+				if v.AllowGuestbook {
+					<p class="mt-2 text-sm opacity-80">Kirimkan doa dan ucapan untuk kedua mempelai</p>
+				} else {
+					<p class="mt-2 text-sm opacity-80">Doa dan ucapan dari keluarga & sahabat</p>
+				}
 			</div>
-			<div class="rounded-2xl bg-white/60 p-5 shadow-sm ring-1 ring-primary/15">
-				if g.Notice != "" {
-					<p role="status" class="mb-4 rounded-xl bg-primary px-4 py-3 text-center text-sm text-white">{ g.Notice }</p>
-				}
-				if g.Error != "" {
-					<p role="alert" class="mb-4 rounded-xl bg-red-50 px-4 py-3 text-center text-sm text-red-700">{ g.Error }</p>
-				}
-				<form
-					method="post"
-					if g.Action != "" {
-						action={ templ.SafeURL(g.Action) }
-						hx-post={ g.Action }
-						hx-target="#guestbook"
-						hx-swap="outerHTML"
-						hx-disabled-elt="find button"
+			if v.AllowGuestbook {
+				<div class="rounded-2xl bg-white/60 p-5 shadow-sm ring-1 ring-primary/15">
+					if g.Notice != "" {
+						<p role="status" class="mb-4 rounded-xl bg-primary px-4 py-3 text-center text-sm text-white">{ g.Notice }</p>
 					}
-					class="space-y-4"
-				>
-					<input type="hidden" name="token" value={ g.Token }/>
-					// Honeypot: manusia tidak melihat kolom ini; bot yang mengisinya ditolak diam-diam.
-					<div class="lv-hp" aria-hidden="true">
-						<label for="gb-website">Website</label>
-						<input id="gb-website" type="text" name="website" tabindex="-1" autocomplete="off"/>
-					</div>
-					<div>
-						<label for="gb-name" class="mb-1 block text-sm font-medium">Nama</label>
-						<input id="gb-name" type="text" name="name" value={ g.Name } maxlength="100" required autocomplete="name" class="w-full rounded-xl border border-primary/30 bg-white px-3 py-2.5 text-base"/>
-						@fieldError(g.Errors["name"])
-					</div>
-					<div>
-						<label for="gb-message" class="mb-1 block text-sm font-medium">Ucapan</label>
-						<textarea id="gb-message" name="message" rows="3" maxlength="500" required class="w-full rounded-xl border border-primary/30 bg-white px-3 py-2.5 text-base">{ g.Message }</textarea>
-						@fieldError(g.Errors["message"])
-					</div>
-					<button type="submit" disabled?={ g.Action == "" } class="w-full rounded-full bg-primary px-6 py-3 text-sm font-medium text-white shadow disabled:opacity-60">Kirim ucapan</button>
-				</form>
-			</div>
+					if g.Error != "" {
+						<p role="alert" class="mb-4 rounded-xl bg-red-50 px-4 py-3 text-center text-sm text-red-700">{ g.Error }</p>
+					}
+					<form
+						method="post"
+						if g.Action != "" {
+							action={ templ.SafeURL(g.Action) }
+							hx-post={ g.Action }
+							hx-target="#guestbook"
+							hx-swap="outerHTML"
+							hx-disabled-elt="find button"
+						}
+						class="space-y-4"
+					>
+						<input type="hidden" name="token" value={ g.Token }/>
+						// Honeypot: manusia tidak melihat kolom ini; bot yang mengisinya ditolak diam-diam.
+						<div class="lv-hp" aria-hidden="true">
+							<label for="gb-website">Website</label>
+							<input id="gb-website" type="text" name="website" tabindex="-1" autocomplete="off"/>
+						</div>
+						<div>
+							<label for="gb-name" class="mb-1 block text-sm font-medium">Nama</label>
+							<input id="gb-name" type="text" name="name" value={ g.Name } maxlength="100" required autocomplete="name" class="w-full rounded-xl border border-primary/30 bg-white px-3 py-2.5 text-base"/>
+							@fieldError(g.Errors["name"])
+						</div>
+						<div>
+							<label for="gb-message" class="mb-1 block text-sm font-medium">Ucapan</label>
+							<textarea id="gb-message" name="message" rows="3" maxlength="500" required class="w-full rounded-xl border border-primary/30 bg-white px-3 py-2.5 text-base">{ g.Message }</textarea>
+							@fieldError(g.Errors["message"])
+						</div>
+						<button type="submit" disabled?={ g.Action == "" } class="w-full rounded-full bg-primary px-6 py-3 text-sm font-medium text-white shadow disabled:opacity-60">Kirim ucapan</button>
+					</form>
+				</div>
+			}
 			<div id="guestbook-list" class="mt-6 space-y-3">
 				@GuestbookEntries(v)
 			</div>

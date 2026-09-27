@@ -26,7 +26,7 @@ Hasil (`Resolved{Wedding, Guest, Preview, Origin, Prefix}`) disimpan di context 
 
 **Slug lama (T14):** `/w/<slug lama>…` → 301 ke `/w/<slug baru>…` (query ikut; selain GET/HEAD memakai 308 supaya POST tetap POST) selama 90 hari setelah pasangan mengganti slug (`slug_redirects`, migration `00017`). Slug lama yang masih dialihkan tidak bisa diambil wedding lain.
 
-**Gerbang status** (guard `wedding.IsPublic()`, lihat [wedding-lifecycle.md](wedding-lifecycle.md)): `draft` → hanya pemilik yang login (banner "Preview", `Cache-Control: no-store`), selain itu 404. `memory` → banner terima kasih; `archived` → halaman ringkas. Kunjungan lewat kode tamu mencatat `guest.MarkOpened`, kecuali pemilik yang sedang preview.
+**Gerbang status** (guard `wedding.IsPublic()`, lihat [wedding-lifecycle.md](wedding-lifecycle.md)): `draft` → hanya pemilik yang login (banner "Preview", `Cache-Control: no-store`), selain itu 404. `memory` / `archived` → tata letak kenangan; `archived` privat → halaman ringkas kecuali untuk pemilik yang login (`Handler.isOwner`). Detail di bagian [Kenangan & arsip](#kenangan--arsip-t19). Kunjungan lewat kode tamu mencatat `guest.MarkOpened`, kecuali pemilik yang sedang preview.
 
 ## Rendering
 
@@ -36,6 +36,21 @@ Hasil (`Resolved{Wedding, Guest, Preview, Origin, Prefix}`) disimpan di context 
 - **Cache**: `/w/:slug` → `public, max-age=60`; `/i/:code` → `private, no-cache` (selalu validasi ulang, supaya status RSVP tamu langsung terlihat); keduanya dengan ETag (If-None-Match → 304). HTML undangan **tidak memuat token CSRF** (`layouts.Meta.Cacheable`) supaya bisa dibagi antar pengunjung; form publik (RSVP, T10) memakai token sendiri.
 - **Privasi**: `noindex` (meta + `X-Robots-Tag`) — halaman berisi nama tamu tidak boleh masuk mesin pencari. Karena itu skor SEO Lighthouse sengaja rendah.
 - **Kalender (.ics)**: waktu lokal acara dikonversi ke UTC dengan zona waktu wedding (`time/tzdata` di-embed); tanpa jam selesai → durasi 2 jam. Acara wedding lain → 404.
+
+## Kenangan & arsip (T19)
+
+`ViewBuilder.Build` untuk `wedding.ShowsMemoryLayout()` mengisi `View.MemoryPhotos` (maks. 12 foto kategori `wedding` lewat `gallery.ByCategory`) dan `View.Guestbook.Favorites` (maks. 6, `guestbook.Favorites`); `View.Archived` = `IsArchived()`. Saat arsip, daftar ucapan tetap dimuat walau `AllowGuestbook` false, dan amplop digital dikosongkan.
+
+Tampilan (tetap lewat `theme.Render` & template tema, tanpa cabang status di handler):
+
+- `shared.MemorySection` (`id="memories"`) dirender tepat setelah pembuka bila ada foto hari-H atau ucapan favorit: grid foto (1 lebar, lalu 2 kolom) + "Ucapan Pilihan".
+- Tombol pembuka memakai `base.OpenText` / `base.OpenHref`: "Lihat Kenangan" → `#memories` (atau `#couple` bila bagian kenangan kosong). Keempat tema memakai helper yang sama.
+- Judul acara diberi `base.EventsSubtitle`: "Telah dilangsungkan pada …"; handler tidak mengisi link `.ics` setelah hari H.
+- `shared.GuestbookSection` saat arsip: hanya daftar (tanpa form). `GuestbookMore` diizinkan untuk arsip publik / pemilik.
+- `shared.RSVPSection` tidak menampilkan ringkasan jawaban tamu di arsip.
+- Banner arsip: "Arsip kenangan — ucapan dan konfirmasi sudah ditutup." Halaman tetap `noindex`.
+
+**Cache**: favorit / sembunyikan / hapus ucapan dari dashboard memanggil `guestbook.Service.OnChange` → `ViewBuilder.Invalidate` (di-wire di `cmd/server`), jadi perubahan terlihat di request berikutnya. Visibilitas arsip mengubah `weddings.updated_at` (kunci cache).
 
 ## Landing page (T18)
 

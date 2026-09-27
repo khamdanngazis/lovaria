@@ -37,6 +37,10 @@ type View struct {
 	Memory         bool
 	AllowRSVP      bool
 	AllowGuestbook bool
+	// Archived: undangan diarsipkan, tampil read-only (T19). Memory || Archived →
+	// tata letak kenangan: foto hari-H (MemoryPhotos) & ucapan favorit di atas.
+	Archived     bool
+	MemoryPhotos []Photo
 
 	// RSVP: form konfirmasi kehadiran tamu (T10); Action kosong → form nonaktif.
 	RSVP RSVPForm
@@ -115,6 +119,8 @@ type GuestbookView struct {
 	Errors     map[string]string
 	Name       string // isian (terisi nama tamu bila lewat /i/:code)
 	Message    string
+	// Favorites: ucapan favorit pilihan pasangan (tampil di bagian kenangan).
+	Favorites []GuestbookEntry
 }
 
 type GuestbookEntry struct {
@@ -131,6 +137,9 @@ type Gift struct {
 	AccountName   string
 	Address       string
 }
+
+// ShowsMemory: halaman tampil sebagai kenangan (setelah hari H).
+func (v View) ShowsMemory() bool { return v.Memory || v.Archived }
 
 // OG adalah meta preview link. URL wajib absolut.
 type OG struct {

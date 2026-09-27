@@ -19,6 +19,21 @@ Handler milik modul wedding (header + kartu status, supaya `PATCH /status` tetap
 | Tamu & RSVP: diundang, hadir (+pax), tidak hadir, belum konfirmasi; **open rate** (`last_opened_at` terisi / total) & **RSVP rate** ((hadir + tidak hadir) / total) | `guest.Stats` |
 | 5 ucapan terbaru (termasuk yang disembunyikan, diberi label) | `guestbook.Recent` |
 | Jumlah foto, 6 thumbnail, pemakaian storage | `gallery.Summary` |
+| **Abadikan kenangan** (Kenangan & Arsip, T19): saran "Unggah foto hari bahagia" (selesai bila ada foto kategori Pernikahan) dan "Pilih ucapan favorit" (selesai bila ada favorit), tombol **Unduh kenang-kenangan (PDF)** | `gallery.ByCategory`, `guestbook.Favorites` |
+| Link "Unduh kenang-kenangan (PDF)" di kartu link (Terbit & Hari H) | — |
+
+## Kenang-kenangan PDF (T19) — `GET /dashboard/weddings/:id/keepsake.pdf`
+
+`dashboard.Keepsake` (owner-only lewat grup wedding; `Cache-Control: private, no-store`, `Content-Disposition: attachment; filename="kenangan-<slug>.pdf"`). Dibuat on-demand dengan `github.com/go-pdf/fpdf` (A5), tidak disimpan:
+
+1. Sampul: foto utama wedding (bila ada), "Kenang-kenangan pernikahan", nama pasangan, tanggal.
+2. Cerita cinta (bila ada).
+3. Kehadiran: jumlah undangan, hadir (+ orang), berhalangan, jumlah ucapan (`guest.Stats`).
+4. Ucapan & doa: **semua** ucapan yang tampil (tanpa yang disembunyikan, maks. 5.000), urut terlama dulu, nama + tanggal di zona waktu wedding.
+
+Foto sampul diambil lewat HTTP (`HTTPPhoto`: timeout 5 detik, maks. 8 MB; URL relatif storage lokal dilengkapi `BASE_URL`). Foto gagal diambil atau bukan JPEG → sampul tanpa foto (hasil proses gallery selalu JPEG).
+
+**Font**: memakai font inti PDF (Helvetica / Times) dengan encoding Windows-1252 — cukup untuk Bahasa Indonesia termasuk tanda kutip & aksen Latin. **Emoji dan aksara non-Latin dihapus** (`pdfText`) karena tidak didukung font inti; bila nanti dibutuhkan, tambahkan font TTF (mis. Noto Sans) lewat `AddUTF8Font`. 500 ucapan ≈ 1 detik di test (`TestKeepsakePDF`).
 
 Checklist onboarding:
 

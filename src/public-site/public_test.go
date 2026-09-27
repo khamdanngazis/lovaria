@@ -2,6 +2,7 @@ package publicsite
 
 import (
 	"context"
+	"errors"
 	"io"
 	"log/slog"
 	"net/http"
@@ -21,6 +22,7 @@ import (
 	"github.com/khamdanngazis/lovaria/src/modules/guest"
 	"github.com/khamdanngazis/lovaria/src/modules/guestbook"
 	"github.com/khamdanngazis/lovaria/src/modules/theme"
+	"github.com/khamdanngazis/lovaria/src/modules/theme/view"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding/event"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding/story"
@@ -72,6 +74,8 @@ type fixture struct {
 	domains   fakeDomains
 	publish   func(uuid.UUID)
 	setStatus func(uuid.UUID, string)
+	stories   *story.Service
+	exec      func(sql string, args ...any)
 }
 
 func newFixture(t *testing.T) fixture {
@@ -124,6 +128,12 @@ func newFixture(t *testing.T) fixture {
 		},
 		setStatus: func(id uuid.UUID, status string) {
 			if _, err := pool.Exec(ctx, `UPDATE weddings SET status = $2 WHERE id = $1`, id, status); err != nil {
+				t.Fatal(err)
+			}
+		},
+		stories: views.Stories,
+		exec: func(sql string, args ...any) {
+			if _, err := pool.Exec(ctx, sql, args...); err != nil {
 				t.Fatal(err)
 			}
 		},
@@ -308,22 +318,141 @@ func TestCustomDomain(t *testing.T) {
 
 func TestMemoryAndArchivedPages(t *testing.T) {
 	f := newFixture(t)
-	_, w := f.newWedding(t, "a@example.com", "Khamdan", "Sarah")
+	owner, w := f.newWedding(t, "a@example.com", "Khamdan", "Sarah")
 	g, _ := f.guests.Create(ctx, w.ID, guest.Input{Name: "Budi"})
-
-	f.setStatus(w.ID, wedding.StatusMemory)
-	rec := f.get("/i/"+g.InvitationCode, nil)
-	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Terima kasih telah menjadi bagian dari hari kami") {
-		t.Errorf("kenangan: %d", rec.Code)
+	_, _ = f.events.CreateEvent(ctx, w.ID, event.Input{Name: "Akad Nikah", Type: event.TypeAkad, Date: "2026-12-12", StartTime: "08:00", Venue: "Masjid"})
+	_, _ = f.stories.CreateStory(ctx, w.ID, story.Input{Year: "2020", Title: "Pertama bertemu"})
+	_, _ = f.gifts.Create(ctx, w.ID, gift.Input{Type: gift.TypeBank, Provider: "BCA", AccountNumber: "1111111111", AccountName: "K"})
+	f.exec(`INSERT INTO gallery_items (id, wedding_id, category, object_key, thumb_key, url, thumb_url, width, height, size_bytes)
+		VALUES ($1, $2, 'wedding', 'k', 'kt', '/media/hari-h.jpg', '/media/hari-h-thumb.jpg', 800, 600, 10)`, uuid.New(), w.ID)
+	fav, _ := f.guestbook.Post(ctx, w.ID, nil, "Ani", "Ucapan favorit dari Ani")
+	_, _ = f.guestbook.Post(ctx, w.ID, nil, "Joko", "Ucapan biasa dari Joko")
+	if _, err := f.guestbook.SetFavorite(ctx, w.ID, fav.ID, true); err != nil {
+		t.Fatal(err)
 	}
 
+	// Terbit: tata letak undangan biasa.
+	f.publish(w.ID)
+	body := f.get("/w/"+w.Slug, nil).Body.String()
+	if strings.Contains(body, `id="memories"`) || !strings.Contains(body, "Buka Undangan") || !strings.Contains(body, ".ics") {
+		t.Error("terbit: belum tata letak kenangan")
+	}
+
+	// Kenangan: foto hari-H & ucapan favorit setelah pembuka, tanpa RSVP & kalender.
+	f.setStatus(w.ID, wedding.StatusMemory)
+	for _, th := range []string{"elegant", "romantic", "minimal", "modern"} {
+		if _, err := f.themes.Save(ctx, w.ID, th, view.Settings{}); err != nil {
+			t.Fatal(err)
+		}
+		rec := f.get("/i/"+g.InvitationCode, nil)
+		body = rec.Body.String()
+		mem := strings.Index(body, `id="memories"`)
+		if rec.Code != http.StatusOK || mem < 0 || mem > strings.Index(body, `id="couple"`) {
+			t.Fatalf("%s kenangan: %d, bagian kenangan harus sebelum pasangan", th, rec.Code)
+		}
+		for _, want := range []string{"Terima kasih telah menjadi bagian dari hari kami", "Kenangan", `href="#memories"`, "/media/hari-h-thumb.jpg", "Telah dilangsungkan pada", `name="message"`} {
+			if !strings.Contains(body, want) {
+				t.Errorf("%s kenangan: tidak ada %q", th, want)
+			}
+		}
+		// Ucapan favorit di bagian kenangan; ucapan biasa hanya di daftar.
+		if memBody := body[mem:strings.Index(body, `id="couple"`)]; !strings.Contains(memBody, "Ucapan favorit dari Ani") || strings.Contains(memBody, "Joko") {
+			t.Errorf("%s: ucapan pilihan salah", th)
+		}
+		if strings.Contains(body, `id="rsvp"`) || strings.Contains(body, ".ics") {
+			t.Errorf("%s kenangan: RSVP / kalender masih tampil", th)
+		}
+	}
+
+	// Kenangan: jawaban RSVP tamu sendiri tetap ditampilkan (bukan form).
+	f.guests.UpdateRSVP(ctx, w.ID, g.ID, guest.StatusAttending, 1, "") //nolint:errcheck
+	if body := f.get("/i/"+g.InvitationCode, nil).Body.String(); !strings.Contains(body, `id="rsvp"`) || strings.Contains(body, `name="pax"`) {
+		t.Error("kenangan: ringkasan RSVP tamu tampil tanpa form")
+	}
+
+	// Arsip publik (default): halaman read-only lengkap, tanpa form, hadiah,
+	// dan data RSVP pribadi.
 	f.setStatus(w.ID, wedding.StatusArchived)
 	for _, p := range []string{"/w/" + w.Slug, "/i/" + g.InvitationCode} {
-		rec = f.get(p, nil)
+		rec := f.get(p, nil)
 		body := rec.Body.String()
-		if rec.Code != http.StatusOK || !strings.Contains(body, "Undangan ini telah diarsipkan") || strings.Contains(body, `id="events"`) {
-			t.Errorf("arsip %s: %d", p, rec.Code)
+		if rec.Code != http.StatusOK || strings.Contains(body, "Undangan ini telah diarsipkan") {
+			t.Fatalf("arsip publik %s: %d", p, rec.Code)
 		}
+		for _, want := range []string{"Pertama bertemu", "Ucapan biasa dari Joko", "Ucapan favorit dari Ani", "/media/hari-h-thumb.jpg", "Arsip kenangan"} {
+			if !strings.Contains(body, want) {
+				t.Errorf("arsip publik %s: tidak ada %q", p, want)
+			}
+		}
+		for _, bad := range []string{`name="message"`, `id="rsvp"`, "1111111111", `id="gift"`} {
+			if strings.Contains(body, bad) {
+				t.Errorf("arsip publik %s: tidak boleh ada %q", p, bad)
+			}
+		}
+		if rec.Header().Get("X-Robots-Tag") != "noindex" {
+			t.Errorf("arsip publik %s: harus noindex", p)
+		}
+	}
+	// Semua form ditutup.
+	if rec := f.post("/w/"+w.Slug+"/guestbook", gbForm(w.ID, "Eko", "Halo"), true, ""); rec.Code != http.StatusForbidden {
+		t.Errorf("POST ucapan arsip: %d", rec.Code)
+	}
+	if rec := f.postRSVP(g.InvitationCode, rsvpForm(g.InvitationCode, "attending", "1", ""), true); rec.Code != http.StatusForbidden {
+		t.Errorf("POST RSVP arsip: %d", rec.Code)
+	}
+	// Daftar ucapan berikutnya tetap bisa dibaca.
+	if rec := f.get("/w/"+w.Slug+"/guestbook?before="+fav.ID.String(), nil); rec.Code != http.StatusOK {
+		t.Errorf("muat ucapan arsip publik: %d", rec.Code)
+	}
+
+	// Arsip privat: publik mendapat halaman ringkas, pemilik melihat arsip lengkap.
+	if _, err := f.weddings.SetArchiveVisibility(ctx, w.ID, wedding.ArchivePrivate); err != nil {
+		t.Fatal(err)
+	}
+	for _, p := range []string{"/w/" + w.Slug, "/i/" + g.InvitationCode} {
+		body := f.get(p, nil).Body.String()
+		if !strings.Contains(body, "Undangan ini telah diarsipkan") || strings.Contains(body, "Joko") || strings.Contains(body, "Pertama bertemu") {
+			t.Errorf("arsip privat publik %s: harus halaman ringkas", p)
+		}
+	}
+	if rec := f.get("/w/"+w.Slug+"/guestbook?before="+fav.ID.String(), nil); rec.Code != http.StatusNotFound {
+		t.Errorf("muat ucapan arsip privat: %d", rec.Code)
+	}
+	rec := f.get("/w/"+w.Slug, map[string]string{"X-Test-User": owner.String()})
+	if !strings.Contains(rec.Body.String(), "Ucapan biasa dari Joko") || rec.Header().Get("Cache-Control") != "private, no-store" {
+		t.Errorf("arsip privat pemilik: %q", rec.Header().Get("Cache-Control"))
+	}
+	if body := f.get("/w/"+w.Slug, map[string]string{"X-Test-User": uuid.NewString()}).Body.String(); strings.Contains(body, "Joko") {
+		t.Error("arsip privat: user lain tidak boleh melihat arsip lengkap")
+	}
+	if _, err := f.weddings.SetArchiveVisibility(ctx, w.ID, "rahasia"); !errors.Is(err, wedding.ErrInvalidArchiveVisibility) {
+		t.Errorf("visibilitas tak dikenal: %v", err)
+	}
+}
+
+// Favorit dari dashboard langsung terlihat walau halaman publik di-cache (T19).
+func TestFavoriteInvalidatesCache(t *testing.T) {
+	f := newFixture(t)
+	f.views.CacheTTL = time.Hour
+	f.guestbook.OnChange(f.views.Invalidate) // wiring sama dengan cmd/server
+	_, w := f.newWedding(t, "a@example.com", "Khamdan", "Sarah")
+	f.setStatus(w.ID, wedding.StatusMemory)
+	e, _ := f.guestbook.Post(ctx, w.ID, nil, "Ani", "Semoga sakinah")
+
+	if strings.Contains(f.get("/w/"+w.Slug, nil).Body.String(), `id="memories"`) {
+		t.Fatal("belum ada favorit: bagian kenangan tidak tampil")
+	}
+	if _, err := f.guestbook.SetFavorite(ctx, w.ID, e.ID, true); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(f.get("/w/"+w.Slug, nil).Body.String(), "Ucapan Pilihan") {
+		t.Error("favorit baru harus langsung tampil (cache di-invalidate)")
+	}
+	if _, err := f.guestbook.SetFavorite(ctx, w.ID, e.ID, false); err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(f.get("/w/"+w.Slug, nil).Body.String(), "Ucapan Pilihan") {
+		t.Error("lepas favorit harus langsung hilang")
 	}
 }
 
