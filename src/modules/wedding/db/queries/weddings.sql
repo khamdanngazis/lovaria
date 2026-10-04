@@ -120,3 +120,7 @@ UPDATE weddings SET is_demo = true WHERE id = $1;
 
 -- name: SetArchiveVisibility :one
 UPDATE weddings SET archive_visibility = $2 WHERE id = $1 RETURNING *;
+
+-- name: MarkPaid :execrows
+-- Idempoten: wedding yang sudah lunas tidak diubah (paid_at & sumber pertama dipertahankan).
+UPDATE weddings SET paid_at = $2, paid_source = $3 WHERE id = $1 AND paid_at IS NULL;

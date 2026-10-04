@@ -48,6 +48,8 @@ type Config struct {
 	ArchiveAfterDays int
 	// Backup berisi setelan backup database harian (T17).
 	Backup Backup
+	// Payment berisi setelan pembayaran publikasi (T23).
+	Payment Payment
 	// SentryDSN mengaktifkan pelaporan error 5xx ke Sentry (SENTRY_DSN, opsional).
 	SentryDSN string
 	// Secret kunci HMAC aplikasi, mis. token form RSVP publik (APP_SECRET, min 32
@@ -106,6 +108,30 @@ type Backup struct {
 }
 
 func (b Backup) Enabled() bool { return b.Bucket != "" || b.Dir != "" }
+
+// Payment adalah setelan pembayaran sekali per wedding saat publikasi
+// (lihat doc/modules/payment.md).
+type Payment struct {
+	// Gateway (PAYMENT_GATEWAY): "midtrans", "fake" (simulasi — dev/test saja),
+	// atau kosong (pembayaran belum tersedia: wedding baru belum bisa terbit).
+	Gateway string
+	// MidtransServerKey (MIDTRANS_SERVER_KEY) & MidtransProduction
+	// (MIDTRANS_ENV=production; selain itu sandbox).
+	MidtransServerKey  string
+	MidtransProduction bool
+	// PriceIDR harga publikasi per wedding (PUBLISH_PRICE_IDR, default 149000).
+	PriceIDR int64
+	// ExpiryHours masa berlaku satu percobaan bayar (PAYMENT_EXPIRY_HOURS, default 24).
+	ExpiryHours int
+}
+
+// Gateway pembayaran yang didukung.
+const (
+	GatewayMidtrans = "midtrans"
+	GatewayFake     = "fake"
+)
+
+func (p Payment) Enabled() bool { return p.Gateway != "" }
 
 // Domain adalah setelan custom domain per wedding (lihat doc/custom-domain.md).
 type Domain struct {
@@ -294,6 +320,34 @@ func LoadFrom(getenv func(string) string) (Config, error) {
 		if d != "" {
 			cfg.ExtraHosts = append(cfg.ExtraHosts, d)
 		}
+	}
+	cfg.Payment = Payment{
+		Gateway:           strings.ToLower(strings.TrimSpace(get("PAYMENT_GATEWAY", ""))),
+		MidtransServerKey: getenv("MIDTRANS_SERVER_KEY"),
+		// Tebakan aman: hanya "production" yang memakai endpoint produksi.
+		MidtransProduction: strings.EqualFold(strings.TrimSpace(getenv("MIDTRANS_ENV")), "production"),
+	}
+	cfg.Payment.PriceIDR, err = strconv.ParseInt(get("PUBLISH_PRICE_IDR", "149000"), 10, 64)
+	if err != nil || cfg.Payment.PriceIDR < 1 {
+		errs = append(errs, fmt.Errorf("PUBLISH_PRICE_IDR: nilai tidak valid %q", getenv("PUBLISH_PRICE_IDR")))
+	}
+	cfg.Payment.ExpiryHours, err = strconv.Atoi(get("PAYMENT_EXPIRY_HOURS", "24"))
+	if err != nil || cfg.Payment.ExpiryHours < 1 || cfg.Payment.ExpiryHours > 168 {
+		errs = append(errs, fmt.Errorf("PAYMENT_EXPIRY_HOURS: nilai tidak valid %q (1–168)", getenv("PAYMENT_EXPIRY_HOURS")))
+	}
+	switch cfg.Payment.Gateway {
+	case "":
+	case GatewayMidtrans:
+		if cfg.Payment.MidtransServerKey == "" {
+			errs = append(errs, errors.New("PAYMENT_GATEWAY=midtrans butuh MIDTRANS_SERVER_KEY"))
+		}
+	case GatewayFake:
+		// Gateway simulasi menandai lunas tanpa uang sungguhan.
+		if cfg.Env == EnvProduction {
+			errs = append(errs, errors.New("PAYMENT_GATEWAY=fake tidak boleh dipakai di production"))
+		}
+	default:
+		errs = append(errs, fmt.Errorf("PAYMENT_GATEWAY: nilai tidak valid %q (midtrans | fake)", cfg.Payment.Gateway))
 	}
 	cfg.SentryDSN = get("SENTRY_DSN", "")
 	cfg.Backup = Backup{

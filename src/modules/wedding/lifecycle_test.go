@@ -113,8 +113,20 @@ func TestTransitionWithChecklistAndHistory(t *testing.T) {
 	}
 
 	f.svc.SetEventCounter(countEvents(2))
+	// Belum lunas (T23): publikasi ditolak untuk user maupun admin, status tetap draft.
+	for _, a := range []Actor{user, {Kind: ActorAdmin}} {
+		if _, err := f.svc.Transition(ctx, w.ID, StatusPublished, a); !errors.Is(err, ErrPaymentRequired) {
+			t.Fatalf("publish sebelum lunas (%s): %v", a.Kind, err)
+		}
+	}
+	if f.status(t, w.ID) != StatusDraft {
+		t.Fatal("wedding belum lunas tidak boleh terbit")
+	}
+	if changed, err := f.svc.MarkPaid(ctx, w.ID, PaidGateway); err != nil || !changed {
+		t.Fatalf("MarkPaid: %v %v", changed, err)
+	}
 	got, err := f.svc.Transition(ctx, w.ID, StatusPublished, user)
-	if err != nil || got.Status != StatusPublished {
+	if err != nil || got.Status != StatusPublished || !got.IsPaid() {
 		t.Fatalf("publish: %+v %v", got, err)
 	}
 	// Transisi ilegal: pasangan tidak bisa langsung ke Kenangan.
@@ -150,6 +162,7 @@ func TestSchedulerAdvancesWithInjectedClock(t *testing.T) {
 		in := validInput()
 		in.WeddingDate = date
 		w, _ := f.svc.CreateWedding(ctx, owner, in)
+		f.paid(t, w.ID)
 		if _, err := f.svc.Transition(ctx, w.ID, StatusPublished, user); err != nil {
 			t.Fatal(err)
 		}
@@ -251,6 +264,51 @@ func TestMemoryGuards(t *testing.T) {
 		w := Wedding{Status: c.status, ArchiveVisibility: c.vis}
 		if w.ShowsMemoryLayout() != c.memory || w.ArchivePublic() != c.archPub {
 			t.Errorf("%s/%s: memory=%v archivePublic=%v", c.status, c.vis, w.ShowsMemoryLayout(), w.ArchivePublic())
+		}
+	}
+}
+
+// paid menandai wedding lunas (prasyarat publikasi, T23).
+func (f fixture) paid(t *testing.T, id uuid.UUID) {
+	t.Helper()
+	if _, err := f.svc.MarkPaid(ctx, id, PaidGateway); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestMarkPaidIsIdempotent(t *testing.T) {
+	f := newFixture(t)
+	owner := f.user(t, "a@example.com")
+	w, _ := f.svc.CreateWedding(ctx, owner, validInput())
+	if w.IsPaid() {
+		t.Fatal("wedding baru belum lunas")
+	}
+	t0 := time.Date(2026, 10, 4, 3, 0, 0, 0, time.UTC)
+	f.svc.now = func() time.Time { return t0 }
+	if changed, err := f.svc.MarkPaid(ctx, w.ID, PaidGateway); err != nil || !changed {
+		t.Fatalf("pertama: %v %v", changed, err)
+	}
+	// Panggilan ulang (webhook duplikat, admin) tidak mengubah waktu & sumber pertama.
+	f.svc.now = func() time.Time { return t0.Add(time.Hour) }
+	if changed, err := f.svc.MarkPaid(ctx, w.ID, PaidAdmin); err != nil || changed {
+		t.Fatalf("kedua: %v %v", changed, err)
+	}
+	got, _ := f.svc.GetWedding(ctx, w.ID)
+	if !got.IsPaid() || !got.PaidAt.Equal(t0) || got.PaidSource != PaidGateway {
+		t.Errorf("paid = %v %q", got.PaidAt, got.PaidSource)
+	}
+	if _, err := f.svc.MarkPaid(ctx, w.ID, "gratis"); err == nil {
+		t.Error("sumber tak dikenal harus ditolak")
+	}
+	if _, err := f.svc.MarkPaid(ctx, uuid.New(), PaidGateway); !errors.Is(err, ErrNotFound) {
+		t.Errorf("wedding tidak ada: %v", err)
+	}
+	// Tarik publikasi lalu terbit lagi: tidak perlu bayar ulang.
+	f.svc.SetEventCounter(countEvents(1))
+	user := Actor{Kind: ActorUser, UserID: owner}
+	for _, to := range []string{StatusPublished, StatusDraft, StatusPublished} {
+		if _, err := f.svc.Transition(ctx, w.ID, to, user); err != nil {
+			t.Fatalf("→ %s: %v", to, err)
 		}
 	}
 }

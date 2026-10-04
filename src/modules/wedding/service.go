@@ -66,8 +66,12 @@ type Wedding struct {
 	ArchiveVisibility string
 	// StorageUsedBytes total byte foto wedding di storage (lihat ReserveStorage).
 	StorageUsedBytes int64
-	CreatedAt        time.Time
-	UpdatedAt        time.Time
+	// PaidAt / PaidSource: hak publikasi (T23). nil = belum lunas. Sumber:
+	// gateway | admin | grandfathered | demo. Baca lewat guard IsPaid.
+	PaidAt     *time.Time
+	PaidSource string
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
 }
 
 // DashboardURL mengembalikan URL dashboard wedding ini + suffix (mis. "/events").

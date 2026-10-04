@@ -54,6 +54,8 @@ func toWedding(w weddingdb.Wedding) Wedding {
 		ArchiveVisibility: w.ArchiveVisibility,
 		Timezone:          w.Timezone,
 		StorageUsedBytes:  w.StorageUsedBytes,
+		PaidAt:            w.PaidAt,
+		PaidSource:        derefStr(w.PaidSource),
 		CreatedAt:         w.CreatedAt,
 		UpdatedAt:         w.UpdatedAt,
 	}
@@ -70,4 +72,11 @@ func toCouple(c weddingdb.Couple) Couple {
 		GroomDescription: c.GroomDescription,
 		BrideDescription: c.BrideDescription,
 	}
+}
+
+func derefStr(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
 }

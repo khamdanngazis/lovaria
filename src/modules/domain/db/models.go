@@ -167,6 +167,34 @@ type PasswordResetToken struct {
 	CreatedAt time.Time
 }
 
+type PaymentEvent struct {
+	ID          uuid.UUID
+	Gateway     string
+	OrderNumber string
+	SignatureOk bool
+	Outcome     string
+	Payload     []byte
+	ReceivedAt  time.Time
+}
+
+type PaymentOrder struct {
+	ID                   uuid.UUID
+	WeddingID            uuid.UUID
+	UserID               uuid.UUID
+	OrderNumber          string
+	Amount               int64
+	Currency             string
+	Status               string
+	PaymentMethod        string
+	Gateway              string
+	GatewayTransactionID *string
+	CheckoutUrl          string
+	ExpiredAt            time.Time
+	PaidAt               *time.Time
+	CreatedAt            time.Time
+	UpdatedAt            time.Time
+}
+
 type Session struct {
 	ID         []byte
 	UserID     uuid.UUID
@@ -219,6 +247,8 @@ type Wedding struct {
 	StorageUsedBytes  int64
 	IsDemo            bool
 	ArchiveVisibility string
+	PaidAt            *time.Time
+	PaidSource        *string
 }
 
 type WeddingPackage struct {

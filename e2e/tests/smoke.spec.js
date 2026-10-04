@@ -52,10 +52,25 @@ test('alur utama pasangan & tamu', async ({ page, browser }) => {
   const code = (await row.locator('.font-mono').innerText()).trim();
   expect(code).toMatch(/^[A-Z0-9]{7}$/);
 
-  // 6. Publikasikan
+  // 6. Publikasikan (T23): belum lunas → halaman harga → bayar (gateway
+  // simulasi, PAYMENT_GATEWAY=fake) → lunas → publikasikan.
   await page.goto(dash);
+  await expect(page.getByText('Belum dibayar')).toBeVisible();
+  await page.getByRole('link', { name: 'Publikasikan', exact: true }).click();
+  await expect(page.getByText('Rp149.000')).toBeVisible();
+  // Sebelum dibayar undangan belum bisa dibuka publik.
+  const slugLink = await page.locator('a[href^="/w/"]').first().getAttribute('href');
+  const anon = await (await browser.newContext()).newPage();
+  expect((await anon.goto(slugLink)).status()).toBe(404);
+  await page.getByRole('button', { name: 'Bayar & Publikasikan' }).click();
+  await expect(page.getByText('Mode simulasi')).toBeVisible();
+  await page.getByRole('button', { name: 'Simulasikan berhasil' }).click();
+  await expect(page.getByText('Pembayaran berhasil')).toBeVisible();
+  await page.getByRole('link', { name: 'Lanjut publikasikan' }).click();
+  await expect(page.getByText('Lunas ✓')).toBeVisible();
   await page.getByRole('button', { name: 'Publikasikan' }).click();
   await expect(page.getByText('Undangan dipublikasikan')).toBeVisible();
+  expect((await anon.goto(slugLink)).status()).toBe(200);
 
   // 7–9. Sebagai tamu (tanpa login): undangan → RSVP → ucapan
   // Layar pendek (360×640): sampul bisa lebih tinggi dari layar — tombol "Buka

@@ -157,6 +157,16 @@ sql:
         sql_package: pgx/v5
         emit_empty_slices: true
         emit_pointers_for_null_types: true
+  - engine: postgresql
+    schema: migrations
+    queries: src/modules/payment/db/queries
+    gen:
+      go:
+        package: paymentdb
+        out: src/modules/payment/db
+        sql_package: pgx/v5
+        emit_empty_slices: true
+        emit_pointers_for_null_types: true
 # Template entry modul:
 #  - engine: postgresql
 #    schema: migrations

@@ -37,6 +37,10 @@ Modul lain **tidak boleh** membandingkan string status — pakai method `Wedding
 | `ShowsMemoryLayout()` | memory, archived — tata letak kenangan (T19) |
 | `ArchivePublic()` | archived **dan** `archive_visibility = 'public'` (T19) |
 
+## Pembayaran (T23)
+
+Publikasi (`draft → published`) mensyaratkan wedding **lunas** (`Wedding.IsPaid()`, kolom `weddings.paid_at`): `Transition` mengembalikan `ErrPaymentRequired` untuk user maupun admin, dan handler dashboard mengalihkan ke `…/publish`. Checklist tetap diperiksa lebih dulu. Detail order, gateway, dan webhook: [payment.md](payment.md).
+
 ## Perilaku halaman publik
 
 | Status | Tamu melihat |

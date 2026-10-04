@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### T23 (bagian 1) — Pembayaran saat publikasi
+- **Rp149.000 sekali bayar per wedding**, ditagih hanya saat dipublikasikan. Membuat, mengubah, dan pratinjau tetap gratis.
+- Halaman **Publikasikan** baru: harga, yang didapat, tombol "Bayar & Publikasikan"; setelah lunas pasangan menekan Publikasikan. Kartu status beranda menampilkan status pembayaran.
+- **Midtrans Snap** (mode redirect) + webhook `/webhooks/midtrans`: tanda tangan diverifikasi, nominal dicocokkan, status lunas dikonfirmasi ulang ke gateway, diproses idempoten, dan setiap webhook dicatat. Redirect browser tidak pernah menandai lunas.
+- Pembayaran kedaluwarsa/gagal bisa diulang tanpa membuat wedding baru. Nomor order `LVR-YYYYMMDD-000001`.
+- Undangan yang **sudah terbit** dan undangan contoh otomatis dianggap lunas (migration `00024`); draf lama wajib bayar saat terbit.
+- Konfigurasi: `PAYMENT_GATEWAY`, `MIDTRANS_SERVER_KEY`, `MIDTRANS_ENV`, `PUBLISH_PRICE_IDR`, `PAYMENT_EXPIRY_HOURS`. **Selama `PAYMENT_GATEWAY` kosong, wedding baru belum bisa dipublikasikan.**
+- Gateway simulasi untuk development/test/e2e (ditolak di production).
+
 ### Menu akun di header dashboard
 - Menu hamburger diganti menu akun baru: nama & email, pintasan Beranda, Wedding saya, Buat wedding baru, Panel admin (admin), Halaman utama Lovoria, dan Keluar — masing-masing dengan ikon. Di layar lebar pemicunya avatar + nama.
 - Tetap berfungsi tanpa JS (`<details>`); menutup saat klik di luar atau Escape.

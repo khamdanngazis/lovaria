@@ -364,7 +364,10 @@ templ statusCard(o overviewState) {
 				<p class="text-xs uppercase tracking-wide text-lovoria-muted">Status undangan</p>
 				<p class="mt-1"><span class={ "rounded-full px-3 py-1 text-sm font-medium", statusBadge[o.W.Status] }>{ StatusLabel(o.W.Status) }</span></p>
 			</div>
-			if o.W.IsDraft() {
+			if o.W.IsDraft() && !o.W.IsPaid() {
+				// Belum lunas (T23): publikasi lewat halaman harga & pembayaran.
+				<a href={ templ.SafeURL(weddingURL(o.W, "/publish")) } class="ui-btn ui-btn-primary px-4 py-2.5">Publikasikan</a>
+			} else if o.W.IsDraft() {
 				<form method="post" action={ templ.SafeURL(weddingURL(o.W, "/status")) } data-confirm="Publikasikan undangan? Tamu yang punya link bisa membukanya.">
 					@layouts.CSRFField()
 					<input type="hidden" name="_method" value="PATCH"/>
@@ -381,6 +384,15 @@ templ statusCard(o overviewState) {
 			}
 		</div>
 		<p class="mt-3 text-sm text-lovoria-muted">{ statusHint[o.W.Status] }</p>
+		<p class="mt-3 flex flex-wrap items-center gap-2 border-t border-lovoria-border pt-3 text-sm">
+			<span class="text-lovoria-muted">Pembayaran</span>
+			if o.W.IsPaid() {
+				@ui.Badge(ui.Success, "Lunas ✓")
+			} else {
+				@ui.Badge(ui.Muted, "Belum dibayar")
+				<a href={ templ.SafeURL(weddingURL(o.W, "/publish")) } class="ui-link">Lihat harga &amp; bayar</a>
+			}
+		</p>
 		if o.W.IsDraft() {
 			<ul class="mt-3 space-y-1 text-sm" aria-label="Syarat publikasi">
 				for _, it := range o.Checklist {

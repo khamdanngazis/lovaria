@@ -112,6 +112,9 @@ func TestMemoryCard(t *testing.T) {
 	if _, err := f.home.Events.CreateEvent(ctx, w.ID, event.Input{Name: "Akad", Type: "akad", Date: "2026-12-12", StartTime: "08:00", Venue: "Masjid"}); err != nil {
 		t.Fatal(err)
 	}
+	if _, err := f.home.Weddings.MarkPaid(ctx, w.ID, wedding.PaidGateway); err != nil { // prasyarat publikasi (T23)
+		t.Fatal(err)
+	}
 	for _, s := range []struct {
 		to    string
 		actor wedding.ActorKind
