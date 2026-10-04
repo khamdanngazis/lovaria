@@ -13,7 +13,7 @@ Panduan untuk menjalankan Lovoria di produksi (Railway + Postgres + Cloudflare R
 
 1. Buat akun di midtrans.com. Di dashboard Midtrans → **Settings → Access Keys**, salin **Server Key** (sandbox dulu).
 2. Railway → service `lovaria` → Variables: `PAYMENT_GATEWAY=midtrans`, `MIDTRANS_SERVER_KEY=<server key>`, `MIDTRANS_ENV=sandbox`. Jangan menaruh kunci di repo atau chat.
-3. Midtrans → **Settings → Payment → Notification URL**: `https://lovoria.my.id/webhooks/midtrans`. (Finish/Unfinish/Error URL tidak wajib — aplikasi mengirimnya per transaksi.)
+3. Midtrans → **Settings → Payment → Notification URL**: `https://lovoria.my.id/webhooks/midtrans`. Opsional: isi Finish/Unfinish/Error Redirect URL dengan `https://lovoria.my.id/dashboard` sebagai cadangan — halaman bayar dibuka di tab baru dan tab Lovoria memperbarui statusnya sendiri, jadi alur tidak bergantung pada redirect balik dari Midtrans.
 4. Uji sandbox: buat wedding draf → Publikasikan → Bayar → di halaman Snap pilih QRIS/VA, selesaikan lewat simulator Midtrans (`simulator.sandbox.midtrans.com`). Halaman kembali harus berubah menjadi "Pembayaran berhasil" dan beranda "Lunas ✓". Cek webhook masuk: `SELECT outcome, signature_ok, received_at FROM payment_events ORDER BY received_at DESC LIMIT 5;`
 5. Uji juga: biarkan kedaluwarsa / batalkan → "Coba lagi" membuat order baru; kirim ulang notifikasi dari dashboard Midtrans → hasil `duplicate`.
 6. Go-live: ganti ke Server Key **production**, `MIDTRANS_ENV=production`, dan isi Notification URL di environment production Midtrans.

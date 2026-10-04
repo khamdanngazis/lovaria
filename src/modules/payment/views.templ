@@ -130,14 +130,19 @@ templ offerCard(s publishState) {
 			} else if s.Summary.Payable {
 				<p class="text-sm text-lovoria-muted">Ada pembayaran yang belum selesai ({ s.Summary.Latest.Number }), berlaku sampai { web.FormatDateID(s.Summary.Latest.ExpiredAt) } { s.Summary.Latest.ExpiredAt.In(jakarta).Format("15.04") } WIB.</p>
 				// Tautan langsung ke halaman bayar gateway (bukan form): tidak
-				// bergantung pada redirect setelah POST.
-				<a href={ templ.SafeURL(s.Summary.Latest.CheckoutURL) } class="ui-btn ui-btn-primary mt-3 w-full px-6 py-3 sm:w-auto">Lanjutkan pembayaran</a>
+				// bergantung pada redirect setelah POST. Dibuka di tab baru; tab ini
+				// pindah ke halaman status (data-then, lovoria.js).
+				<a href={ templ.SafeURL(s.Summary.Latest.CheckoutURL) } target="_blank" rel="noopener" data-then={ s.W.DashboardURL("/payment/return") } class="ui-btn ui-btn-primary mt-3 w-full px-6 py-3 sm:w-auto">Lanjutkan pembayaran ↗</a>
 			} else {
-				<form method="post" action={ templ.SafeURL(s.W.DashboardURL("/payment")) }>
+				// Halaman bayar gateway dibuka di TAB BARU (target=_blank) supaya
+				// dashboard tidak tertutup; tab ini pindah ke halaman status yang
+				// memperbarui diri (data-then, lovoria.js). Tanpa JS: tab baru tetap
+				// terbuka, tab ini tetap di sini.
+				<form method="post" action={ templ.SafeURL(s.W.DashboardURL("/payment")) } target="_blank" rel="noopener" data-then={ s.W.DashboardURL("/payment/return") }>
 					@layouts.CSRFField()
 					<button type="submit" class="ui-btn ui-btn-primary w-full px-6 py-3 sm:w-auto">Bayar &amp; Publikasikan</button>
 				</form>
-				<p class="mt-3 text-xs text-lovoria-muted">Anda akan diarahkan ke halaman pembayaran aman (QRIS, transfer bank/virtual account, e-wallet). Setelah lunas, kembali ke sini untuk mempublikasikan.</p>
+				<p class="mt-3 text-xs text-lovoria-muted">Halaman pembayaran aman (QRIS, transfer bank/virtual account, e-wallet) dibuka di tab baru. Halaman ini tetap terbuka dan memperbarui status pembayaran secara otomatis.</p>
 			}
 		</div>
 	</div>
@@ -242,10 +247,10 @@ templ paymentStatus(s publishState) {
 			case s.Summary.Latest != nil && s.Summary.Latest.Status == StatusPending:
 				@ui.Badge(ui.Warning, "Menunggu pembayaran")
 				<h2 class="mt-3 font-display text-3xl text-lovoria-deep">Menunggu konfirmasi</h2>
-				<p class="mt-2 text-sm text-lovoria-muted" role="status">Pembayaran { s.Summary.Latest.Number } sedang kami periksa. Halaman ini diperbarui otomatis; QRIS dan e-wallet biasanya terkonfirmasi dalam beberapa detik, transfer bank bisa lebih lama.</p>
+				<p class="mt-2 text-sm text-lovoria-muted" role="status">Selesaikan pembayaran { s.Summary.Latest.Number } di tab pembayaran. Halaman ini diperbarui otomatis begitu pembayaran diterima — QRIS dan e-wallet biasanya dalam beberapa detik, transfer bank bisa lebih lama.</p>
 				<div class="mt-5 flex flex-wrap gap-2">
 					if s.Summary.Payable {
-						<a href={ templ.SafeURL(s.Summary.Latest.CheckoutURL) } class="ui-btn ui-btn-primary">Buka halaman pembayaran</a>
+						<a href={ templ.SafeURL(s.Summary.Latest.CheckoutURL) } target="_blank" rel="noopener" class="ui-btn ui-btn-primary">Buka halaman pembayaran ↗</a>
 					}
 					<a href={ templ.SafeURL(s.W.DashboardURL("/payment/return")) } class="ui-btn ui-btn-secondary">Periksa lagi</a>
 				</div>

@@ -388,6 +388,10 @@ func TestPublishAndPaymentFlowViaHTTP(t *testing.T) {
 			t.Errorf("halaman publikasi (%d) tidak memuat %q", page.Code, want)
 		}
 	}
+	// Halaman bayar dibuka di tab baru; tab dashboard pindah ke halaman status.
+	if body := page.Body.String(); !strings.Contains(body, `target="_blank" rel="noopener" data-then="`+base+`/payment/return"`) {
+		t.Error("form bayar harus membuka tab baru (target=_blank + data-then)")
+	}
 	// Bayar → order dibuat → diarahkan ke halaman bayar gateway.
 	rec := do(e, owner, http.MethodPost, base+"/payment", url.Values{}, nil)
 	orders, _ := f.svc.ListOrders(ctx, w.ID)
@@ -398,7 +402,7 @@ func TestPublishAndPaymentFlowViaHTTP(t *testing.T) {
 	// Order pending: "Lanjutkan pembayaran" adalah tautan langsung ke halaman
 	// bayar gateway (bukan form — tidak bergantung pada redirect setelah POST).
 	if page := do(e, owner, http.MethodGet, base+"/publish", nil, nil).Body.String(); !strings.Contains(page, "Lanjutkan pembayaran") || !strings.Contains(page, o.Number) ||
-		!strings.Contains(page, `<a href="`+o.CheckoutURL+`"`) {
+		!strings.Contains(page, `<a href="`+o.CheckoutURL+`" target="_blank" rel="noopener" data-then="`+base+`/payment/return"`) {
 		t.Error("order pending: tautan lanjutkan pembayaran")
 	}
 

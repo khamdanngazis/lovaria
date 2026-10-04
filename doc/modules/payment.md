@@ -31,6 +31,7 @@ Beranda (Draft · Belum dibayar)
                   └─ Lunas ✓ → …/publish → Publikasikan (PATCH …/status) → terbit
 ```
 
+- **Tab baru**: form "Bayar & Publikasikan" dan tautan "Lanjutkan pembayaran" memakai `target="_blank"`, jadi halaman bayar gateway terbuka di tab baru dan dashboard tidak tertutup. Atribut `data-then` (`lovoria.js`) memindahkan tab dashboard ke `…/payment/return`, yang memeriksa ulang status tiap 4 detik — begitu webhook masuk, tab itu berubah sendiri menjadi "Pembayaran berhasil", tanpa bergantung pada redirect balik dari gateway. Tanpa JS: tab baru tetap terbuka dan tab dashboard tetap di halaman publikasi.
 - **CSP**: tombol "Bayar" adalah form POST yang dibalas redirect ke halaman bayar gateway. Browser menerapkan `form-action` ke seluruh rantai redirect, jadi domain halaman bayar harus terdaftar di `checkoutOrigins` (`src/platform/server/headers.go`) — tanpa itu redirect diblokir diam-diam dan tombol terasa tidak berfungsi (`TestCSPAllowsCheckoutRedirect`). Gateway baru = tambah domainnya di sana. "Lanjutkan pembayaran" memakai tautan langsung, tidak bergantung pada redirect.
 - **Redirect browser tidak pernah menandai lunas.** Halaman kembali hanya membaca status; `Service.Refresh` menanyakan status langsung ke gateway supaya pasangan tidak menunggu webhook, lewat jalur penerapan yang sama.
 - Order `pending` yang masih berlaku dipakai ulang (klik "Bayar" dua kali ≠ dua order). Setelah `expired`/`failed`/`cancelled`, percobaan berikutnya membuat order baru untuk wedding yang sama.

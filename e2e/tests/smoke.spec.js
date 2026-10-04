@@ -62,10 +62,18 @@ test('alur utama pasangan & tamu', async ({ page, browser }) => {
   const slugLink = await page.locator('a[href^="/w/"]').first().getAttribute('href');
   const anon = await (await browser.newContext()).newPage();
   expect((await anon.goto(slugLink)).status()).toBe(404);
-  await page.getByRole('button', { name: 'Bayar & Publikasikan' }).click();
-  await expect(page.getByText('Mode simulasi')).toBeVisible();
-  await page.getByRole('button', { name: 'Simulasikan berhasil' }).click();
-  await expect(page.getByText('Pembayaran berhasil')).toBeVisible();
+  // Halaman bayar dibuka di TAB BARU; tab dashboard pindah ke halaman status
+  // dan memperbarui diri begitu pembayaran diterima (tanpa menunggu redirect
+  // dari gateway).
+  const [pay] = await Promise.all([
+    page.context().waitForEvent('page'),
+    page.getByRole('button', { name: 'Bayar & Publikasikan' }).click(),
+  ]);
+  await expect(page.getByText('Menunggu konfirmasi')).toBeVisible();
+  await expect(pay.getByText('Mode simulasi')).toBeVisible();
+  await pay.getByRole('button', { name: 'Simulasikan berhasil' }).click();
+  await pay.close();
+  await expect(page.getByText('Pembayaran berhasil')).toBeVisible({ timeout: 15_000 });
   await page.getByRole('link', { name: 'Lanjut publikasikan' }).click();
   await expect(page.getByText('Lunas ✓')).toBeVisible();
   await page.getByRole('button', { name: 'Publikasikan' }).click();
