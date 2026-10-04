@@ -133,6 +133,43 @@ func CanTransition(from, to string, actor ActorKind) bool {
 	return false
 }
 
+// IsPaid: wedding sudah lunas — publikasi & custom domain terbuka (T23).
+func (w Wedding) IsPaid() bool { return w.PaidAt != nil }
+
+// Sumber pelunasan (kolom weddings.paid_source).
+const (
+	PaidGateway       = "gateway"       // webhook payment gateway
+	PaidAdmin         = "admin"         // ditandai lunas manual oleh admin
+	PaidGrandfathered = "grandfathered" // sudah terbit sebelum pembayaran diberlakukan
+	PaidDemo          = "demo"          // undangan contoh
+)
+
+// ErrPaymentRequired: wedding belum lunas, belum bisa dipublikasikan.
+var ErrPaymentRequired = errors.New("undangan belum dibayar: selesaikan pembayaran untuk mempublikasikan")
+
+// MarkPaid membuka hak publikasi wedding. Idempoten: wedding yang sudah lunas
+// tidak berubah (waktu & sumber pertama dipertahankan). changed = baru saja
+// ditandai lunas oleh panggilan ini.
+func (s *Service) MarkPaid(ctx context.Context, weddingID uuid.UUID, source string) (changed bool, err error) {
+	switch source {
+	case PaidGateway, PaidAdmin, PaidGrandfathered, PaidDemo:
+	default:
+		return false, fmt.Errorf("wedding: sumber pelunasan tidak dikenal %q", source)
+	}
+	at := s.clock()
+	n, err := s.repo.q.MarkPaid(ctx, weddingdb.MarkPaidParams{ID: weddingID, PaidAt: &at, PaidSource: &source})
+	if err != nil {
+		return false, err
+	}
+	if n == 0 {
+		// Tidak ada baris berubah: sudah lunas, atau wedding tidak ada.
+		if _, err := s.GetWedding(ctx, weddingID); err != nil {
+			return false, err
+		}
+	}
+	return n > 0, nil
+}
+
 // ChecklistError: syarat publikasi belum lengkap.
 type ChecklistError struct{ Missing []string }
 
@@ -191,7 +228,7 @@ func missing(items []ChecklistItem) []string {
 // ---------- Transisi ----------
 
 // Transition mengubah status wedding sesuai tabel transisi dan mencatat riwayatnya.
-// Publikasi mensyaratkan checklist lengkap.
+// Publikasi mensyaratkan checklist lengkap dan wedding sudah lunas (ErrPaymentRequired).
 func (s *Service) Transition(ctx context.Context, weddingID uuid.UUID, to string, actor Actor) (Wedding, error) {
 	if to == StatusPublished {
 		items, err := s.Checklist(ctx, weddingID)
@@ -210,6 +247,12 @@ func (s *Service) Transition(ctx context.Context, weddingID uuid.UUID, to string
 		}
 		if !CanTransition(cur.Status, to, actor.Kind) {
 			return &TransitionError{From: cur.Status, To: to, Actor: actor.Kind}
+		}
+		// Publikasi hanya untuk wedding yang sudah lunas (T23) — berlaku juga
+		// untuk admin (admin memakai "Tandai lunas"). Dicek di dalam transaksi
+		// supaya tidak balapan dengan webhook pembayaran.
+		if to == StatusPublished && cur.PaidAt == nil {
+			return ErrPaymentRequired
 		}
 		if err := s.recordTransition(ctx, q, cur.ID, cur.Status, to, actor); err != nil {
 			return err

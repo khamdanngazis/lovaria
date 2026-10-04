@@ -38,6 +38,7 @@ import (
 	"github.com/khamdanngazis/lovaria/src/modules/gift"
 	"github.com/khamdanngazis/lovaria/src/modules/guest"
 	"github.com/khamdanngazis/lovaria/src/modules/guestbook"
+	"github.com/khamdanngazis/lovaria/src/modules/payment"
 	"github.com/khamdanngazis/lovaria/src/modules/theme"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding/event"
@@ -403,6 +404,13 @@ func (a *app) routes() *echo.Echo {
 	keepsake := &dashboard.Keepsake{Weddings: a.weddings, Stories: stories, Guests: guests, Guestbook: guestbooks, Photo: dashboard.HTTPPhoto(cfg.BaseURL)}
 	keepsake.Register(owned) // PDF kenang-kenangan (T19)
 	domain.Register(owned, domain.Deps{Service: a.domains})
+	// Pembayaran publikasi (T23): halaman harga & bayar di dashboard, webhook
+	// gateway di luar dashboard (tanpa sesi; keasliannya dijamin tanda tangan).
+	payments := payment.NewService(a.pool, a.weddings, payment.Config{
+		Gateway: paymentGateway(cfg, secret), Price: cfg.Payment.PriceIDR,
+		Expiry: time.Duration(cfg.Payment.ExpiryHours) * time.Hour, BaseURL: cfg.BaseURL,
+	}, log)
+	payment.Register(owned, payment.Deps{Service: payments, Weddings: a.weddings, Log: log}).RegisterPublic(e, authMW.RequireAuth)
 	// Panel admin (T16): data modul lain lewat service-nya; paket mengatur kuota
 	// storage & lama arsip; admin bisa melihat dashboard pasangan (lihat saja).
 	admins := admin.NewService(admin.Deps{
@@ -418,6 +426,18 @@ func (a *app) routes() *echo.Echo {
 		Handler:  &publicsite.Handler{BaseURL: cfg.BaseURL, Packages: admins, Views: views, Guests: guests, Guestbook: guestbooks, Events: events, Log: log, Secret: secret},
 	})
 	return e
+}
+
+// paymentGateway memilih gateway dari config; nil = pembayaran belum tersedia
+// (wedding baru belum bisa terbit sampai PAYMENT_GATEWAY diisi).
+func paymentGateway(cfg config.Config, secret []byte) payment.Gateway {
+	switch cfg.Payment.Gateway {
+	case config.GatewayMidtrans:
+		return payment.NewMidtrans(cfg.Payment.MidtransServerKey, cfg.Payment.MidtransProduction)
+	case config.GatewayFake:
+		return payment.NewFake(secret, cfg.BaseURL)
+	}
+	return nil
 }
 
 // appSecret: APP_SECRET, atau kunci acak per proses bila kosong (token form

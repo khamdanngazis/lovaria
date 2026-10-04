@@ -114,8 +114,12 @@ func csrf(cfg config.Config) echo.MiddlewareFunc {
 
 func skipInfra(c echo.Context) bool {
 	p := c.Request().URL.Path
-	return p == "/healthz" || p == "/readyz" || strings.HasPrefix(p, "/static/") || PublicFormPath(p)
+	return p == "/healthz" || p == "/readyz" || strings.HasPrefix(p, "/static/") || PublicFormPath(p) || strings.HasPrefix(p, WebhookPrefix)
 }
+
+// WebhookPrefix: webhook payment gateway (T23) — server-ke-server tanpa sesi,
+// jadi tidak membawa token CSRF; keasliannya dijamin tanda tangan gateway.
+const WebhookPrefix = "/webhooks/"
 
 // PublicFormPath: form di halaman undangan publik (di-cache, tanpa token CSRF
 // per pengunjung). Handler-nya wajib memakai proteksi sendiri — token HMAC +

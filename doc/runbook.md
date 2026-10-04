@@ -9,6 +9,17 @@ Panduan untuk menjalankan Lovoria di produksi (Railway + Postgres + Cloudflare R
 - Setelah deploy: buka `/healthz`, satu undangan publik, dan dashboard; cek log Railway tidak ada `level=ERROR`.
 - Undangan contoh landing page (idempoten): `railway ssh --service lovaria -- lovoria demo seed`. Tambahkan `--refresh` untuk mengganti foto demo yang sudah ada dengan set terbaru (foto lama dihapus dari R2). Jalankan ulang setelah deploy versi yang menambah isi demo: demo lama tanpa foto akan dilengkapi foto & kutipan ("dilengkapi: …"), sedangkan yang sudah lengkap dilewati.
 
+### Pembayaran (Midtrans, T23)
+
+1. Buat akun di midtrans.com. Di dashboard Midtrans → **Settings → Access Keys**, salin **Server Key** (sandbox dulu).
+2. Railway → service `lovaria` → Variables: `PAYMENT_GATEWAY=midtrans`, `MIDTRANS_SERVER_KEY=<server key>`, `MIDTRANS_ENV=sandbox`. Jangan menaruh kunci di repo atau chat.
+3. Midtrans → **Settings → Payment → Notification URL**: `https://lovoria.my.id/webhooks/midtrans`. (Finish/Unfinish/Error URL tidak wajib — aplikasi mengirimnya per transaksi.)
+4. Uji sandbox: buat wedding draf → Publikasikan → Bayar → di halaman Snap pilih QRIS/VA, selesaikan lewat simulator Midtrans (`simulator.sandbox.midtrans.com`). Halaman kembali harus berubah menjadi "Pembayaran berhasil" dan beranda "Lunas ✓". Cek webhook masuk: `SELECT outcome, signature_ok, received_at FROM payment_events ORDER BY received_at DESC LIMIT 5;`
+5. Uji juga: biarkan kedaluwarsa / batalkan → "Coba lagi" membuat order baru; kirim ulang notifikasi dari dashboard Midtrans → hasil `duplicate`.
+6. Go-live: ganti ke Server Key **production**, `MIDTRANS_ENV=production`, dan isi Notification URL di environment production Midtrans.
+
+Selama `PAYMENT_GATEWAY` kosong, wedding baru **belum bisa dipublikasikan** (halaman publikasi menampilkan "Pembayaran belum tersedia"); undangan yang sudah terbit tidak terpengaruh. Penelusuran keluhan "sudah bayar tapi belum lunas": cari nomor order (`LVR-…`) di `payment_orders` dan `payment_events`; bila gateway menyatakan lunas tetapi webhook gagal, kirim ulang notifikasi dari dashboard Midtrans (aman, idempoten).
+
 ## 2. Rollback
 
 1. Railway → service **lovaria** → **Deployments** → deployment sehat sebelumnya → **Redeploy**.

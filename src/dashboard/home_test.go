@@ -177,6 +177,9 @@ func TestOnboardingChecklist(t *testing.T) {
 			t.Errorf("setelah dilengkapi: %s = %v", label, done)
 		}
 	}
+	if _, err := f.home.Weddings.MarkPaid(ctx, w.ID, wedding.PaidGateway); err != nil { // prasyarat publikasi (T23)
+		t.Fatal(err)
+	}
 	if _, err := f.home.Weddings.Transition(ctx, w.ID, wedding.StatusPublished, wedding.Actor{Kind: wedding.ActorUser, UserID: owner}); err != nil {
 		t.Fatal(err)
 	}

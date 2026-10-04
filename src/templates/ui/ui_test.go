@@ -83,6 +83,7 @@ var migrated = []string{
 	"../../modules/guestbook/views.templ",
 	"../../modules/gift/views.templ",
 	"../../modules/domain/views.templ",
+	"../../modules/payment/views.templ",
 }
 
 var (

@@ -206,9 +206,24 @@ func TestPublishUnpublishViaHTTP(t *testing.T) {
 	w, _ := f.svc.CreateWedding(ctx, owner, validInput())
 	base := "/dashboard/weddings/" + w.ID.String()
 
+	// Belum lunas (T23): beranda menautkan ke halaman harga, dan PATCH status
+	// dialihkan ke sana tanpa mengubah status.
+	f.svc.SetEventCounter(countEvents(1))
+	if body := req(e, owner, http.MethodGet, base, nil, false).Body.String(); !strings.Contains(body, "Belum dibayar") || !strings.Contains(body, `href="`+base+`/publish"`) {
+		t.Error("draf belum lunas: status pembayaran & tautan publikasi")
+	}
+	rec := req(e, owner, http.MethodPost, base+"/status", url.Values{"_method": {"PATCH"}, "status": {"published"}}, false)
+	if rec.Code != http.StatusSeeOther || rec.Header().Get("Location") != base+"/publish" || f.status(t, w.ID) != StatusDraft {
+		t.Fatalf("publish sebelum lunas: %d %s %s", rec.Code, rec.Header().Get("Location"), f.status(t, w.ID))
+	}
+	f.paid(t, w.ID)
+	if body := req(e, owner, http.MethodGet, base, nil, false).Body.String(); !strings.Contains(body, "Lunas ✓") {
+		t.Error("setelah lunas: badge Lunas")
+	}
+
 	// Checklist kurang (belum ada acara) → tombol nonaktif & PATCH ditolak 422.
 	f.svc.SetEventCounter(countEvents(0))
-	rec := req(e, owner, http.MethodGet, base, nil, false)
+	rec = req(e, owner, http.MethodGet, base, nil, false)
 	if !strings.Contains(rec.Body.String(), "Minimal 1 acara") || !strings.Contains(rec.Body.String(), "disabled") {
 		t.Errorf("checklist tidak tampil")
 	}
@@ -250,6 +265,7 @@ func TestPublishOnOrAfterWeddingDayAdvancesImmediately(t *testing.T) {
 	in := validInput()
 	in.WeddingDate = "2026-01-10" // sudah lewat
 	w, _ := f.svc.CreateWedding(ctx, owner, in)
+	f.paid(t, w.ID)
 	f.svc.now = func() time.Time { return time.Date(2026, 3, 1, 0, 0, 0, 0, time.UTC) }
 
 	req(e, owner, http.MethodPatch, "/dashboard/weddings/"+w.ID.String()+"/status", url.Values{"status": {"published"}}, false)

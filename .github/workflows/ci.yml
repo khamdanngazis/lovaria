@@ -102,6 +102,7 @@ jobs:
       BASE_URL: http://localhost:8080
       STORAGE_DRIVER: local
       STORAGE_LOCAL_DIR: /tmp/lovoria-media
+      PAYMENT_GATEWAY: fake # gateway simulasi (T23) — ditolak di production
       APP_SECRET: e2e-ci-secret-e2e-ci-secret-e2e-ci
     steps:
       - uses: actions/checkout@v4

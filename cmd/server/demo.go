@@ -97,6 +97,8 @@ func (a *app) seedDemo(ctx context.Context, out io.Writer, refresh bool) error {
 		steps := []func() error{
 			func() error { _, err := a.weddings.ChangeSlug(ctx, w.ID, slug); return err },
 			func() error { return a.weddings.MarkDemo(ctx, w.ID) },
+			// Undangan contoh tidak dibayar: langsung berhak terbit (T23).
+			func() error { _, err := a.weddings.MarkPaid(ctx, w.ID, wedding.PaidDemo); return err },
 			func() error {
 				_, err := a.weddings.UpdateCouple(ctx, w.ID, wedding.CoupleInput{GroomName: c.Groom, BrideName: c.Bride, GroomDescription: c.GroomDesc, BrideDescription: c.BrideDesc})
 				return err

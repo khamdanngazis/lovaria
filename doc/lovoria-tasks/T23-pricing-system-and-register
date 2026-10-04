@@ -1,0 +1,514 @@
+# Lovoria — Registration, Pricing & Publish Payment MVP
+
+## Goal
+
+Implement registration, wedding creation, and one-time payment flow for Lovoria MVP.
+
+### Pricing
+
+**Rp149.000 / wedding**
+
+One-time payment.
+
+Payment is required **only when the user wants to publish the wedding website**.
+
+User can create, edit, customize, and preview the wedding before payment.
+
+---
+
+# 1. User Registration
+
+## Register
+
+User can register using:
+
+- Name
+- Email
+- Password
+- Password confirmation
+
+After registration:
+
+```text
+Register
+   ↓
+Create Account
+   ↓
+Create Wedding
+```
+
+## Login
+
+User can login using:
+
+- Email
+- Password
+
+Provide:
+
+- Forgot password
+- Logout
+
+---
+
+# 2. Create Wedding
+
+After login, user can create a wedding.
+
+Minimum information:
+
+- Bride name
+- Groom name
+- Wedding date
+- Wedding slug
+
+Example:
+
+```text
+lovoria.my.id/w/azis-ida
+```
+
+A newly created wedding starts as:
+
+```text
+DRAFT
+```
+
+User can configure the wedding without paying.
+
+---
+
+# 3. Wedding Configuration
+
+User can freely:
+
+- Choose one of the available templates
+- Customize colors
+- Customize fonts
+- Upload cover photo
+- Add love story
+- Add event information
+- Add location
+- Configure gallery
+- Configure RSVP
+- Configure guestbook
+- Configure digital gift
+- Configure personalized invitation
+- Configure other available MVP features
+
+User can preview the complete wedding website before payment.
+
+---
+
+# 4. Publish Flow
+
+Payment is triggered **only when the user clicks Publish**.
+
+```text
+Create Wedding
+      ↓
+Customize
+      ↓
+Preview
+      ↓
+[ Publish Wedding ]
+      ↓
+Payment Required
+      ↓
+Rp149.000
+      ↓
+Payment Gateway
+      ↓
+Payment Success
+      ↓
+Publish Wedding
+```
+
+The user should not be required to pay while creating or editing the wedding.
+
+---
+
+# 5. Publish Confirmation
+
+When the user clicks:
+
+**Publish Wedding**
+
+Show a confirmation/payment page:
+
+### Publish Your Wedding
+
+**Rp149.000**
+
+One-time payment.
+
+Includes all current Lovoria MVP features:
+
+- All available templates
+- Love story
+- Event & calendar
+- Maps
+- Photo gallery
+- RSVP
+- Guestbook
+- Digital gift
+- Personalized guest link
+- WhatsApp invitation
+- Custom domain
+- HTTPS
+- Theme customization
+
+CTA:
+
+**Pay & Publish**
+
+---
+
+# 6. Payment
+
+Use an Indonesian payment gateway.
+
+Payment methods should use the methods supported by the selected gateway, such as:
+
+- QRIS
+- Virtual Account
+- E-wallet
+- Bank transfer
+
+Do not implement payment processing manually.
+
+Payment gateway webhook is the source of truth for payment status.
+
+---
+
+# 7. Payment Status
+
+Payment status:
+
+```text
+UNPAID
+PENDING
+PAID
+EXPIRED
+FAILED
+CANCELLED
+```
+
+Initial state:
+
+```text
+UNPAID
+```
+
+When user clicks Publish:
+
+```text
+UNPAID
+   ↓
+Create Payment
+   ↓
+PENDING
+```
+
+After successful gateway webhook:
+
+```text
+PENDING
+   ↓
+PAID
+```
+
+Only `PAID` payment can unlock publishing.
+
+---
+
+# 8. Wedding Status
+
+Keep wedding status separate from payment status.
+
+Wedding:
+
+```text
+DRAFT
+PUBLISHED
+ARCHIVED
+```
+
+Payment:
+
+```text
+UNPAID
+PENDING
+PAID
+EXPIRED
+FAILED
+CANCELLED
+```
+
+Publishing rule:
+
+```text
+IF payment.status != PAID
+    → wedding cannot be published
+
+IF payment.status == PAID
+    → wedding can be published
+```
+
+After successful payment:
+
+```text
+Payment = PAID
+     ↓
+Allow Publish
+     ↓
+Wedding = PUBLISHED
+```
+
+---
+
+# 9. Important Payment Rules
+
+Payment must not be considered successful based only on the frontend redirect.
+
+The backend must:
+
+- Verify webhook signature
+- Validate payment amount
+- Validate order/payment reference
+- Process webhook idempotently
+- Prevent duplicate activation
+- Store gateway transaction ID
+- Store payment timestamp
+- Log payment webhook events
+
+Repeated webhook events must not create duplicate payment or activation.
+
+---
+
+# 10. Order / Payment Data
+
+Create an order/payment record for each payment attempt.
+
+Minimum fields:
+
+```text
+id
+wedding_id
+user_id
+order_number
+amount
+currency
+status
+payment_method
+gateway
+gateway_transaction_id
+expired_at
+paid_at
+created_at
+updated_at
+```
+
+Price:
+
+```text
+amount = 149000
+currency = IDR
+```
+
+Example order number:
+
+```text
+LVR-20261004-000001
+```
+
+A wedding can have multiple payment attempts, but only a successful payment can unlock publishing.
+
+---
+
+# 11. Payment Retry
+
+If payment expires or fails:
+
+```text
+Wedding
+   ↓
+Publish Wedding
+   ↓
+Payment
+   ↓
+Expired / Failed
+   ↓
+Try Again
+```
+
+Do not create another wedding.
+
+Create a new payment attempt/order for the same wedding.
+
+---
+
+# 12. Custom Domain
+
+Custom domain remains included in the Rp149.000 package.
+
+No separate payment for custom domain in MVP.
+
+Payment unlocks the feature.
+
+Domain configuration remains handled through the existing custom-domain flow.
+
+---
+
+# 13. Dashboard
+
+Before payment:
+
+```text
+Wedding Status
+Draft
+
+Payment
+Not paid
+
+[ Publish Wedding ]
+```
+
+When Publish is clicked:
+
+```text
+Publish Wedding
+
+Rp149.000
+
+[ Pay & Publish ]
+```
+
+After successful payment:
+
+```text
+Payment
+Paid ✓
+
+[ Publish Wedding ]
+```
+
+After publishing:
+
+```text
+Wedding Status
+Published ✓
+
+[ View Wedding ]
+[ Share Invitation ]
+```
+
+---
+
+# 14. User Journey
+
+```text
+Landing Page
+     ↓
+Register / Login
+     ↓
+Create Wedding
+     ↓
+Wedding Dashboard
+     ↓
+Customize Wedding
+     ↓
+Preview
+     ↓
+Click "Publish Wedding"
+     ↓
+Payment Confirmation
+     ↓
+Pay Rp149.000
+     ↓
+Payment Gateway
+     ↓
+Webhook
+     ↓
+Payment PAID
+     ↓
+Publish Wedding
+     ↓
+Share Invitation
+```
+
+---
+
+# 15. Acceptance Criteria
+
+## Registration
+
+- [ ] User can register
+- [ ] User can login
+- [ ] User can logout
+- [ ] User can reset password
+- [ ] Duplicate email is rejected
+
+## Wedding Creation
+
+- [ ] User can create wedding without payment
+- [ ] Wedding starts as DRAFT
+- [ ] User can edit wedding without payment
+- [ ] User can select template without payment
+- [ ] User can customize wedding without payment
+- [ ] User can preview wedding without payment
+
+## Pricing
+
+- [ ] Price is Rp149.000
+- [ ] One-time payment
+- [ ] No subscription
+- [ ] All current MVP features included
+- [ ] Custom domain included
+- [ ] Payment is only required when publishing
+
+## Publish
+
+- [ ] Publish button is available for DRAFT wedding
+- [ ] Clicking Publish opens payment flow
+- [ ] Unpaid wedding cannot be published
+- [ ] Payment must be PAID before publishing
+- [ ] Successful payment allows publishing
+- [ ] Wedding becomes PUBLISHED after publish action
+
+## Payment
+
+- [ ] Payment order can be created
+- [ ] Unique order number is generated
+- [ ] Payment gateway checkout can be opened
+- [ ] Payment status is stored
+- [ ] Payment expiration is handled
+- [ ] Failed payment can be retried
+- [ ] Multiple payment attempts do not create duplicate weddings
+
+## Webhook
+
+- [ ] Webhook endpoint is implemented
+- [ ] Webhook signature is verified
+- [ ] Payment amount is validated
+- [ ] Webhook is idempotent
+- [ ] Gateway transaction ID is stored
+- [ ] Successful payment changes payment status to PAID
+
+## Publishing
+
+- [ ] PAID payment allows publishing
+- [ ] Public wedding is not accessible before publishing
+- [ ] Published wedding is publicly accessible
+- [ ] User can view the published wedding
+- [ ] User can share the invitation
+
+---
+
+# Product Principle
+
+> **Create first. Pay when ready. Publish after payment.**
+
+The customer should be able to experience the complete Lovoria creation process before paying.
+
+Payment is the final step that unlocks **publishing**, not the ability to create the wedding.

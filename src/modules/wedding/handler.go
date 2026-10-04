@@ -212,6 +212,10 @@ func (h *Handler) UpdateStatus(c echo.Context) error {
 	}
 	to := c.FormValue("status")
 	updated, err := h.svc.Transition(c.Request().Context(), w.ID, to, Actor{Kind: ActorUser, UserID: u.ID})
+	// Belum lunas (T23): arahkan ke halaman publikasi & pembayaran.
+	if errors.Is(err, ErrPaymentRequired) {
+		return c.Redirect(http.StatusSeeOther, weddingURL(w, "/publish"))
+	}
 	var te *TransitionError
 	var ce *ChecklistError
 	if errors.As(err, &te) || errors.As(err, &ce) {

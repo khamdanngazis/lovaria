@@ -196,3 +196,57 @@ func TestLoadInvalid(t *testing.T) {
 		})
 	}
 }
+
+func TestLoadPayment(t *testing.T) {
+	// Bawaan: belum ada gateway, harga Rp149.000, masa berlaku 24 jam.
+	cfg, err := LoadFrom(envFrom(map[string]string{"APP_ENV": EnvTest}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Payment.Enabled() || cfg.Payment.PriceIDR != 149000 || cfg.Payment.ExpiryHours != 24 {
+		t.Errorf("bawaan = %+v", cfg.Payment)
+	}
+	cfg, err = LoadFrom(envFrom(map[string]string{
+		"APP_ENV": EnvTest, "PAYMENT_GATEWAY": "Midtrans", "MIDTRANS_SERVER_KEY": "SB-Mid-server-x",
+		"MIDTRANS_ENV": "production", "PUBLISH_PRICE_IDR": "199000", "PAYMENT_EXPIRY_HOURS": "48",
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p := cfg.Payment; p.Gateway != GatewayMidtrans || !p.MidtransProduction || p.PriceIDR != 199000 || p.ExpiryHours != 48 || !p.Enabled() {
+		t.Errorf("midtrans = %+v", p)
+	}
+	// MIDTRANS_ENV selain "production" → sandbox.
+	if cfg, _ := LoadFrom(envFrom(map[string]string{"APP_ENV": EnvTest, "PAYMENT_GATEWAY": "midtrans", "MIDTRANS_SERVER_KEY": "k", "MIDTRANS_ENV": "prod"})); cfg.Payment.MidtransProduction {
+		t.Error("hanya MIDTRANS_ENV=production yang memakai endpoint produksi")
+	}
+	// Gateway simulasi boleh di development/test.
+	if _, err := LoadFrom(envFrom(map[string]string{"APP_ENV": EnvDevelopment, "DATABASE_URL": "postgres://x", "PAYMENT_GATEWAY": "fake"})); err != nil {
+		t.Errorf("fake di development: %v", err)
+	}
+	// …tetapi tidak pernah di production (menandai lunas tanpa uang sungguhan).
+	prod := map[string]string{
+		"APP_ENV": EnvProduction, "DATABASE_URL": "postgres://x", "BASE_URL": "https://lovoria.com",
+		"STORAGE_DRIVER": "r2", "R2_ACCOUNT_ID": "a", "R2_ACCESS_KEY_ID": "k", "R2_SECRET_ACCESS_KEY": "s", "R2_BUCKET": "b", "R2_PUBLIC_URL": "https://m.x",
+		"APP_SECRET": "rahasia-rahasia-rahasia-rahasia-12",
+	}
+	if _, err := LoadFrom(envFrom(prod)); err != nil {
+		t.Fatalf("config production dasar harus valid: %v", err)
+	}
+	prod["PAYMENT_GATEWAY"] = "fake"
+	if _, err := LoadFrom(envFrom(prod)); err == nil || !strings.Contains(err.Error(), "fake tidak boleh dipakai di production") {
+		t.Errorf("fake di production harus ditolak: %v", err)
+	}
+
+	for name, env := range map[string]map[string]string{
+		"midtrans tanpa server key": {"APP_ENV": EnvTest, "PAYMENT_GATEWAY": "midtrans"},
+		"gateway tak dikenal":       {"APP_ENV": EnvTest, "PAYMENT_GATEWAY": "paypal"},
+		"harga nol":                 {"APP_ENV": EnvTest, "PUBLISH_PRICE_IDR": "0"},
+		"harga bukan angka":         {"APP_ENV": EnvTest, "PUBLISH_PRICE_IDR": "149rb"},
+		"masa berlaku nol":          {"APP_ENV": EnvTest, "PAYMENT_EXPIRY_HOURS": "0"},
+	} {
+		if _, err := LoadFrom(envFrom(env)); err == nil {
+			t.Errorf("%s: harus ditolak", name)
+		}
+	}
+}
