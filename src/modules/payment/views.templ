@@ -129,10 +129,9 @@ templ offerCard(s publishState) {
 				<p class={ ui.AlertClass(ui.Info) } role="status">Pembayaran belum tersedia saat ini. Undangan tetap bisa disunting dan dipratinjau.</p>
 			} else if s.Summary.Payable {
 				<p class="text-sm text-lovoria-muted">Ada pembayaran yang belum selesai ({ s.Summary.Latest.Number }), berlaku sampai { web.FormatDateID(s.Summary.Latest.ExpiredAt) } { s.Summary.Latest.ExpiredAt.In(jakarta).Format("15.04") } WIB.</p>
-				<form method="post" action={ templ.SafeURL(s.W.DashboardURL("/payment")) } class="mt-3">
-					@layouts.CSRFField()
-					<button type="submit" class="ui-btn ui-btn-primary w-full px-6 py-3 sm:w-auto">Lanjutkan pembayaran</button>
-				</form>
+				// Tautan langsung ke halaman bayar gateway (bukan form): tidak
+				// bergantung pada redirect setelah POST.
+				<a href={ templ.SafeURL(s.Summary.Latest.CheckoutURL) } class="ui-btn ui-btn-primary mt-3 w-full px-6 py-3 sm:w-auto">Lanjutkan pembayaran</a>
 			} else {
 				<form method="post" action={ templ.SafeURL(s.W.DashboardURL("/payment")) }>
 					@layouts.CSRFField()

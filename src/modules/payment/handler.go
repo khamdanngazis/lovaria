@@ -126,7 +126,10 @@ func (h *Handler) Webhook(c echo.Context) error {
 	case errors.Is(err, ErrBadNotification), errors.Is(err, ErrAmountMismatch), errors.Is(err, ErrUnconfirmed):
 		return echo.NewHTTPError(http.StatusUnprocessableEntity, "notifikasi ditolak")
 	case errors.Is(err, ErrOrderNotFound):
-		return echo.NewHTTPError(http.StatusNotFound, "order tidak ditemukan")
+		// Tanda tangan sah tetapi bukan order kita (notifikasi uji dari dashboard
+		// gateway, atau order lingkungan lain): balas 200 supaya gateway tidak
+		// mengirim ulang; tidak ada yang berubah dan kejadiannya tetap tercatat.
+		return c.JSON(http.StatusOK, map[string]string{"status": "unknown-order"})
 	case err != nil:
 		return err // 5xx → gateway mengirim ulang
 	}

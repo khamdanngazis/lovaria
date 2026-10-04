@@ -209,6 +209,14 @@ func (s *Service) HandleNotification(ctx context.Context, body []byte) (outcome 
 		s.logEvent(ctx, body, n.OrderNumber, false, reason)
 		return "", err
 	}
+	// Order tak dikenal (mis. tombol "Test notification" di dashboard gateway):
+	// dicatat lalu ditolak sebelum bertanya apa pun ke gateway.
+	if _, err := s.OrderByNumber(ctx, n.OrderNumber); err != nil {
+		if errors.Is(err, ErrOrderNotFound) {
+			s.logEvent(ctx, body, n.OrderNumber, true, "rejected:unknown-order")
+		}
+		return "", err
+	}
 	// Status lunas dikonfirmasi ulang langsung ke gateway sebelum diterapkan.
 	if n.Status == StatusPaid {
 		got, found, ferr := s.gw.FetchStatus(ctx, n.OrderNumber)
@@ -223,8 +231,6 @@ func (s *Service) HandleNotification(ctx context.Context, body []byte) (outcome 
 	}
 	outcome, err = s.apply(ctx, n)
 	switch {
-	case errors.Is(err, ErrOrderNotFound):
-		s.logEvent(ctx, body, n.OrderNumber, true, "rejected:unknown-order")
 	case errors.Is(err, ErrAmountMismatch):
 		s.logEvent(ctx, body, n.OrderNumber, true, "rejected:amount")
 	case err != nil:

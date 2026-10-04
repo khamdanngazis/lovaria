@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Perbaikan — tombol "Bayar & Publikasikan" tidak membuka halaman pembayaran
+- CSP `form-action 'self'` membuat browser memblokir redirect dari form bayar ke halaman Midtrans, sehingga tombol terasa tidak berfungsi (order tetap terbuat di server). Domain halaman bayar Midtrans kini diizinkan di `form-action` (hanya sebagai tujuan navigasi).
+- "Lanjutkan pembayaran" menjadi tautan langsung ke halaman bayar.
+- Notifikasi uji dari dashboard Midtrans ("Test notification") kini dibalas 200 dan dicatat, bukan 422.
+
 ### T23 (bagian 1) — Pembayaran saat publikasi
 - **Rp149.000 sekali bayar per wedding**, ditagih hanya saat dipublikasikan. Membuat, mengubah, dan pratinjau tetap gratis.
 - Halaman **Publikasikan** baru: harga, yang didapat, tombol "Bayar & Publikasikan"; setelah lunas pasangan menekan Publikasikan. Kartu status beranda menampilkan status pembayaran.
