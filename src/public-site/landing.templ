@@ -345,7 +345,7 @@ templ landingThemes(d landingData) {
 	<section id="tema" class="scroll-mt-20 py-20 sm:py-28">
 		<div class={ container }>
 			@sectionHeading("Tema", "Pilih suasana yang paling kalian", "Setiap tema bisa disesuaikan warna, huruf, latar, dan foto sampulnya.")
-			<ul class="mt-12 grid grid-cols-2 gap-3 sm:mt-14 sm:gap-6 lg:grid-cols-4">
+			<ul class="mt-12 grid grid-cols-2 gap-3 sm:mt-14 sm:grid-cols-3 sm:gap-5 lg:grid-cols-5">
 				for _, t := range d.Themes {
 					<li class="flex flex-col overflow-hidden rounded-2xl border border-lovoria-border bg-white">
 						if t.Photo != "" {

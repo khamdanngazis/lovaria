@@ -2,7 +2,11 @@
 // site, T09) dan tema. Tema hanya boleh membaca View; tidak memanggil service.
 package view
 
-import "time"
+import (
+	"time"
+
+	"github.com/a-h/templ"
+)
 
 // View adalah seluruh data yang dibutuhkan satu halaman undangan.
 type View struct {
@@ -28,6 +32,14 @@ type View struct {
 	// CSS & FontsURL: blok CSS variable dan URL Google Fonts, diisi theme.Render.
 	CSS      string
 	FontsURL string
+	// SectionTitle: judul bagian milik tema (T21), diisi theme.Prepare supaya
+	// bagian bersama (RSVP, ucapan, hadiah, …) memakai gaya tema tanpa
+	// mengenal ID tema. nil → judul bawaan.
+	SectionTitle func(title, subtitle string) templ.Component
+	// CoverThumb / CoverWidth: thumbnail & lebar foto sampul untuk srcset
+	// (kosong bila sampul bukan foto galeri).
+	CoverThumb string
+	CoverWidth int
 
 	// OG: meta Open Graph / Twitter untuk preview link (WhatsApp dll.), diisi public site.
 	OG OG
@@ -219,6 +231,15 @@ type Tokens struct {
 	FontBody    string
 	Background  string // #rrggbb atau URL gambar
 	CoverImage  string
+
+	// Token desain bawaan tema (T21) — tidak bisa diubah per wedding.
+	Accent string // ornamen, garis, ikon (bukan teks isi / tombol utama)
+	Deep   string // bagian gelap & penutup (teks di atasnya putih)
+	Muted  string // teks sekunder di atas Surface
+	Border string // garis & tepi kartu
+	// Radius kartu/foto dan tombol (panjang CSS: "0", "0.75rem", "9999px").
+	Radius       string
+	ButtonRadius string
 }
 
 // BackgroundIsImage: latar berupa gambar (bukan warna).

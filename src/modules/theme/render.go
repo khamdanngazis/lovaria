@@ -10,14 +10,25 @@ import (
 	"github.com/khamdanngazis/lovaria/src/templates/shared"
 )
 
-// Render merender halaman undangan lengkap untuk v memakai tema v.ThemeID
-// (fallback DefaultID) + pengaturan v.Settings. Satu-satunya pintu masuk (T09).
-func Render(v view.View) templ.Component {
+// Prepare memasang bagian milik tema ke view: ID tema final (cadangan DefaultID)
+// dan judul bagian tema. Dipanggil Render; public site memanggilnya juga untuk
+// fragmen bagian bersama (RSVP / ucapan lewat htmx) supaya judulnya tetap
+// bergaya tema setelah di-swap.
+func Prepare(v view.View) view.View {
 	def, ok := Get(v.ThemeID)
 	if !ok {
 		def, _ = Get(DefaultID)
 	}
 	v.ThemeID = def.ID
+	v.SectionTitle = def.Parts.SectionTitle
+	return v
+}
+
+// Render merender halaman undangan lengkap untuk v memakai tema v.ThemeID
+// (fallback DefaultID) + pengaturan v.Settings. Satu-satunya pintu masuk (T09).
+func Render(v view.View) templ.Component {
+	v = Prepare(v)
+	def, _ := Get(v.ThemeID)
 	v.Tokens = resolve(def.Tokens, v.Settings)
 	v.CSS = TokensCSS(def.ID, v.Tokens)
 	v.FontsURL = GoogleFontsURL(v.Tokens.FontHeading, v.Tokens.FontBody)

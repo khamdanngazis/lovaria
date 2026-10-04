@@ -2,9 +2,11 @@ package theme
 
 import (
 	"fmt"
+	"math"
 	"net/url"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/khamdanngazis/lovaria/src/modules/theme/view"
@@ -16,12 +18,13 @@ type Font struct {
 	Weights  string // mis. "400;600"
 	Fallback string // stack CSS cadangan
 	Script   bool   // font tulisan tangan (hanya cocok untuk judul)
+	Italic   bool   // muat juga gaya miring 400 (judul editorial)
 }
 
 // Fonts adalah whitelist font. Nilai di luar daftar ini ditolak.
 var Fonts = []Font{
 	{Name: "Cormorant Garamond", Weights: "400;600", Fallback: "Georgia, serif"},
-	{Name: "Playfair Display", Weights: "400;600", Fallback: "Georgia, serif"},
+	{Name: "Playfair Display", Weights: "400;500", Fallback: "Georgia, serif", Italic: true},
 	{Name: "Cinzel", Weights: "400;600", Fallback: "Georgia, serif"},
 	{Name: "Lora", Weights: "400;600", Fallback: "Georgia, serif"},
 	{Name: "Great Vibes", Weights: "400", Fallback: "cursive", Script: true},
@@ -29,7 +32,7 @@ var Fonts = []Font{
 	{Name: "Montserrat", Weights: "400;600", Fallback: "system-ui, sans-serif"},
 	{Name: "Josefin Sans", Weights: "400;600", Fallback: "system-ui, sans-serif"},
 	{Name: "Poppins", Weights: "400;600", Fallback: "system-ui, sans-serif"},
-	{Name: "Inter", Weights: "400;600", Fallback: "system-ui, sans-serif"},
+	{Name: "Inter", Weights: "400;500;600", Fallback: "system-ui, sans-serif"},
 	{Name: "Lato", Weights: "400;700", Fallback: "system-ui, sans-serif"},
 	{Name: "Nunito", Weights: "400;600", Fallback: "system-ui, sans-serif"},
 }
@@ -150,6 +153,14 @@ func TokensCSS(themeID string, t view.Tokens) string {
 	fmt.Fprintf(&b, "--lv-primary:%s;", colorOr(t.Primary, "#b76e79"))
 	fmt.Fprintf(&b, "--lv-surface:%s;", colorOr(t.Surface, "#ffffff"))
 	fmt.Fprintf(&b, "--lv-ink:%s;", colorOr(t.Ink, "#222222"))
+	// Token desain tema (T21). Cadangan memakai palet brand Lovoria.
+	fmt.Fprintf(&b, "--lv-accent:%s;", colorOr(t.Accent, "#c9a88a"))
+	fmt.Fprintf(&b, "--lv-deep:%s;", colorOr(t.Deep, "#332936"))
+	fmt.Fprintf(&b, "--lv-muted:%s;", colorOr(t.Muted, "#6b666b"))
+	fmt.Fprintf(&b, "--lv-border:%s;", colorOr(t.Border, "#e8dfd9"))
+	fmt.Fprintf(&b, "--lv-on-primary:%s;", OnColor(colorOr(t.Primary, "#b76e79")))
+	fmt.Fprintf(&b, "--lv-radius:%s;", lengthOr(t.Radius, "1rem"))
+	fmt.Fprintf(&b, "--lv-radius-btn:%s;", lengthOr(t.ButtonRadius, "9999px"))
 	fmt.Fprintf(&b, "--lv-font-heading:%s;", fontStack(t.FontHeading))
 	fmt.Fprintf(&b, "--lv-font-body:%s;", fontStack(t.FontBody))
 	switch {
@@ -162,6 +173,62 @@ func TokensCSS(themeID string, t view.Tokens) string {
 	}
 	b.WriteString("}")
 	return b.String()
+}
+
+var cssLength = regexp.MustCompile(`^(0|[0-9]+(\.[0-9]+)?(rem|px))$`)
+
+func lengthOr(l, def string) string {
+	if cssLength.MatchString(l) {
+		return l
+	}
+	return def
+}
+
+// ---------- Kontras (WCAG 2.x) ----------
+
+// luminance: luminansi relatif warna #rrggbb (0 hitam … 1 putih).
+func luminance(hex string) float64 {
+	if !hexColor.MatchString(hex) {
+		return 0
+	}
+	var rgb [3]float64
+	for i := range rgb {
+		n, _ := strconv.ParseUint(hex[1+2*i:3+2*i], 16, 8)
+		c := float64(n) / 255
+		if c <= 0.03928 {
+			rgb[i] = c / 12.92
+		} else {
+			rgb[i] = math.Pow((c+0.055)/1.055, 2.4)
+		}
+	}
+	return 0.2126*rgb[0] + 0.7152*rgb[1] + 0.0722*rgb[2]
+}
+
+// Contrast: rasio kontras dua warna #rrggbb (1 … 21).
+func Contrast(a, b string) float64 {
+	la, lb := luminance(a), luminance(b)
+	if la < lb {
+		la, lb = lb, la
+	}
+	return (la + 0.05) / (lb + 0.05)
+}
+
+// Warna teks di atas warna pekat (tombol, bagian Primary).
+const (
+	onLight = "#ffffff"
+	onDark  = "#1f1a20"
+	// MinContrast: kontras teks minimum (WCAG AA untuk teks normal).
+	MinContrast = 4.5
+)
+
+// OnColor: warna teks yang terbaca di atas bg — putih bila kontrasnya cukup,
+// selain itu gelap. Dipakai untuk --lv-on-primary supaya Primary kustom yang
+// terang (mis. kuning muda) tidak membuat teks tombol hilang.
+func OnColor(bg string) string {
+	if Contrast(onLight, bg) >= MinContrast || Contrast(onLight, bg) >= Contrast(onDark, bg) {
+		return onLight
+	}
+	return onDark
 }
 
 func colorOr(c, def string) string {
@@ -181,7 +248,12 @@ func GoogleFontsURL(fonts ...string) string {
 			continue
 		}
 		seen[f.Name] = true
-		families = append(families, "family="+strings.ReplaceAll(f.Name, " ", "+")+":wght@"+f.Weights)
+		axis := ":wght@" + f.Weights
+		if f.Italic {
+			// ital,wght@0,400;0,500;1,400 — tegak semua bobot + miring 400.
+			axis = ":ital,wght@0," + strings.ReplaceAll(f.Weights, ";", ";0,") + ";1,400"
+		}
+		families = append(families, "family="+strings.ReplaceAll(f.Name, " ", "+")+axis)
 	}
 	if len(families) == 0 {
 		return ""

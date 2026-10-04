@@ -18,7 +18,22 @@ Kode: `src/modules/theme` (registry, token, `Render`, pengaturan per wedding, da
    ```
 
    Tailwind memetakan variable ini ke kelas `text-primary`, `bg-primary`, `bg-surface`, `text-ink`, `font-heading`. Google Fonts hanya memuat **font judul & isi yang dipakai** (`GoogleFontsURL`).
-2. **Struktur layout** (per tema): komponen templ berbeda untuk Hero, Couple, Events, dst.
+2. **Token desain bawaan tema** (T21, tidak bisa diubah per wedding, tanpa kolom database):
+
+   | Token | CSS variable | Kelas Tailwind | Dipakai untuk |
+   |---|---|---|---|
+   | `Accent` | `--lv-accent` | `text-accent`, `bg-accent`, `border-accent` | Ornamen, garis, ikon. **Bukan** teks isi atau tombol utama (kontras rendah). |
+   | `Deep` | `--lv-deep` | `bg-deep`, `text-deep` | Bagian gelap & penutup; teks di atasnya putih. |
+   | `Muted` | `--lv-muted` | `text-muted` | Teks sekunder di atas `Surface`. |
+   | `Border` | `--lv-border` | `border-line` | Garis & tepi kartu. |
+   | `Radius`, `ButtonRadius` | `--lv-radius`, `--lv-radius-btn` | — | Sudut kartu/foto dan tombol (`"0"`, `"0.25rem"`, `"9999px"`). |
+   | — | `--lv-on-primary` | `text-on-primary` | Warna teks di atas `Primary`: putih, atau gelap bila Primary (kustom) terlalu terang (`OnColor`). |
+
+   Nilai token divalidasi sebelum ditulis ke `<style>` (hex / panjang CSS); nilai tak dikenal diganti cadangan.
+3. **Kelas komponen** (`src/styles/app.css`) yang gayanya mengikuti token, supaya markup form & kartu di `templates/shared` tetap satu untuk semua tema: `lv-card`, `lv-btn`, `lv-btn-outline`, `lv-btn-sm`, `lv-input`, `lv-photo`.
+4. **Struktur layout** (per tema): komponen templ berbeda untuk Hero, Couple, Events, dst., plus **judul bagian** (`Parts.SectionTitle`).
+
+**Kontras** (`TestThemeContrast`): untuk setiap tema bawaan `Ink`, `Muted`, dan `Primary` di atas `Surface`, teks tombol di atas `Primary`, dan putih di atas `Deep` harus ≥ 4.5:1 (`theme.Contrast`).
 
 ## Bagian halaman
 
@@ -37,14 +52,35 @@ Bagian tengah bawaan (`SectionIDs`): `couple, countdown, quote, events, story, g
 
 Tombol "Buka Undangan" menuju anchor `#undangan` (awal bagian tengah, apa pun urutannya) atau `#memories` setelah hari H. Teks sapaan & penutup tema lewat `base.GreetingText(v, bawaan)` / `base.ClosingText(v, bawaan, bawaanKenangan)`, jadi isian pasangan berlaku di semua tema.
 
-`theme.Parts` berisi `Layout, Hero, Couple, LoveStory, Events, Gallery, Closing`. Bagian yang **tidak diisi** tema otomatis memakai tema `base` (`src/templates/themes/base`), jadi tema baru cukup meng-override bagian yang berbeda. Bagian dengan data kosong (tanpa acara/cerita/foto) tidak dirender.
+`theme.Parts` berisi `Layout, Hero, Couple, LoveStory, Events, Gallery, Closing, SectionTitle`. Bagian yang **tidak diisi** tema otomatis memakai tema `base` (`src/templates/themes/base`), jadi tema baru cukup meng-override bagian yang berbeda. Bagian dengan data kosong (tanpa acara/cerita/foto) tidak dirender.
+
+**Judul bagian per tema**: `Parts.SectionTitle(title, subtitle)` dipasang ke `view.SectionTitle` oleh `theme.Prepare` (dipanggil `Render`). Semua bagian — termasuk bagian bersama (hitung mundur, RSVP, ucapan, hadiah, kenangan) — memanggil `base.Title(v, …)`, jadi mengikuti tema tanpa mengenal ID tema. Public site memanggil `theme.Prepare` juga untuk fragmen htmx RSVP/ucapan supaya judulnya tetap bergaya tema setelah di-swap.
 
 | Tema | Override | Karakter |
 |---|---|---|
-| `elegant` (default) | Hero, Couple, Events | Emas, serif klasik, bingkai garis & ornamen |
+| `signature` (**bawaan**, T21) | Hero, Couple, LoveStory, Events, Gallery, Closing, SectionTitle | Editorial brand Lovoria: Dusty Plum + Champagne + Warm Ivory, Playfair Display + Inter, penutup & galeri Deep Plum, ornamen bintang |
+| `elegant` | Hero, Couple, Events | Emas, serif klasik, bingkai garis & ornamen |
 | `minimal` | Hero, Couple, Closing | Putih lega, huruf kapital berjarak, rata kiri |
 | `romantic` | Hero, Couple, Closing | Merah muda, judul tulisan tangan, foto melengkung |
 | `modern` | Hero, Couple, Events | Sans tebal, blok warna penuh, kartu berwarna |
+
+Tema bawaan wedding baru: `signature` (`theme.DefaultID`, `wedding.DefaultThemeID`, default kolom `weddings.theme_id` — migration `00023`). Wedding lama tetap memakai `theme_id`-nya. Empat tema lama ditulis ulang di atas fondasi ini pada PR T21 berikutnya.
+
+## Sampul & "Buka Undangan" (T21)
+
+- Sampul (`#opening`) layar penuh: monogram inisial (`base.Monogram`, `base.Initials` — aman untuk nama satu kata & huruf non-ASCII), nama, tanggal, sapaan + nama tamu, tombol pembuka (`base.OpenButton`).
+- Tombol adalah tautan anchor biasa dengan `data-open="lock"`. `invitation.js` menambah kelas `lv-locked` ke `<html>` saat muat, sehingga isi terkunci di belakang sampul. Menekan tombol: isi sampul memudar ke atas (≤ 700 ms), kunci dilepas, halaman menggulir ke target, fokus pindah ke sana, dan musik mulai (T20).
+- Tidak dikunci bila: tanpa JS (kunci tidak pernah dipasang), sudah dibuka di sesi ini (`sessionStorage` `lv-opened:<path>`), URL membawa hash (mis. `#rsvp`), atau preview dashboard (`base.OpenLock` mengosongkan `data-open`). Status terbuka hanya di sisi klien — halaman tetap bisa di-cache.
+- Mode Kenangan/Arsip: tombol "Lihat Kenangan" menuju `#memories`.
+- Foto sampul: `base.CoverImage` (`fetchpriority="high"`, `srcset` thumbnail + ukuran penuh bila sampul berasal dari galeri — `View.CoverThumb`/`CoverWidth`, zoom halus `lv-kenburns`). Sampul tanpa foto tetap utuh (bingkai/monogram di atas `Deep`).
+
+## Gerak
+
+CSS + `IntersectionObserver`: sampul terbuka, reveal bertingkat saat scroll (`.lv-reveal > *`: judul dulu, lalu isi), zoom halus foto sampul. Semua di dalam `@media (prefers-reduced-motion: no-preference)`; dengan reduced-motion isi langsung tampil dan transisi sampul dilewati.
+
+## Tampilan desktop (≥ 1024px)
+
+`base.Layout` membuat dua panel: `base.SidePanel` (kiri, `sticky`, tinggi layar: foto sampul, monogram, nama, tanggal; `aria-hidden` karena isinya mengulang sampul; fotonya `loading="lazy"` sehingga tidak diunduh di ponsel) dan kolom undangan yang menggulir di kanan. Di kolom kanan foto sampul disembunyikan (`lg:hidden`) dan sampul memakai versi tanpa foto. Di bawah 1024px tetap satu kolom.
 
 ## Menambah tema baru
 
@@ -66,7 +102,10 @@ Tombol "Buka Undangan" menuju anchor `#undangan` (awal bagian tengah, apa pun ur
    ```go
    register(ThemeDef{
        ID: "garden", Name: "Taman", Description: "…",
-       Tokens: view.Tokens{Primary: "#4f7a4a", Surface: "#f7faf5", Ink: "#223322", FontHeading: "Lora", FontBody: "Nunito"},
+       Tokens: view.Tokens{
+           Primary: "#4f7a4a", Surface: "#f7faf5", Ink: "#223322", Accent: "#c9a88a", Deep: "#1f2b1f", Muted: "#5d6b5d", Border: "#dfe6dc",
+           FontHeading: "Lora", FontBody: "Nunito",
+       },
        Parts:  Parts{Hero: garden.Hero},
    })
    ```

@@ -30,10 +30,11 @@ type demoCouple struct {
 
 // Pasangan fiktif per tema — data contoh, bukan data pengguna.
 var demoCouples = map[string]demoCouple{
-	"elegant":  {"Raka Aditya Pratama", "Nadia Kirana Putri", "Putra pertama dari Bapak Hendra Pratama & Ibu Ratna Sari", "Putri kedua dari Bapak Surya Wijaya & Ibu Dewi Lestari"},
-	"romantic": {"Bima Satria Nugraha", "Alya Maharani", "Putra kedua dari Bapak Agus Nugraha & Ibu Wulan Sari", "Putri pertama dari Bapak Rudi Hartono & Ibu Maya Indah"},
-	"modern":   {"Dimas Arya Saputra", "Salsabila Zahra", "Putra ketiga dari Bapak Budi Saputra & Ibu Rina Kartika", "Putri kedua dari Bapak Hadi Susanto & Ibu Fitri Amelia"},
-	"minimal":  {"Fajar Nugraha", "Intan Permata Sari", "Putra pertama dari Bapak Iwan Setiawan & Ibu Sri Rahayu", "Putri bungsu dari Bapak Tono Wibowo & Ibu Endang Pertiwi"},
+	"signature": {"Arya Pradipta Sembiring", "Kirana Larasati Ginting", "Putra pertama dari Bapak Jonathan Sembiring & Ibu Maria Tarigan", "Putri kedua dari Bapak Daniel Ginting & Ibu Ruth Barus"},
+	"elegant":   {"Raka Aditya Pratama", "Nadia Kirana Putri", "Putra pertama dari Bapak Hendra Pratama & Ibu Ratna Sari", "Putri kedua dari Bapak Surya Wijaya & Ibu Dewi Lestari"},
+	"romantic":  {"Bima Satria Nugraha", "Alya Maharani", "Putra kedua dari Bapak Agus Nugraha & Ibu Wulan Sari", "Putri pertama dari Bapak Rudi Hartono & Ibu Maya Indah"},
+	"modern":    {"Dimas Arya Saputra", "Salsabila Zahra", "Putra ketiga dari Bapak Budi Saputra & Ibu Rina Kartika", "Putri kedua dari Bapak Hadi Susanto & Ibu Fitri Amelia"},
+	"minimal":   {"Fajar Nugraha", "Intan Permata Sari", "Putra pertama dari Bapak Iwan Setiawan & Ibu Sri Rahayu", "Putri bungsu dari Bapak Tono Wibowo & Ibu Endang Pertiwi"},
 }
 
 func firstWord(s string) string { return strings.Fields(s)[0] }

@@ -12,6 +12,7 @@ import (
 	"golang.org/x/time/rate"
 
 	"github.com/khamdanngazis/lovaria/src/modules/guestbook"
+	"github.com/khamdanngazis/lovaria/src/modules/theme"
 	"github.com/khamdanngazis/lovaria/src/modules/theme/view"
 	"github.com/khamdanngazis/lovaria/src/platform/web"
 	"github.com/khamdanngazis/lovaria/src/templates/shared"
@@ -43,7 +44,7 @@ func (h *Handler) setGuestbookForm(v *view.View, res Resolved) {
 
 // guestbookView: data section buku ucapan untuk fragment htmx.
 func (h *Handler) guestbookView(ctx context.Context, res Resolved) (view.View, error) {
-	v := view.View{AllowGuestbook: res.Wedding.AllowsGuestbook()}
+	v := theme.Prepare(view.View{ThemeID: res.Wedding.ThemeID, AllowGuestbook: res.Wedding.AllowsGuestbook()})
 	es, more, err := h.Guestbook.Visible(ctx, res.Wedding.ID, uuid.Nil, guestbook.PublicPage)
 	if err != nil {
 		return v, err

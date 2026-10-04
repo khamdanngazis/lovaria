@@ -16,6 +16,7 @@ import (
 	"golang.org/x/time/rate"
 
 	"github.com/khamdanngazis/lovaria/src/modules/guest"
+	"github.com/khamdanngazis/lovaria/src/modules/theme"
 	"github.com/khamdanngazis/lovaria/src/modules/theme/view"
 	"github.com/khamdanngazis/lovaria/src/platform/web"
 	"github.com/khamdanngazis/lovaria/src/templates/shared"
@@ -66,12 +67,13 @@ func (h *Handler) validFormToken(purpose, key, token string, now time.Time) bool
 
 // rsvpView: data minimum untuk merender shared.RSVPSection (fragment htmx).
 func (h *Handler) rsvpView(res Resolved, g guest.Guest) view.View {
-	return view.View{
+	return theme.Prepare(view.View{
+		ThemeID:        res.Wedding.ThemeID, // judul bagian mengikuti tema (T21)
 		AllowRSVP:      res.Wedding.AllowsRSVP(),
 		AllowGuestbook: res.Wedding.AllowsGuestbook(),
 		Guest:          &view.Guest{Name: g.Name, Code: g.InvitationCode, MaxPax: g.MaxPax, RSVPStatus: g.RSVPStatus, RSVPPax: g.RSVPPax, RSVPMessage: g.RSVPMessage},
 		RSVP:           view.RSVPForm{Action: res.Prefix + "/rsvp", Token: h.rsvpToken(g.InvitationCode, h.clock())},
-	}
+	})
 }
 
 func (h *Handler) renderRSVP(c echo.Context, status int, v view.View) error {

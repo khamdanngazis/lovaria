@@ -1,0 +1,202 @@
+// Package signature: tema Lovoria Signature (T21) — editorial, hangat, premium;
+// wajah brand Lovoria (Dusty Plum, Champagne, Warm Ivory; Playfair Display +
+// Inter). Tema bawaan wedding baru.
+package signature
+
+import (
+	"fmt"
+
+	"github.com/khamdanngazis/lovaria/src/modules/theme/view"
+	"github.com/khamdanngazis/lovaria/src/templates/themes/base"
+)
+
+const eyebrow = "text-[11px] uppercase tracking-[0.32em]"
+
+// Hero: sampul layar penuh — foto potret besar yang memudar ke Deep Plum, judul
+// editorial besar. Tanpa foto: bingkai garis + monogram di atas Deep Plum.
+templ Hero(v view.View) {
+	{{ groom, bride := base.FirstNames(v) }}
+	<section id="opening" class="relative flex min-h-dvh flex-col overflow-hidden bg-deep text-white">
+		if base.CoverOf(v) != "" {
+			// Desktop: foto sudah ada di panel kiri → sampul memakai versi bingkai.
+			@base.CoverImage(v, "absolute inset-0 h-full w-full object-cover lg:hidden")
+			<div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.3)_0%,rgba(0,0,0,0)_28%,rgba(0,0,0,0.25)_55%,var(--lv-deep)_96%)] lg:hidden"></div>
+			@frame("hidden lg:block")
+		} else {
+			@frame("")
+		}
+		<div class={ "lv-cover-body relative px-8 pb-14 text-center", templ.KV("mt-auto pt-28 lg:my-auto lg:py-16", base.CoverOf(v) != ""), templ.KV("my-auto py-16", base.CoverOf(v) == "") }>
+			@base.Monogram(v, "h-16 w-16 text-xl")
+			<p class={ "mt-7 opacity-85", eyebrow }>The Wedding of</p>
+			<h1 class="mt-5 break-words text-6xl leading-[1.05]">
+				{ groom }
+				<span class="my-1 block text-4xl italic text-accent">&amp;</span>
+				{ bride }
+			</h1>
+			@divider("mt-7")
+			<p class="mt-6 text-sm tracking-wide">{ v.DateText }</p>
+			<div class="mt-9">
+				<p class={ "opacity-80", eyebrow }>{ base.GreetingText(v, "Kepada Yth.") }</p>
+				<p class="mt-2 break-words text-xl" style="font-family: var(--lv-font-heading)">{ base.GuestName(v) }</p>
+			</div>
+			@base.OpenButton(v, "mt-8 inline-block rounded-[var(--lv-radius-btn)] bg-surface px-8 py-3 text-sm font-medium text-deep shadow-lg", "Buka Undangan", "Lihat Kenangan")
+		</div>
+	</section>
+}
+
+// SectionTitle: bintang kecil → judul editorial besar → keterangan. Warna judul
+// mengikuti teks bagian, jadi berlaku di latar terang maupun Deep.
+templ SectionTitle(title, subtitle string) {
+	<div class="mb-10 text-center">
+		@sparkle("mx-auto h-3 w-3 text-accent")
+		<h2 class="mt-4 text-4xl leading-tight">{ title }</h2>
+		if subtitle != "" {
+			<p class="mx-auto mt-3 max-w-xs text-sm leading-relaxed opacity-75">{ subtitle }</p>
+		}
+	</div>
+}
+
+templ Couple(v view.View) {
+	<section id="couple" class="px-6 py-20">
+		@base.Title(v, "Mempelai", "Dengan memohon rahmat Tuhan, kami bermaksud menyelenggarakan pernikahan")
+		@person(v.Couple.GroomName, v.Couple.GroomPhoto, v.Couple.GroomDesc, false)
+		<p class="my-6 text-center text-5xl italic text-accent" style="font-family: var(--lv-font-heading)" aria-hidden="true">&amp;</p>
+		@person(v.Couple.BrideName, v.Couple.BridePhoto, v.Couple.BrideDesc, true)
+		@saveTheDate(v)
+	</section>
+}
+
+// person: potret 4:5 berselang kiri/kanan; tanpa foto → teks di tengah.
+templ person(name, photo, desc string, right bool) {
+	if photo != "" {
+		<div class={ "w-[78%]", templ.KV("ml-auto text-right", right) }>
+			<img src={ photo } alt={ name } loading="lazy" decoding="async" class="lv-photo aspect-[4/5] w-full object-cover"/>
+			<h3 class="mt-5 break-words text-3xl leading-tight">{ name }</h3>
+			if desc != "" {
+				<p class="mt-2 whitespace-pre-line text-sm leading-relaxed text-muted">{ desc }</p>
+			}
+		</div>
+	} else {
+		<div class="text-center">
+			<h3 class="break-words text-3xl leading-tight">{ name }</h3>
+			if desc != "" {
+				<p class="mx-auto mt-2 max-w-xs whitespace-pre-line text-sm leading-relaxed text-muted">{ desc }</p>
+			}
+		</div>
+	}
+}
+
+templ saveTheDate(v view.View) {
+	<div class="mt-16 border-y border-line py-9 text-center">
+		<p class={ "text-muted", eyebrow }>Save the date</p>
+		<p class="mt-4 text-4xl tracking-wide" style="font-family: var(--lv-font-heading)">
+			{ fmt.Sprintf("%02d", v.Date.Day()) }
+			<span class="text-accent">·</span>
+			{ fmt.Sprintf("%02d", int(v.Date.Month())) }
+			<span class="text-accent">·</span>
+			{ fmt.Sprint(v.Date.Year()) }
+		</p>
+		<p class="mt-3 text-sm">{ v.DateText }</p>
+		if v.Description != "" {
+			<p class="mx-auto mt-4 max-w-xs whitespace-pre-line text-sm leading-relaxed text-muted">{ v.Description }</p>
+		}
+	</div>
+}
+
+// LoveStory: bab bernomor dengan angka besar champagne.
+templ LoveStory(v view.View) {
+	if len(v.Stories) > 0 {
+		<section id="story" class="bg-primary/[0.06] px-6 py-20">
+			@base.Title(v, "Cerita Kami", "")
+			<ol class="space-y-10">
+				for i, s := range v.Stories {
+					<li class="grid grid-cols-[auto_minmax(0,1fr)] gap-5">
+						<span class="text-4xl leading-none text-accent" style="font-family: var(--lv-font-heading)" aria-hidden="true">{ fmt.Sprintf("%02d", i+1) }</span>
+						<div class="border-l border-line pl-5">
+							<p class={ "text-muted", eyebrow }>{ s.DateText }</p>
+							<h3 class="mt-2 break-words text-2xl leading-snug">{ s.Title }</h3>
+							if s.PhotoURL != "" {
+								<img src={ s.PhotoURL } alt="" loading="lazy" decoding="async" class="lv-photo mt-4 aspect-[4/3] w-full object-cover"/>
+							}
+							if s.Description != "" {
+								<p class="mt-3 whitespace-pre-line text-sm leading-relaxed text-muted">{ s.Description }</p>
+							}
+						</div>
+					</li>
+				}
+			</ol>
+		</section>
+	}
+}
+
+// Events: kartu rata kiri dengan garis champagne di atas.
+templ Events(v view.View) {
+	if len(v.Events) > 0 {
+		<section id="events" class="px-6 py-20">
+			@base.Title(v, "Acara", base.EventsSubtitle(v))
+			<div class="space-y-6">
+				for _, e := range v.Events {
+					<article class="lv-card border-t-2 border-t-accent p-6">
+						<p class={ "text-muted", eyebrow }>{ e.TypeLabel }</p>
+						<h3 class="mt-2 break-words text-3xl leading-tight">{ e.Name }</h3>
+						<dl class="mt-5 space-y-3 border-t border-line pt-5 text-sm">
+							<div>
+								<dt class="sr-only">Waktu</dt>
+								<dd class="font-medium">{ e.DateText }</dd>
+								<dd class="text-muted">{ e.TimeText }</dd>
+							</div>
+							<div>
+								<dt class="sr-only">Tempat</dt>
+								<dd class="font-medium">{ e.Venue }</dd>
+								if e.Address != "" {
+									<dd class="text-muted">{ e.Address }</dd>
+								}
+							</div>
+						</dl>
+						if e.Description != "" {
+							<p class="mt-4 whitespace-pre-line text-sm leading-relaxed text-muted">{ e.Description }</p>
+						}
+						if e.MapsURL != "" || e.CalendarURL != "" {
+							<div class="mt-6 flex flex-wrap gap-2">
+								if e.MapsURL != "" {
+									<a href={ templ.SafeURL(e.MapsURL) } target="_blank" rel="noopener" class="lv-btn lv-btn-sm">Buka Peta</a>
+								}
+								if e.CalendarURL != "" {
+									<a href={ templ.SafeURL(e.CalendarURL) } class="lv-btn-outline lv-btn-sm">Simpan ke Kalender</a>
+								}
+							</div>
+						}
+					</article>
+				}
+			</div>
+		</section>
+	}
+}
+
+// Gallery: mozaik di atas Deep Plum — foto lebar 4:3 diselingi pasangan potret 3:4.
+templ Gallery(v view.View) {
+	if len(v.Gallery) > 0 {
+		<section id="gallery" class="bg-deep px-4 py-20 text-white">
+			@base.Title(v, "Galeri", "")
+			<div class="grid grid-cols-2 gap-1.5">
+				for i, p := range v.Gallery {
+					<a href={ templ.SafeURL(p.URL) } data-lightbox aria-label={ base.PhotoLabel(p, i) } class={ "lv-photo block overflow-hidden", templ.KV("col-span-2", base.Wide(i, len(v.Gallery))) }>
+						<img src={ p.ThumbURL } alt={ p.Caption } loading="lazy" decoding="async" class={ "w-full object-cover", templ.KV("aspect-[4/3]", base.Wide(i, len(v.Gallery))), templ.KV("aspect-[3/4]", !base.Wide(i, len(v.Gallery))) }/>
+					</a>
+				}
+			</div>
+		</section>
+	}
+}
+
+// Closing: penutup gelap Deep Plum dengan monogram.
+templ Closing(v view.View) {
+	<section id="closing" class="bg-deep px-8 py-24 text-center text-white">
+		@base.Monogram(v, "h-20 w-20 text-2xl")
+		<p class="mx-auto mt-9 max-w-xs whitespace-pre-line text-sm leading-relaxed opacity-85">{ base.ClosingText(v, "Merupakan suatu kehormatan dan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir dan memberikan doa restu.", "Terima kasih atas doa dan restu yang telah Bapak/Ibu/Saudara/i berikan untuk kami.") }</p>
+		<p class={ "mt-10 opacity-75", eyebrow }>Kami yang berbahagia</p>
+		<p class="mt-4 break-words text-5xl leading-tight" style="font-family: var(--lv-font-heading)">{ v.Couple.Names() }</p>
+		@divider("mt-8")
+		<p class="mt-12 text-xs opacity-60">Dibuat dengan Lovoria</p>
+	</section>
+}

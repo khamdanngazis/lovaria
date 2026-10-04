@@ -27,3 +27,9 @@ Berkas `<tema>-groom.jpg` / `<tema>-bride.jpg` adalah potongan dari foto pasanga
 | romantic-groom.jpg, romantic-bride.jpg | Wan Syazwan | https://unsplash.com/photos/a-man-and-a-woman-dressed-in-traditional-clothing-0cMP8HuJ6zk |
 | modern-groom.jpg, modern-bride.jpg | Galuh hari setiawan | https://unsplash.com/photos/a-man-and-a-woman-sitting-on-a-chair-1cyUquII5Zg |
 | minimal-groom.jpg, minimal-bride.jpg | Davin Naziel | https://unsplash.com/photos/a-bride-and-groom-stand-on-wooden-stairs-nXmt5zQ7l0c |
+| l4EofTUIANg.jpg | Aditya Enggar Perdana | https://unsplash.com/photos/bride-and-groom-in-traditional-attire-l4EofTUIANg |
+| bwo_dSnXuvU.jpg | Aditya Enggar Perdana | https://unsplash.com/photos/couple-in-traditional-attire-looking-at-each-other-bwo_dSnXuvU |
+| 4LRIIA-24SI.jpg | Aditya Enggar Perdana | https://unsplash.com/photos/couple-in-traditional-attire-holding-hands-outdoors-4LRIIA-24SI |
+| VPFnktO9TA8.jpg | Aditya Enggar Perdana | https://unsplash.com/photos/couple-in-traditional-wedding-attire-outdoors-VPFnktO9TA8 |
+| l0iyOIhrZVw.jpg | Aditya Enggar Perdana | https://unsplash.com/photos/couple-in-traditional-attire-against-a-gray-background-l0iyOIhrZVw |
+| signature-groom.jpg, signature-bride.jpg | Aditya Enggar Perdana | https://unsplash.com/photos/couple-in-traditional-attire-against-a-gray-background-l0iyOIhrZVw |

@@ -80,7 +80,7 @@ templ page(s pageState) {
 						if s.Errors["theme_id"] != "" {
 							<p role="alert" class="mt-1 text-sm text-red-600">{ s.Errors["theme_id"] }</p>
 						}
-						<div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+						<div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
 							for _, d := range s.Themes {
 								<label class="block cursor-pointer">
 									<input type="radio" name="theme_id" value={ d.ID } checked?={ d.ID == s.ThemeID } class="peer sr-only"/>

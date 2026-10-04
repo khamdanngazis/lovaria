@@ -362,7 +362,7 @@ func TestReadOnlyView(t *testing.T) {
 			t.Errorf("%s %s: %d, want 403", r.method, r.path, rec.Code)
 		}
 	}
-	if got, _ := f.weddings.GetWedding(ctx, w.ID); got.Title != "Pernikahan K & S" || got.ThemeID != "elegant" {
+	if got, _ := f.weddings.GetWedding(ctx, w.ID); got.Title != "Pernikahan K & S" || got.ThemeID != wedding.DefaultThemeID {
 		t.Error("data berubah dalam mode lihat saja")
 	}
 	// Cookie hanya berlaku untuk wedding itu, admin itu, dan role admin.
@@ -399,18 +399,18 @@ func TestThemeAvailability(t *testing.T) {
 	f := newFixture(t)
 	_, admin := f.user(t, "admin@example.com", true)
 	cu, couple := f.user(t, "couple@example.com", false)
-	w := f.wedding(t, cu.ID) // tema default: elegant
+	w := f.wedding(t, cu.ID) // tema default: signature
 	f.do(http.MethodPost, "/admin/themes/modern", admin, reqOpt{form: url.Values{"enabled": {"0"}}})
-	f.do(http.MethodPost, "/admin/themes/elegant", admin, reqOpt{form: url.Values{"enabled": {"0"}}})
+	f.do(http.MethodPost, "/admin/themes/signature", admin, reqOpt{form: url.Values{"enabled": {"0"}}})
 	body := f.do(http.MethodGet, w.DashboardURL("/theme"), couple, reqOpt{}).Body.String()
-	if strings.Contains(body, `value="modern"`) || !strings.Contains(body, `value="elegant"`) {
+	if strings.Contains(body, `value="modern"`) || !strings.Contains(body, `value="signature"`) {
 		t.Error("tema nonaktif disembunyikan, kecuali yang sedang dipakai")
 	}
 	rec := f.do(http.MethodPatch, w.DashboardURL("/theme"), couple, reqOpt{form: url.Values{"theme_id": {"modern"}}})
 	if rec.Code != http.StatusUnprocessableEntity || !strings.Contains(rec.Body.String(), "tidak tersedia") {
 		t.Errorf("pilih tema nonaktif: %d", rec.Code)
 	}
-	if rec := f.do(http.MethodPatch, w.DashboardURL("/theme"), couple, reqOpt{form: url.Values{"theme_id": {"elegant"}}}); rec.Code != http.StatusSeeOther {
+	if rec := f.do(http.MethodPatch, w.DashboardURL("/theme"), couple, reqOpt{form: url.Values{"theme_id": {"signature"}}}); rec.Code != http.StatusSeeOther {
 		t.Errorf("tema sendiri tetap bisa disimpan: %d", rec.Code)
 	}
 	counts := f.do(http.MethodGet, "/admin/themes", admin, reqOpt{}).Body.String()
