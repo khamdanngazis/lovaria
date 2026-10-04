@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Menu akun di header dashboard
+- Menu hamburger diganti menu akun baru: nama & email, pintasan Beranda, Wedding saya, Buat wedding baru, Panel admin (admin), Halaman utama Lovoria, dan Keluar — masing-masing dengan ikon. Di layar lebar pemicunya avatar + nama.
+- Tetap berfungsi tanpa JS (`<details>`); menutup saat klik di luar atau Escape.
+
 ### T22 (bagian 2) — Dashboard pasangan selaras brand
 - **Kerangka dashboard**: header, sidebar, bottom bar ponsel, dan banner mode admin memakai warna brand; huruf Inter + Playfair Display termuat di seluruh dashboard.
 - **Semua halaman pasangan** (beranda, wizard & daftar wedding, info, mempelai, acara, cerita, tamu, bagikan, RSVP, galeri, tema, ucapan, hadiah, domain) beralih dari abu-abu dingin & dusty rose ke token `lovoria-*` dan kelas `ui-*`: tombol utama Dusty Plum, kartu bergaris hangat, warna status versi teredam.
