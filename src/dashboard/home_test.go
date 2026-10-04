@@ -266,3 +266,24 @@ func TestNoQueriesInDashboard(t *testing.T) {
 		}
 	}
 }
+
+// Menu akun di header (T22): pintasan + keluar, berbasis <details> (tanpa JS
+// tetap berfungsi); "Panel admin" hanya untuk admin.
+func TestHeaderAccountMenu(t *testing.T) {
+	f := newFixture(t)
+	owner, w := f.newWedding(t, "a@example.com")
+	html := f.overview(t, owner, w)
+	menu := html[strings.Index(html, `aria-label="Menu akun"`):]
+	menu = menu[:strings.Index(menu, "</nav>")]
+	for _, want := range []string{
+		"<details", "<summary", `href="/dashboard"`, `href="/dashboard/weddings"`, `href="/dashboard/weddings/new"`,
+		"Buat wedding baru", "Halaman utama Lovoria", `action="/logout"`, "Keluar", "<svg",
+	} {
+		if !strings.Contains(menu, want) {
+			t.Errorf("menu akun tidak memuat %q", want)
+		}
+	}
+	if strings.Contains(menu, "Panel admin") {
+		t.Error("Panel admin hanya untuk akun admin")
+	}
+}

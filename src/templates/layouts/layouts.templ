@@ -166,22 +166,7 @@ templ Dashboard(meta Meta) {
 				<a href="/dashboard" aria-label="Lovoria — dashboard" class="text-lovoria-primary">
 					@BrandLogo("[&>span]:text-base")
 				</a>
-				<nav class="relative text-sm text-lovoria-muted" x-data="{ open: false }">
-					<button type="button" class="flex h-9 w-9 items-center justify-center rounded-lg text-lg text-lovoria-deep hover:bg-lovoria-subtle sm:hidden" @click="open = !open" :aria-expanded="open" aria-label="Menu">☰</button>
-					<div class="hidden items-center sm:flex sm:gap-5" :class="open && '!flex flex-col items-end absolute right-0 top-11 z-10 w-44 gap-3 rounded-xl border border-lovoria-border bg-lovoria-surface p-4 shadow-soft'">
-						<a href="/dashboard" class="hover:text-lovoria-primary">Beranda</a>
-						if u, ok := web.CurrentUser(ctx); ok {
-							if u.Role == "admin" {
-								<a href="/admin" class="font-medium text-lovoria-primary hover:underline">Admin</a>
-							}
-							<span class="text-lovoria-muted">{ u.Name }</span>
-							<form method="post" action="/logout">
-								@CSRFField()
-								<button type="submit" class="text-lovoria-muted hover:text-lovoria-primary">Keluar</button>
-							</form>
-						}
-					</div>
-				</nav>
+				@accountMenu()
 			</div>
 		</header>
 		<main class="mx-auto w-full max-w-5xl px-4 py-6">
@@ -195,6 +180,65 @@ templ Dashboard(meta Meta) {
 			}
 		</main>
 	}
+}
+
+// accountMenu: navigasi header dashboard. Tautan utama tampil langsung di layar
+// lebar; menu akun (tombol hamburger di ponsel, avatar + nama di layar lebar)
+// memakai <details> sehingga tetap berfungsi tanpa JS — Alpine hanya menutupnya
+// saat klik di luar atau menekan Escape.
+templ accountMenu() {
+	if u, ok := web.CurrentUser(ctx); ok {
+		<nav aria-label="Menu akun" class="flex items-center gap-1 text-sm">
+			<a href="/dashboard" class="hidden rounded-lg px-3 py-2 font-medium text-lovoria-muted hover:bg-lovoria-subtle hover:text-lovoria-text sm:block">Beranda</a>
+			<a href="/dashboard/weddings" class="hidden rounded-lg px-3 py-2 font-medium text-lovoria-muted hover:bg-lovoria-subtle hover:text-lovoria-text sm:block">Wedding saya</a>
+			<details class="group relative" x-data @click.outside="$el.open = false" @keydown.escape.window="$el.open = false">
+				<summary class="flex cursor-pointer list-none items-center gap-2 rounded-lg p-1.5 text-lovoria-deep hover:bg-lovoria-subtle focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lovoria-primary sm:py-1 sm:pl-1 sm:pr-2 [&::-webkit-details-marker]:hidden" aria-label="Menu akun">
+					// Ponsel: hamburger ↔ tutup. Layar lebar: avatar + nama.
+					<span class="sm:hidden">
+						@Icon("menu", "h-6 w-6 group-open:hidden")
+						@Icon("close", "hidden h-6 w-6 group-open:block")
+					</span>
+					<span class="hidden h-8 w-8 items-center justify-center rounded-full bg-lovoria-primary-soft font-display text-sm uppercase text-lovoria-primary sm:flex" aria-hidden="true">{ userInitial(u.Name) }</span>
+					<span class="hidden max-w-[10rem] truncate font-medium sm:block">{ u.Name }</span>
+					@Icon("chevron", "hidden h-4 w-4 text-lovoria-muted transition group-open:rotate-180 sm:block")
+				</summary>
+				<div class="absolute right-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-2xl border border-lovoria-border bg-lovoria-surface shadow-soft">
+					<div class="flex items-center gap-3 border-b border-lovoria-border bg-lovoria-bg px-4 py-3.5">
+						<span class="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-lovoria-primary font-display text-base uppercase text-white" aria-hidden="true">{ userInitial(u.Name) }</span>
+						<div class="min-w-0">
+							<p class="truncate font-medium text-lovoria-text">{ u.Name }</p>
+							<p class="truncate text-xs text-lovoria-muted">{ u.Email }</p>
+						</div>
+					</div>
+					<ul class="p-1.5">
+						@menuLink("/dashboard", "home", "Beranda")
+						@menuLink("/dashboard/weddings", "heart", "Wedding saya")
+						@menuLink("/dashboard/weddings/new", "plus", "Buat wedding baru")
+						if u.Role == "admin" {
+							@menuLink("/admin", "shield", "Panel admin")
+						}
+						@menuLink("/", "external", "Halaman utama Lovoria")
+					</ul>
+					<form method="post" action="/logout" class="border-t border-lovoria-border p-1.5">
+						@CSRFField()
+						<button type="submit" class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left font-medium text-lovoria-danger hover:bg-lovoria-danger-soft focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-lovoria-danger">
+							@Icon("logout", "h-5 w-5 flex-none")
+							Keluar
+						</button>
+					</form>
+				</div>
+			</details>
+		</nav>
+	}
+}
+
+templ menuLink(href, icon, label string) {
+	<li>
+		<a href={ templ.SafeURL(href) } class="flex items-center gap-3 rounded-lg px-3 py-2.5 font-medium text-lovoria-text hover:bg-lovoria-primary-soft hover:text-lovoria-primary focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-lovoria-primary">
+			@Icon(icon, "h-5 w-5 flex-none text-lovoria-primary")
+			{ label }
+		</a>
+	</li>
 }
 
 // CSRFField adalah input tersembunyi berisi token CSRF untuk form non-htmx.
