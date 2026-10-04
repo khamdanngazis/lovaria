@@ -1,8 +1,8 @@
-# Lovoria — Registration, Pricing & Publish Payment MVP
+# Lunovia — Registration, Pricing & Publish Payment MVP
 
 ## Goal
 
-Implement registration, wedding creation, and one-time payment flow for Lovoria MVP.
+Implement registration, wedding creation, and one-time payment flow for Lunovia MVP.
 
 ### Pricing
 
@@ -142,7 +142,7 @@ Show a confirmation/payment page:
 
 One-time payment.
 
-Includes all current Lovoria MVP features:
+Includes all current Lunovia MVP features:
 
 - All available templates
 - Love story
@@ -509,6 +509,6 @@ Share Invitation
 
 > **Create first. Pay when ready. Publish after payment.**
 
-The customer should be able to experience the complete Lovoria creation process before paying.
+The customer should be able to experience the complete Lunovia creation process before paying.
 
 Payment is the final step that unlocks **publishing**, not the ability to create the wedding.

@@ -47,7 +47,7 @@ Checklist onboarding:
 | Daftar tamu | ≥ 1 tamu | `guest.Stats` |
 | Publikasikan | status bukan draft | wedding |
 
-Analytics tanpa tracking pihak ketiga: hanya kolom milik Lovoria (`last_opened_at`, status RSVP).
+Analytics tanpa tracking pihak ketiga: hanya kolom milik Lunovia (`last_opened_at`, status RSVP).
 
 ## Navigasi
 

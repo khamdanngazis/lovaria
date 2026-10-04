@@ -1,4 +1,4 @@
-// Command lovoria menjalankan aplikasi Lovoria (modular monolith, satu binary).
+// Command lovoria menjalankan aplikasi Lunovia (modular monolith, satu binary).
 // Dependency injection dilakukan manual di sini — tanpa framework DI.
 //
 //	lovoria                    jalankan HTTP server (sama dengan `lovoria serve`)

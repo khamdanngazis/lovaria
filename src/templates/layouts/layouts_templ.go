@@ -43,9 +43,9 @@ func (m Meta) theme() string {
 
 func (m Meta) title() string {
 	if m.Title == "" {
-		return "Lovoria"
+		return "Lunovia"
 	}
-	return m.Title + " · Lovoria"
+	return m.Title + " · Lunovia"
 }
 
 func base(meta Meta, bodyClass string) templ.Component {
@@ -373,7 +373,7 @@ func Document(meta Meta, head templ.Component, bodyClass string) templ.Component
 }
 
 // BrandFontsURL: huruf brand (Inter untuk UI, Playfair Display untuk judul &
-// wordmark) — dipakai landing, auth, dashboard, dan halaman publik Lovoria.
+// wordmark) — dipakai landing, auth, dashboard, dan halaman publik Lunovia.
 const BrandFontsURL = "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap"
 
 // BrandFonts memuat huruf brand. blocking=false: preload yang dijadikan
@@ -462,10 +462,10 @@ func BrandFonts(blocking bool) templ.Component {
 	})
 }
 
-// BrandBody: kelas <body> halaman Lovoria di luar undangan (warna & huruf brand).
+// BrandBody: kelas <body> halaman Lunovia di luar undangan (warna & huruf brand).
 const BrandBody = "min-h-dvh bg-lovoria-bg font-ui text-lovoria-text antialiased"
 
-// Public adalah layout dasar halaman publik Lovoria (error, privasi, syarat,
+// Public adalah layout dasar halaman publik Lunovia (error, privasi, syarat,
 // undangan tidak ditemukan / diarsipkan) — warna & huruf brand, mobile-first.
 func Public(meta Meta) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -608,7 +608,7 @@ func ErrorPage(code int, title, message string) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "<section class=\"py-20 text-center\"><a href=\"/\" aria-label=\"Lovoria — beranda\" class=\"inline-block text-lovoria-primary\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "<section class=\"py-20 text-center\"><a href=\"/\" aria-label=\"Lunovia — beranda\" class=\"inline-block text-lovoria-primary\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -727,7 +727,7 @@ func Dashboard(meta Meta) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, " <header class=\"border-b border-lovoria-border bg-lovoria-surface\"><div class=\"mx-auto flex max-w-5xl items-center justify-between px-4 py-3\"><a href=\"/dashboard\" aria-label=\"Lovoria — dashboard\" class=\"text-lovoria-primary\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, " <header class=\"border-b border-lovoria-border bg-lovoria-surface\"><div class=\"mx-auto flex max-w-5xl items-center justify-between px-4 py-3\"><a href=\"/dashboard\" aria-label=\"Lunovia — dashboard\" class=\"text-lovoria-primary\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -913,7 +913,7 @@ func accountMenu() templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = menuLink("/", "external", "Halaman utama Lovoria").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = menuLink("/", "external", "Halaman utama Lunovia").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

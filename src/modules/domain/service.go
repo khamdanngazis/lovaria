@@ -1,5 +1,5 @@
 // Package domain: custom domain per wedding lewat Cloudflare for SaaS (Custom
-// Hostnames, Arsitektur §5). Pasangan mendaftarkan domain → Lovoria membuat
+// Hostnames, Arsitektur §5). Pasangan mendaftarkan domain → Lunovia membuat
 // custom hostname di Cloudflare → pasangan memasang CNAME → scheduler memantau
 // sampai aktif (atau gagal setelah 72 jam) → resolver public site mencocokkan
 // Host header ke wedding lewat WeddingIDByHost.
@@ -82,7 +82,7 @@ func (d Domain) Active() bool { return d.Status == StatusActive }
 type Config struct {
 	// CNAMETarget: tujuan CNAME yang dipasang pasangan, mis. domains.lovoria.com.
 	CNAMETarget string
-	// Reserved: domain milik Lovoria yang tidak boleh didaftarkan (beserta subdomainnya).
+	// Reserved: domain milik Lunovia yang tidak boleh didaftarkan (beserta subdomainnya).
 	Reserved []string
 	// PendingTimeout: lama menunggu verifikasi sebelum dianggap gagal (default 72 jam).
 	PendingTimeout time.Duration
@@ -123,7 +123,7 @@ func NewService(pool *pgxpool.Pool, cf Hostnames, cfg Config, log *slog.Logger) 
 	if cfg.QuotaWarn <= 0 {
 		cfg.QuotaWarn = 90
 	}
-	// Domain Lovoria sendiri beserta domain induknya (lovoria.com, railway.app, …).
+	// Domain Lunovia sendiri beserta domain induknya (lovoria.com, railway.app, …).
 	reserved := append([]string{}, cfg.Reserved...)
 	if cfg.CNAMETarget != "" {
 		reserved = append(reserved, cfg.CNAMETarget)
@@ -188,7 +188,7 @@ func (s *Service) Add(ctx context.Context, weddingID uuid.UUID, input string) (D
 		return Domain{}, ValidationError{"domain": err.Error()}
 	}
 	if reservedSuffix(name, s.cfg.Reserved) {
-		return Domain{}, ValidationError{"domain": "Domain Lovoria tidak bisa dipakai sebagai custom domain"}
+		return Domain{}, ValidationError{"domain": "Domain Lunovia tidak bisa dipakai sebagai custom domain"}
 	}
 	if cur, err := s.Get(ctx, weddingID); err == nil {
 		if cur.Domain == name {

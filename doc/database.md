@@ -1,4 +1,4 @@
-# Konvensi Database Lovoria
+# Konvensi Database Lunovia
 
 PostgreSQL 16 · driver `pgx/v5` · query `sqlc` · migration `goose` (SQL, di-embed ke binary).
 Tidak memakai ORM — semua query adalah SQL eksplisit.

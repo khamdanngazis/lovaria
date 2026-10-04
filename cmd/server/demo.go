@@ -178,7 +178,7 @@ func (a *app) demoOwner(ctx context.Context) (uuid.UUID, error) {
 	if _, err := rand.Read(b); err != nil {
 		return uuid.Nil, err
 	}
-	u, err := a.auth.Register(ctx, auth.RegisterInput{Name: "Lovoria Demo", Email: email, Password: hex.EncodeToString(b)})
+	u, err := a.auth.Register(ctx, auth.RegisterInput{Name: "Lunovia Demo", Email: email, Password: hex.EncodeToString(b)})
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("demo: akun: %w", err)
 	}

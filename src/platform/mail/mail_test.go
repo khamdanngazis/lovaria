@@ -53,7 +53,7 @@ func TestResendMailer(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	m := &ResendMailer{APIKey: "key", From: "Lovoria <a@b.c>", Client: srv.Client(), Endpoint: srv.URL}
+	m := &ResendMailer{APIKey: "key", From: "Lunovia <a@b.c>", Client: srv.Client(), Endpoint: srv.URL}
 	if err := m.Send(context.Background(), Message{To: "x@y.z", Subject: "S", Text: "T"}); err != nil {
 		t.Fatal(err)
 	}
@@ -72,8 +72,8 @@ func TestResendMailer(t *testing.T) {
 }
 
 func TestBuildMIME(t *testing.T) {
-	b := string(buildMIME("Lovoria <a@b.c>", Message{To: "x@y.z", Subject: "Reset kata sandi", Text: "baris1\nbaris2"}))
-	for _, want := range []string{"From: Lovoria <a@b.c>\r\n", "To: x@y.z\r\n", "charset=utf-8", "baris1\r\nbaris2"} {
+	b := string(buildMIME("Lunovia <a@b.c>", Message{To: "x@y.z", Subject: "Reset kata sandi", Text: "baris1\nbaris2"}))
+	for _, want := range []string{"From: Lunovia <a@b.c>\r\n", "To: x@y.z\r\n", "charset=utf-8", "baris1\r\nbaris2"} {
 		if !strings.Contains(b, want) {
 			t.Errorf("MIME tidak memuat %q:\n%s", want, b)
 		}

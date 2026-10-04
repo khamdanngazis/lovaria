@@ -107,5 +107,5 @@ func (h *Handler) Check(c echo.Context) error {
 func (h *Handler) Remove(c echo.Context) error {
 	w := ctxWedding(c)
 	err := h.svc.Remove(c.Request().Context(), w.ID)
-	return h.after(c, w, "", "Domain dihapus. Undangan kembali memakai alamat Lovoria.", err)
+	return h.after(c, w, "", "Domain dihapus. Undangan kembali memakai alamat Lunovia.", err)
 }

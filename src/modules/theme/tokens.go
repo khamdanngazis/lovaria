@@ -153,7 +153,7 @@ func TokensCSS(themeID string, t view.Tokens) string {
 	fmt.Fprintf(&b, "--lv-primary:%s;", colorOr(t.Primary, "#b76e79"))
 	fmt.Fprintf(&b, "--lv-surface:%s;", colorOr(t.Surface, "#ffffff"))
 	fmt.Fprintf(&b, "--lv-ink:%s;", colorOr(t.Ink, "#222222"))
-	// Token desain tema (T21). Cadangan memakai palet brand Lovoria.
+	// Token desain tema (T21). Cadangan memakai palet brand Lunovia.
 	fmt.Fprintf(&b, "--lv-accent:%s;", colorOr(t.Accent, "#c9a88a"))
 	fmt.Fprintf(&b, "--lv-deep:%s;", colorOr(t.Deep, "#332936"))
 	fmt.Fprintf(&b, "--lv-muted:%s;", colorOr(t.Muted, "#6b666b"))

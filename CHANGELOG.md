@@ -2,9 +2,14 @@
 
 ## [Unreleased]
 
+### T24 — Nama brand menjadi Lunovia
+- Nama brand di seluruh tampilan (landing, halaman masuk/daftar, dashboard, panel admin, undangan, email, PDF kenang-kenangan, halaman legal), wordmark logo, dan gambar Open Graph berganti dari Lovoria menjadi **Lunovia**. Tema bawaan menjadi "Lunovia Signature", label etalase "Pilihan Lunovia".
+- Warna, huruf, monogram LV, dan desain tidak berubah.
+- Pengenal teknis sengaja **tidak** diubah supaya tidak ada yang putus: domain, nama binary `lovoria`, modul Go, token CSS `lovoria-*`, nama cookie, variabel env `LOVORIA_*`, awalan order `LVR-`, dan nama berkas aset.
+
 ### T21 (bagian 3) — Etalase tema dengan tangkapan layar asli
 - Kartu tema di landing dan pemilih tema dashboard menampilkan tangkapan layar asli sampul tiap tema, menggantikan kartu warna "A & B".
-- Lovoria Signature berlabel **Pilihan Lovoria**.
+- Lunovia Signature berlabel **Pilihan Lunovia**.
 - `make theme-thumbs` membuat ulang thumbnail dari undangan contoh.
 
 ### T21 (bagian 2) — Tema Elegan, Romantis, dan Modern ditulis ulang
@@ -26,7 +31,7 @@
 - Syarat & Ketentuan: pembayaran sekali per undangan, tanpa langganan.
 
 ### Pembayaran dibuka di tab baru
-- "Bayar & Publikasikan" dan "Lanjutkan pembayaran" membuka halaman Midtrans di tab baru; tab Lovoria pindah ke halaman status yang memperbarui diri dan berubah menjadi "Pembayaran berhasil" begitu pembayaran diterima — tidak bergantung pada redirect balik dari Midtrans.
+- "Bayar & Publikasikan" dan "Lanjutkan pembayaran" membuka halaman Midtrans di tab baru; tab Lunovia pindah ke halaman status yang memperbarui diri dan berubah menjadi "Pembayaran berhasil" begitu pembayaran diterima — tidak bergantung pada redirect balik dari Midtrans.
 
 ### Perbaikan — tombol "Bayar & Publikasikan" tidak membuka halaman pembayaran
 - CSP `form-action 'self'` membuat browser memblokir redirect dari form bayar ke halaman Midtrans, sehingga tombol terasa tidak berfungsi (order tetap terbuat di server). Domain halaman bayar Midtrans kini diizinkan di `form-action` (hanya sebagai tujuan navigasi).
@@ -43,7 +48,7 @@
 - Gateway simulasi untuk development/test/e2e (ditolak di production).
 
 ### Menu akun di header dashboard
-- Menu hamburger diganti menu akun baru: nama & email, pintasan Beranda, Wedding saya, Buat wedding baru, Panel admin (admin), Halaman utama Lovoria, dan Keluar — masing-masing dengan ikon. Di layar lebar pemicunya avatar + nama.
+- Menu hamburger diganti menu akun baru: nama & email, pintasan Beranda, Wedding saya, Buat wedding baru, Panel admin (admin), Halaman utama Lunovia, dan Keluar — masing-masing dengan ikon. Di layar lebar pemicunya avatar + nama.
 - Tetap berfungsi tanpa JS (`<details>`); menutup saat klik di luar atau Escape.
 
 ### T22 (bagian 2) — Dashboard pasangan selaras brand
@@ -53,7 +58,7 @@
 - Penjaga kelas palet mentah kini mencakup 15 berkas dashboard/auth. Panel admin menyusul di bagian 3.
 
 ### T22 (bagian 1) — Fondasi UI brand & halaman auth baru
-- **Login, daftar, lupa & reset password** memakai tampilan brand: logo Lovoria, Dusty Plum, Playfair Display + Inter; di layar lebar dua panel dengan tagline "Your Love. Your Story. Your Forever." (halaman daftar menampilkan poin manfaat).
+- **Login, daftar, lupa & reset password** memakai tampilan brand: logo Lunovia, Dusty Plum, Playfair Display + Inter; di layar lebar dua panel dengan tagline "Your Love. Your Story. Your Forever." (halaman daftar menampilkan poin manfaat).
 - **Token warna dashboard** (`lovoria-*`: primary-hover, primary-soft, surface, subtle, control, success/warning/danger/info) dan **kelas komponen bersama** `ui-*` (tombol, input, kartu, badge, alert, tabel, tab, tautan). Komponen `templates/ui` beralih ke kelas ini; tambahan `ui.Badge`, `ui.PageHeader`, `ui.EmptyState`.
 - Halaman error, privasi, syarat, dan "undangan tidak ditemukan" memakai warna & huruf brand.
 - Uji kontras otomatis untuk token baru dan penjaga kelas palet mentah untuk berkas yang sudah dimigrasikan. Dokumentasi: `doc/dashboard-ui.md`.
@@ -66,8 +71,8 @@
 - Demo Minimalis memakai foto baru; `lovoria demo seed --refresh` mengganti foto demo yang sudah ada.
 - E2E: tamu menekan "Buka Undangan" di layar 360×640 (regresi tombol terpotong).
 
-### T21 (bagian 1) — Fondasi redesign template & tema Lovoria Signature
-- **Tema baru Lovoria Signature** (palet brand: Dusty Plum, Champagne, Warm Ivory; Playfair Display + Inter) dengan seluruh bagian didesain khusus. Menjadi **tema bawaan wedding baru** (migration `00023`); wedding lama tetap memakai temanya.
+### T21 (bagian 1) — Fondasi redesign template & tema Lunovia Signature
+- **Tema baru Lunovia Signature** (palet brand: Dusty Plum, Champagne, Warm Ivory; Playfair Display + Inter) dengan seluruh bagian didesain khusus. Menjadi **tema bawaan wedding baru** (migration `00023`); wedding lama tetap memakai temanya.
 - **Sampul "Buka Undangan"**: isi undangan terkunci di belakang sampul sampai tombol ditekan, dengan transisi halus, lalu musik mulai. Tanpa JS halaman tetap bisa digulir; muat ulang tidak mengunci lagi.
 - **Tampilan desktop** dua panel: foto sampul, nama, dan tanggal menempel di kiri; undangan menggulir di kanan.
 - **Bagian bersama mengikuti tema**: hitung mundur, kutipan, RSVP, ucapan, hadiah, dan kenangan memakai judul, kartu, tombol, dan input bergaya tema (token baru Accent/Deep/Muted/Border + bentuk sudut).
@@ -97,7 +102,7 @@
 
 ### T18 — Landing page & brand
 - Landing page baru sesuai `doc/landing-page-guide.md`: hero "Your Love. Your Story. Your Forever." dengan pratinjau undangan, positioning, alur Create → Invite → Experience → Remember, fitur, galeri tema + undangan contoh, harga (paket bertanda tampil), FAQ, CTA, footer. Mobile-first, tanpa Alpine; Lighthouse mobile 100/100/100/100 (lokal).
-- Brand: logo monogram LV (dari `doc/vector-logo.svg`) + wordmark LOVORIA, favicon, apple-touch-icon, gambar Open Graph; token Tailwind `lovoria-*`; header dashboard memakai logo baru.
+- Brand: logo monogram LV (dari `doc/vector-logo.svg`) + wordmark LUNOVIA, favicon, apple-touch-icon, gambar Open Graph; token Tailwind `lovoria-*`; header dashboard memakai logo baru.
 - `lovoria demo seed`: undangan contoh per tema (`/w/contoh-<tema>`), `weddings.is_demo` (migration `00018`) dikecualikan dari laporan admin & scheduler.
 - Admin → Paket: "Tampil di landing page" + urutan (migration `00019`).
 - `robots.txt` & `sitemap.xml` (custom domain pasangan tidak diindeks).
@@ -123,7 +128,7 @@
 
 ### Perbaikan — domain Railway lama 404
 - Setelah domain sendiri didaftarkan di Railway, `RAILWAY_PUBLIC_DOMAIN` berganti sehingga domain `*.up.railway.app` lama dianggap host asing dan link undangan lama menjadi 404. Config baru `EXTRA_HOSTS` (dipisah koma) untuk tetap mengenali host lama.
-- Script Worker di `doc/custom-domain.md` meneruskan trafik domain Lovoria sendiri tanpa diubah (`OWN_ZONE`).
+- Script Worker di `doc/custom-domain.md` meneruskan trafik domain Lunovia sendiri tanpa diubah (`OWN_ZONE`).
 
 ### Perbaikan — beranda akun admin
 - Admin tanpa wedding kini diarahkan ke `/admin` setelah login (sebelumnya ke wizard "Buat website pernikahan"); header dashboard menampilkan link **Admin** untuk akun admin.
@@ -141,7 +146,7 @@
 ### T15 — Custom domain (Cloudflare for SaaS)
 - Modul `domain` (migration `00011`): daftar domain per wedding, validasi & normalisasi, client Cloudflare Custom Hostnames (create/get/delete), status `pending_verification → active / failed (72 jam) / removed`, scheduler 5 menit dengan advisory lock, hapus domain menghapus hostname di Cloudflare dulu.
 - Dashboard menu **Domain**: form, instruksi CNAME untuk orang awam (Host `www`/`@`, target, peringatan domain utama), badge status, Cek ulang, Hapus.
-- Resolver: lookup Host → wedding dengan cache 60 detik (dikosongkan saat status berubah); host tak dikenal → 404 generik; `CUSTOM_DOMAIN_HOST_HEADER` untuk proxy (Cloudflare Worker di depan Railway); `RAILWAY_PUBLIC_DOMAIN` dikenali sebagai host Lovoria.
+- Resolver: lookup Host → wedding dengan cache 60 detik (dikosongkan saat status berubah); host tak dikenal → 404 generik; `CUSTOM_DOMAIN_HOST_HEADER` untuk proxy (Cloudflare Worker di depan Railway); `RAILWAY_PUBLIC_DOMAIN` dikenali sebagai host Lunovia.
 - `/w/:slug` → 301 ke custom domain aktif (`/i/:code` tetap); `wedding.Service.CanonicalBaseURL`; beranda dashboard menampilkan link kanonik.
 - Peringatan log saat domain aktif ≥ 90 (kuota gratis 100).
 - Config baru: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ZONE_ID`, `CUSTOM_DOMAIN_CNAME_TARGET`, `CUSTOM_DOMAIN_HOST_HEADER`. Dokumentasi setup: `doc/custom-domain.md`.

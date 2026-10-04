@@ -259,7 +259,7 @@ func TestAllThemesOverrideVisualParts(t *testing.T) {
 }
 
 // Etalase (T21): tiap tema bawaan punya thumbnail asli yang di-commit
-// (make theme-thumbs, ≤ 60 KB) dan hanya tema bawaan berlabel "Pilihan Lovoria".
+// (make theme-thumbs, ≤ 60 KB) dan hanya tema bawaan berlabel "Pilihan Lunovia".
 func TestThemeThumbsAndFeatured(t *testing.T) {
 	for _, d := range All() {
 		if d.Featured() != (d.ID == DefaultID) {

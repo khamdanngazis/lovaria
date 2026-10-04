@@ -48,7 +48,7 @@ var (
 	ErrInvalidCredentials = errors.New("email atau password salah")
 	ErrUserNotFound       = errors.New("user tidak ditemukan")
 	// ErrAccountDisabled hanya dikembalikan setelah password benar (tidak membocorkan akun).
-	ErrAccountDisabled   = errors.New("akun ini dinonaktifkan. Hubungi admin Lovoria untuk bantuan")
+	ErrAccountDisabled   = errors.New("akun ini dinonaktifkan. Hubungi admin Lunovia untuk bantuan")
 	ErrSessionInvalid    = errors.New("session tidak valid atau kedaluwarsa")
 	ErrInvalidResetToken = errors.New("link reset password tidak valid atau sudah kedaluwarsa")
 )
@@ -327,9 +327,9 @@ func (s *Service) RequestPasswordReset(ctx context.Context, email string) error 
 	link := s.baseURL + "/reset-password?token=" + token
 	return s.mailer.Send(ctx, platformmail.Message{
 		To:      row.Email,
-		Subject: "Reset password Lovoria",
+		Subject: "Reset password Lunovia",
 		Text: fmt.Sprintf("Halo %s,\n\nKlik link berikut untuk membuat password baru (berlaku 1 jam):\n%s\n\n"+
-			"Abaikan email ini bila kamu tidak meminta reset password.\n\n— Lovoria", row.Name, link),
+			"Abaikan email ini bila kamu tidak meminta reset password.\n\n— Lunovia", row.Name, link),
 	})
 }
 

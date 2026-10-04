@@ -19,7 +19,7 @@ func buildICS(e icsEvent, now time.Time) string {
 	lines := []string{
 		"BEGIN:VCALENDAR",
 		"VERSION:2.0",
-		"PRODID:-//Lovoria//Undangan//ID",
+		"PRODID:-//Lunovia//Undangan//ID",
 		"CALSCALE:GREGORIAN",
 		"METHOD:PUBLISH",
 		"BEGIN:VEVENT",

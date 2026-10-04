@@ -123,7 +123,7 @@ func renderKeepsake(w wedding.Wedding, d keepsakeData, loc *time.Location, out *
 	pdf := fpdf.New("P", "mm", "A5", "")
 	pdf.SetCompression(keepsakeCompress)
 	pdf.SetTitle(pdfText("Kenang-kenangan "+d.Couple.GroomName+" & "+d.Couple.BrideName), false)
-	pdf.SetCreator("Lovoria", false)
+	pdf.SetCreator("Lunovia", false)
 	pdf.SetMargins(16, 18, 16)
 	pdf.SetAutoPageBreak(true, 18)
 	pageW, _ := pdf.GetPageSize()
@@ -177,7 +177,7 @@ func renderKeepsake(w wedding.Wedding, d keepsakeData, loc *time.Location, out *
 	pdf.SetY(-30)
 	pdf.SetFont("Helvetica", "", 8)
 	color(muted)
-	pdf.CellFormat(0, 5, pdfText("Dibuat dengan Lovoria · Your Love. Your Story. Your Forever."), "", 1, "C", false, 0, "")
+	pdf.CellFormat(0, 5, pdfText("Dibuat dengan Lunovia · Your Love. Your Story. Your Forever."), "", 1, "C", false, 0, "")
 
 	// Cerita cinta.
 	if len(d.Stories) > 0 {

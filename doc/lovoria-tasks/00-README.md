@@ -1,4 +1,4 @@
-# Lovoria — Task Breakdown untuk Agent
+# Lunovia — Task Breakdown untuk Agent
 
 Sumber: *Product Scope & Feature Overview* + *Software Architecture Document v1.0 (MVP)*.
 Setiap task ukurannya sedang (±1–3 hari kerja agent), punya scope jelas, dan bisa di-review sebagai 1 PR.

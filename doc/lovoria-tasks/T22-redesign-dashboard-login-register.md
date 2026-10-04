@@ -3,13 +3,13 @@
 **Estimasi:** 3–4 hari (bisa dipecah jadi 3 PR, lihat *Urutan Pengerjaan*) · **Depends on:** T03, T13, T16, T18, T21 · **Modul:** `src/styles/app.css`, `templates/layouts`, `templates/ui`, `modules/auth`, `dashboard`, semua `modules/*/views.templ` (dashboard & admin)
 
 ## Konteks
-Landing page (T18) dan undangan (T21) sudah memakai identitas Lovoria: Dusty Plum, Deep Plum, Warm Ivory, Champagne, Playfair Display + Inter (`doc/landing-page-guide.md`). Begitu calon pasangan menekan "Buat undangan", tampilannya berganti menjadi aplikasi lain:
+Landing page (T18) dan undangan (T21) sudah memakai identitas Lunovia: Dusty Plum, Deep Plum, Warm Ivory, Champagne, Playfair Display + Inter (`doc/landing-page-guide.md`). Begitu calon pasangan menekan "Buat undangan", tampilannya berganti menjadi aplikasi lain:
 
 - **Warna utama dashboard bukan warna brand.** Dashboard dan halaman auth memakai `bg-primary` / `text-primary`, yang di luar halaman undangan jatuh ke nilai bawaan `--lv-primary: #b76e79` (dusty rose) di `:root` — bukan Dusty Plum `#6B4E71`. Logo di header berwarna plum, tombol di bawahnya berwarna rose.
 - **Netralnya abu-abu dingin.** ±400 kelas `slate-*` tersebar di 18 berkas templ (`bg-slate-50`, `border-slate-300`, `text-slate-500`, …), berlawanan dengan Warm Ivory dan garis hangat `#E8DFD9` milik brand.
 - **Warna status mentah.** `red-600`, `green-700`, `amber-500` Tailwind dipakai langsung; brand guide §7 meminta menghindari merah jenuh.
-- **Huruf brand tidak dimuat.** Inter dan Playfair Display hanya dimuat di landing; dashboard jatuh ke huruf sistem, dan wordmark `LOVORIA` (`font-display`) di header jatuh ke Georgia.
-- **Login & register terasa generik.** `authShell` menampilkan teks "Lovoria" polos (bukan `BrandLogo`) di atas kartu putih, tanpa tagline maupun kesinambungan dengan landing.
+- **Huruf brand tidak dimuat.** Inter dan Playfair Display hanya dimuat di landing; dashboard jatuh ke huruf sistem, dan wordmark `LUNOVIA` (`font-display`) di header jatuh ke Georgia.
+- **Login & register terasa generik.** `authShell` menampilkan teks "Lunovia" polos (bukan `BrandLogo`) di atas kartu putih, tanpa tagline maupun kesinambungan dengan landing.
 - **Gaya ditulis berulang.** Kelas input disalin di `ui/form.templ` dan `auth/views.templ`; tombol, kartu, badge, tabel, dan tab ditulis ulang di tiap modul, sehingga mengganti warna berarti menyunting ratusan baris.
 
 Task ini murni tampilan: warna, huruf, dan komponen bersama. Tidak ada perubahan alur, route, atau data.
@@ -101,7 +101,7 @@ Semua berkas berikut diganti ke token + komponen bersama, tanpa mengubah struktu
 ## Acceptance Criteria
 - [ ] Tombol utama, tautan, dan menu aktif di dashboard & auth berwarna Dusty Plum `#6B4E71`; tidak ada lagi dusty rose `#b76e79` di luar pratinjau tema
 - [ ] Tidak ada kelas palet Tailwind mentah maupun `*-primary` tema di templ dashboard/auth/admin/`templates/ui` (test pemindai lolos; pengecualian terdaftar eksplisit)
-- [ ] Inter dan Playfair Display termuat di dashboard & auth; wordmark `LOVORIA` tampil dengan Playfair, bukan Georgia
+- [ ] Inter dan Playfair Display termuat di dashboard & auth; wordmark `LUNOVIA` tampil dengan Playfair, bukan Georgia
 - [ ] Login/register: dua panel di ≥ 1024px, satu kolom di 375px tanpa scroll horizontal; logo menaut ke `/`; validasi inline htmx, pesan error, dan rate limit tetap berfungsi
 - [ ] Input, tombol, kartu, badge, alert, tab, dan tabel berasal dari `templates/ui` / kelas `ui-*`; tidak ada salinan kelas input di `modules/auth`
 - [ ] Test kontras otomatis lolos untuk semua pasangan token baru (≥ 4.5:1); fokus keyboard terlihat di semua kontrol

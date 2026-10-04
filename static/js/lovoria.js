@@ -4,7 +4,7 @@ document.querySelectorAll('link[data-font-css]').forEach(function (l) {
   l.rel = 'stylesheet';
 });
 
-// Komponen Alpine milik Lovoria. Dimuat sebelum alpine.min.js (lihat layouts).
+// Komponen Alpine milik Lunovia. Dimuat sebelum alpine.min.js (lihat layouts).
 (function () {
   const MAX_BYTES = 10 * 1024 * 1024;
   const OK_TYPES = ['image/jpeg', 'image/png', 'image/webp'];

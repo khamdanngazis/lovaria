@@ -42,7 +42,7 @@ type CheckoutRequest struct {
 	ItemName    string
 	Customer    Customer
 	ExpiresIn   time.Duration
-	// ReturnURL: halaman Lovoria tujuan setelah pembayar selesai di gateway.
+	// ReturnURL: halaman Lunovia tujuan setelah pembayar selesai di gateway.
 	// Hanya untuk kenyamanan — status tetap ditentukan webhook.
 	ReturnURL string
 }

@@ -1,10 +1,10 @@
-# Lovoria
+# Lunovia
 
 Wedding invitation service — undangan pernikahan digital (modular monolith Go, SSR).
 
 **Stack:** Go 1.25 · Echo v4 · templ · htmx 2 + Alpine.js 3 · Tailwind CSS v4 (standalone) · PostgreSQL 16 (pgx/sqlc/goose) · Cloudflare R2 · Railway.
 
-Dokumen: [arsitektur](doc/Lovoria-Architecture-Document.md) · [task breakdown](doc/lovoria-tasks/00-README.md) · [konvensi & aturan wajib](CONTRIBUTING.md) · [konvensi database](doc/database.md).
+Dokumen: [arsitektur](doc/Lunovia-Architecture-Document.md) · [task breakdown](doc/lovoria-tasks/00-README.md) · [konvensi & aturan wajib](CONTRIBUTING.md) · [konvensi database](doc/database.md).
 
 ## Quick Start
 
@@ -50,7 +50,7 @@ Semua lewat environment variable (lihat [`.env.example`](.env.example)), dibaca 
 | `DB_MAX_CONN_LIFETIME` / `DB_MAX_CONN_IDLE_TIME` | `30m` / `5m` | Umur koneksi pool |
 | `DB_CONNECT_TIMEOUT` | `5s` | Timeout membuka koneksi |
 | `MAIL_DRIVER` | `log` | `log` (tulis ke log) \| `smtp` \| `resend` |
-| `MAIL_FROM` | `Lovoria <no-reply@lovoria.local>` | Alamat pengirim |
+| `MAIL_FROM` | `Lunovia <no-reply@lovoria.local>` | Alamat pengirim |
 | `SMTP_HOST` / `SMTP_PORT` / `SMTP_USERNAME` / `SMTP_PASSWORD` | — / `587` | Untuk `MAIL_DRIVER=smtp` (STARTTLS) |
 | `RESEND_API_KEY` | — | Untuk `MAIL_DRIVER=resend` |
 | `STORAGE_DRIVER` | `local` | `local` (disk, **hanya dev** — ditolak di production) \| `r2` |
@@ -65,7 +65,7 @@ Semua lewat environment variable (lihat [`.env.example`](.env.example)), dibaca 
 | `BACKUP_RETENTION_DAYS`, `BACKUP_HOUR_UTC` | `14`, `19` | Retensi backup (hari) & jam backup harian UTC (19 = 02.00 WIB) |
 | `PG_DUMP_PATH`, `PG_RESTORE_PATH` | `pg_dump`, `pg_restore` | Binary Postgres client (versi mayor harus = server) |
 | `SENTRY_DSN` | – | Kirim error 5xx ke Sentry (opsional, tanpa data pribadi) |
-| `EXTRA_HOSTS` | – | Host Lovoria tambahan selain `BASE_URL`/`RAILWAY_PUBLIC_DOMAIN`, dipisah koma — mis. domain `*.up.railway.app` lama setelah pindah ke domain sendiri, supaya link undangan lama tetap jalan |
+| `EXTRA_HOSTS` | – | Host Lunovia tambahan selain `BASE_URL`/`RAILWAY_PUBLIC_DOMAIN`, dipisah koma — mis. domain `*.up.railway.app` lama setelah pindah ke domain sendiri, supaya link undangan lama tetap jalan |
 | `CUSTOM_DOMAIN_HOST_HEADER` | – | Header berisi host asli bila Cloudflare Worker menulis ulang Host (mis. `X-Lovoria-Host`) |
 | `GUESTBOOK_BLOCKED_WORDS` | – | Kata kasar tambahan untuk filter buku ucapan, dipisah koma (ditambahkan ke daftar bawaan) |
 | `LIFECYCLE_ARCHIVE_DAYS` | `365` | Wedding berstatus Kenangan diarsipkan otomatis setelah N hari |

@@ -40,7 +40,7 @@ type Config struct {
 	GuestbookBlockedWords []string
 	// Domain berisi setelan custom domain (Cloudflare for SaaS, T15).
 	Domain Domain
-	// ExtraHosts: host milik Lovoria selain BASE_URL (RAILWAY_PUBLIC_DOMAIN + EXTRA_HOSTS) —
+	// ExtraHosts: host milik Lunovia selain BASE_URL (RAILWAY_PUBLIC_DOMAIN + EXTRA_HOSTS) —
 	// Host lain yang bukan custom domain aktif mendapat 404.
 	ExtraHosts []string
 	// ArchiveAfterDays: wedding Kenangan diarsipkan otomatis setelah N hari
@@ -83,7 +83,7 @@ type DB struct {
 type Mail struct {
 	// Driver: log | smtp | resend (MAIL_DRIVER). "log" hanya menulis email ke log.
 	Driver string
-	// From alamat pengirim, mis. "Lovoria <no-reply@lovoria.com>" (MAIL_FROM).
+	// From alamat pengirim, mis. "Lunovia <no-reply@lovoria.com>" (MAIL_FROM).
 	From string
 	// SMTP (SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD). Port 587 + STARTTLS.
 	SMTPHost     string
@@ -136,7 +136,7 @@ func (p Payment) Enabled() bool { return p.Gateway != "" }
 // Domain adalah setelan custom domain per wedding (lihat doc/custom-domain.md).
 type Domain struct {
 	// CloudflareToken & CloudflareZoneID (CLOUDFLARE_API_TOKEN, CLOUDFLARE_ZONE_ID):
-	// zona Lovoria yang mengaktifkan Cloudflare for SaaS. Kosong → fitur nonaktif.
+	// zona Lunovia yang mengaktifkan Cloudflare for SaaS. Kosong → fitur nonaktif.
 	CloudflareToken  string
 	CloudflareZoneID string
 	// CNAMETarget tujuan CNAME untuk pasangan, mis. domains.lovoria.com (CUSTOM_DOMAIN_CNAME_TARGET).
@@ -221,7 +221,7 @@ func LoadFrom(getenv func(string) string) (Config, error) {
 		DB:      DB{URL: get("DATABASE_URL", "")},
 		Mail: Mail{
 			Driver:       get("MAIL_DRIVER", "log"),
-			From:         get("MAIL_FROM", "Lovoria <no-reply@lovoria.local>"),
+			From:         get("MAIL_FROM", "Lunovia <no-reply@lovoria.local>"),
 			SMTPHost:     get("SMTP_HOST", ""),
 			SMTPUsername: get("SMTP_USERNAME", ""),
 			SMTPPassword: getenv("SMTP_PASSWORD"),
@@ -308,7 +308,7 @@ func LoadFrom(getenv func(string) string) (Config, error) {
 	if set := []bool{cfg.Domain.CloudflareToken != "", cfg.Domain.CloudflareZoneID != "", cfg.Domain.CNAMETarget != ""}; set[0] != set[1] || set[1] != set[2] {
 		errs = append(errs, errors.New("CLOUDFLARE_API_TOKEN, CLOUDFLARE_ZONE_ID, dan CUSTOM_DOMAIN_CNAME_TARGET harus diisi semua (atau dikosongkan semua)"))
 	}
-	// Host Lovoria tambahan: domain Railway + EXTRA_HOSTS (dipisah koma), mis.
+	// Host Lunovia tambahan: domain Railway + EXTRA_HOSTS (dipisah koma), mis.
 	// domain lama *.up.railway.app setelah pindah ke domain sendiri, supaya
 	// link undangan yang sudah terkirim tetap jalan.
 	for _, d := range append([]string{getenv("RAILWAY_PUBLIC_DOMAIN")}, strings.Split(getenv("EXTRA_HOSTS"), ",")...) {

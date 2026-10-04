@@ -1,4 +1,4 @@
-# Lovoria — Software Architecture Document
+# Lunovia — Software Architecture Document
 
 **Versi:** 1.0 (MVP)
 **Target:** 100 wedding aktif
@@ -60,13 +60,13 @@
         ┌───────────┴────────────┐
         │  Domain milik couple     │
         │  (mis. samuelsarah.com)│
-        │  → CNAME ke Lovoria     │
+        │  → CNAME ke Lunovia     │
         └──────────────────────────┘
 ```
 
 Semua fitur (couple dashboard, public wedding website, admin panel) berjalan sebagai **satu codebase, satu proses deploy**. Tidak ada microservices, message queue, atau container orchestration di tahap ini.
 
-**Custom domain per wedding** ditangani lewat Cloudflare for SaaS: couple arahkan domain mereka (CNAME) ke Lovoria, Cloudflare otomatis provision sertifikat TLS untuk domain tersebut, lalu meneruskan trafiknya ke aplikasi Go yang sama. Tidak perlu server/proxy tambahan, tidak perlu urus sertifikat SSL manual per domain.
+**Custom domain per wedding** ditangani lewat Cloudflare for SaaS: couple arahkan domain mereka (CNAME) ke Lunovia, Cloudflare otomatis provision sertifikat TLS untuk domain tersebut, lalu meneruskan trafiknya ke aplikasi Go yang sama. Tidak perlu server/proxy tambahan, tidak perlu urus sertifikat SSL manual per domain.
 
 ---
 
@@ -144,9 +144,9 @@ Draft → Published → Wedding Day → Memory → Archived
 ```text
 Couple masukkan domain (mis. samuelsarah.com) di dashboard
        ↓
-Lovoria daftarkan domain ke Cloudflare for SaaS (Custom Hostnames)
+Lunovia daftarkan domain ke Cloudflare for SaaS (Custom Hostnames)
        ↓
-Couple diberi instruksi CNAME (arahkan domain ke Lovoria)
+Couple diberi instruksi CNAME (arahkan domain ke Lunovia)
        ↓
 Cloudflare verifikasi + otomatis provision TLS certificate
        ↓
@@ -166,7 +166,7 @@ Domain langsung bisa diakses, trafik diteruskan ke aplikasi Go yang sama
 
 - Form input domain + instruksi CNAME yang jelas untuk couple (kebanyakan bukan orang teknis).
 - Indikator status verifikasi (pending/active/gagal) supaya couple tahu domainnya sudah aktif atau belum.
-- Fallback: kalau couple tidak setup custom domain, wedding tetap bisa diakses lewat slug bawaan Lovoria (`lovoria.com/i/kode`) tanpa dependency ke domain eksternal.
+- Fallback: kalau couple tidak setup custom domain, wedding tetap bisa diakses lewat slug bawaan Lunovia (`lovoria.com/i/kode`) tanpa dependency ke domain eksternal.
 
 ### Batasan yang perlu disepakati untuk MVP
 
@@ -210,7 +210,7 @@ Kekhawatiran awal: kalau nanti ada tema premium dengan animasi kompleks (paralla
 
 **Keputusan: tetap SSR+htmx sebagai default, animasi kompleks masuk lewat "islands"** — bukan konversi seluruh platform jadi SPA. Alasan penolakan opsi full SPA (Go API + Svelte/Preact di Cloudflare Pages) dijelaskan di bawah.
 
-### Kenapa full SPA ditolak untuk kasus Lovoria
+### Kenapa full SPA ditolak untuk kasus Lunovia
 
 | Masalah | Penjelasan |
 |---|---|
@@ -260,10 +260,10 @@ Tidak ada biaya infrastruktur tambahan — semua tetap berjalan di stack yang su
 | Storage foto/gallery | Cloudflare R2 | $0–1 |
 | CDN/DNS | Cloudflare | $0 |
 | Custom domain per wedding (hingga 100 domain) | Cloudflare for SaaS | $0 (termasuk di kuota gratis) |
-| Domain utama Lovoria sendiri | — | ~$1/bulan (dari $10–15/tahun) |
+| Domain utama Lunovia sendiri | — | ~$1/bulan (dari $10–15/tahun) |
 | **Total** | | **≈ $16–22/bulan** |
 
-> Catatan: biaya di atas untuk domain **milik Lovoria sendiri** (mis. `lovoria.com`). Domain custom per wedding (mis. `samuelsarah.com`) dibeli dan dibayar sendiri oleh masing-masing couple di registrar pilihan mereka — Lovoria hanya menyediakan mekanisme koneksi/verifikasinya.
+> Catatan: biaya di atas untuk domain **milik Lunovia sendiri** (mis. `lovoria.com`). Domain custom per wedding (mis. `samuelsarah.com`) dibeli dan dibayar sendiri oleh masing-masing couple di registrar pilihan mereka — Lunovia hanya menyediakan mekanisme koneksi/verifikasinya.
 
 ---
 
@@ -320,7 +320,7 @@ Nanti:     Go (SSR + htmx + Alpine) tetap jadi shell utama,
            di-mount ke elemen spesifik per tema yang membutuhkan
 ```
 
-**Kenapa opsi full SPA (Go API + SPA terpisah di Cloudflare Pages) tidak dipilih** meski secara biaya infrastruktur juga $0: full SPA mengorbankan meta tag OG dinamis per wedding yang dibutuhkan untuk WhatsApp link preview (lihat §7), dan menambah kompleksitas split deployment (CORS, dua tempat deploy) tanpa manfaat yang sepadan untuk mayoritas fitur Lovoria yang sifatnya CRUD/form.
+**Kenapa opsi full SPA (Go API + SPA terpisah di Cloudflare Pages) tidak dipilih** meski secara biaya infrastruktur juga $0: full SPA mengorbankan meta tag OG dinamis per wedding yang dibutuhkan untuk WhatsApp link preview (lihat §7), dan menambah kompleksitas split deployment (CORS, dua tempat deploy) tanpa manfaat yang sepadan untuk mayoritas fitur Lunovia yang sifatnya CRUD/form.
 
 **Catatan penting:** kalau suatu saat *benar-benar* ada kebutuhan yang memaksa full SPA (misalnya drag & drop page builder di §10.3, yang memang sudah diprediksi butuh arsitektur berbeda), keputusan ini perlu dievaluasi ulang secara khusus — bukan dari kekhawatiran soal animasi saja, yang sudah tertangani lewat Islands.
 

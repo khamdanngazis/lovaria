@@ -135,7 +135,7 @@ func (c *Cloudflare) do(ctx context.Context, method, path string, body any) (jso
 }
 
 // Create mendaftarkan hostname dengan validasi sertifikat lewat HTTP (otomatis
-// begitu CNAME mengarah ke Lovoria).
+// begitu CNAME mengarah ke Lunovia).
 func (c *Cloudflare) Create(ctx context.Context, hostname string) (Hostname, error) {
 	res, err := c.do(ctx, http.MethodPost, "/custom_hostnames", map[string]any{
 		"hostname": hostname,

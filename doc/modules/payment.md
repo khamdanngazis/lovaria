@@ -58,7 +58,7 @@ Disimpan: `gateway_transaction_id` (unik per gateway), `payment_method`, `paid_a
 
 Interface `payment.Gateway` (`CreateCheckout`, `ParseNotification`, `FetchStatus`):
 
-- **Midtrans** (`midtrans.go`, `net/http` tanpa SDK): Snap mode **redirect** (`POST /snap/v1/transactions` → `redirect_url`) — halaman bayar di domain Midtrans, tanpa script pihak ketiga di Lovoria (CSP tetap ketat). Tanda tangan `SHA512(order_id + status_code + gross_amount + server_key)`. Pemetaan: `settlement` / `capture`+`accept` → paid; `pending` → pending; `expire` → expired; `cancel` → cancelled; `deny`/`failure` → failed. Status lain (refund, chargeback) ditolak dan hanya tercatat di log event.
+- **Midtrans** (`midtrans.go`, `net/http` tanpa SDK): Snap mode **redirect** (`POST /snap/v1/transactions` → `redirect_url`) — halaman bayar di domain Midtrans, tanpa script pihak ketiga di Lunovia (CSP tetap ketat). Tanda tangan `SHA512(order_id + status_code + gross_amount + server_key)`. Pemetaan: `settlement` / `capture`+`accept` → paid; `pending` → pending; `expire` → expired; `cancel` → cancelled; `deny`/`failure` → failed. Status lain (refund, chargeback) ditolak dan hanya tercatat di log event.
 - **Fake** (`fake.go`): simulasi untuk development, test, dan e2e. Halaman bayar `/payment/simulasi/<order>` (wajib login, hanya pemilik order) mengirim "webhook" bertanda tangan HMAC lewat jalur yang sama. **Config menolak `PAYMENT_GATEWAY=fake` di production.**
 
 ## Konfigurasi

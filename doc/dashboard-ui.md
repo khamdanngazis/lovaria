@@ -73,14 +73,14 @@ Komponen templ (`src/templates/ui`): `Input`, `TextArea`, `Select`, `ImageUpload
 - Teks tagline, penjelas, dan poin manfaat ada di konstanta `authTagline`, `authLead`, `authBenefits` (`modules/auth/views.templ`) — hanya fitur yang sudah ada.
 - `id` input, teks tombol, dan atribut `hx-*` tidak berubah (dipakai e2e & handler test).
 
-## Halaman publik Lovoria
+## Halaman publik Lunovia
 
 `layouts.Public` (error, privasi, syarat, undangan tidak ditemukan / arsip ringkas) memakai warna & huruf brand; `layouts.ErrorPage` menampilkan logo + tombol `ui-btn`. Undangan (tema) tidak terpengaruh.
 
 ## Kerangka dashboard
 
 - `layouts.Dashboard`: memuat huruf brand, header putih bergaris `lovoria-border` dengan `BrandLogo` dan **menu akun** (`accountMenu`).
-- Menu akun: di ponsel tombol hamburger (ikon berganti ✕ saat terbuka), di layar lebar avatar inisial + nama. Panelnya memuat nama & email, pintasan Beranda / Wedding saya / Buat wedding baru / Panel admin (hanya admin) / Halaman utama Lovoria, dan tombol Keluar. Dibuat dengan `<details>` sehingga berfungsi tanpa JS; Alpine hanya menutupnya saat klik di luar atau Escape.
+- Menu akun: di ponsel tombol hamburger (ikon berganti ✕ saat terbuka), di layar lebar avatar inisial + nama. Panelnya memuat nama & email, pintasan Beranda / Wedding saya / Buat wedding baru / Panel admin (hanya admin) / Halaman utama Lunovia, dan tombol Keluar. Dibuat dengan `<details>` sehingga berfungsi tanpa JS; Alpine hanya menutupnya saat klik di luar atau Escape.
 - Panel admin (`admin/views.templ`): judul `font-display text-lovoria-deep` dengan eyebrow "Panel admin", navigasi `ui-tabs` / `ui-tab` (tab aktif lewat `aria-current="page"`), tabel `ui-table` di dalam `ui-card`.
 - Ikon garis kerangka dashboard: `layouts.Icon(name, class)` (`icons.templ`, digambar sendiri — tanpa library ikon). Banner **mode admin lihat-saja** memakai `lovoria-warning` + teks putih dan tetap menempel; kontrol dinonaktifkan lewat `lv-readonly` seperti sebelumnya.
 - `wedding.Shell`: judul wedding `font-display`; menu aktif `bg-lovoria-primary-soft` + `text-lovoria-primary`; judul grup `lovoria-muted`. Bottom bar ponsel dan menu "Menu" tetap `<details>` (berfungsi tanpa JS).

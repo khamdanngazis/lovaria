@@ -11,7 +11,7 @@ import templruntime "github.com/a-h/templ/runtime"
 // Ornamen tema Signature: SVG inline dekoratif (aria-hidden) yang mengikuti
 // warna teks (currentColor) — tanpa berkas gambar tambahan.
 
-// sparkle: bintang empat sudut (motif brand Lovoria).
+// sparkle: bintang empat sudut (motif brand Lunovia).
 func sparkle(class string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context

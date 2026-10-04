@@ -275,7 +275,7 @@ func page(s pageState) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				if d.Featured() {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<span class=\"mb-1 inline-block whitespace-nowrap rounded-full bg-lovoria-primary-soft px-1.5 py-0.5 text-[10px] font-medium text-lovoria-primary\">Pilihan Lovoria</span> ")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<span class=\"mb-1 inline-block whitespace-nowrap rounded-full bg-lovoria-primary-soft px-1.5 py-0.5 text-[10px] font-medium text-lovoria-primary\">Pilihan Lunovia</span> ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

@@ -357,7 +357,7 @@ func TestAuthPagesUseBrandShell(t *testing.T) {
 	for _, path := range []string{"/login", "/register", "/forgot-password", "/reset-password?token=tidak-valid"} {
 		_, body := c.do(http.MethodGet, path, nil, nil)
 		for _, want := range []string{
-			`<a href="/" aria-label="Lovoria — beranda"`, "LOVORIA", "Your Forever.", "family=Inter", "Playfair+Display",
+			`<a href="/" aria-label="Lunovia — beranda"`, "LUNOVIA", "Your Forever.", "family=Inter", "Playfair+Display",
 			"bg-lovoria-bg", "bg-lovoria-deep", "ui-card", `href="/privacy"`, `href="/terms"`,
 		} {
 			if !strings.Contains(body, want) {

@@ -27,7 +27,7 @@ var statusBadge = map[string]string{
 }
 
 var statusHint = map[string]string{
-	StatusPending: "Lovoria sedang menunggu CNAME Anda terpasang. Biasanya selesai dalam beberapa menit, tapi perubahan DNS bisa butuh hingga 24 jam. Status dicek otomatis tiap 5 menit.",
+	StatusPending: "Lunovia sedang menunggu CNAME Anda terpasang. Biasanya selesai dalam beberapa menit, tapi perubahan DNS bisa butuh hingga 24 jam. Status dicek otomatis tiap 5 menit.",
 	StatusActive:  "Domain aktif dan aman (HTTPS). Alamat /w/… lama otomatis dialihkan ke domain ini; link pribadi tamu (/i/…) yang sudah terkirim tetap berfungsi.",
 	StatusFailed:  "Domain belum terverifikasi setelah 72 jam. Periksa kembali record CNAME, lalu klik Cek ulang — atau hapus dan daftarkan ulang.",
 	StatusRemoved: "Domain tidak lagi terdaftar. Hapus lalu daftarkan ulang.",
@@ -47,7 +47,7 @@ templ section(s pageState) {
 		if !s.Enabled && s.Domain == nil {
 			@ui.Card() {
 				<p class="font-medium">Custom domain belum tersedia</p>
-				<p class="mt-1 text-sm text-lovoria-muted">Fitur ini belum diaktifkan di server Lovoria. Undangan tetap bisa dibagikan lewat alamat Lovoria.</p>
+				<p class="mt-1 text-sm text-lovoria-muted">Fitur ini belum diaktifkan di server Lunovia. Undangan tetap bisa dibagikan lewat alamat Lunovia.</p>
 			}
 		} else if s.Domain == nil && !s.W.IsPaid() {
 			// Belum lunas (T23): custom domain termasuk paket publikasi.
@@ -108,7 +108,7 @@ templ status(s pageState, d Domain) {
 					<button type="submit" class="ui-btn ui-btn-primary px-4 py-2 text-sm">Cek ulang</button>
 				</form>
 			}
-			<form method="post" action={ templ.SafeURL(base(s.W)) } hx-delete={ base(s.W) } hx-target="#domain" hx-swap="outerHTML" hx-confirm={ "Hapus domain " + d.Domain + "? Undangan kembali memakai alamat Lovoria." }>
+			<form method="post" action={ templ.SafeURL(base(s.W)) } hx-delete={ base(s.W) } hx-target="#domain" hx-swap="outerHTML" hx-confirm={ "Hapus domain " + d.Domain + "? Undangan kembali memakai alamat Lunovia." }>
 				@layouts.CSRFField()
 				<input type="hidden" name="_method" value="DELETE"/>
 				<button type="submit" class="rounded-lg border border-lovoria-danger/30 px-4 py-2 text-sm font-medium text-lovoria-danger hover:bg-lovoria-danger-soft">Hapus domain</button>

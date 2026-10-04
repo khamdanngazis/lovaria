@@ -36,7 +36,7 @@ type Resolved struct {
 	Guest   *guest.Guest // nil bila tanpa kode tamu
 	// Preview: wedding belum publik dan dilihat oleh pemiliknya.
 	Preview bool
-	// Origin: basis URL halaman ini (domain Lovoria atau custom domain).
+	// Origin: basis URL halaman ini (domain Lunovia atau custom domain).
 	Origin string
 	// Prefix: path dasar undangan di origin ("/i/KODE", "/w/slug", atau "" di custom domain).
 	Prefix string
@@ -56,8 +56,8 @@ type Resolver struct {
 	Weddings *wedding.Service
 	Guests   *guest.Service
 	Domains  DomainLookup
-	BaseURL  string // domain utama Lovoria
-	// ExtraHosts: host milik Lovoria selain BASE_URL (mis. domain Railway).
+	BaseURL  string // domain utama Lunovia
+	// ExtraHosts: host milik Lunovia selain BASE_URL (mis. domain Railway).
 	ExtraHosts []string
 	// HostHeader: header tepercaya berisi host asli bila proxy di depan aplikasi
 	// menulis ulang Host (Cloudflare Worker, lihat doc/custom-domain.md). Kosong → Host.
@@ -175,7 +175,7 @@ func (r *Resolver) ResolveWedding(next echo.HandlerFunc) echo.HandlerFunc {
 			res.Wedding, found = w, true
 			res.Prefix = "/w/" + w.Slug
 			// Custom domain aktif → /w/:slug pindah permanen ke sana (link /i/:code
-			// di domain Lovoria tetap dilayani supaya undangan yang terkirim aman).
+			// di domain Lunovia tetap dilayani supaya undangan yang terkirim aman).
 			if m := c.Request().Method; (m == http.MethodGet || m == http.MethodHead) && w.IsPublic() {
 				canon, err := r.Weddings.CanonicalBaseURL(ctx, w)
 				if err != nil {

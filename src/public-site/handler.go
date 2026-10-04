@@ -27,7 +27,7 @@ import (
 const openedEvery = 15 * time.Minute
 
 type Handler struct {
-	// BaseURL: URL utama Lovoria (kanonik & gambar OG landing page).
+	// BaseURL: URL utama Lunovia (kanonik & gambar OG landing page).
 	BaseURL string
 	// PublishPrice: harga publikasi sekali bayar (T23) untuk bagian Harga di
 	// landing; 0 → bagian harga disembunyikan.

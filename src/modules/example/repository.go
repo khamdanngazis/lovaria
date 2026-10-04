@@ -1,4 +1,4 @@
-// Package example adalah modul referensi yang mendemonstrasikan pola standar modul Lovoria:
+// Package example adalah modul referensi yang mendemonstrasikan pola standar modul Lunovia:
 //
 //	repository.go  akses data (nanti: query sqlc), SELALU difilter wedding_id
 //	service.go     business logic + validasi; satu-satunya pintu masuk bagi modul lain
