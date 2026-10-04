@@ -14,6 +14,7 @@ import (
 	"github.com/khamdanngazis/lovaria/src/templates/themes/minimal"
 	"github.com/khamdanngazis/lovaria/src/templates/themes/modern"
 	"github.com/khamdanngazis/lovaria/src/templates/themes/romantic"
+	"github.com/khamdanngazis/lovaria/src/templates/themes/signature"
 )
 
 // Part adalah satu bagian halaman undangan.
@@ -23,6 +24,9 @@ type Part func(v view.View) templ.Component
 // Layout membungkus bagian lain (templ children).
 type Parts struct {
 	Layout, Hero, Couple, LoveStory, Events, Gallery, Closing Part
+	// SectionTitle: judul bagian milik tema — dipakai juga oleh bagian bersama
+	// (hitung mundur, RSVP, ucapan, hadiah, kenangan) lewat view.SectionTitle.
+	SectionTitle func(title, subtitle string) templ.Component
 }
 
 // ThemeDef mendefinisikan satu tema.
@@ -38,7 +42,7 @@ type ThemeDef struct {
 }
 
 // DefaultID adalah tema bila theme_id wedding tidak dikenal.
-const DefaultID = "elegant"
+const DefaultID = "signature"
 
 var registry = map[string]ThemeDef{}
 
@@ -58,32 +62,60 @@ func register(d ThemeDef) {
 	fill(&b.Events, base.Events)
 	fill(&b.Gallery, base.Gallery)
 	fill(&b.Closing, base.Closing)
+	if b.SectionTitle == nil {
+		b.SectionTitle = base.SectionTitle
+	}
 	d.Parts = b
 	d.order = len(registry)
 	registry[d.ID] = d
 }
 
-// Warna bawaan dipilih agar kontras teks ≥ 4.5:1 (WCAG AA) di atas warna latarnya.
+// Warna bawaan dipilih agar kontras teks ≥ 4.5:1 (WCAG AA): Ink & Muted di atas
+// Surface, putih di atas Primary dan Deep (ditegakkan TestThemeContrast).
+// Accent (champagne) hanya untuk ornamen/garis, bukan teks isi atau tombol.
 func init() {
 	register(ThemeDef{
+		ID: "signature", Name: "Lovoria Signature", Description: "Editorial, hangat, dan premium — wajah Lovoria.",
+		Tokens: view.Tokens{
+			Primary: "#6b4e71", Surface: "#faf7f5", Ink: "#292529", Accent: "#c9a88a", Deep: "#332936", Muted: "#6b666b", Border: "#e8dfd9",
+			FontHeading: "Playfair Display", FontBody: "Inter", Radius: "0.25rem", ButtonRadius: "0.5rem",
+		},
+		Parts: Parts{
+			Hero: signature.Hero, Couple: signature.Couple, LoveStory: signature.LoveStory, Events: signature.Events,
+			Gallery: signature.Gallery, Closing: signature.Closing, SectionTitle: signature.SectionTitle,
+		},
+	})
+	register(ThemeDef{
 		ID: "elegant", Name: "Elegan", Description: "Klasik dengan aksen emas, serif, dan bingkai tipis.",
-		Tokens: view.Tokens{Primary: "#8a6a3c", Surface: "#fbf8f3", Ink: "#2b2b2b", FontHeading: "Cormorant Garamond", FontBody: "Lato"},
-		Parts:  Parts{Hero: elegant.Hero, Couple: elegant.Couple, Events: elegant.Events},
+		Tokens: view.Tokens{
+			Primary: "#8a6a3c", Surface: "#fbf8f3", Ink: "#2b2b2b", Accent: "#c9a88a", Deep: "#2e2620", Muted: "#6a6258", Border: "#e6dccb",
+			FontHeading: "Cormorant Garamond", FontBody: "Lato",
+		},
+		Parts: Parts{Hero: elegant.Hero, Couple: elegant.Couple, Events: elegant.Events},
 	})
 	register(ThemeDef{
 		ID: "minimal", Name: "Minimalis", Description: "Bersih dan lega, huruf kapital, tanpa ornamen.",
-		Tokens: view.Tokens{Primary: "#707070", Surface: "#ffffff", Ink: "#1f1f1f", FontHeading: "Josefin Sans", FontBody: "Inter"},
-		Parts:  Parts{Hero: minimal.Hero, Couple: minimal.Couple, Closing: minimal.Closing},
+		Tokens: view.Tokens{
+			Primary: "#707070", Surface: "#ffffff", Ink: "#1f1f1f", Accent: "#b9b2b0", Deep: "#1f1f1f", Muted: "#666666", Border: "#e5e5e5",
+			FontHeading: "Josefin Sans", FontBody: "Inter",
+		},
+		Parts: Parts{Hero: minimal.Hero, Couple: minimal.Couple, Closing: minimal.Closing},
 	})
 	register(ThemeDef{
 		ID: "romantic", Name: "Romantis", Description: "Lembut dengan warna merah muda, tulisan tangan, foto melengkung.",
-		Tokens: view.Tokens{Primary: "#a85a67", Surface: "#fff6f6", Ink: "#4a3b3b", FontHeading: "Great Vibes", FontBody: "Lora"},
-		Parts:  Parts{Hero: romantic.Hero, Couple: romantic.Couple, Closing: romantic.Closing},
+		Tokens: view.Tokens{
+			Primary: "#a85a67", Surface: "#fff6f6", Ink: "#4a3b3b", Accent: "#c9a88a", Deep: "#5a3540", Muted: "#735e5e", Border: "#f0dcdc",
+			FontHeading: "Great Vibes", FontBody: "Lora",
+		},
+		Parts: Parts{Hero: romantic.Hero, Couple: romantic.Couple, Closing: romantic.Closing},
 	})
 	register(ThemeDef{
 		ID: "modern", Name: "Modern", Description: "Tegas dengan blok warna penuh dan huruf sans tebal.",
-		Tokens: view.Tokens{Primary: "#2f7d6d", Surface: "#f4f6f5", Ink: "#16201e", FontHeading: "Montserrat", FontBody: "Poppins"},
-		Parts:  Parts{Hero: modern.Hero, Couple: modern.Couple, Events: modern.Events},
+		Tokens: view.Tokens{
+			Primary: "#2f7d6d", Surface: "#f4f6f5", Ink: "#16201e", Accent: "#c9a88a", Deep: "#16201e", Muted: "#55605d", Border: "#dde3e1",
+			FontHeading: "Montserrat", FontBody: "Poppins",
+		},
+		Parts: Parts{Hero: modern.Hero, Couple: modern.Couple, Events: modern.Events},
 	})
 }
 

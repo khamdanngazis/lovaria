@@ -134,7 +134,14 @@ func (b *ViewBuilder) Build(ctx context.Context, w wedding.Wedding, g *guest.Gue
 	for _, s := range sts {
 		v.Stories = append(v.Stories, view.Story{DateText: s.Date.String(), Title: s.Title, Description: s.Description, PhotoURL: s.PhotoURL})
 	}
+	cover := settings.CoverImage
+	if cover == "" {
+		cover = v.MainPhoto
+	}
 	for _, p := range photos {
+		if p.URL == cover && cover != "" {
+			v.CoverThumb, v.CoverWidth = p.ThumbURL, p.Width // srcset sampul (T21)
+		}
 		if p.Category == gallery.CategoryCover {
 			continue // foto sampul tampil di pembuka, bukan di galeri
 		}

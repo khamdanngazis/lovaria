@@ -5,24 +5,25 @@ import (
 	"time"
 
 	"github.com/khamdanngazis/lovaria/src/modules/theme/view"
+	"github.com/khamdanngazis/lovaria/src/templates/themes/base"
 )
 
 // ContentAnchor: tujuan tombol "Buka Undangan" — awal bagian tengah, apa pun
 // urutannya (T20).
 templ ContentAnchor() {
-	<div id="undangan" aria-hidden="true"></div>
+	<div id="undangan" tabindex="-1" class="outline-none"></div>
 }
 
 // CountdownSection: hitung mundur menuju acara pertama (T20). Tanpa JS tampil
 // sisa hari dari server; invitation.js menggantinya dengan hari/jam/menit/detik.
 templ CountdownSection(v view.View) {
 	if v.Countdown.Show && !v.ShowsMemory() {
-		<section id="countdown" class="px-6 py-16 text-center">
-			<h2 class="text-3xl text-primary">Menuju Hari Bahagia</h2>
+		<section id="countdown" class="px-6 py-20 text-center">
+			@base.Title(v, "Menuju Hari Bahagia", "")
 			if v.Countdown.Today {
-				<p class="mt-6 text-2xl font-semibold text-primary">Hari ini!</p>
+				<p class="text-2xl font-semibold text-primary">Hari ini!</p>
 			} else {
-				<div class="mt-6" data-countdown={ v.Countdown.Target.UTC().Format(time.RFC3339) }>
+				<div data-countdown={ v.Countdown.Target.UTC().Format(time.RFC3339) }>
 					<p data-cd-days class="text-xl font-semibold text-primary">{ strconv.Itoa(v.Countdown.DaysLeft) } hari lagi</p>
 					<div data-cd-units hidden class="grid grid-cols-4 gap-2" role="timer" aria-live="off">
 						@countdownUnit("d", "Hari")
@@ -34,14 +35,14 @@ templ CountdownSection(v view.View) {
 				</div>
 			}
 			if v.Countdown.CalendarURL != "" {
-				<a href={ templ.SafeURL(v.Countdown.CalendarURL) } class="mt-6 inline-block rounded-full border border-primary px-5 py-2 text-xs font-medium text-primary">Simpan ke Kalender</a>
+				<a href={ templ.SafeURL(v.Countdown.CalendarURL) } class="lv-btn-outline lv-btn-sm mt-6">Simpan ke Kalender</a>
 			}
 		</section>
 	}
 }
 
 templ countdownUnit(unit, label string) {
-	<div class="rounded-2xl bg-white/70 py-3 shadow-sm ring-1 ring-primary/15">
+	<div class="lv-card py-3">
 		<span data-cd={ unit } class="block text-2xl font-semibold tabular-nums text-primary">0</span>
 		<span class="block text-xs opacity-70">{ label }</span>
 	</div>
@@ -50,9 +51,10 @@ templ countdownUnit(unit, label string) {
 // QuoteSection: kutipan / ayat pilihan pasangan (T20); tidak tampil bila kosong.
 templ QuoteSection(v view.View) {
 	if v.Quote.Text != "" {
-		<section id="quote" class="px-8 py-16 text-center">
+		<section id="quote" class="px-8 py-20 text-center">
 			<figure>
-				<blockquote class="whitespace-pre-line text-base italic leading-relaxed">“{ v.Quote.Text }”</blockquote>
+				<p class="text-6xl leading-none text-accent" style="font-family: var(--lv-font-heading)" aria-hidden="true">“</p>
+				<blockquote class="whitespace-pre-line text-base italic leading-relaxed">{ v.Quote.Text }</blockquote>
 				if v.Quote.Source != "" {
 					<figcaption class="mt-4 text-sm font-semibold text-primary">— { v.Quote.Source }</figcaption>
 				}
@@ -66,7 +68,7 @@ templ QuoteSection(v view.View) {
 templ MusicButton(v view.View) {
 	if v.Music.On() {
 		<audio id="lv-music" src={ v.Music.URL } preload="none" loop></audio>
-		<button type="button" id="lv-music-btn" hidden aria-label="Putar musik" aria-pressed="false" class="fixed bottom-4 right-4 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-xl text-white shadow-lg ring-2 ring-white/70">
+		<button type="button" id="lv-music-btn" hidden aria-label="Putar musik" aria-pressed="false" class="fixed bottom-4 right-4 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-xl text-on-primary shadow-lg ring-2 ring-white/70">
 			<span aria-hidden="true">♪</span>
 		</button>
 	}

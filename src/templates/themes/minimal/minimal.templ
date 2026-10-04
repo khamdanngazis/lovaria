@@ -25,7 +25,7 @@ templ Hero(v view.View) {
 				<p class="text-[11px] uppercase tracking-[0.3em] opacity-80">{ base.GreetingText(v, "Untuk") }</p>
 				<p class="mt-1 font-semibold">{ base.GuestName(v) }</p>
 			</div>
-			<a href={ templ.SafeURL(base.OpenHref(v)) } class="bg-ink px-5 py-3 text-xs uppercase tracking-[0.25em] text-surface" style="background: var(--lv-ink)">{ base.OpenText(v, "Buka", "Kenangan") }</a>
+			<a href={ templ.SafeURL(base.OpenHref(v)) } data-open={ base.OpenLock(v) } class="bg-ink px-5 py-3 text-xs uppercase tracking-[0.25em] text-surface" style="background: var(--lv-ink)">{ base.OpenText(v, "Buka", "Kenangan") }</a>
 		</div>
 	</section>
 }

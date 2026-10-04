@@ -23,7 +23,7 @@ templ Hero(v view.View) {
 				<p class="font-semibold">{ base.GuestName(v) }</p>
 				<p class="mt-2 text-sm">{ v.DateText }</p>
 			</div>
-			<a href={ templ.SafeURL(base.OpenHref(v)) } class="justify-self-end rounded-xl bg-ink px-5 py-4 text-sm font-semibold text-surface" style="background: var(--lv-ink)">{ base.OpenText(v, "Buka Undangan", "Lihat Kenangan") } →</a>
+			<a href={ templ.SafeURL(base.OpenHref(v)) } data-open={ base.OpenLock(v) } class="justify-self-end rounded-xl bg-ink px-5 py-4 text-sm font-semibold text-surface" style="background: var(--lv-ink)">{ base.OpenText(v, "Buka Undangan", "Lihat Kenangan") } →</a>
 		</div>
 	</section>
 }

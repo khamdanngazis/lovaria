@@ -110,7 +110,7 @@ func TestThemePageSaveAndPreview(t *testing.T) {
 	base := w.DashboardURL("/theme")
 
 	rec := a.do(owner, http.MethodGet, base, nil)
-	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), `value="elegant" checked`) {
+	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), `value="signature" checked`) {
 		t.Fatalf("page: %d", rec.Code)
 	}
 	// Regresi: field opsional tidak boleh "required" — pilihan "Bawaan tema" bernilai
@@ -135,7 +135,7 @@ func TestThemePageSaveAndPreview(t *testing.T) {
 	if rec.Code != http.StatusUnprocessableEntity || !strings.Contains(rec.Body.String(), "Warna harus format hex") || !strings.Contains(rec.Body.String(), "Font tidak tersedia") {
 		t.Fatalf("invalid: %d", rec.Code)
 	}
-	if got, _ := a.weddings.GetWedding(context.Background(), w.ID); got.ThemeID != "elegant" {
+	if got, _ := a.weddings.GetWedding(context.Background(), w.ID); got.ThemeID != theme.DefaultID {
 		t.Error("tema berubah walau validasi gagal")
 	}
 
@@ -185,7 +185,7 @@ func TestThemeRoutesOwnerOnly(t *testing.T) {
 			t.Errorf("bob %s %s: %d, want 404", c.method, c.path, rec.Code)
 		}
 	}
-	if got, _ := a.weddings.GetWedding(context.Background(), w.ID); got.ThemeID != "elegant" {
+	if got, _ := a.weddings.GetWedding(context.Background(), w.ID); got.ThemeID != theme.DefaultID {
 		t.Error("bob berhasil mengganti tema alice")
 	}
 }

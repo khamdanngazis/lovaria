@@ -4,6 +4,8 @@ package base
 
 import (
 	"fmt"
+	"strings"
+	"unicode"
 
 	"github.com/khamdanngazis/lovaria/src/modules/theme/view"
 	"github.com/khamdanngazis/lovaria/src/templates/layouts"
@@ -43,7 +45,9 @@ templ Head(v view.View) {
 	<script src={ static.URL("js/invitation.js") } defer></script>
 }
 
-// Layout: kerangka halaman undangan — kolom seukuran ponsel di tengah layar.
+// Layout: kerangka halaman undangan. Di ponsel satu kolom; di desktop
+// (≥ 1024px) dua panel — panel kiri menempel (foto sampul, nama, tanggal),
+// kolom undangan menggulir di kanan (T21).
 templ Layout(v view.View) {
 	@layouts.Document(layouts.Meta{Title: "The Wedding of " + v.Couple.Names(), Description: v.OG.Description, Theme: v.ThemeID, Cacheable: true}, Head(v), "lv-invitation min-h-dvh antialiased") {
 		if v.Preview {
@@ -54,18 +58,88 @@ templ Layout(v view.View) {
 				}
 			</div>
 		}
-		<main class="mx-auto min-h-dvh w-full max-w-md overflow-hidden bg-surface shadow-2xl shadow-black/10">
-			if v.ShowsMemory() {
-				<p class="bg-primary px-4 py-3 text-center text-sm text-white">
-					Terima kasih telah menjadi bagian dari hari kami ♡
-					if v.Archived {
-						<span class="mt-1 block text-xs opacity-80">Arsip kenangan — ucapan dan konfirmasi sudah ditutup.</span>
-					}
-				</p>
-			}
-			{ children... }
-		</main>
+		<div class="lg:grid lg:grid-cols-[minmax(0,1fr)_28rem] xl:grid-cols-[minmax(0,1fr)_30rem]">
+			@SidePanel(v)
+			<main class="mx-auto min-h-dvh w-full max-w-md overflow-hidden bg-surface shadow-2xl shadow-black/10 lg:max-w-none">
+				if v.ShowsMemory() {
+					<p class="bg-primary px-4 py-3 text-center text-sm text-on-primary">
+						Terima kasih telah menjadi bagian dari hari kami ♡
+						if v.Archived {
+							<span class="mt-1 block text-xs opacity-80">Arsip kenangan — ucapan dan konfirmasi sudah ditutup.</span>
+						}
+					</p>
+				}
+				{ children... }
+			</main>
+		</div>
 	}
+}
+
+// SidePanel: panel kiri desktop — dekoratif (isi yang sama ada di sampul), jadi
+// aria-hidden. Tersembunyi di bawah 1024px; fotonya lazy supaya tidak diunduh
+// di ponsel.
+templ SidePanel(v view.View) {
+	<aside class="sticky top-0 hidden h-dvh overflow-hidden bg-deep text-white lg:block" aria-hidden="true">
+		if coverOf(v) != "" {
+			<img src={ coverOf(v) } alt="" loading="lazy" decoding="async" class="absolute inset-0 h-full w-full object-cover"/>
+			<div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.15),rgba(0,0,0,0.55))]"></div>
+		}
+		<div class="relative flex h-full flex-col items-center justify-end px-10 pb-16 text-center">
+			@Monogram(v, "h-20 w-20 text-2xl")
+			<p class="mt-8 text-xs uppercase tracking-[0.35em] opacity-80">The Wedding of</p>
+			<p class="mt-4 text-5xl leading-tight xl:text-6xl" style="font-family: var(--lv-font-heading)">{ v.Couple.Names() }</p>
+			<div class="mt-6 h-px w-16 bg-accent"></div>
+			<p class="mt-6 text-sm tracking-wide">{ v.DateText }</p>
+		</div>
+	</aside>
+}
+
+// Initials: inisial nama depan kedua mempelai ("R", "N") untuk monogram. Aman
+// untuk nama satu kata, nama kosong, dan huruf non-ASCII.
+func Initials(v view.View) (groom, bride string) {
+	first := func(name string) string {
+		for _, r := range strings.TrimSpace(name) {
+			if unicode.IsLetter(r) || unicode.IsDigit(r) {
+				return string(unicode.ToUpper(r))
+			}
+		}
+		return ""
+	}
+	return first(v.Couple.GroomName), first(v.Couple.BrideName)
+}
+
+// Monogram: inisial pasangan dalam lingkaran tipis (sampul, penutup, panel
+// desktop). class mengatur ukuran lingkaran & huruf; warna mengikuti teks.
+templ Monogram(v view.View, class string) {
+	{{ g, b := Initials(v) }}
+	if g != "" || b != "" {
+		<div class={ "inline-flex items-center justify-center rounded-full border border-accent", class } aria-hidden="true" style="font-family: var(--lv-font-heading)">
+			<span>{ g }</span>
+			if g != "" && b != "" {
+				<span class="mx-1 text-[0.6em] text-accent">&amp;</span>
+			}
+			<span>{ b }</span>
+		</div>
+	}
+}
+
+// OpenLock: nilai atribut data-open tombol pembuka. "lock" → invitation.js
+// mengunci isi di belakang sampul sampai tombol ditekan. Preview dashboard
+// tidak dikunci (pasangan perlu langsung melihat seluruh halaman).
+func OpenLock(v view.View) string {
+	if v.Preview {
+		return ""
+	}
+	return "lock"
+}
+
+// CoverSrcset: srcset foto sampul (thumbnail + ukuran penuh) bila sampul
+// berasal dari galeri; kosong → hanya src.
+func CoverSrcset(v view.View) string {
+	if v.CoverThumb == "" || v.CoverWidth <= 480 {
+		return ""
+	}
+	return fmt.Sprintf("%s 480w, %s %dw", v.CoverThumb, coverOf(v), v.CoverWidth)
 }
 
 func coverOf(v view.View) string {
@@ -143,37 +217,82 @@ func EventsSubtitle(v view.View) string {
 // CoverOf dipakai tema lain.
 func CoverOf(v view.View) string { return coverOf(v) }
 
-templ Hero(v view.View) {
-	<section id="opening" class="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-6 py-16 text-center">
-		if coverOf(v) != "" {
-			<img src={ coverOf(v) } alt="" fetchpriority="low" class="absolute inset-0 h-full w-full object-cover"/>
-			<div class="absolute inset-0 bg-black/45"></div>
+// Wide & PhotoLabel dipakai galeri tema lain.
+func Wide(i, n int) bool                    { return wide(i, n) }
+func PhotoLabel(p view.Photo, i int) string { return photoLabel(p, i) }
+
+// FirstNames: nama depan kedua mempelai (judul besar di sampul & penutup).
+func FirstNames(v view.View) (groom, bride string) {
+	groom, bride, _ = strings.Cut(v.Couple.Names(), " & ")
+	return groom, bride
+}
+
+// CoverImage: foto sampul layar penuh (prioritas muat tinggi, srcset, zoom halus).
+templ CoverImage(v view.View, class string) {
+	<img
+		src={ coverOf(v) }
+		if CoverSrcset(v) != "" {
+			srcset={ CoverSrcset(v) }
+			sizes="(min-width: 1024px) 30rem, 100vw"
 		}
-		<div class={ "relative", templ.KV("text-white", coverOf(v) != "") }>
+		alt=""
+		fetchpriority="high"
+		decoding="async"
+		class={ "lv-kenburns", class }
+	/>
+}
+
+// OpenButton: tombol "Buka Undangan" — tautan anchor biasa (tanpa JS tetap
+// berfungsi); invitation.js menambahkan pengunci sampul & transisi.
+templ OpenButton(v view.View, class, normal, memory string) {
+	<a href={ templ.SafeURL(OpenHref(v)) } data-open={ OpenLock(v) } class={ class }>{ OpenText(v, normal, memory) }</a>
+}
+
+templ Hero(v view.View) {
+	<section id="opening" class={ "relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-6 py-16 text-center", "bg-deep text-white" }>
+		if coverOf(v) != "" {
+			// Desktop: foto sudah ada di panel kiri → sampul tanpa foto (Deep).
+			@CoverImage(v, "absolute inset-0 h-full w-full object-cover lg:hidden")
+			<div class="absolute inset-0 bg-black/45 lg:hidden"></div>
+		}
+		<div class="lv-cover-body relative text-white">
+			@Monogram(v, "mb-8 h-16 w-16 text-xl")
 			<p class="text-xs uppercase tracking-[0.3em] opacity-80">The Wedding of</p>
 			<h1 class="mt-4 text-5xl leading-tight">{ v.Couple.Names() }</h1>
-			<p class="mt-4 text-sm tracking-wide">{ v.DateText }</p>
+			<div class="mx-auto mt-5 h-px w-14 bg-accent"></div>
+			<p class="mt-5 text-sm tracking-wide">{ v.DateText }</p>
 			<div class="mt-10 text-sm">
 				<p class="opacity-80">{ GreetingText(v, "Kepada Yth.") }</p>
 				<p class="mt-1 text-lg font-semibold">{ GuestName(v) }</p>
 			</div>
-			<a href={ templ.SafeURL(OpenHref(v)) } class="mt-8 inline-block rounded-full bg-primary px-6 py-3 text-sm font-medium text-white shadow-lg">{ OpenText(v, "Buka Undangan", "Lihat Kenangan") }</a>
+			@OpenButton(v, "lv-btn mt-8 shadow-lg", "Buka Undangan", "Lihat Kenangan")
 		</div>
 	</section>
 }
 
+// SectionTitle: judul bagian bawaan (tema boleh menggantinya lewat registry).
 templ SectionTitle(title, subtitle string) {
 	<div class="mb-8 text-center">
 		<h2 class="text-3xl text-primary">{ title }</h2>
+		<div class="mx-auto mt-3 h-px w-12 bg-accent" aria-hidden="true"></div>
 		if subtitle != "" {
-			<p class="mt-2 text-sm opacity-80">{ subtitle }</p>
+			<p class="mt-3 text-sm text-muted">{ subtitle }</p>
 		}
 	</div>
 }
 
+// Title: judul bagian milik tema aktif (cadangan: SectionTitle). Dipakai bagian
+// bersama & bagian base supaya tidak perlu mengenal ID tema.
+func Title(v view.View, title, subtitle string) templ.Component {
+	if v.SectionTitle != nil {
+		return v.SectionTitle(title, subtitle)
+	}
+	return SectionTitle(title, subtitle)
+}
+
 templ Couple(v view.View) {
 	<section id="couple" class="px-6 py-16 text-center">
-		@SectionTitle("Mempelai", "Dengan memohon rahmat Tuhan, kami bermaksud menyelenggarakan pernikahan")
+		@Title(v, "Mempelai", "Dengan memohon rahmat Tuhan, kami bermaksud menyelenggarakan pernikahan")
 		@person(v.Couple.GroomName, v.Couple.GroomPhoto, v.Couple.GroomDesc)
 		<p class="my-6 text-4xl text-primary" style="font-family: var(--lv-font-heading)">&amp;</p>
 		@person(v.Couple.BrideName, v.Couple.BridePhoto, v.Couple.BrideDesc)
@@ -194,7 +313,7 @@ templ person(name, photo, desc string) {
 }
 
 templ SaveTheDate(v view.View) {
-	<div class="mt-12 rounded-2xl bg-primary/10 px-6 py-8">
+	<div class="lv-photo mt-12 bg-primary/10 px-6 py-8">
 		<p class="text-xs uppercase tracking-[0.3em] text-primary">Save the date</p>
 		<p class="mt-2 text-xl font-semibold">{ v.DateText }</p>
 		if v.Description != "" {
@@ -206,7 +325,7 @@ templ SaveTheDate(v view.View) {
 templ LoveStory(v view.View) {
 	if len(v.Stories) > 0 {
 		<section id="story" class="px-6 py-16">
-			@SectionTitle("Cerita Kami", "")
+			@Title(v, "Cerita Kami", "")
 			<ol class="relative space-y-8 border-l-2 border-primary/30 pl-6">
 				for _, s := range v.Stories {
 					<li class="relative">
@@ -229,10 +348,10 @@ templ LoveStory(v view.View) {
 templ Events(v view.View) {
 	if len(v.Events) > 0 {
 		<section id="events" class="px-6 py-16">
-			@SectionTitle("Acara", EventsSubtitle(v))
+			@Title(v, "Acara", EventsSubtitle(v))
 			<div class="space-y-5">
 				for _, e := range v.Events {
-					@EventCard(e, "rounded-2xl bg-white/70 p-6 text-center shadow-sm ring-1 ring-black/5")
+					@EventCard(e, "lv-card p-6 text-center")
 				}
 			</div>
 		</section>
@@ -254,10 +373,10 @@ templ EventCard(e view.Event, class string) {
 		}
 		<div class="mt-4 flex flex-wrap justify-center gap-2">
 			if e.MapsURL != "" {
-				<a href={ templ.SafeURL(e.MapsURL) } target="_blank" rel="noopener" class="rounded-full bg-primary px-4 py-2 text-xs font-medium text-white">Buka Peta</a>
+				<a href={ templ.SafeURL(e.MapsURL) } target="_blank" rel="noopener" class="lv-btn lv-btn-sm">Buka Peta</a>
 			}
 			if e.CalendarURL != "" {
-				<a href={ templ.SafeURL(e.CalendarURL) } class="rounded-full border border-primary px-4 py-2 text-xs font-medium text-primary">Simpan ke Kalender</a>
+				<a href={ templ.SafeURL(e.CalendarURL) } class="lv-btn-outline lv-btn-sm">Simpan ke Kalender</a>
 			}
 		</div>
 	</article>
@@ -266,10 +385,10 @@ templ EventCard(e view.Event, class string) {
 templ Gallery(v view.View) {
 	if len(v.Gallery) > 0 {
 		<section id="gallery" class="px-4 py-16">
-			@SectionTitle("Galeri", "")
+			@Title(v, "Galeri", "")
 			<div class="grid grid-cols-2 gap-2">
 				for i, p := range v.Gallery {
-					<a href={ templ.SafeURL(p.URL) } data-lightbox aria-label={ photoLabel(p, i) } class={ "block overflow-hidden rounded-xl", templ.KV("col-span-2", wide(i, len(v.Gallery))) }>
+					<a href={ templ.SafeURL(p.URL) } data-lightbox aria-label={ photoLabel(p, i) } class={ "lv-photo block overflow-hidden", templ.KV("col-span-2", wide(i, len(v.Gallery))) }>
 						<img src={ p.ThumbURL } alt={ p.Caption } loading="lazy" class={ "w-full object-cover", templ.KV("aspect-video", wide(i, len(v.Gallery))), templ.KV("aspect-square", !wide(i, len(v.Gallery))) }/>
 					</a>
 				}
@@ -283,6 +402,6 @@ templ Closing(v view.View) {
 		<p class="mx-auto max-w-xs whitespace-pre-line text-sm opacity-80">{ ClosingText(v, "Merupakan suatu kehormatan dan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir dan memberikan doa restu.", "Terima kasih atas doa dan restu yang telah Bapak/Ibu/Saudara/i berikan untuk kami.") }</p>
 		<p class="mt-8 text-sm">Kami yang berbahagia,</p>
 		<p class="mt-2 text-4xl text-primary" style="font-family: var(--lv-font-heading)">{ v.Couple.Names() }</p>
-		<p class="mt-16 text-xs opacity-50">Dibuat dengan Lovoria</p>
+		<p class="mt-16 text-xs text-muted">Dibuat dengan Lovoria</p>
 	</section>
 }

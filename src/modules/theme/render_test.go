@@ -75,12 +75,12 @@ func TestRenderSettingsOverrideAndFallback(t *testing.T) {
 	v.Settings = view.Settings{PrimaryColor: "#123456", FontHeading: "Cinzel", CoverImage: "https://pub-x.r2.dev/cover.jpg"}
 	v.Preview, v.AllowRSVP = true, true
 	html := render(t, v)
-	for _, want := range []string{`data-theme="elegant"`, "--lv-primary:#123456;", "family=Cinzel", "cover.jpg", `id="rsvp"`, "Preview"} {
+	for _, want := range []string{`data-theme="signature"`, "--lv-primary:#123456;", "family=Cinzel", "cover.jpg", `id="rsvp"`, "Preview"} {
 		if !strings.Contains(html, want) {
 			t.Errorf("tidak memuat %q", want)
 		}
 	}
-	if strings.Contains(html, "family=Cormorant") {
+	if strings.Contains(html, "family=Playfair") {
 		t.Error("font default tidak boleh dimuat saat diganti")
 	}
 }

@@ -40,7 +40,7 @@ func TestSaveAndLoadSettings(t *testing.T) {
 	if _, err := svc.Save(ctx, w.ID, "romantic", view.Settings{PrimaryColor: "pink"}); !errors.As(err, &se) {
 		t.Errorf("warna invalid: %v", err)
 	}
-	if got, _ := ws.GetWedding(ctx, w.ID); got.ThemeID != "elegant" {
+	if got, _ := ws.GetWedding(ctx, w.ID); got.ThemeID != DefaultID {
 		t.Error("validasi gagal tidak boleh mengubah tema")
 	}
 

@@ -25,7 +25,7 @@ const (
 	StatusMemory     = "memory"
 	StatusArchived   = "archived"
 
-	DefaultThemeID  = "elegant"
+	DefaultThemeID  = "signature"
 	DefaultTimezone = "Asia/Jakarta"
 
 	dateLayout = "2006-01-02"

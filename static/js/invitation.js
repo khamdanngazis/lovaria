@@ -4,7 +4,41 @@ document.querySelectorAll('link[data-font-css]').forEach(function (l) {
   l.rel = 'stylesheet';
 });
 
-// JS halaman undangan (tanpa library): lightbox galeri + fade-in saat scroll.
+// Sampul "Buka Undangan" (T21): isi undangan dikunci di belakang sampul sampai
+// tombol pembuka ditekan. Kunci dipasang di sini (bukan di HTML), jadi tanpa JS
+// halaman tetap bisa digulir dan tombol berfungsi sebagai tautan anchor biasa.
+// Tidak dikunci bila: sudah pernah dibuka di sesi ini, URL membawa hash (mis.
+// kembali ke #rsvp), atau preview dashboard (tombol tanpa data-open="lock").
+(function () {
+  var open = document.querySelector('#opening a[data-open="lock"]');
+  if (!open) return;
+  var root = document.documentElement;
+  var key = 'lv-opened:' + location.pathname;
+  var seen = false;
+  try { seen = sessionStorage.getItem(key) === '1'; } catch (e) { /* mode privat */ }
+  if (!seen && !location.hash) root.classList.add('lv-locked');
+  open.addEventListener('click', function (e) {
+    var target = document.querySelector(open.getAttribute('href'));
+    var cover = document.getElementById('opening');
+    if (!target) return;
+    e.preventDefault();
+    try { sessionStorage.setItem(key, '1'); } catch (err) { /* mode privat */ }
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function go() {
+      root.classList.remove('lv-locked');
+      target.setAttribute('tabindex', '-1');
+      target.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
+      target.focus({ preventScroll: true });
+    }
+    if (reduce) return go();
+    // Isi sampul memudar ke atas (≤ 700 ms), lalu halaman menggulir ke isi.
+    cover.classList.add('lv-cover-leave');
+    setTimeout(go, 450);
+    setTimeout(function () { cover.classList.remove('lv-cover-leave'); }, 1800);
+  });
+})();
+
+// JS halaman undangan (tanpa library): lightbox galeri + reveal saat scroll.
 (function () {
   // Fade-in bagian halaman saat masuk layar (dilewati bila pengguna memilih
   // mengurangi animasi).

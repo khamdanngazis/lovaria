@@ -7,16 +7,17 @@ import (
 	"strconv"
 
 	"github.com/khamdanngazis/lovaria/src/modules/theme/view"
+	"github.com/khamdanngazis/lovaria/src/templates/themes/base"
 )
 
 // RSVPSection: konfirmasi kehadiran (T10). Form POST biasa (tanpa JS) yang
 // ditingkatkan htmx: respons berupa section ini lagi (hx-swap outerHTML).
 templ RSVPSection(v view.View) {
 	if v.AllowRSVP {
-		<section id="rsvp" class="px-6 py-16">
-			@rsvpTitle()
+		<section id="rsvp" class="px-6 py-20">
+			@rsvpTitle(v)
 			if v.Guest == nil {
-				<p class="rounded-2xl bg-primary/5 p-6 text-center text-sm">Gunakan link undangan pribadi Anda untuk RSVP.</p>
+				<p class="lv-photo bg-primary/5 p-6 text-center text-sm">Gunakan link undangan pribadi Anda untuk RSVP.</p>
 			} else {
 				@rsvpForm(v)
 			}
@@ -24,18 +25,15 @@ templ RSVPSection(v view.View) {
 	} else if !v.Archived && v.Guest != nil && v.Guest.RSVPStatus != "pending" && v.Guest.RSVPStatus != "" {
 		// RSVP ditutup (Kenangan): tampilkan jawaban tamu apa adanya. Arsip
 		// tidak memuat data RSVP pribadi (T19).
-		<section id="rsvp" class="px-6 py-16">
-			@rsvpTitle()
-			<p class="rounded-2xl bg-primary/5 p-6 text-center text-sm">{ rsvpSummary(v.Guest) }</p>
+		<section id="rsvp" class="px-6 py-20">
+			@rsvpTitle(v)
+			<p class="lv-photo bg-primary/5 p-6 text-center text-sm">{ rsvpSummary(v.Guest) }</p>
 		</section>
 	}
 }
 
-templ rsvpTitle() {
-	<div class="mb-8 text-center">
-		<h2 class="text-3xl text-primary">Konfirmasi Kehadiran</h2>
-		<p class="mt-2 text-sm opacity-80">Mohon kabari kami apakah Anda dapat hadir</p>
-	</div>
+templ rsvpTitle(v view.View) {
+	@base.Title(v, "Konfirmasi Kehadiran", "Mohon kabari kami apakah Anda dapat hadir")
 }
 
 func rsvpSummary(g *view.Guest) string {
@@ -63,14 +61,14 @@ func rsvpValues(v view.View) (status string, pax int, message string) {
 
 templ rsvpForm(v view.View) {
 	{{ status, pax, message := rsvpValues(v) }}
-	<div class="rounded-2xl bg-white/60 p-5 shadow-sm ring-1 ring-primary/15">
+	<div class="lv-card p-5">
 		if v.RSVP.Notice != "" {
-			<p role="status" class="mb-4 rounded-xl bg-primary px-4 py-3 text-center text-sm text-white">{ v.RSVP.Notice }</p>
+			<p role="status" class="lv-photo mb-4 bg-primary px-4 py-3 text-center text-sm text-on-primary">{ v.RSVP.Notice }</p>
 		} else if s := rsvpSummary(v.Guest); s != "" {
 			<p class="mb-4 text-center text-sm">{ s }. Anda masih bisa mengubahnya sampai hari H.</p>
 		}
 		if v.RSVP.Error != "" {
-			<p role="alert" class="mb-4 rounded-xl bg-red-50 px-4 py-3 text-center text-sm text-red-700">{ v.RSVP.Error }</p>
+			<p role="alert" class="lv-photo mb-4 bg-red-50 px-4 py-3 text-center text-sm text-red-700">{ v.RSVP.Error }</p>
 		}
 		<form
 			method="post"
@@ -94,7 +92,7 @@ templ rsvpForm(v view.View) {
 			</fieldset>
 			<div class="group-has-[[value=declined]:checked]:hidden">
 				<label for="rsvp-pax" class="mb-1 block text-sm font-medium">Jumlah orang</label>
-				<select id="rsvp-pax" name="pax" class="w-full rounded-xl border border-primary/30 bg-white px-3 py-2.5 text-base">
+				<select id="rsvp-pax" name="pax" class="lv-input">
 					for n := 1; n <= max(1, v.Guest.MaxPax); n++ {
 						<option value={ strconv.Itoa(n) } selected?={ n == pax }>{ strconv.Itoa(n) } orang</option>
 					}
@@ -103,7 +101,7 @@ templ rsvpForm(v view.View) {
 			</div>
 			<div>
 				<label for="rsvp-message" class="mb-1 block text-sm font-medium">Pesan untuk mempelai <span class="font-normal opacity-70">(opsional)</span></label>
-				<textarea id="rsvp-message" name="message" rows="3" maxlength="500" class="w-full rounded-xl border border-primary/30 bg-white px-3 py-2.5 text-base">{ message }</textarea>
+				<textarea id="rsvp-message" name="message" rows="3" maxlength="500" class="lv-input">{ message }</textarea>
 				@rsvpError(v, "message")
 			</div>
 			if v.AllowGuestbook {
@@ -115,7 +113,7 @@ templ rsvpForm(v view.View) {
 			<button
 				type="submit"
 				disabled?={ v.RSVP.Action == "" }
-				class="w-full rounded-full bg-primary px-6 py-3 text-sm font-medium text-white shadow disabled:opacity-60"
+				class="lv-btn w-full"
 			>
 				if v.Guest.RSVPStatus == "attending" || v.Guest.RSVPStatus == "declined" {
 					Perbarui konfirmasi
@@ -131,7 +129,7 @@ templ rsvpForm(v view.View) {
 }
 
 templ rsvpChoice(value, label, current string) {
-	<label class="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-primary/30 bg-white px-3 py-3 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary has-[:checked]:text-white has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary has-[:focus-visible]:ring-offset-2">
+	<label class="lv-input flex cursor-pointer items-center justify-center gap-2 py-3 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary has-[:checked]:text-on-primary has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary has-[:focus-visible]:ring-offset-2">
 		<input type="radio" name="status" value={ value } checked?={ current == value } required class="sr-only"/>
 		{ label }
 	</label>
@@ -148,15 +146,12 @@ templ rsvpError(v view.View, field string) {
 // setelah pembuka.
 templ MemorySection(v view.View) {
 	if v.ShowsMemory() && (len(v.MemoryPhotos) > 0 || len(v.Guestbook.Favorites) > 0) {
-		<section id="memories" class="px-6 py-16">
-			<div class="mb-8 text-center">
-				<h2 class="text-3xl text-primary">Kenangan Hari Bahagia</h2>
-				<p class="mt-2 text-sm opacity-80">Momen yang kami rayakan bersama orang-orang tersayang</p>
-			</div>
+		<section id="memories" class="px-6 py-20">
+			@base.Title(v, "Kenangan Hari Bahagia", "Momen yang kami rayakan bersama orang-orang tersayang")
 			if len(v.MemoryPhotos) > 0 {
 				<div class="grid grid-cols-2 gap-2">
 					for i, p := range v.MemoryPhotos {
-						<a href={ templ.SafeURL(p.URL) } target="_blank" rel="noopener" class={ "block overflow-hidden rounded-xl", templ.KV("col-span-2", i == 0 || (i == len(v.MemoryPhotos)-1 && i%2 == 1)) }>
+						<a href={ templ.SafeURL(p.URL) } target="_blank" rel="noopener" class={ "lv-photo block overflow-hidden", templ.KV("col-span-2", i == 0 || (i == len(v.MemoryPhotos)-1 && i%2 == 1)) }>
 							<img src={ p.ThumbURL } alt={ memoryAlt(p, i) } loading="lazy" decoding="async" class={ "w-full object-cover", templ.KV("aspect-[4/3]", i == 0), templ.KV("aspect-square", i != 0) }/>
 						</a>
 					}
@@ -166,7 +161,7 @@ templ MemorySection(v view.View) {
 				<h3 class="mb-4 mt-10 text-center text-xl text-primary">Ucapan Pilihan</h3>
 				<div class="space-y-3">
 					for _, e := range v.Guestbook.Favorites {
-						<figure class="rounded-2xl bg-white/70 p-5 shadow-sm ring-1 ring-primary/15">
+						<figure class="lv-card p-5">
 							<blockquote class="whitespace-pre-line break-words text-sm italic">“{ e.Message }”</blockquote>
 							<figcaption class="mt-3 text-xs opacity-70"><span class="font-semibold not-italic text-primary">{ e.Name }</span> · { e.DateText }</figcaption>
 						</figure>
@@ -175,6 +170,13 @@ templ MemorySection(v view.View) {
 			}
 		</section>
 	}
+}
+
+func guestbookSubtitle(v view.View) string {
+	if v.AllowGuestbook {
+		return "Kirimkan doa dan ucapan untuk kedua mempelai"
+	}
+	return "Doa dan ucapan dari keluarga & sahabat"
 }
 
 func memoryAlt(p view.Photo, i int) string {
@@ -190,22 +192,15 @@ func memoryAlt(p view.Photo, i int) string {
 templ GuestbookSection(v view.View) {
 	if v.AllowGuestbook || v.Archived {
 		{{ g := v.Guestbook }}
-		<section id="guestbook" class="px-6 py-16">
-			<div class="mb-8 text-center">
-				<h2 class="text-3xl text-primary">Ucapan & Doa</h2>
-				if v.AllowGuestbook {
-					<p class="mt-2 text-sm opacity-80">Kirimkan doa dan ucapan untuk kedua mempelai</p>
-				} else {
-					<p class="mt-2 text-sm opacity-80">Doa dan ucapan dari keluarga & sahabat</p>
-				}
-			</div>
+		<section id="guestbook" class="px-6 py-20">
+			@base.Title(v, "Ucapan & Doa", guestbookSubtitle(v))
 			if v.AllowGuestbook {
-				<div class="rounded-2xl bg-white/60 p-5 shadow-sm ring-1 ring-primary/15">
+				<div class="lv-card p-5">
 					if g.Notice != "" {
-						<p role="status" class="mb-4 rounded-xl bg-primary px-4 py-3 text-center text-sm text-white">{ g.Notice }</p>
+						<p role="status" class="lv-photo mb-4 bg-primary px-4 py-3 text-center text-sm text-on-primary">{ g.Notice }</p>
 					}
 					if g.Error != "" {
-						<p role="alert" class="mb-4 rounded-xl bg-red-50 px-4 py-3 text-center text-sm text-red-700">{ g.Error }</p>
+						<p role="alert" class="lv-photo mb-4 bg-red-50 px-4 py-3 text-center text-sm text-red-700">{ g.Error }</p>
 					}
 					<form
 						method="post"
@@ -226,15 +221,15 @@ templ GuestbookSection(v view.View) {
 						</div>
 						<div>
 							<label for="gb-name" class="mb-1 block text-sm font-medium">Nama</label>
-							<input id="gb-name" type="text" name="name" value={ g.Name } maxlength="100" required autocomplete="name" class="w-full rounded-xl border border-primary/30 bg-white px-3 py-2.5 text-base"/>
+							<input id="gb-name" type="text" name="name" value={ g.Name } maxlength="100" required autocomplete="name" class="lv-input"/>
 							@fieldError(g.Errors["name"])
 						</div>
 						<div>
 							<label for="gb-message" class="mb-1 block text-sm font-medium">Ucapan</label>
-							<textarea id="gb-message" name="message" rows="3" maxlength="500" required class="w-full rounded-xl border border-primary/30 bg-white px-3 py-2.5 text-base">{ g.Message }</textarea>
+							<textarea id="gb-message" name="message" rows="3" maxlength="500" required class="lv-input">{ g.Message }</textarea>
 							@fieldError(g.Errors["message"])
 						</div>
-						<button type="submit" disabled?={ g.Action == "" } class="w-full rounded-full bg-primary px-6 py-3 text-sm font-medium text-white shadow disabled:opacity-60">Kirim ucapan</button>
+						<button type="submit" disabled?={ g.Action == "" } class="lv-btn w-full">Kirim ucapan</button>
 					</form>
 				</div>
 			}
@@ -250,14 +245,14 @@ templ GuestbookSection(v view.View) {
 templ GuestbookEntries(v view.View) {
 	{{ g := v.Guestbook }}
 	for _, e := range g.Entries {
-		<article class="rounded-2xl bg-white/60 p-4 ring-1 ring-primary/10">
+		<article class="lv-card p-4">
 			<p class="whitespace-pre-line break-words text-sm">{ e.Message }</p>
 			<p class="mt-2 text-xs opacity-70"><span class="font-semibold text-primary">{ e.Name }</span> · { e.DateText }</p>
 		</article>
 	}
 	if g.MoreBefore != "" && g.Action != "" {
 		{{ more := g.Action + "?before=" + g.MoreBefore }}
-		<a href={ templ.SafeURL(more) } hx-get={ more } hx-swap="outerHTML" class="block rounded-full border border-primary px-6 py-2.5 text-center text-sm font-medium text-primary">Muat lebih banyak</a>
+		<a href={ templ.SafeURL(more) } hx-get={ more } hx-swap="outerHTML" class="lv-btn-outline block">Muat lebih banyak</a>
 	}
 }
 
@@ -271,26 +266,23 @@ templ fieldError(msg string) {
 // Tombol salin dimunculkan invitation.js (tanpa JS nomor tetap bisa diseleksi).
 templ GiftSection(v view.View) {
 	if len(v.Gifts) > 0 {
-		<section id="gift" class="px-6 py-16">
-			<div class="mb-8 text-center">
-				<h2 class="text-3xl text-primary">Tanda Kasih</h2>
-				<p class="mt-2 text-sm opacity-80">Doa restu Anda sudah lebih dari cukup. Namun bila ingin memberi tanda kasih, dapat melalui:</p>
-			</div>
+		<section id="gift" class="px-6 py-20">
+			@base.Title(v, "Tanda Kasih", "Doa restu Anda sudah lebih dari cukup. Namun bila ingin memberi tanda kasih, dapat melalui:")
 			<div class="space-y-4">
 				for _, gf := range v.Gifts {
-					<div class="rounded-2xl bg-white/70 p-5 text-center shadow-sm ring-1 ring-primary/15">
+					<div class="lv-card p-5 text-center">
 						if gf.Type == "address" {
 							<p class="text-xs font-medium uppercase tracking-wide text-primary">Kirim hadiah</p>
 							if gf.AccountName != "" {
 								<p class="mt-2 font-semibold">{ gf.AccountName }</p>
 							}
 							<p class="mt-1 whitespace-pre-line break-words text-sm">{ gf.Address }</p>
-							<button type="button" hidden data-copy={ gf.Address } class="mt-4 rounded-full border border-primary px-5 py-2 text-xs font-medium text-primary">Salin Alamat</button>
+							<button type="button" hidden data-copy={ gf.Address } class="lv-btn-outline lv-btn-sm mt-4">Salin Alamat</button>
 						} else {
 							<p class="text-xs font-medium uppercase tracking-wide text-primary">{ gf.Provider }</p>
 							<p class="mt-2 select-all font-mono text-xl tracking-wider">{ gf.AccountNumber }</p>
 							<p class="mt-1 text-sm opacity-80">a.n. { gf.AccountName }</p>
-							<button type="button" hidden data-copy={ gf.AccountNumber } class="mt-4 rounded-full bg-primary px-5 py-2 text-xs font-medium text-white">Salin Nomor</button>
+							<button type="button" hidden data-copy={ gf.AccountNumber } class="lv-btn lv-btn-sm mt-4">Salin Nomor</button>
 						}
 					</div>
 				}

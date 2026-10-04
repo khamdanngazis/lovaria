@@ -1,0 +1,30 @@
+package signature
+
+// Ornamen tema Signature: SVG inline dekoratif (aria-hidden) yang mengikuti
+// warna teks (currentColor) — tanpa berkas gambar tambahan.
+
+// sparkle: bintang empat sudut (motif brand Lovoria).
+templ sparkle(class string) {
+	<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class={ class }>
+		<path d="M12 0c.6 6.2 5.8 11.4 12 12-6.2.6-11.4 5.8-12 12-.6-6.2-5.8-11.4-12-12C6.2 11.4 11.4 6.2 12 0z"></path>
+	</svg>
+}
+
+// divider: garis tipis – bintang – garis tipis.
+templ divider(class string) {
+	<div class={ "flex items-center justify-center gap-3 text-accent", class } aria-hidden="true">
+		<span class="h-px w-10 bg-current opacity-70"></span>
+		@sparkle("h-2.5 w-2.5")
+		<span class="h-px w-10 bg-current opacity-70"></span>
+	</div>
+}
+
+// frame: bingkai garis tipis dengan bintang di keempat sudut (sampul tanpa foto).
+templ frame(class string) {
+	<div class={ "pointer-events-none absolute inset-4 border border-accent/40 text-accent", class } aria-hidden="true">
+		@sparkle("absolute -left-1.5 -top-1.5 h-3 w-3")
+		@sparkle("absolute -right-1.5 -top-1.5 h-3 w-3")
+		@sparkle("absolute -bottom-1.5 -left-1.5 h-3 w-3")
+		@sparkle("absolute -bottom-1.5 -right-1.5 h-3 w-3")
+	</div>
+}

@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### T21 (bagian 1) — Fondasi redesign template & tema Lovoria Signature
+- **Tema baru Lovoria Signature** (palet brand: Dusty Plum, Champagne, Warm Ivory; Playfair Display + Inter) dengan seluruh bagian didesain khusus. Menjadi **tema bawaan wedding baru** (migration `00023`); wedding lama tetap memakai temanya.
+- **Sampul "Buka Undangan"**: isi undangan terkunci di belakang sampul sampai tombol ditekan, dengan transisi halus, lalu musik mulai. Tanpa JS halaman tetap bisa digulir; muat ulang tidak mengunci lagi.
+- **Tampilan desktop** dua panel: foto sampul, nama, dan tanggal menempel di kiri; undangan menggulir di kanan.
+- **Bagian bersama mengikuti tema**: hitung mundur, kutipan, RSVP, ucapan, hadiah, dan kenangan memakai judul, kartu, tombol, dan input bergaya tema (token baru Accent/Deep/Muted/Border + bentuk sudut).
+- **Monogram inisial** pasangan di sampul, penutup, dan panel desktop; reveal bertingkat saat scroll; semua gerak mati dengan `prefers-reduced-motion`.
+- Warna teks tombol menyesuaikan otomatis bila warna utama kustom terlalu terang; uji kontras otomatis untuk semua tema.
+- Undangan contoh `contoh-signature` (jalankan ulang `lovoria demo seed`).
+- Catatan: tema Elegan, Minimalis, Romantis, dan Modern ikut mendapat sampul terkunci, panel desktop, dan gaya bagian bersama yang baru; penulisan ulang penuh keempatnya menyusul di bagian 2.
+
 ### Undangan contoh lebih lengkap
 - `lovoria demo seed` kini mengisi foto: sampul, potret mempelai, dan 6 foto galeri per tema (foto Unsplash, kredit di `cmd/server/demomedia/CREDITS.md`), plus kutipan contoh. Demo lama tanpa foto dilengkapi saat seed dijalankan ulang.
 - Landing: kartu tema menampilkan foto sampul & nama pasangan undangan contoh.

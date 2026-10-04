@@ -8,6 +8,13 @@
   --color-primary: var(--lv-primary);
   --color-surface: var(--lv-surface);
   --color-ink: var(--lv-ink);
+  /* Token desain tema (T21): aksen/ornamen, bagian gelap, teks sekunder, garis,
+     dan warna teks di atas Primary (putih, atau gelap bila Primary terang). */
+  --color-accent: var(--lv-accent);
+  --color-deep: var(--lv-deep);
+  --color-muted: var(--lv-muted);
+  --color-line: var(--lv-border);
+  --color-on-primary: var(--lv-on-primary);
   --font-heading: var(--lv-font-heading);
   --font-sans: var(--lv-font-body);
 
@@ -31,6 +38,13 @@
   --lv-primary: #b76e79;
   --lv-surface: #fffaf7;
   --lv-ink: #2c2c2c;
+  --lv-accent: #c9a88a;
+  --lv-deep: #332936;
+  --lv-muted: #6b666b;
+  --lv-border: #e8dfd9;
+  --lv-on-primary: #ffffff;
+  --lv-radius: 1rem;
+  --lv-radius-btn: 9999px;
   --lv-font-heading: "Playfair Display", ui-serif, Georgia, serif;
   --lv-font-body: ui-sans-serif, system-ui, sans-serif;
 }
@@ -59,15 +73,96 @@
   font-family: var(--lv-font-heading);
 }
 
-/* Undangan: fade-in saat scroll (invitation.js) & lightbox galeri. */
-.lv-reveal {
-  opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.8s ease, transform 0.8s ease;
+/* Komponen undangan yang gayanya mengikuti tema (T21): bentuk sudut & warna
+   dari token, markup form/kartu di templates/shared tetap satu. */
+.lv-card {
+  border-radius: var(--lv-radius);
+  border: 1px solid var(--lv-border);
+  background: color-mix(in srgb, #ffffff 78%, var(--lv-surface));
 }
-.lv-reveal.lv-shown {
-  opacity: 1;
-  transform: none;
+.lv-btn,
+.lv-btn-outline {
+  display: inline-block;
+  border-radius: var(--lv-radius-btn);
+  border: 1px solid var(--lv-primary);
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+  text-align: center;
+}
+.lv-btn {
+  background: var(--lv-primary);
+  color: var(--lv-on-primary);
+}
+.lv-btn-outline {
+  color: var(--lv-primary);
+}
+.lv-btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+.lv-btn:disabled {
+  opacity: 0.6;
+}
+.lv-input {
+  width: 100%;
+  border-radius: min(var(--lv-radius), 0.75rem);
+  border: 1px solid color-mix(in srgb, var(--lv-primary) 30%, var(--lv-border));
+  background: #ffffff;
+  padding: 0.625rem 0.75rem;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  color: var(--lv-ink);
+}
+.lv-photo {
+  border-radius: var(--lv-radius);
+}
+
+/* Sampul terkunci (invitation.js menambah kelas saat muat — tanpa JS halaman
+   tetap bisa digulir). Setelah "Buka Undangan": isi sampul memudar ke atas. */
+html.lv-locked {
+  overflow: hidden;
+}
+.lv-cover-leave .lv-cover-body {
+  opacity: 0;
+  transform: translateY(-24px);
+}
+
+/* Gerak (T21): hanya bila pengguna tidak meminta pengurangan animasi. */
+@media (prefers-reduced-motion: no-preference) {
+  .lv-cover-body {
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  /* Reveal bertingkat saat scroll: judul bagian dulu, lalu isinya. */
+  .lv-reveal > * {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .lv-reveal > :nth-child(2) {
+    transition-delay: 0.12s;
+  }
+  .lv-reveal > :nth-child(n + 3) {
+    transition-delay: 0.24s;
+  }
+  .lv-reveal.lv-shown > * {
+    opacity: 1;
+    transform: none;
+  }
+  /* Zoom halus foto sampul. */
+  .lv-kenburns {
+    animation: lv-kenburns 14s ease-out both;
+  }
+  @keyframes lv-kenburns {
+    from {
+      transform: scale(1.08);
+    }
+    to {
+      transform: scale(1);
+    }
+  }
 }
 .lv-lightbox {
   position: fixed;
