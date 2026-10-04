@@ -23,7 +23,7 @@ type Font struct {
 
 // Fonts adalah whitelist font. Nilai di luar daftar ini ditolak.
 var Fonts = []Font{
-	{Name: "Cormorant Garamond", Weights: "400;600", Fallback: "Georgia, serif"},
+	{Name: "Cormorant Garamond", Weights: "400;600", Fallback: "Georgia, serif", Italic: true},
 	{Name: "Playfair Display", Weights: "400;500", Fallback: "Georgia, serif", Italic: true},
 	{Name: "Cinzel", Weights: "400;600", Fallback: "Georgia, serif"},
 	{Name: "Lora", Weights: "400;600", Fallback: "Georgia, serif"},

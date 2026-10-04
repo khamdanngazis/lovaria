@@ -59,12 +59,12 @@ Tombol "Buka Undangan" menuju anchor `#undangan` (awal bagian tengah, apa pun ur
 | Tema | Override | Karakter |
 |---|---|---|
 | `signature` (**bawaan**, T21) | Hero, Couple, LoveStory, Events, Gallery, Closing, SectionTitle | Editorial brand Lovoria: Dusty Plum + Champagne + Warm Ivory, Playfair Display + Inter, penutup & galeri Deep Plum, ornamen bintang |
-| `elegant` | Hero, Couple, Events | Emas, serif klasik, bingkai garis & ornamen |
+| `elegant` | semua + SectionTitle | Klasik formal: bingkai ganda dengan ornamen sudut, serba rata tengah, foto & kartu acara berpigura |
 | `minimal` (ditulis ulang T21) | Hero, Couple, LoveStory, Events, Gallery, Closing, SectionTitle | Putih lega, rata kiri, garis rambut, nama & angka tanggal besar, acara tanpa kartu, galeri grid rapat tanpa sudut membulat, penutup gelap. Sampul selalu muat satu layar (foto mengisi sisa tinggi). |
-| `romantic` | Hero, Couple, Closing | Merah muda, judul tulisan tangan, foto melengkung |
-| `modern` | Hero, Couple, Events | Sans tebal, blok warna penuh, kartu berwarna |
+| `romantic` | semua + SectionTitle | Lembut: foto melengkung (arch), ornamen bunga garis, judul tulisan tangan, cerita berselang-seling |
+| `modern` | semua + SectionTitle | Tegas: pembuka gelap, blok warna penuh (Deep Plum), huruf kapital sangat besar, kartu acara berwarna |
 
-Tema bawaan wedding baru: `signature` (`theme.DefaultID`, `wedding.DefaultThemeID`, default kolom `weddings.theme_id` — migration `00023`). Wedding lama tetap memakai `theme_id`-nya. Empat tema lama ditulis ulang di atas fondasi ini pada PR T21 berikutnya.
+Tema bawaan wedding baru: `signature` (`theme.DefaultID`, `wedding.DefaultThemeID`, default kolom `weddings.theme_id` — migration `00023`). Wedding lama tetap memakai `theme_id`-nya. Kelima tema meng-override semua bagian visual (`TestAllThemesOverrideVisualParts`); `base` tetap ada sebagai cadangan untuk tema baru.
 
 ## Sampul & "Buka Undangan" (T21)
 

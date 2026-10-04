@@ -86,12 +86,15 @@ func init() {
 		},
 	})
 	register(ThemeDef{
-		ID: "elegant", Name: "Elegan", Description: "Klasik dengan aksen emas, serif, dan bingkai tipis.",
+		ID: "elegant", Name: "Elegan", Description: "Klasik formal: bingkai ganda, ornamen sudut, serba rata tengah.",
 		Tokens: view.Tokens{
 			Primary: "#8a6a3c", Surface: "#fbf8f3", Ink: "#2b2b2b", Accent: "#c9a88a", Deep: "#2e2620", Muted: "#6a6258", Border: "#e6dccb",
-			FontHeading: "Cormorant Garamond", FontBody: "Lato",
+			FontHeading: "Cormorant Garamond", FontBody: "Lato", Radius: "0.125rem", ButtonRadius: "0.125rem",
 		},
-		Parts: Parts{Hero: elegant.Hero, Couple: elegant.Couple, Events: elegant.Events},
+		Parts: Parts{
+			Hero: elegant.Hero, Couple: elegant.Couple, LoveStory: elegant.LoveStory, Events: elegant.Events,
+			Gallery: elegant.Gallery, Closing: elegant.Closing, SectionTitle: elegant.SectionTitle,
+		},
 	})
 	register(ThemeDef{
 		ID: "minimal", Name: "Minimalis", Description: "Lega dan tenang: rata kiri, garis tipis, angka tanggal besar.",
@@ -105,20 +108,26 @@ func init() {
 		},
 	})
 	register(ThemeDef{
-		ID: "romantic", Name: "Romantis", Description: "Lembut dengan warna merah muda, tulisan tangan, foto melengkung.",
+		ID: "romantic", Name: "Romantis", Description: "Lembut dan personal: foto melengkung, ornamen bunga, tulisan tangan.",
 		Tokens: view.Tokens{
 			Primary: "#a85a67", Surface: "#fff6f6", Ink: "#4a3b3b", Accent: "#c9a88a", Deep: "#5a3540", Muted: "#735e5e", Border: "#f0dcdc",
-			FontHeading: "Great Vibes", FontBody: "Lora",
+			FontHeading: "Great Vibes", FontBody: "Lora", Radius: "1.5rem",
 		},
-		Parts: Parts{Hero: romantic.Hero, Couple: romantic.Couple, Closing: romantic.Closing},
+		Parts: Parts{
+			Hero: romantic.Hero, Couple: romantic.Couple, LoveStory: romantic.LoveStory, Events: romantic.Events,
+			Gallery: romantic.Gallery, Closing: romantic.Closing, SectionTitle: romantic.SectionTitle,
+		},
 	})
 	register(ThemeDef{
-		ID: "modern", Name: "Modern", Description: "Tegas dengan blok warna penuh dan huruf sans tebal.",
+		ID: "modern", Name: "Modern", Description: "Tegas dan kontras: pembuka gelap, blok warna penuh, huruf sangat besar.",
 		Tokens: view.Tokens{
-			Primary: "#2f7d6d", Surface: "#f4f6f5", Ink: "#16201e", Accent: "#c9a88a", Deep: "#16201e", Muted: "#55605d", Border: "#dde3e1",
-			FontHeading: "Montserrat", FontBody: "Poppins",
+			Primary: "#332936", Surface: "#f6f3f1", Ink: "#191519", Accent: "#c9a88a", Deep: "#191519", Muted: "#5c565c", Border: "#e2dcd8",
+			FontHeading: "Montserrat", FontBody: "Poppins", Radius: "1.25rem", ButtonRadius: "0.75rem",
 		},
-		Parts: Parts{Hero: modern.Hero, Couple: modern.Couple, Events: modern.Events},
+		Parts: Parts{
+			Hero: modern.Hero, Couple: modern.Couple, LoveStory: modern.LoveStory, Events: modern.Events,
+			Gallery: modern.Gallery, Closing: modern.Closing, SectionTitle: modern.SectionTitle,
+		},
 	})
 }
 

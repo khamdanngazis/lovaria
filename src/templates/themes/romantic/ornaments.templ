@@ -1,0 +1,28 @@
+package romantic
+
+// Ornamen tema Romantis: bunga & daun garis (SVG inline, aria-hidden,
+// currentColor) plus kelopak lembut dari CSS murni.
+
+// petals: lingkaran lembut di sudut bagian.
+templ petals() {
+	<div aria-hidden="true" class="pointer-events-none absolute -left-16 -top-16 h-48 w-48 rounded-full bg-primary/15 blur-2xl"></div>
+	<div aria-hidden="true" class="pointer-events-none absolute -bottom-20 -right-10 h-56 w-56 rounded-full bg-accent/25 blur-3xl"></div>
+}
+
+// sprig: ranting berdaun dengan kuncup bunga di tengah.
+templ sprig(class string) {
+	<svg class={ "mx-auto h-7 w-36 text-accent", class } viewBox="0 0 144 28" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" aria-hidden="true">
+		<path d="M4 14c14-1 30-1 52 0M140 14c-14-1-30-1-52 0"></path>
+		<path d="M18 14c2-5 6-7 11-7-1 5-5 7-11 7zM34 14c2 5 6 7 11 7-1-5-5-7-11-7zM126 14c-2-5-6-7-11-7 1 5 5 7 11 7zM110 14c-2 5-6 7-11 7 1-5 5-7 11-7z"></path>
+		<circle cx="72" cy="14" r="3"></circle>
+		<path d="M72 5c2 2 2 4 0 6-2-2-2-4 0-6zM72 23c2-2 2-4 0-6-2 2-2 4 0 6zM63 14c2-2 4-2 6 0-2 2-4 2-6 0zM81 14c-2-2-4-2-6 0 2 2 4 2 6 0z"></path>
+	</svg>
+}
+
+// wreath: karangan daun melingkar di belakang monogram (sampul tanpa foto).
+templ wreath(class string) {
+	<svg class={ "text-accent", class } viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" aria-hidden="true">
+		<path d="M60 108C30 104 12 84 12 60s14-40 34-46M60 108c30-4 48-24 48-48S94 20 74 14"></path>
+		<path d="M14 72c6-4 12-3 16 2-6 3-12 3-16-2zM12 52c7-2 12 1 14 7-6 1-12-1-14-7zM20 33c7 0 11 4 12 10-6 0-11-4-12-10zM30 94c4-6 10-7 15-4-4 5-10 7-15 4zM106 72c-6-4-12-3-16 2 6 3 12 3 16-2zM108 52c-7-2-12 1-14 7 6 1 12-1 14-7zM100 33c-7 0-11 4-12 10 6 0 11-4 12-10zM90 94c-4-6-10-7-15-4 4 5 10 7 15 4z"></path>
+	</svg>
+}
