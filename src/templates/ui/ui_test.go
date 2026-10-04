@@ -10,7 +10,10 @@ import (
 	"github.com/khamdanngazis/lovaria/src/modules/theme"
 )
 
-const stylesheet = "../../styles/app.css"
+const (
+	srcRoot    = "../.."
+	stylesheet = srcRoot + "/styles/app.css"
+)
 
 // brandTokens membaca token --color-lovoria-* dari @theme di app.css.
 func brandTokens(t *testing.T) map[string]string {
@@ -64,26 +67,35 @@ func TestBrandTokenContrast(t *testing.T) {
 	}
 }
 
-// migrated: berkas templ yang sudah beralih ke token lovoria-* & kelas ui-*
-// (T22). Daftar bertambah tiap PR sampai seluruh dashboard/auth/admin tercakup.
-var migrated = []string{
-	"form.templ",
-	"../../modules/auth/views.templ",
-	// PR 2: kerangka dashboard & halaman pasangan.
-	"../layouts/layouts.templ",
-	"../../dashboard/home.templ",
-	"../../modules/wedding/views.templ",
-	"../../modules/wedding/event/views.templ",
-	"../../modules/wedding/story/views.templ",
-	"../../modules/guest/views.templ",
-	"../../modules/guest/share_views.templ",
-	"../../modules/guest/rsvp_views.templ",
-	"../../modules/gallery/views.templ",
-	"../../modules/theme/views.templ",
-	"../../modules/guestbook/views.templ",
-	"../../modules/gift/views.templ",
-	"../../modules/domain/views.templ",
-	"../../modules/payment/views.templ",
+// dashboardTempl: semua berkas templ dashboard, auth, admin, dan komponen ui —
+// wajib memakai token lovoria-* & kelas ui-* (T22). Berkas baru otomatis ikut
+// terpindai; pengecualian hanya untuk tampilan undangan & situs publik.
+func dashboardTempl(t *testing.T) []string {
+	t.Helper()
+	// Undangan memakai token tema per wedding (T21); situs publik punya
+	// gayanya sendiri.
+	exempt := []string{"templates/themes/", "templates/shared/", "public-site/"}
+	var out []string
+	err := filepath.WalkDir(srcRoot, func(path string, d os.DirEntry, err error) error {
+		if err != nil || d.IsDir() || !strings.HasSuffix(path, ".templ") {
+			return err
+		}
+		rel, _ := filepath.Rel(srcRoot, path)
+		for _, p := range exempt {
+			if strings.HasPrefix(filepath.ToSlash(rel), p) {
+				return nil
+			}
+		}
+		out = append(out, path)
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(out) < 15 {
+		t.Fatalf("hanya %d berkas templ terpindai — srcRoot salah?", len(out))
+	}
+	return out
 }
 
 var (
@@ -93,9 +105,9 @@ var (
 	themeToken = regexp.MustCompile(`(?:^|[\s"':])(?:[a-z-]+:)*(?:bg|text|border|ring|outline|accent|divide|from|to|fill|stroke)-(?:primary|surface|ink|on-primary)\b`)
 )
 
-func TestNoRawPaletteInMigratedTemplates(t *testing.T) {
-	for _, rel := range migrated {
-		b, err := os.ReadFile(filepath.FromSlash(rel))
+func TestNoRawPaletteInDashboardTemplates(t *testing.T) {
+	for _, rel := range dashboardTempl(t) {
+		b, err := os.ReadFile(rel)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -117,8 +129,8 @@ func TestUIClassesDefined(t *testing.T) {
 		t.Fatal(err)
 	}
 	used := regexp.MustCompile(`\bui-[a-z]+(?:-[a-z]+)*\b`)
-	for _, rel := range migrated {
-		b, err := os.ReadFile(filepath.FromSlash(rel))
+	for _, rel := range dashboardTempl(t) {
+		b, err := os.ReadFile(rel)
 		if err != nil {
 			t.Fatal(err)
 		}

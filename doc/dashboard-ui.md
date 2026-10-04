@@ -4,7 +4,7 @@ Landing, halaman auth, dashboard pasangan, dan panel admin memakai **satu set to
 
 Kode: token & kelas komponen di `src/styles/app.css` · komponen templ di `src/templates/ui` · kerangka di `src/templates/layouts`.
 
-> Status migrasi: PR 1 (fondasi + auth + halaman publik) dan PR 2 (kerangka dashboard + semua halaman pasangan) selesai. Panel admin + penjaga penuh menyusul di PR 3. Berkas yang sudah dimigrasikan terdaftar di `migrated` (`src/templates/ui/ui_test.go`).
+> Status migrasi: selesai (T22 PR 1–3) — auth, halaman publik, dashboard pasangan, dan panel admin. `TestNoRawPaletteInDashboardTemplates` (`src/templates/ui/ui_test.go`) memindai **semua** berkas `.templ` di `src/`, termasuk berkas baru; pengecualiannya hanya `templates/themes/`, `templates/shared/` (undangan, token tema) dan `public-site/`.
 
 ## Aturan
 
@@ -81,6 +81,7 @@ Komponen templ (`src/templates/ui`): `Input`, `TextArea`, `Select`, `ImageUpload
 
 - `layouts.Dashboard`: memuat huruf brand, header putih bergaris `lovoria-border` dengan `BrandLogo` dan **menu akun** (`accountMenu`).
 - Menu akun: di ponsel tombol hamburger (ikon berganti ✕ saat terbuka), di layar lebar avatar inisial + nama. Panelnya memuat nama & email, pintasan Beranda / Wedding saya / Buat wedding baru / Panel admin (hanya admin) / Halaman utama Lovoria, dan tombol Keluar. Dibuat dengan `<details>` sehingga berfungsi tanpa JS; Alpine hanya menutupnya saat klik di luar atau Escape.
+- Panel admin (`admin/views.templ`): judul `font-display text-lovoria-deep` dengan eyebrow "Panel admin", navigasi `ui-tabs` / `ui-tab` (tab aktif lewat `aria-current="page"`), tabel `ui-table` di dalam `ui-card`.
 - Ikon garis kerangka dashboard: `layouts.Icon(name, class)` (`icons.templ`, digambar sendiri — tanpa library ikon). Banner **mode admin lihat-saja** memakai `lovoria-warning` + teks putih dan tetap menempel; kontrol dinonaktifkan lewat `lv-readonly` seperti sebelumnya.
 - `wedding.Shell`: judul wedding `font-display`; menu aktif `bg-lovoria-primary-soft` + `text-lovoria-primary`; judul grup `lovoria-muted`. Bottom bar ponsel dan menu "Menu" tetap `<details>` (berfungsi tanpa JS).
 - Kartu nama pasangan di beranda memakai `lovoria-deep`; angka statistik beranda memakai `font-display`.

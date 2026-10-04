@@ -101,16 +101,18 @@ var tabs = []struct{ Path, Label string }{
 
 templ shell(title, active string) {
 	@layouts.Dashboard(layouts.Meta{Title: "Admin · " + title}) {
-		<p class="text-xs font-medium uppercase tracking-wide text-primary">Panel admin</p>
-		<h1 class="mt-1 text-2xl font-semibold">{ title }</h1>
-		<nav class="scrollbar-none -mx-4 mt-4 overflow-x-auto border-b border-slate-200 px-4" aria-label="Menu admin">
-			<ul class="flex gap-5 whitespace-nowrap text-sm">
-				for _, t := range tabs {
-					<li>
-						<a href={ templ.SafeURL(t.Path) } class={ "-mb-px block border-b-2 pb-2", templ.KV("border-primary font-medium text-slate-900", active == t.Path), templ.KV("border-transparent text-slate-500 hover:text-slate-800", active != t.Path) }>{ t.Label }</a>
-					</li>
-				}
-			</ul>
+		<p class="text-xs font-medium uppercase tracking-[0.2em] text-lovoria-accent-ink">Panel admin</p>
+		<h1 class="mt-1 font-display text-3xl text-lovoria-deep">{ title }</h1>
+		<nav class="ui-tabs scrollbar-none -mx-4 mt-4 px-4" aria-label="Menu admin">
+			for _, t := range tabs {
+				<a
+					href={ templ.SafeURL(t.Path) }
+					class="ui-tab"
+					if active == t.Path {
+						aria-current="page"
+					}
+				>{ t.Label }</a>
+			}
 		</nav>
 		<div class="mt-6 space-y-4">
 			{ children... }
@@ -124,11 +126,11 @@ templ flashMsg(f flash) {
 }
 
 templ stat(label, value, sub string) {
-	<div class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
-		<p class="text-xs text-slate-500">{ label }</p>
-		<p class="mt-1 text-2xl font-semibold">{ value }</p>
+	<div class="ui-card p-4">
+		<p class="text-xs text-lovoria-muted">{ label }</p>
+		<p class="mt-1 font-display text-2xl text-lovoria-deep">{ value }</p>
 		if sub != "" {
-			<p class="text-xs text-slate-500">{ sub }</p>
+			<p class="text-xs text-lovoria-muted">{ sub }</p>
 		}
 	</div>
 }
@@ -137,13 +139,13 @@ templ pager(path string, q url.Values, page, total int) {
 	if pages := max(1, (total+PerPage-1)/PerPage); pages > 1 {
 		<nav class="flex items-center justify-between text-sm" aria-label="Halaman">
 			if page > 1 {
-				<a href={ templ.SafeURL(pageURL(path, q, page-1)) } class="rounded-lg border border-slate-300 bg-white px-3 py-1.5">‹ Sebelumnya</a>
+				<a href={ templ.SafeURL(pageURL(path, q, page-1)) } class="ui-btn ui-btn-secondary px-3 py-1.5">‹ Sebelumnya</a>
 			} else {
 				<span></span>
 			}
-			<span class="text-slate-500">Halaman { strconv.Itoa(page) } dari { strconv.Itoa(pages) } · { strconv.Itoa(total) } data</span>
+			<span class="text-lovoria-muted">Halaman { strconv.Itoa(page) } dari { strconv.Itoa(pages) } · { strconv.Itoa(total) } data</span>
 			if page < pages {
-				<a href={ templ.SafeURL(pageURL(path, q, page+1)) } class="rounded-lg border border-slate-300 bg-white px-3 py-1.5">Berikutnya ›</a>
+				<a href={ templ.SafeURL(pageURL(path, q, page+1)) } class="ui-btn ui-btn-secondary px-3 py-1.5">Berikutnya ›</a>
 			} else {
 				<span></span>
 			}
@@ -151,12 +153,9 @@ templ pager(path string, q url.Values, page, total int) {
 	}
 }
 
-const th = "px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-slate-500"
-const td = "px-3 py-2 align-top"
-
 templ table() {
-	<div class="overflow-x-auto rounded-2xl bg-white shadow-sm ring-1 ring-black/5">
-		<table class="min-w-full divide-y divide-slate-100 text-sm">
+	<div class="ui-card overflow-x-auto p-0">
+		<table class="ui-table">
 			{ children... }
 		</table>
 	</div>
@@ -164,26 +163,26 @@ templ table() {
 
 templ auditTable(es []AuditEntry) {
 	@table() {
-		<thead><tr><th class={ th }>Waktu</th><th class={ th }>Admin</th><th class={ th }>Aksi</th><th class={ th }>Target</th><th class={ th }>Detail</th></tr></thead>
-		<tbody class="divide-y divide-slate-100">
+		<thead><tr><th>Waktu</th><th>Admin</th><th>Aksi</th><th>Target</th><th>Detail</th></tr></thead>
+		<tbody>
 			if len(es) == 0 {
-				<tr><td colspan="5" class={ td + " text-slate-500" }>Belum ada aksi admin.</td></tr>
+				<tr><td colspan="5" class="text-lovoria-muted">Belum ada aksi admin.</td></tr>
 			}
 			for _, e := range es {
 				<tr>
-					<td class={ td + " whitespace-nowrap" }>{ when(e.CreatedAt) }</td>
-					<td class={ td }>{ e.AdminEmail }</td>
-					<td class={ td + " font-mono text-xs" }>{ e.Action }</td>
-					<td class={ td + " font-mono text-xs" }>
+					<td class="whitespace-nowrap">{ when(e.CreatedAt) }</td>
+					<td>{ e.AdminEmail }</td>
+					<td class="font-mono text-xs">{ e.Action }</td>
+					<td class="font-mono text-xs">
 						if e.TargetType == "wedding" {
-							<a href={ templ.SafeURL("/admin/weddings/" + e.TargetID) } class="text-primary hover:underline">{ e.TargetType }:{ e.TargetID[:min(8, len(e.TargetID))] }</a>
+							<a href={ templ.SafeURL("/admin/weddings/" + e.TargetID) } class="text-lovoria-primary hover:underline">{ e.TargetType }:{ e.TargetID[:min(8, len(e.TargetID))] }</a>
 						} else if e.TargetType == "user" {
-							<a href={ templ.SafeURL("/admin/users/" + e.TargetID) } class="text-primary hover:underline">{ e.TargetType }:{ e.TargetID[:min(8, len(e.TargetID))] }</a>
+							<a href={ templ.SafeURL("/admin/users/" + e.TargetID) } class="text-lovoria-primary hover:underline">{ e.TargetType }:{ e.TargetID[:min(8, len(e.TargetID))] }</a>
 						} else {
 							{ e.TargetType }:{ e.TargetID }
 						}
 					</td>
-					<td class={ td + " text-xs text-slate-600" }>
+					<td class="text-xs text-lovoria-muted">
 						for k, v := range e.Details {
 							<span class="mr-2">{ k }={ v }</span>
 						}
@@ -208,7 +207,7 @@ templ homePage(d homeData) {
 		}
 		<div class="flex flex-wrap gap-2 text-sm">
 			for _, st := range statuses {
-				<a href={ templ.SafeURL("/admin/weddings?status=" + st) } class="rounded-full bg-white px-3 py-1.5 ring-1 ring-slate-300">{ wedding.StatusLabel(st) } · { strconv.Itoa(d.ByStatus[st]) }</a>
+				<a href={ templ.SafeURL("/admin/weddings?status=" + st) } class="rounded-full bg-lovoria-surface px-3 py-1.5 ring-1 ring-lovoria-border">{ wedding.StatusLabel(st) } · { strconv.Itoa(d.ByStatus[st]) }</a>
 			}
 		</div>
 		<h2 class="pt-2 font-semibold">Aksi admin terbaru</h2>
@@ -220,26 +219,26 @@ templ homePage(d homeData) {
 templ usersPage(q string, p auth.UserPage) {
 	@shell("Customers", "/admin/users") {
 		<form method="get" class="flex gap-2">
-			<input type="search" name="q" value={ q } placeholder="Cari nama atau email…" aria-label="Cari customer" class="min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2"/>
-			<button type="submit" class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white">Cari</button>
+			<input type="search" name="q" value={ q } placeholder="Cari nama atau email…" aria-label="Cari customer" class="ui-control min-w-0 flex-1 px-3 py-2"/>
+			<button type="submit" class="ui-btn ui-btn-primary px-4 py-2 text-sm">Cari</button>
 		</form>
 		@table() {
-			<thead><tr><th class={ th }>Nama</th><th class={ th }>Email</th><th class={ th }>Peran</th><th class={ th }>Daftar</th><th class={ th }>Status</th></tr></thead>
-			<tbody class="divide-y divide-slate-100">
+			<thead><tr><th>Nama</th><th>Email</th><th>Peran</th><th>Daftar</th><th>Status</th></tr></thead>
+			<tbody>
 				if len(p.Users) == 0 {
-					<tr><td colspan="5" class={ td + " text-slate-500" }>Tidak ada customer yang cocok.</td></tr>
+					<tr><td colspan="5" class="text-lovoria-muted">Tidak ada customer yang cocok.</td></tr>
 				}
 				for _, u := range p.Users {
 					<tr>
-						<td class={ td }><a href={ templ.SafeURL("/admin/users/" + u.ID.String()) } class="font-medium text-primary hover:underline">{ u.Name }</a></td>
-						<td class={ td }>{ u.Email }</td>
-						<td class={ td }>{ u.Role }</td>
-						<td class={ td + " whitespace-nowrap" }>{ web.FormatDateID(u.CreatedAt) }</td>
-						<td class={ td }>
+						<td><a href={ templ.SafeURL("/admin/users/" + u.ID.String()) } class="font-medium text-lovoria-primary hover:underline">{ u.Name }</a></td>
+						<td>{ u.Email }</td>
+						<td>{ u.Role }</td>
+						<td class="whitespace-nowrap">{ web.FormatDateID(u.CreatedAt) }</td>
+						<td>
 							if u.DisabledAt != nil {
-								<span class="rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-700">Nonaktif</span>
+								<span class="rounded-full bg-lovoria-danger-soft px-2 py-0.5 text-xs text-lovoria-danger">Nonaktif</span>
 							} else {
-								<span class="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-800">Aktif</span>
+								<span class="rounded-full bg-lovoria-success-soft px-2 py-0.5 text-xs text-lovoria-success">Aktif</span>
 							}
 						</td>
 					</tr>
@@ -255,13 +254,13 @@ templ userPage(u auth.User, ws []wedding.Wedding, f flash) {
 		@flashMsg(f)
 		@ui.Card() {
 			<dl class="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-[auto_1fr]">
-				<dt class="text-slate-500">Email</dt>
+				<dt class="text-lovoria-muted">Email</dt>
 				<dd>{ u.Email }</dd>
-				<dt class="text-slate-500">Peran</dt>
+				<dt class="text-lovoria-muted">Peran</dt>
 				<dd>{ u.Role }</dd>
-				<dt class="text-slate-500">Terdaftar</dt>
+				<dt class="text-lovoria-muted">Terdaftar</dt>
 				<dd>{ when(u.CreatedAt) }</dd>
-				<dt class="text-slate-500">Status</dt>
+				<dt class="text-lovoria-muted">Status</dt>
 				<dd>
 					if u.DisabledAt != nil {
 						Nonaktif sejak { when(*u.DisabledAt) }
@@ -271,7 +270,7 @@ templ userPage(u auth.User, ws []wedding.Wedding, f flash) {
 				</dd>
 			</dl>
 			<div class="mt-4 flex flex-wrap gap-2">
-				<a href={ templ.SafeURL("mailto:" + u.Email) } class="rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50">Kirim email</a>
+				<a href={ templ.SafeURL("mailto:" + u.Email) } class="ui-btn ui-btn-secondary px-3 py-2 text-sm">Kirim email</a>
 				<form
 					method="post"
 					action={ templ.SafeURL("/admin/users/" + u.ID.String() + "/disabled") }
@@ -282,10 +281,10 @@ templ userPage(u auth.User, ws []wedding.Wedding, f flash) {
 					@layouts.CSRFField()
 					if u.DisabledAt != nil {
 						<input type="hidden" name="disabled" value="0"/>
-						<button type="submit" class="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white">Aktifkan kembali</button>
+						<button type="submit" class="ui-btn ui-btn-primary px-3 py-2 text-sm">Aktifkan kembali</button>
 					} else {
 						<input type="hidden" name="disabled" value="1"/>
-						<button type="submit" class="rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50">Nonaktifkan akun</button>
+						<button type="submit" class="ui-btn ui-btn-danger px-3 py-2 text-sm">Nonaktifkan akun</button>
 					}
 				</form>
 			</div>
@@ -300,30 +299,30 @@ templ weddingTable(ws []wedding.Wedding, owners map[string]string) {
 	@table() {
 		<thead>
 			<tr>
-				<th class={ th }>Wedding</th>
-				<th class={ th }>Tanggal</th>
-				<th class={ th }>Status</th>
-				<th class={ th }>Storage</th>
+				<th>Wedding</th>
+				<th>Tanggal</th>
+				<th>Status</th>
+				<th>Storage</th>
 				if owners != nil {
-					<th class={ th }>Pemilik</th>
+					<th>Pemilik</th>
 				}
 			</tr>
 		</thead>
-		<tbody class="divide-y divide-slate-100">
+		<tbody>
 			if len(ws) == 0 {
-				<tr><td colspan="5" class={ td + " text-slate-500" }>Tidak ada wedding.</td></tr>
+				<tr><td colspan="5" class="text-lovoria-muted">Tidak ada wedding.</td></tr>
 			}
 			for _, w := range ws {
 				<tr>
-					<td class={ td }>
-						<a href={ templ.SafeURL("/admin/weddings/" + w.ID.String()) } class="font-medium text-primary hover:underline">{ w.Title }</a>
-						<p class="text-xs text-slate-500">/w/{ w.Slug }</p>
+					<td>
+						<a href={ templ.SafeURL("/admin/weddings/" + w.ID.String()) } class="font-medium text-lovoria-primary hover:underline">{ w.Title }</a>
+						<p class="text-xs text-lovoria-muted">/w/{ w.Slug }</p>
 					</td>
-					<td class={ td + " whitespace-nowrap" }>{ w.WeddingDate.Format("02/01/2006") }</td>
-					<td class={ td }>{ wedding.StatusLabel(w.Status) }</td>
-					<td class={ td + " whitespace-nowrap" }>{ bytesText(w.StorageUsedBytes) }</td>
+					<td class="whitespace-nowrap">{ w.WeddingDate.Format("02/01/2006") }</td>
+					<td>{ wedding.StatusLabel(w.Status) }</td>
+					<td class="whitespace-nowrap">{ bytesText(w.StorageUsedBytes) }</td>
 					if owners != nil {
-						<td class={ td }>{ owners[w.OwnerUserID.String()] }</td>
+						<td>{ owners[w.OwnerUserID.String()] }</td>
 					}
 				</tr>
 			}
@@ -345,22 +344,22 @@ func filterQuery(f wedding.AdminFilter) url.Values {
 
 templ weddingsPage(f wedding.AdminFilter, p wedding.WeddingPage, owners map[uuid.UUID]string) {
 	@shell("Weddings", "/admin/weddings") {
-		<form method="get" class="grid gap-2 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-black/5 sm:grid-cols-6">
-			<input type="search" name="q" value={ f.Q } placeholder="Judul / slug" aria-label="Cari wedding" class="rounded-lg border border-slate-300 px-3 py-2 sm:col-span-2"/>
-			<select name="status" aria-label="Status" class="rounded-lg border border-slate-300 px-3 py-2">
+		<form method="get" class="ui-card grid gap-2 p-3 sm:grid-cols-6">
+			<input type="search" name="q" value={ f.Q } placeholder="Judul / slug" aria-label="Cari wedding" class="ui-control px-3 py-2 sm:col-span-2"/>
+			<select name="status" aria-label="Status" class="ui-control px-3 py-2">
 				<option value="">Semua status</option>
 				for _, st := range statuses {
 					<option value={ st } selected?={ f.Status == st }>{ wedding.StatusLabel(st) }</option>
 				}
 			</select>
-			<input type="date" name="from" value={ f.From } aria-label="Tanggal dari" class="rounded-lg border border-slate-300 px-3 py-2"/>
-			<input type="date" name="to" value={ f.To } aria-label="Tanggal sampai" class="rounded-lg border border-slate-300 px-3 py-2"/>
-			<select name="sort" aria-label="Urutkan" class="rounded-lg border border-slate-300 px-3 py-2">
+			<input type="date" name="from" value={ f.From } aria-label="Tanggal dari" class="ui-control px-3 py-2"/>
+			<input type="date" name="to" value={ f.To } aria-label="Tanggal sampai" class="ui-control px-3 py-2"/>
+			<select name="sort" aria-label="Urutkan" class="ui-control px-3 py-2">
 				<option value="created" selected?={ f.Sort == "" || f.Sort == "created" }>Terbaru dibuat</option>
 				<option value="date" selected?={ f.Sort == "date" }>Tanggal pernikahan</option>
 				<option value="storage" selected?={ f.Sort == "storage" }>Storage terbesar</option>
 			</select>
-			<button type="submit" class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white sm:col-span-6 sm:justify-self-end">Terapkan</button>
+			<button type="submit" class="ui-btn ui-btn-primary px-4 py-2 text-sm sm:col-span-6 sm:justify-self-end">Terapkan</button>
 		</form>
 		@weddingTable(p.Weddings, ownerEmails(owners))
 		@pager("/admin/weddings", filterQuery(f), p.Page, p.Total)
@@ -373,17 +372,17 @@ templ weddingPage(d weddingData) {
 		<div class="grid gap-4 md:grid-cols-2">
 			@ui.Card() {
 				<dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
-					<dt class="text-slate-500">Pasangan</dt>
+					<dt class="text-lovoria-muted">Pasangan</dt>
 					<dd>{ d.Couple.GroomName } &amp; { d.Couple.BrideName }</dd>
-					<dt class="text-slate-500">Tanggal</dt>
+					<dt class="text-lovoria-muted">Tanggal</dt>
 					<dd>{ web.FormatDateID(d.W.WeddingDate) }</dd>
-					<dt class="text-slate-500">Status</dt>
+					<dt class="text-lovoria-muted">Status</dt>
 					<dd class="font-medium">{ wedding.StatusLabel(d.W.Status) }</dd>
-					<dt class="text-slate-500">Pemilik</dt>
-					<dd><a href={ templ.SafeURL("/admin/users/" + d.Owner.ID.String()) } class="text-primary hover:underline">{ d.Owner.Email }</a></dd>
-					<dt class="text-slate-500">Tema</dt>
+					<dt class="text-lovoria-muted">Pemilik</dt>
+					<dd><a href={ templ.SafeURL("/admin/users/" + d.Owner.ID.String()) } class="text-lovoria-primary hover:underline">{ d.Owner.Email }</a></dd>
+					<dt class="text-lovoria-muted">Tema</dt>
 					<dd>{ d.W.ThemeID }</dd>
-					<dt class="text-slate-500">Domain</dt>
+					<dt class="text-lovoria-muted">Domain</dt>
 					<dd>
 						if d.Domain != nil {
 							{ d.Domain.Domain } · { domain.StatusLabel(d.Domain.Status) }
@@ -393,49 +392,49 @@ templ weddingPage(d weddingData) {
 					</dd>
 				</dl>
 				<div class="mt-4 flex flex-wrap gap-2 text-sm">
-					<a href={ templ.SafeURL("/w/" + d.W.Slug) } target="_blank" rel="noopener" class="rounded-lg border border-slate-300 px-3 py-2 hover:bg-slate-50">Buka website ↗</a>
+					<a href={ templ.SafeURL("/w/" + d.W.Slug) } target="_blank" rel="noopener" class="ui-btn ui-btn-secondary px-3 py-2">Buka website ↗</a>
 					<form method="post" action={ templ.SafeURL("/admin/weddings/" + d.W.ID.String() + "/view") }>
 						@layouts.CSRFField()
-						<button type="submit" class="rounded-lg border border-slate-300 px-3 py-2 hover:bg-slate-50">Lihat dashboard (lihat saja)</button>
+						<button type="submit" class="ui-btn ui-btn-secondary px-3 py-2">Lihat dashboard (lihat saja)</button>
 					</form>
 				</div>
 			}
 			@ui.Card() {
-				<p class="text-xs uppercase tracking-wide text-slate-400">Tamu & RSVP</p>
+				<p class="text-xs uppercase tracking-wide text-lovoria-muted">Tamu & RSVP</p>
 				<p class="mt-1 text-sm">{ strconv.Itoa(d.Guests.Total) } tamu · { strconv.Itoa(d.Guests.Attending) } hadir ({ strconv.Itoa(d.Guests.PaxAttending) } orang) · { strconv.Itoa(d.Guests.Declined) } tidak · { strconv.Itoa(d.Guests.Pending) } belum</p>
-				<p class="mt-3 text-xs uppercase tracking-wide text-slate-400">Storage</p>
+				<p class="mt-3 text-xs uppercase tracking-wide text-lovoria-muted">Storage</p>
 				<p class="mt-1 text-sm">{ bytesText(d.Usage.UsedBytes) } dari { bytesText(d.Usage.QuotaBytes) } ({ strconv.Itoa(pct(d.Usage.UsedBytes, d.Usage.QuotaBytes)) }%)</p>
-				<p class="mt-3 text-xs uppercase tracking-wide text-slate-400">Paket</p>
+				<p class="mt-3 text-xs uppercase tracking-wide text-lovoria-muted">Paket</p>
 				<form method="post" action={ templ.SafeURL("/admin/weddings/" + d.W.ID.String() + "/package") } class="mt-1 flex gap-2">
 					@layouts.CSRFField()
-					<select name="package_id" aria-label="Paket" class="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm">
+					<select name="package_id" aria-label="Paket" class="ui-control min-w-0 flex-1 px-3 py-2 text-sm">
 						<option value="">Default (config)</option>
 						for _, p := range d.Packages {
 							<option value={ p.ID.String() } selected?={ d.HasPackage && d.Package.ID == p.ID }>{ p.Name } · { strconv.Itoa(p.StorageMB) } MB · arsip { strconv.Itoa(p.ArchiveDays) } hari</option>
 						}
 					</select>
-					<button type="submit" class="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white">Simpan</button>
+					<button type="submit" class="ui-btn ui-btn-primary px-3 py-2 text-sm">Simpan</button>
 				</form>
 			}
 		</div>
 		@paymentCard(d)
 		@ui.Card() {
-			<p class="text-xs uppercase tracking-wide text-slate-400">Ubah status (admin)</p>
+			<p class="text-xs uppercase tracking-wide text-lovoria-muted">Ubah status (admin)</p>
 			if len(d.Transitions) == 0 {
-				<p class="mt-1 text-sm text-slate-500">Tidak ada perubahan status yang bisa dilakukan admin dari { wedding.StatusLabel(d.W.Status) }.</p>
+				<p class="mt-1 text-sm text-lovoria-muted">Tidak ada perubahan status yang bisa dilakukan admin dari { wedding.StatusLabel(d.W.Status) }.</p>
 			} else {
 				<div class="mt-2 flex flex-wrap gap-2">
 					for _, to := range d.Transitions {
 						<form method="post" action={ templ.SafeURL("/admin/weddings/" + d.W.ID.String() + "/status") } data-confirm={ "Ubah status menjadi " + wedding.StatusLabel(to) + "?" }>
 							@layouts.CSRFField()
 							<input type="hidden" name="status" value={ to }/>
-							<button type="submit" class="rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50">→ { wedding.StatusLabel(to) }</button>
+							<button type="submit" class="ui-btn ui-btn-secondary px-3 py-2 text-sm">→ { wedding.StatusLabel(to) }</button>
 						</form>
 					}
 				</div>
 			}
 			if len(d.History) > 0 {
-				<ul class="mt-3 space-y-1 text-xs text-slate-600">
+				<ul class="mt-3 space-y-1 text-xs text-lovoria-muted">
 					for _, h := range d.History {
 						<li>{ when(h.At) } — { wedding.StatusLabel(h.From) } → { wedding.StatusLabel(h.To) } ({ string(h.Actor) })</li>
 					}
@@ -451,30 +450,30 @@ templ weddingPage(d weddingData) {
 templ themesPage(ts []theme.ThemeDef, counts map[string]int, off map[string]bool, f flash) {
 	@shell("Tema", "/admin/themes") {
 		@flashMsg(f)
-		<p class="text-sm text-slate-600">Tema yang dinonaktifkan tidak bisa dipilih pasangan baru; wedding yang sudah memakainya tetap bisa.</p>
+		<p class="text-sm text-lovoria-muted">Tema yang dinonaktifkan tidak bisa dipilih pasangan baru; wedding yang sudah memakainya tetap bisa.</p>
 		@table() {
-			<thead><tr><th class={ th }>Tema</th><th class={ th }>Dipakai</th><th class={ th }>Status</th><th class={ th }></th></tr></thead>
-			<tbody class="divide-y divide-slate-100">
+			<thead><tr><th>Tema</th><th>Dipakai</th><th>Status</th><th></th></tr></thead>
+			<tbody>
 				for _, t := range ts {
 					<tr>
-						<td class={ td }><span class="font-medium">{ t.Name }</span> <span class="font-mono text-xs text-slate-500">{ t.ID }</span></td>
-						<td class={ td }>{ strconv.Itoa(counts[t.ID]) } wedding</td>
-						<td class={ td }>
+						<td><span class="font-medium">{ t.Name }</span> <span class="font-mono text-xs text-lovoria-muted">{ t.ID }</span></td>
+						<td>{ strconv.Itoa(counts[t.ID]) } wedding</td>
+						<td>
 							if off[t.ID] {
-								<span class="rounded-full bg-slate-200 px-2 py-0.5 text-xs">Nonaktif</span>
+								<span class="rounded-full bg-lovoria-border px-2 py-0.5 text-xs">Nonaktif</span>
 							} else {
-								<span class="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-800">Aktif</span>
+								<span class="rounded-full bg-lovoria-success-soft px-2 py-0.5 text-xs text-lovoria-success">Aktif</span>
 							}
 						</td>
-						<td class={ td + " text-right" }>
+						<td class="text-right">
 							<form method="post" action={ templ.SafeURL("/admin/themes/" + t.ID) }>
 								@layouts.CSRFField()
 								if off[t.ID] {
 									<input type="hidden" name="enabled" value="1"/>
-									<button type="submit" class="text-primary hover:underline">Aktifkan</button>
+									<button type="submit" class="text-lovoria-primary hover:underline">Aktifkan</button>
 								} else {
 									<input type="hidden" name="enabled" value="0"/>
-									<button type="submit" class="text-slate-600 hover:underline">Nonaktifkan</button>
+									<button type="submit" class="text-lovoria-muted hover:underline">Nonaktifkan</button>
 								}
 							</form>
 						</td>
@@ -486,10 +485,10 @@ templ themesPage(ts []theme.ThemeDef, counts map[string]int, off map[string]bool
 }
 
 templ packageFields(p Package, idPrefix string) {
-	<input type="text" name="name" value={ p.Name } placeholder="Nama paket" aria-label="Nama paket" required maxlength="60" class="rounded-lg border border-slate-300 px-3 py-2"/>
-	<input type="number" name="storage_mb" value={ strconv.Itoa(p.StorageMB) } min="1" max="102400" aria-label="Storage (MB)" required class="rounded-lg border border-slate-300 px-3 py-2"/>
-	<input type="number" name="archive_days" value={ strconv.Itoa(p.ArchiveDays) } min="1" max="3650" aria-label="Arsip setelah (hari)" required class="rounded-lg border border-slate-300 px-3 py-2"/>
-	<input type="text" name="price_display" value={ p.PriceDisplay } placeholder="Rp 99.000" aria-label="Harga (tampilan)" maxlength="40" class="rounded-lg border border-slate-300 px-3 py-2"/>
+	<input type="text" name="name" value={ p.Name } placeholder="Nama paket" aria-label="Nama paket" required maxlength="60" class="ui-control px-3 py-2"/>
+	<input type="number" name="storage_mb" value={ strconv.Itoa(p.StorageMB) } min="1" max="102400" aria-label="Storage (MB)" required class="ui-control px-3 py-2"/>
+	<input type="number" name="archive_days" value={ strconv.Itoa(p.ArchiveDays) } min="1" max="3650" aria-label="Arsip setelah (hari)" required class="ui-control px-3 py-2"/>
+	<input type="text" name="price_display" value={ p.PriceDisplay } placeholder="Rp 99.000" aria-label="Harga (tampilan)" maxlength="40" class="ui-control px-3 py-2"/>
 	<div class="flex items-center gap-3 text-sm sm:col-span-4">
 		<label class="flex items-center gap-2">
 			<input type="checkbox" name="show_on_landing" value="1" checked?={ p.ShowOnLanding } class="h-4 w-4"/>
@@ -497,7 +496,7 @@ templ packageFields(p Package, idPrefix string) {
 		</label>
 		<label class="flex items-center gap-2">
 			Urutan
-			<input type="number" name="sort_order" value={ strconv.Itoa(p.SortOrder) } min="0" max="999" aria-label="Urutan di landing" class="w-20 rounded-lg border border-slate-300 px-2 py-1"/>
+			<input type="number" name="sort_order" value={ strconv.Itoa(p.SortOrder) } min="0" max="999" aria-label="Urutan di landing" class="ui-control w-20 px-2 py-1"/>
 		</label>
 	</div>
 }
@@ -505,32 +504,32 @@ templ packageFields(p Package, idPrefix string) {
 templ packagesPage(ps []Package, f flash) {
 	@shell("Paket", "/admin/packages") {
 		@flashMsg(f)
-		<p class="text-sm text-slate-600">Paket menentukan kuota storage & lama arsip wedding (tanpa pembayaran). Wedding tanpa paket memakai nilai default dari config. Centang "Tampil di landing page" untuk menampilkan paket di bagian harga beranda; tanpa paket yang dicentang, bagian harga disembunyikan.</p>
-		<div class="hidden grid-cols-[2fr_1fr_1fr_1fr_auto] gap-2 px-1 text-xs font-medium uppercase tracking-wide text-slate-500 sm:grid">
+		<p class="text-sm text-lovoria-muted">Paket menentukan kuota storage & lama arsip wedding (tanpa pembayaran). Wedding tanpa paket memakai nilai default dari config. Centang "Tampil di landing page" untuk menampilkan paket di bagian harga beranda; tanpa paket yang dicentang, bagian harga disembunyikan.</p>
+		<div class="hidden grid-cols-[2fr_1fr_1fr_1fr_auto] gap-2 px-1 text-xs font-medium uppercase tracking-wide text-lovoria-muted sm:grid">
 			<span>Nama</span><span>Storage (MB)</span><span>Arsip (hari)</span><span>Harga</span><span></span>
 		</div>
 		for _, p := range ps {
-			<div class="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-black/5">
+			<div class="ui-card p-3">
 				<form method="post" action={ templ.SafeURL("/admin/packages/" + p.ID.String()) } class="grid gap-2 sm:grid-cols-[2fr_1fr_1fr_1fr_auto]">
 					@layouts.CSRFField()
 					@packageFields(p, p.ID.String())
-					<button type="submit" class="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white">Simpan</button>
+					<button type="submit" class="ui-btn ui-btn-primary px-3 py-2 text-sm">Simpan</button>
 				</form>
-				<div class="mt-2 flex items-center justify-between text-xs text-slate-500">
+				<div class="mt-2 flex items-center justify-between text-xs text-lovoria-muted">
 					<span>Dipakai { strconv.Itoa(p.Weddings) } wedding</span>
 					<form method="post" action={ templ.SafeURL("/admin/packages/" + p.ID.String() + "/delete") } data-confirm="Hapus paket ini?">
 						@layouts.CSRFField()
-						<button type="submit" class="text-red-600 hover:underline">Hapus</button>
+						<button type="submit" class="text-lovoria-danger hover:underline">Hapus</button>
 					</form>
 				</div>
 			</div>
 		}
-		<div class="rounded-2xl border border-dashed border-slate-300 p-3">
+		<div class="rounded-2xl border border-dashed border-lovoria-control p-3">
 			<p class="mb-2 text-sm font-medium">Paket baru</p>
 			<form method="post" action="/admin/packages" class="grid gap-2 sm:grid-cols-[2fr_1fr_1fr_1fr_auto]">
 				@layouts.CSRFField()
 				@packageFields(Package{StorageMB: 500, ArchiveDays: 365}, "new")
-				<button type="submit" class="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white">Tambah</button>
+				<button type="submit" class="ui-btn ui-btn-primary px-3 py-2 text-sm">Tambah</button>
 			</form>
 		</div>
 	}
@@ -543,14 +542,14 @@ templ storagePage(total int64, weddings int, top []wedding.Wedding, usage []gall
 		</div>
 		<h2 class="font-semibold">20 wedding terbesar</h2>
 		@table() {
-			<thead><tr><th class={ th }>Wedding</th><th class={ th }>Terpakai</th><th class={ th }>Kuota</th><th class={ th }>%</th></tr></thead>
-			<tbody class="divide-y divide-slate-100">
+			<thead><tr><th>Wedding</th><th>Terpakai</th><th>Kuota</th><th>%</th></tr></thead>
+			<tbody>
 				for i, w := range top {
 					<tr>
-						<td class={ td }><a href={ templ.SafeURL("/admin/weddings/" + w.ID.String()) } class="text-primary hover:underline">{ w.Title }</a></td>
-						<td class={ td }>{ bytesText(usage[i].UsedBytes) }</td>
-						<td class={ td }>{ bytesText(usage[i].QuotaBytes) }</td>
-						<td class={ td }>{ strconv.Itoa(pct(usage[i].UsedBytes, usage[i].QuotaBytes)) }%</td>
+						<td><a href={ templ.SafeURL("/admin/weddings/" + w.ID.String()) } class="text-lovoria-primary hover:underline">{ w.Title }</a></td>
+						<td>{ bytesText(usage[i].UsedBytes) }</td>
+						<td>{ bytesText(usage[i].QuotaBytes) }</td>
+						<td>{ strconv.Itoa(pct(usage[i].UsedBytes, usage[i].QuotaBytes)) }%</td>
 					</tr>
 				}
 			</tbody>
@@ -568,22 +567,22 @@ templ domainsPage(ds []domain.Domain, total, page, active, warn int) {
 			@ui.Alert(fmt.Sprintf("Domain aktif sudah %d — mendekati kuota gratis 100.", active))
 		}
 		@table() {
-			<thead><tr><th class={ th }>Domain</th><th class={ th }>Status</th><th class={ th }>Didaftarkan</th><th class={ th }>Dicek</th><th class={ th }>Wedding</th></tr></thead>
-			<tbody class="divide-y divide-slate-100">
+			<thead><tr><th>Domain</th><th>Status</th><th>Didaftarkan</th><th>Dicek</th><th>Wedding</th></tr></thead>
+			<tbody>
 				if len(ds) == 0 {
-					<tr><td colspan="5" class={ td + " text-slate-500" }>Belum ada custom domain.</td></tr>
+					<tr><td colspan="5" class="text-lovoria-muted">Belum ada custom domain.</td></tr>
 				}
 				for _, d := range ds {
 					<tr>
-						<td class={ td + " font-medium" }>{ d.Domain }</td>
-						<td class={ td }>{ domain.StatusLabel(d.Status) }</td>
-						<td class={ td + " whitespace-nowrap" }>{ when(d.CreatedAt) }</td>
-						<td class={ td + " whitespace-nowrap" }>
+						<td class="font-medium">{ d.Domain }</td>
+						<td>{ domain.StatusLabel(d.Status) }</td>
+						<td class="whitespace-nowrap">{ when(d.CreatedAt) }</td>
+						<td class="whitespace-nowrap">
 							if d.LastCheckedAt != nil {
 								{ when(*d.LastCheckedAt) }
 							}
 						</td>
-						<td class={ td }><a href={ templ.SafeURL("/admin/weddings/" + d.WeddingID.String()) } class="text-primary hover:underline">Buka</a></td>
+						<td><a href={ templ.SafeURL("/admin/weddings/" + d.WeddingID.String()) } class="text-lovoria-primary hover:underline">Buka</a></td>
 					</tr>
 				}
 			</tbody>

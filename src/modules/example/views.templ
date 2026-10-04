@@ -9,9 +9,9 @@ templ noteList(notes []Note) {
 }
 
 templ noteItem(n Note) {
-	<li class="rounded border border-slate-200 bg-white px-3 py-2" data-note-id={ n.ID }>{ n.Body }</li>
+	<li class="rounded border border-lovoria-border bg-lovoria-surface px-3 py-2" data-note-id={ n.ID }>{ n.Body }</li>
 }
 
 templ noteError(msg string) {
-	<p class="text-sm text-red-600" role="alert">{ msg }</p>
+	<p class="text-sm text-lovoria-danger" role="alert">{ msg }</p>
 }

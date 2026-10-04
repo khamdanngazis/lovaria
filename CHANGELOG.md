@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### T22 (bagian 3) — Panel admin memakai warna brand
+- Panel admin (ringkasan, customers, weddings, tema, paket, pembayaran, storage, domain, audit log) kini memakai token `lovoria-*` dan komponen `ui-*`: judul serif, tab `ui-tabs`, tabel `ui-table`.
+- Penjaga warna kini memindai semua templ dashboard, auth, admin, dan komponen ui secara otomatis (berkas baru ikut terpindai); hanya tampilan undangan dan situs publik yang dikecualikan.
+
 ### T23 (bagian 2) — Registrasi, wizard, landing, dan admin untuk pembayaran
 - **Daftar**: kolom "Ulangi password" (dengan validasi langsung saat mengetik).
 - **Buat wedding**: alamat undangan (`/w/…`) bisa dipilih sendiri di langkah 2; kosong = otomatis.
