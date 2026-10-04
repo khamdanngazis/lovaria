@@ -1,20 +1,12 @@
 package publicsite
 
 import (
-	"context"
 	"net/http"
 	"strings"
 	"testing"
 
-	"github.com/google/uuid"
-
-	"github.com/khamdanngazis/lovaria/src/modules/admin"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding"
 )
-
-type fakePackages struct{ list []admin.Package }
-
-func (f *fakePackages) LandingPackages(context.Context) ([]admin.Package, error) { return f.list, nil }
 
 func TestLandingPage(t *testing.T) {
 	f := newFixture(t)
@@ -29,9 +21,14 @@ func TestLandingPage(t *testing.T) {
 			t.Errorf("landing tidak memuat %q", want)
 		}
 	}
-	// Tanpa paket bertanda tampil: bagian & menu harga disembunyikan.
-	if strings.Contains(body, `id="harga"`) || strings.Contains(body, `href="#harga"`) {
-		t.Error("bagian harga harus disembunyikan bila tidak ada paket")
+	// Harga tunggal (T23) selalu tampil; tanpa harga (0) bagian & menunya hilang.
+	if !strings.Contains(body, `id="harga"`) || !strings.Contains(body, "Rp149.000") {
+		t.Error("bagian harga harus tampil")
+	}
+	free := newFixture(t)
+	free.handler.PublishPrice = 0
+	if b := free.get("/", nil).Body.String(); strings.Contains(b, `id="harga"`) || strings.Contains(b, `href="#harga"`) || strings.Contains(b, "Berapa biayanya?") {
+		t.Error("tanpa harga: bagian, menu, dan FAQ harga disembunyikan")
 	}
 	// Belum ada undangan contoh: tidak ada link "Lihat contoh" yang mati.
 	if strings.Contains(body, "/w/contoh-") {
@@ -53,7 +50,6 @@ func TestLandingThemesPackagesAndLogin(t *testing.T) {
 	if err := f.themes.SetEnabled(ctx, "modern", false); err != nil {
 		t.Fatal(err)
 	}
-	f.pkgs.list = []admin.Package{{ID: uuid.New(), Name: "Premium", StorageMB: 1024, ArchiveDays: 365, PriceDisplay: "Rp 149.000"}}
 
 	body := f.get("/", nil).Body.String()
 	if !strings.Contains(body, `href="/w/contoh-elegant"`) {
@@ -62,7 +58,8 @@ func TestLandingThemesPackagesAndLogin(t *testing.T) {
 	if strings.Contains(body, ">Modern</h3>") {
 		t.Error("tema nonaktif tidak boleh ditawarkan")
 	}
-	for _, want := range []string{`id="harga"`, "Rp 149.000", "Penyimpanan foto 1 GB", "aktif 1 tahun"} {
+	// Harga tunggal (T23): sekali bayar saat publikasi, semua fitur termasuk.
+	for _, want := range []string{`id="harga"`, "Rp149.000", "sekali bayar per undangan", "tanpa langganan", "Custom domain", "Berapa biayanya?", `href="#harga"`} {
 		if !strings.Contains(body, want) {
 			t.Errorf("harga tidak memuat %q", want)
 		}

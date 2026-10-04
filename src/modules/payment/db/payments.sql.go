@@ -47,6 +47,18 @@ func (q *Queries) ActivePendingOrder(ctx context.Context, arg ActivePendingOrder
 	return i, err
 }
 
+const adminCountOrders = `-- name: AdminCountOrders :one
+SELECT count(*) FROM payment_orders
+`
+
+// tenant:ignore — panel admin: jumlah semua order.
+func (q *Queries) AdminCountOrders(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, adminCountOrders)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const adminListOrders = `-- name: AdminListOrders :many
 SELECT id, wedding_id, user_id, order_number, amount, currency, status, payment_method, gateway, gateway_transaction_id, checkout_url, expired_at, paid_at, created_at, updated_at FROM payment_orders ORDER BY created_at DESC, id DESC LIMIT $2 OFFSET $1
 `

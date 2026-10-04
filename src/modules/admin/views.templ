@@ -12,6 +12,7 @@ import (
 	"github.com/khamdanngazis/lovaria/src/modules/domain"
 	"github.com/khamdanngazis/lovaria/src/modules/gallery"
 	"github.com/khamdanngazis/lovaria/src/modules/guest"
+	"github.com/khamdanngazis/lovaria/src/modules/payment"
 	"github.com/khamdanngazis/lovaria/src/modules/theme"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding"
 	"github.com/khamdanngazis/lovaria/src/platform/web"
@@ -42,6 +43,23 @@ type weddingData struct {
 	Audit       []AuditEntry
 	Transitions []string
 	Flash       flash
+	// Orders: riwayat percobaan bayar wedding (T23), terbaru dulu.
+	Orders []payment.Order
+}
+
+// paidSourceLabel: asal pelunasan untuk tampilan admin.
+func paidSourceLabel(src string) string {
+	switch src {
+	case wedding.PaidGateway:
+		return "payment gateway"
+	case wedding.PaidAdmin:
+		return "ditandai admin"
+	case wedding.PaidGrandfathered:
+		return "terbit sebelum pembayaran berlaku"
+	case wedding.PaidDemo:
+		return "undangan contoh"
+	}
+	return src
 }
 
 var statuses = wedding.AllStatuses()
@@ -78,7 +96,7 @@ func pageURL(path string, q url.Values, page int) string {
 
 var tabs = []struct{ Path, Label string }{
 	{"/admin", "Ringkasan"}, {"/admin/users", "Customers"}, {"/admin/weddings", "Weddings"}, {"/admin/themes", "Tema"},
-	{"/admin/packages", "Paket"}, {"/admin/storage", "Storage"}, {"/admin/domains", "Domain"}, {"/admin/audit", "Audit log"},
+	{"/admin/packages", "Paket"}, {"/admin/payments", "Pembayaran"}, {"/admin/storage", "Storage"}, {"/admin/domains", "Domain"}, {"/admin/audit", "Audit log"},
 }
 
 templ shell(title, active string) {
@@ -400,6 +418,7 @@ templ weddingPage(d weddingData) {
 				</form>
 			}
 		</div>
+		@paymentCard(d)
 		@ui.Card() {
 			<p class="text-xs uppercase tracking-wide text-slate-400">Ubah status (admin)</p>
 			if len(d.Transitions) == 0 {
@@ -577,5 +596,114 @@ templ auditPage(es []AuditEntry, total, page int) {
 	@shell("Audit log", "/admin/audit") {
 		@auditTable(es)
 		@pager("/admin/audit", url.Values{}, page, total)
+	}
+}
+
+// ---------- Pembayaran (T23) ----------
+
+// paymentCard: status pelunasan wedding, riwayat order, dan tandai lunas manual.
+templ paymentCard(d weddingData) {
+	@ui.Card() {
+		<div class="flex flex-wrap items-center gap-3">
+			<p class="text-xs uppercase tracking-wide text-lovoria-muted">Pembayaran</p>
+			if d.W.IsPaid() {
+				@ui.Badge(ui.Success, "Lunas ✓")
+				<p class="text-sm text-lovoria-muted">{ when(*d.W.PaidAt) } · { paidSourceLabel(d.W.PaidSource) }</p>
+			} else {
+				@ui.Badge(ui.Muted, "Belum dibayar")
+				<p class="text-sm text-lovoria-muted">Publikasi & custom domain masih terkunci.</p>
+			}
+		</div>
+		if len(d.Orders) > 0 {
+			<div class="mt-4 overflow-x-auto">
+				@ordersTable(d.Orders, false)
+			</div>
+		}
+		if !d.W.IsPaid() {
+			<form method="post" action={ templ.SafeURL("/admin/weddings/" + d.W.ID.String() + "/paid") } class="mt-4 border-t border-lovoria-border pt-4" data-confirm="Tandai wedding ini lunas tanpa pembayaran gateway? Tindakan ini tidak bisa dibatalkan.">
+				@layouts.CSRFField()
+				<label for="paid-note" class="ui-label">Tandai lunas manual</label>
+				<p class="ui-hint">Untuk transfer manual, promo, atau uji coba. Catatan tersimpan di audit log.</p>
+				<div class="mt-2 flex flex-wrap gap-2">
+					<input id="paid-note" name="note" type="text" required minlength="3" maxlength="300" placeholder="mis. transfer manual BCA 4 Okt" class="ui-control min-w-0 flex-1 px-3 py-2 text-sm"/>
+					<button type="submit" class="ui-btn ui-btn-secondary">Tandai lunas</button>
+				</div>
+			</form>
+		}
+	}
+}
+
+func orderBadge(status string) string {
+	switch status {
+	case payment.StatusPaid:
+		return ui.Success
+	case payment.StatusPending:
+		return ui.Warning
+	case payment.StatusFailed:
+		return ui.Danger
+	}
+	return ui.Muted
+}
+
+// ordersTable: daftar order; withWedding menambah tautan ke wedding (halaman Pembayaran).
+templ ordersTable(orders []payment.Order, withWedding bool) {
+	<table class="ui-table">
+		<thead>
+			<tr>
+				<th>No. order</th>
+				<th>Dibuat</th>
+				<th>Jumlah</th>
+				<th>Status</th>
+				<th>Metode</th>
+				<th>Dibayar</th>
+				if withWedding {
+					<th>Wedding</th>
+				}
+			</tr>
+		</thead>
+		<tbody>
+			for _, o := range orders {
+				<tr>
+					<td class="whitespace-nowrap font-mono text-xs">{ o.Number }</td>
+					<td class="whitespace-nowrap">{ when(o.CreatedAt) }</td>
+					<td class="whitespace-nowrap">{ payment.Rupiah(o.Amount) }</td>
+					<td>
+						@ui.Badge(orderBadge(o.Status), payment.StatusLabel(o.Status))
+					</td>
+					<td class="whitespace-nowrap">
+						if o.Method != "" {
+							{ o.Method }
+						} else {
+							—
+						}
+						<span class="text-lovoria-muted">· { o.Gateway }</span>
+					</td>
+					<td class="whitespace-nowrap">
+						if o.PaidAt != nil {
+							{ when(*o.PaidAt) }
+						} else {
+							—
+						}
+					</td>
+					if withWedding {
+						<td><a href={ templ.SafeURL("/admin/weddings/" + o.WeddingID.String()) } class="ui-link">Buka</a></td>
+					}
+				</tr>
+			}
+		</tbody>
+	</table>
+}
+
+templ paymentsPage(orders []payment.Order, total, page int) {
+	@shell("Pembayaran", "/admin/payments") {
+		<p class="text-sm text-lovoria-muted">Semua percobaan bayar, terbaru dulu ({ strconv.Itoa(total) } order). Status hanya berubah lewat webhook gateway; penelusuran webhook ada di tabel <span class="font-mono">payment_events</span>.</p>
+		if len(orders) == 0 {
+			@ui.EmptyState("Belum ada pembayaran", "Order muncul di sini saat pasangan menekan Bayar & Publikasikan.")
+		} else {
+			<div class="ui-card overflow-x-auto p-0 sm:p-0">
+				@ordersTable(orders, true)
+			</div>
+			@pager("/admin/payments", nil, page, total)
+		}
 	}
 }

@@ -38,6 +38,9 @@ var (
 	ErrQuotaExceeded = errors.New("kuota penyimpanan wedding sudah penuh")
 )
 
+// errSlugInUse: alamat undangan sudah dipakai (wedding lain / redirect aktif).
+const errSlugInUse = "Alamat ini sudah dipakai undangan lain"
+
 // ValidationError memetakan nama field form ke pesan error.
 type ValidationError map[string]string
 
@@ -123,12 +126,16 @@ type CreateInput struct {
 	Title       string
 	WeddingDate string // YYYY-MM-DD
 	Description string
+	// Slug: alamat undangan pilihan pasangan (/w/<slug>), opsional — kosong →
+	// dibuat otomatis dari nama mempelai (T23).
+	Slug string
 }
 
 func (in CreateInput) fields() map[string]string {
 	return map[string]string{
 		"groom_name": in.GroomName, "bride_name": in.BrideName,
 		"title": in.Title, "wedding_date": in.WeddingDate, "description": in.Description,
+		"slug": in.Slug,
 	}
 }
 
@@ -184,6 +191,10 @@ func ValidateField(field, value string) string {
 		return text(v, false, 2000, "Deskripsi")
 	case "groom_description", "bride_description":
 		return text(v, false, 1000, "Deskripsi")
+	case "slug": // opsional saat membuat wedding; aturan sama dengan ganti alamat (T14)
+		if v = strings.ToLower(v); v != "" {
+			return ValidateSlug(v)
+		}
 	case "wedding_date":
 		if v == "" {
 			return "Tanggal pernikahan wajib diisi"
@@ -263,19 +274,34 @@ func (s *Service) CreateWedding(ctx context.Context, ownerID uuid.UUID, in Creat
 	}
 	date, _ := time.Parse(dateLayout, strings.TrimSpace(in.WeddingDate))
 	base := baseSlug(in.GroomName, in.BrideName)
+	custom := strings.ToLower(strings.TrimSpace(in.Slug))
 
 	var w weddingdb.Wedding
 	var err error
 	for attempt := 0; attempt < 5; attempt++ {
 		err = s.repo.inTx(ctx, func(q *weddingdb.Queries) error {
-			taken, err := q.ListSlugsWithPrefix(ctx, base)
-			if err != nil {
-				return err
+			slug := custom
+			if slug == "" {
+				taken, err := q.ListSlugsWithPrefix(ctx, base)
+				if err != nil {
+					return err
+				}
+				slug = nextFreeSlug(base, taken)
+			} else {
+				// Alamat pilihan pasangan: harus belum dipakai wedding lain maupun
+				// redirect slug lama yang masih aktif.
+				taken, err := q.SlugTaken(ctx, weddingdb.SlugTakenParams{Slug: slug, WeddingID: uuid.Nil, Now: s.clock()})
+				if err != nil {
+					return err
+				}
+				if taken {
+					return ValidationError{"slug": errSlugInUse}
+				}
 			}
 			w, err = q.CreateWedding(ctx, weddingdb.CreateWeddingParams{
 				ID:          db.NewID(),
 				OwnerUserID: ownerID,
-				Slug:        nextFreeSlug(base, taken),
+				Slug:        slug,
 				Title:       strings.TrimSpace(in.Title),
 				WeddingDate: date,
 				Description: strings.TrimSpace(in.Description),
@@ -294,6 +320,13 @@ func (s *Service) CreateWedding(ctx context.Context, ownerID uuid.UUID, in Creat
 		if !errors.Is(err, errSlugTaken) { // bentrok karena race → coba lagi
 			break
 		}
+		if custom != "" { // alamat pilihan baru saja diambil wedding lain
+			return Wedding{}, ValidationError{"slug": errSlugInUse}
+		}
+	}
+	var ve ValidationError
+	if errors.As(err, &ve) {
+		return Wedding{}, ve
 	}
 	if err != nil {
 		return Wedding{}, fmt.Errorf("wedding: create: %w", err)

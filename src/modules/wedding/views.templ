@@ -93,6 +93,11 @@ func contains(list []string, s string) bool {
 	return false
 }
 
+// suggestSlug: contoh alamat undangan dari nama mempelai (placeholder).
+func suggestSlug(f form) string {
+	return baseSlug(f.v("groom_name"), f.v("bride_name"))
+}
+
 templ wizardStep(step int, f form) {
 	<div id="wizard-step">
 		@ui.Card() {
@@ -119,9 +124,10 @@ templ wizardStep(step int, f form) {
 						@ui.Input(ui.Field{ID: "wedding-groom-name", Name: "groom_name", Label: "Nama mempelai pria", Type: "text", Value: f.v("groom_name"), Error: f.e("groom_name"), Placeholder: "Samuel", Required: true, MaxLength: 100, Autocomplete: "off"})
 						@ui.Input(ui.Field{ID: "wedding-bride-name", Name: "bride_name", Label: "Nama mempelai wanita", Type: "text", Value: f.v("bride_name"), Error: f.e("bride_name"), Placeholder: "Sarah", Required: true, MaxLength: 100, Autocomplete: "off"})
 					case 2:
-						@hiddenExcept(f, "title", "wedding_date")
+						@hiddenExcept(f, "title", "wedding_date", "slug")
 						@ui.Input(ui.Field{ID: "wedding-title", Name: "title", Label: "Judul website", Type: "text", Value: f.v("title"), Error: f.e("title"), Required: true, MaxLength: 150, Hint: "Tampil sebagai judul utama undangan."})
 						@ui.Input(ui.Field{ID: "wedding-date", Name: "wedding_date", Label: "Tanggal pernikahan", Type: "date", Value: f.v("wedding_date"), Error: f.e("wedding_date"), Required: true})
+						@ui.Input(ui.Field{ID: "wedding-slug", Name: "slug", Label: "Alamat undangan", Type: "text", Value: f.v("slug"), Error: f.e("slug"), MaxLength: 60, Autocomplete: "off", Placeholder: suggestSlug(f), Hint: "Menjadi lovoria.my.id/w/alamat-ini. Huruf kecil, angka, dan tanda hubung. Kosongkan untuk dibuat otomatis dari nama mempelai; bisa diubah nanti di menu Bagikan."})
 					default:
 						@hiddenExcept(f, "description")
 						@ui.TextArea(ui.Field{ID: "wedding-description", Name: "description", Label: "Deskripsi singkat", Value: f.v("description"), Error: f.e("description"), MaxLength: 2000, Placeholder: "Dengan penuh syukur, kami mengundang Anda…"}, 4)

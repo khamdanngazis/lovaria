@@ -20,6 +20,7 @@ import (
 	"github.com/khamdanngazis/lovaria/src/modules/domain"
 	"github.com/khamdanngazis/lovaria/src/modules/gallery"
 	"github.com/khamdanngazis/lovaria/src/modules/guest"
+	"github.com/khamdanngazis/lovaria/src/modules/payment"
 	"github.com/khamdanngazis/lovaria/src/modules/theme"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding"
 	"github.com/khamdanngazis/lovaria/src/platform/db"
@@ -84,13 +85,15 @@ type AuditEntry struct {
 // Service: panel admin. Data modul lain HANYA lewat service modul tersebut;
 // modul admin memiliki tabel packages, wedding_packages, admin_audit_logs.
 type Service struct {
-	q            *admindb.Queries
-	Users        *auth.Service
-	Weddings     *wedding.Service
-	Guests       *guest.Service
-	Gallery      *gallery.Service
-	Domains      *domain.Service
-	Themes       *theme.Service
+	q        *admindb.Queries
+	Users    *auth.Service
+	Weddings *wedding.Service
+	Guests   *guest.Service
+	Gallery  *gallery.Service
+	Domains  *domain.Service
+	Themes   *theme.Service
+	// Payments: order pembayaran (T23); nil → bagian pembayaran tanpa riwayat order.
+	Payments     *payment.Service
 	secret       []byte
 	cookieSecure bool
 	log          *slog.Logger
@@ -105,6 +108,7 @@ type Deps struct {
 	Gallery  *gallery.Service
 	Domains  *domain.Service
 	Themes   *theme.Service
+	Payments *payment.Service
 	// Secret: kunci HMAC cookie mode lihat-saja (APP_SECRET).
 	Secret []byte
 	// CookieSecure: atribut Secure untuk cookie mode lihat-saja.
@@ -115,7 +119,7 @@ type Deps struct {
 func NewService(d Deps) *Service {
 	return &Service{
 		q: admindb.New(d.Pool), Users: d.Users, Weddings: d.Weddings, Guests: d.Guests, Gallery: d.Gallery,
-		Domains: d.Domains, Themes: d.Themes, secret: d.Secret, cookieSecure: d.CookieSecure, log: d.Log, now: time.Now,
+		Domains: d.Domains, Themes: d.Themes, Payments: d.Payments, secret: d.Secret, cookieSecure: d.CookieSecure, log: d.Log, now: time.Now,
 	}
 }
 
@@ -202,6 +206,27 @@ func (s *Service) SetWeddingStatus(ctx context.Context, weddingID uuid.UUID, to 
 		return wedding.Wedding{}, err
 	}
 	return w, s.audit(ctx, "wedding.status", "wedding", weddingID.String(), map[string]string{"from": before.Status, "to": to, "slug": w.Slug})
+}
+
+// MarkWeddingPaid menandai wedding lunas tanpa lewat gateway (transfer manual,
+// promo, uji coba) — membuka publikasi & custom domain (T23). Catatan wajib
+// dan tercatat di audit log. Wedding yang sudah lunas tidak berubah.
+func (s *Service) MarkWeddingPaid(ctx context.Context, weddingID uuid.UUID, note string) error {
+	note = strings.TrimSpace(note)
+	if n := utf8.RuneCountInString(note); n < 3 || n > 300 {
+		return ValidationError{"note": "Catatan wajib diisi (3–300 karakter), mis. \"transfer manual BCA 4 Okt\""}
+	}
+	changed, err := s.Weddings.MarkPaid(ctx, weddingID, wedding.PaidAdmin)
+	if errors.Is(err, wedding.ErrNotFound) {
+		return ErrNotFound
+	}
+	if err != nil {
+		return err
+	}
+	if !changed {
+		return ValidationError{"note": "Wedding ini sudah lunas"}
+	}
+	return s.audit(ctx, "wedding.mark_paid", "wedding", weddingID.String(), map[string]string{"note": note})
 }
 
 // ---------- Packages ----------

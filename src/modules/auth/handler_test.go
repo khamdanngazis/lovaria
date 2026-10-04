@@ -112,7 +112,7 @@ func (c *client) post(path string, form url.Values, htmx bool) (*http.Response, 
 
 func (c *client) register(email string) {
 	c.t.Helper()
-	resp, body := c.post("/register", url.Values{"name": {"Sarah"}, "email": {email}, "password": {"password123"}}, false)
+	resp, body := c.post("/register", url.Values{"name": {"Sarah"}, "email": {email}, "password": {"password123"}, "password_confirmation": {"password123"}}, false)
 	if resp.StatusCode != http.StatusSeeOther || resp.Header.Get("Location") != "/dashboard" {
 		c.t.Fatalf("register: %d %s %s", resp.StatusCode, resp.Header.Get("Location"), body)
 	}
@@ -156,7 +156,7 @@ func TestRegisterAutoLoginAndLogout(t *testing.T) {
 func TestSessionCookieAttributes(t *testing.T) {
 	srv, _, _ := newTestApp(t, RateLimit{})
 	c := newClient(t, srv)
-	form := url.Values{"name": {"S"}, "email": {"s@example.com"}, "password": {"password123"}, "_csrf": {c.csrf("/register")}}
+	form := url.Values{"name": {"S"}, "email": {"s@example.com"}, "password": {"password123"}, "password_confirmation": {"password123"}, "_csrf": {c.csrf("/register")}}
 	resp, _ := c.do(http.MethodPost, "/register", form, nil)
 	var raw string
 	for _, h := range resp.Header.Values("Set-Cookie") {
@@ -236,7 +236,7 @@ func TestLoginErrorsAreGeneric(t *testing.T) {
 func TestCSRFRejectedWithoutToken(t *testing.T) {
 	srv, _, _ := newTestApp(t, RateLimit{})
 	c := newClient(t, srv)
-	form := url.Values{"name": {"S"}, "email": {"s@example.com"}, "password": {"password123"}}
+	form := url.Values{"name": {"S"}, "email": {"s@example.com"}, "password": {"password123"}, "password_confirmation": {"password123"}}
 
 	if resp, _ := c.do(http.MethodPost, "/register", form, nil); resp.StatusCode != http.StatusForbidden {
 		t.Errorf("tanpa token: %d, want 403", resp.StatusCode)
@@ -265,6 +265,33 @@ func TestRegisterValidationAndInline(t *testing.T) {
 	}
 	if strings.Contains(body, `value="123"`) {
 		t.Error("password tidak boleh dirender ulang")
+	}
+
+	// Konfirmasi password (T23): tidak sama / kosong → ditolak, akun tidak dibuat,
+	// dan pesan kolom lain tetap tampil bersamaan.
+	resp, body = c.post("/register", url.Values{"name": {"Sarah"}, "email": {"bukan"}, "password": {"password123"}, "password_confirmation": {"password124"}}, true)
+	if resp.StatusCode != http.StatusUnprocessableEntity || !strings.Contains(body, "Konfirmasi password tidak sama") || !strings.Contains(body, "Format email tidak valid") {
+		t.Errorf("konfirmasi beda: %d", resp.StatusCode)
+	}
+	if strings.Contains(body, "password124") || strings.Contains(body, `value="password123"`) {
+		t.Error("password / konfirmasi tidak boleh dirender ulang")
+	}
+	if resp, body := c.post("/register", url.Values{"name": {"Sarah"}, "email": {"sarah@example.com"}, "password": {"password123"}}, true); resp.StatusCode != http.StatusUnprocessableEntity || !strings.Contains(body, "Konfirmasi password tidak sama") {
+		t.Errorf("tanpa konfirmasi: %d", resp.StatusCode)
+	}
+	if resp, _ := c.post("/login", url.Values{"email": {"sarah@example.com"}, "password": {"password123"}}, true); resp.StatusCode != http.StatusUnprocessableEntity {
+		t.Error("akun tidak boleh dibuat bila konfirmasi salah")
+	}
+	// Validasi inline konfirmasi membandingkan dengan kolom password (hx-include).
+	_, page := c.do(http.MethodGet, "/register", nil, nil)
+	if !strings.Contains(page, `id="register-password_confirmation"`) || !strings.Contains(page, `hx-include="#register-password"`) {
+		t.Error("kolom konfirmasi password tidak ada di form")
+	}
+	if _, body := c.post("/register/validate", url.Values{"field": {"password_confirmation"}, "password": {"password123"}, "password_confirmation": {"password12"}}, true); !strings.Contains(body, "Konfirmasi password tidak sama") {
+		t.Errorf("inline beda: %s", body)
+	}
+	if _, body := c.post("/register/validate", url.Values{"field": {"password_confirmation"}, "password": {"password123"}, "password_confirmation": {"password123"}}, true); strings.Contains(body, "tidak sama") || !strings.Contains(body, `id="register-password_confirmation-error"`) {
+		t.Errorf("inline sama: %s", body)
 	}
 
 	resp, body = c.post("/register/validate", url.Values{"field": {"email"}, "email": {"x"}}, true)
@@ -317,7 +344,7 @@ func TestLoginRateLimited(t *testing.T) {
 		t.Errorf("percobaan ke-4: %d, want 429", last)
 	}
 	// Register punya kuota terpisah.
-	if resp, _ := c.post("/register", url.Values{"name": {"S"}, "email": {"s@example.com"}, "password": {"password123"}}, false); resp.StatusCode != http.StatusSeeOther {
+	if resp, _ := c.post("/register", url.Values{"name": {"S"}, "email": {"s@example.com"}, "password": {"password123"}, "password_confirmation": {"password123"}}, false); resp.StatusCode != http.StatusSeeOther {
 		t.Errorf("register setelah login dibatasi: %d", resp.StatusCode)
 	}
 }

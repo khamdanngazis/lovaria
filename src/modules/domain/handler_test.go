@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"errors"
 	"io"
 	"log/slog"
 	"net/http"
@@ -60,6 +61,22 @@ func TestDomainPageFlow(t *testing.T) {
 	e := newTestServer(t, f.svc, f.weddings)
 	owner, w := f.newWedding(t, "a@example.com")
 	page := w.DashboardURL("/domain")
+
+	// Belum lunas (T23): custom domain termasuk paket publikasi — form belum
+	// tersedia dan pendaftaran ditolak tanpa menyentuh Cloudflare.
+	if rec := req(e, owner, http.MethodGet, page, nil, false); rec.Code != http.StatusOK || strings.Contains(rec.Body.String(), "Daftarkan domain") ||
+		!strings.Contains(rec.Body.String(), "termasuk dalam paket publikasi") || !strings.Contains(rec.Body.String(), `href="`+w.DashboardURL("/publish")+`"`) {
+		t.Fatalf("belum lunas: %d", rec.Code)
+	}
+	if rec := req(e, owner, http.MethodPost, page, url.Values{"domain": {"www.samuelsarah.com"}}, true); rec.Code != http.StatusUnprocessableEntity || !strings.Contains(rec.Body.String(), "tersedia setelah undangan dibayar") {
+		t.Fatalf("daftar sebelum lunas: %d", rec.Code)
+	}
+	if _, err := f.svc.Get(ctx, w.ID); !errors.Is(err, ErrNotFound) {
+		t.Fatal("domain tidak boleh terdaftar sebelum lunas")
+	}
+	if _, err := f.weddings.MarkPaid(ctx, w.ID, wedding.PaidGateway); err != nil {
+		t.Fatal(err)
+	}
 
 	if rec := req(e, owner, http.MethodGet, page, nil, false); rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Daftarkan domain") {
 		t.Fatalf("form: %d", rec.Code)

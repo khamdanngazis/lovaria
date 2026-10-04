@@ -49,6 +49,13 @@ templ section(s pageState) {
 				<p class="font-medium">Custom domain belum tersedia</p>
 				<p class="mt-1 text-sm text-lovoria-muted">Fitur ini belum diaktifkan di server Lovoria. Undangan tetap bisa dibagikan lewat alamat Lovoria.</p>
 			}
+		} else if s.Domain == nil && !s.W.IsPaid() {
+			// Belum lunas (T23): custom domain termasuk paket publikasi.
+			@ui.Card() {
+				<p class="font-medium">Custom domain termasuk dalam paket publikasi</p>
+				<p class="mt-1 text-sm text-lovoria-muted">Tidak ada biaya tambahan. Fitur ini terbuka setelah undangan dibayar — satu kali, saat Anda siap mempublikasikan.</p>
+				<a href={ templ.SafeURL(s.W.DashboardURL("/publish")) } class="ui-btn ui-btn-primary mt-4">Lihat harga &amp; publikasikan</a>
+			}
 		} else if s.Domain == nil {
 			@addForm(s)
 		} else {

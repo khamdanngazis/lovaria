@@ -415,7 +415,7 @@ func (a *app) routes() *echo.Echo {
 	// storage & lama arsip; admin bisa melihat dashboard pasangan (lihat saja).
 	admins := admin.NewService(admin.Deps{
 		Pool: a.pool, Users: a.auth, Weddings: a.weddings, Guests: guests, Gallery: photos, Domains: a.domains, Themes: themes,
-		Secret: secret, CookieSecure: cfg.CookieSecure(), Log: log,
+		Payments: payments, Secret: secret, CookieSecure: cfg.CookieSecure(), Log: log,
 	})
 	a.weddings.SetAdminAccess(admins)
 	a.weddings.SetArchiveDaysSource(admins.ArchiveDays)
@@ -423,7 +423,7 @@ func (a *app) routes() *echo.Echo {
 	admin.Register(e.Group("/admin", server.NoStore, authMW.RequireAuth, authMW.RequireRole(auth.RoleAdmin)), admins)
 	publicsite.Register(e, publicsite.Deps{
 		Resolver: &publicsite.Resolver{Weddings: a.weddings, Guests: guests, Domains: a.domains, BaseURL: cfg.BaseURL, ExtraHosts: cfg.ExtraHosts, HostHeader: cfg.Domain.HostHeader, Log: log},
-		Handler:  &publicsite.Handler{BaseURL: cfg.BaseURL, Packages: admins, Views: views, Guests: guests, Guestbook: guestbooks, Events: events, Log: log, Secret: secret},
+		Handler:  &publicsite.Handler{BaseURL: cfg.BaseURL, PublishPrice: cfg.Payment.PriceIDR, Views: views, Guests: guests, Guestbook: guestbooks, Events: events, Log: log, Secret: secret},
 	})
 	return e
 }

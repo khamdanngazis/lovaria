@@ -4,15 +4,17 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/khamdanngazis/lovaria/src/modules/admin"
+	"github.com/khamdanngazis/lovaria/src/modules/payment"
 	"github.com/khamdanngazis/lovaria/src/templates/layouts"
 	"github.com/khamdanngazis/lovaria/static"
 )
 
 // landingData: isi dinamis landing page (T18).
 type landingData struct {
-	Themes   []landingTheme
-	Packages []admin.Package
+	Themes []landingTheme
+	// PriceIDR: harga publikasi sekali bayar per wedding (T23); 0 → bagian
+	// harga disembunyikan.
+	PriceIDR int64
 	LoggedIn bool
 	OGImage  string // URL absolut gambar Open Graph
 	URL      string // URL kanonik landing
@@ -58,10 +60,10 @@ templ landingPage(d landingData) {
 			@landingSteps()
 			@landingFeatures()
 			@landingThemes(d)
-			if len(d.Packages) > 0 {
+			if d.PriceIDR > 0 {
 				@landingPricing(d)
 			}
-			@landingFAQ()
+			@landingFAQ(d)
 			@landingCTA(d)
 		</main>
 		@landingFooter()
@@ -124,7 +126,7 @@ templ landingNavLinks(d landingData) {
 	<a href="#fitur" class="hover:text-lovoria-primary">Fitur</a>
 	<a href="#cara-kerja" class="hover:text-lovoria-primary">Cara Kerja</a>
 	<a href="#tema" class="hover:text-lovoria-primary">Tema</a>
-	if len(d.Packages) > 0 {
+	if d.PriceIDR > 0 {
 		<a href="#harga" class="hover:text-lovoria-primary">Harga</a>
 	}
 	<a href="#faq" class="hover:text-lovoria-primary">FAQ</a>
@@ -378,54 +380,28 @@ templ landingThemes(d landingData) {
 }
 
 // ---------- Harga ----------
-
-func storageText(mb int) string {
-	if mb >= 1024 && mb%1024 == 0 {
-		return fmt.Sprintf("%d GB", mb/1024)
-	}
-	return fmt.Sprintf("%d MB", mb)
-}
-
-func durationText(days int) string {
-	switch {
-	case days%365 == 0:
-		return fmt.Sprintf("%d tahun", days/365)
-	case days%30 == 0:
-		return fmt.Sprintf("%d bulan", days/30)
-	default:
-		return fmt.Sprintf("%d hari", days)
-	}
-}
-
 templ landingPricing(d landingData) {
 	<section id="harga" class="scroll-mt-20 border-y border-lovoria-border bg-white py-20 sm:py-28">
 		<div class={ container }>
-			@sectionHeading("Harga", "Paket untuk setiap cerita", "")
-			<ul class="mx-auto mt-14 grid max-w-5xl gap-6 md:grid-cols-3">
-				for _, p := range d.Packages {
-					<li class="flex flex-col rounded-2xl border border-lovoria-border bg-lovoria-bg p-7">
-						<h3 class="font-display text-2xl text-lovoria-deep">{ p.Name }</h3>
-						if p.PriceDisplay != "" {
-							<p class="mt-3 text-2xl font-semibold text-lovoria-primary">{ p.PriceDisplay }</p>
-						}
-						<ul class="mt-6 flex-1 space-y-3 text-sm text-lovoria-text">
-							<li class="flex gap-2">
-								@icon("check", "h-5 w-5 flex-none text-lovoria-accent")
-								Semua fitur undangan, RSVP, ucapan & amplop digital
-							</li>
-							<li class="flex gap-2">
-								@icon("check", "h-5 w-5 flex-none text-lovoria-accent")
-								Penyimpanan foto { storageText(p.StorageMB) }
-							</li>
-							<li class="flex gap-2">
-								@icon("check", "h-5 w-5 flex-none text-lovoria-accent")
-								Halaman kenangan aktif { durationText(p.ArchiveDays) } setelah hari H
-							</li>
-						</ul>
-						<a href="/register" class={ btnSecondary, "mt-8" }>Pilih { p.Name }</a>
-					</li>
-				}
-			</ul>
+			@sectionHeading("Harga", "Satu harga, semua fitur", "Buat dan sunting undangan sepuasnya tanpa biaya. Bayar sekali saat undangan siap dipublikasikan.")
+			<div class="mx-auto mt-14 max-w-3xl rounded-2xl border border-lovoria-border bg-lovoria-bg p-7 shadow-soft sm:p-10">
+				<div class="flex flex-wrap items-end gap-x-4 gap-y-2">
+					<p class="font-display text-5xl leading-none text-lovoria-primary sm:text-6xl">{ payment.Rupiah(d.PriceIDR) }</p>
+					<p class="pb-1 text-sm text-lovoria-muted">sekali bayar per undangan · tanpa langganan</p>
+				</div>
+				<ul class="mt-8 grid gap-3 border-t border-lovoria-border pt-8 text-sm text-lovoria-text sm:grid-cols-2">
+					for _, f := range payment.Features {
+						<li class="flex gap-2">
+							@icon("check", "h-5 w-5 flex-none text-lovoria-accent")
+							{ f }
+						</li>
+					}
+				</ul>
+				<div class="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3">
+					<a href="/register" class={ btnPrimary }>Buat undangan — gratis dicoba</a>
+					<p class="text-sm text-lovoria-muted">Pembayaran baru diminta saat Anda menekan Publikasikan.</p>
+				</div>
+			</div>
 		</div>
 	</section>
 }
@@ -437,16 +413,25 @@ var landingFAQs = [][2]string{
 	{"Bagaimana cara mengirim undangan ke tamu?", "Tambahkan daftar tamu (ketik, tempel dari catatan, atau import CSV). Setiap tamu mendapat link pribadi dengan namanya; kirim lewat tombol WhatsApp atau salin pesan yang sudah disiapkan."},
 	{"Bisakah memakai domain sendiri?", "Bisa. Hubungkan domain seperti www.namakalian.com dari menu Domain; kami memandu pengaturan DNS-nya langkah demi langkah dan HTTPS aktif otomatis."},
 	{"Apakah isi undangan bisa diubah setelah dibagikan?", "Bisa kapan saja. Perubahan langsung terlihat oleh tamu tanpa perlu mengirim ulang link."},
-	{"Apa yang terjadi setelah hari pernikahan?", "Website berubah menjadi halaman kenangan: konfirmasi kehadiran ditutup, sementara cerita dan ucapan tetap bisa dikunjungi. Lama halaman kenangan mengikuti paket."},
+	{"Apa yang terjadi setelah hari pernikahan?", "Website berubah menjadi halaman kenangan: konfirmasi kehadiran ditutup, sementara cerita dan ucapan tetap bisa dikunjungi. Halaman kenangan tetap bisa dibuka setelah hari bahagia."},
 	{"Apakah data tamu aman?", "Link pribadi tamu tidak diindeks mesin pencari, data tidak dijual, dan cadangan data dibuat setiap hari. Selengkapnya di Kebijakan Privasi."},
 }
 
-templ landingFAQ() {
+// faqs: pertanyaan umum; soal biaya mengikuti harga publikasi yang berlaku.
+func faqs(d landingData) [][2]string {
+	if d.PriceIDR <= 0 {
+		return landingFAQs
+	}
+	price := [2]string{"Berapa biayanya?", "Membuat, menyunting, dan melihat pratinjau undangan gratis. Bayar " + payment.Rupiah(d.PriceIDR) + " satu kali saat undangan dipublikasikan — tanpa langganan, dan semua fitur termasuk custom domain sudah termasuk."}
+	return append([][2]string{price}, landingFAQs...)
+}
+
+templ landingFAQ(d landingData) {
 	<section id="faq" class="scroll-mt-20 py-20 sm:py-28">
 		<div class={ container }>
 			@sectionHeading("FAQ", "Pertanyaan yang sering diajukan", "")
 			<div class="mx-auto mt-12 max-w-3xl divide-y divide-lovoria-border border-y border-lovoria-border">
-				for _, q := range landingFAQs {
+				for _, q := range faqs(d) {
 					<details class="group py-5">
 						<summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-medium text-lovoria-deep [&::-webkit-details-marker]:hidden">
 							{ q[0] }

@@ -79,10 +79,18 @@ func (h *Handler) after(c echo.Context, w wedding.Wedding, input, notice string,
 	return h.render(c, http.StatusOK, s)
 }
 
+// errUnpaid: pesan saat wedding belum lunas mencoba mendaftarkan domain.
+const errUnpaid = "Custom domain tersedia setelah undangan dibayar."
+
 // POST .../domain (domain=…)
 func (h *Handler) Add(c echo.Context) error {
 	w := ctxWedding(c)
 	input := c.FormValue("domain")
+	// Custom domain termasuk dalam pembayaran publikasi (T23): baru terbuka
+	// setelah wedding lunas. Domain yang sudah terpasang tetap bisa dicek/dihapus.
+	if !w.IsPaid() {
+		return h.after(c, w, input, "", ValidationError{"domain": errUnpaid})
+	}
 	_, err := h.svc.Add(c.Request().Context(), w.ID, input)
 	return h.after(c, w, input, "Domain didaftarkan. Sekarang pasang CNAME di penyedia domain Anda.", err)
 }

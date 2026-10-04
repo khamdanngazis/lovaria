@@ -399,3 +399,21 @@ func (s *Service) Fake() (*Fake, bool) {
 	f, ok := s.gw.(*Fake)
 	return f, ok
 }
+
+// AdminOrders: semua order terbaru untuk panel admin (halaman mulai 1).
+func (s *Service) AdminOrders(ctx context.Context, page, perPage int) ([]Order, int, error) {
+	page = max(1, page)
+	rows, err := s.q.AdminListOrders(ctx, paymentdb.AdminListOrdersParams{Lim: int32(perPage), Off: int32((page - 1) * perPage)}) //nolint:gosec // G115: halaman kecil
+	if err != nil {
+		return nil, 0, err
+	}
+	total, err := s.q.AdminCountOrders(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	out := make([]Order, len(rows))
+	for i, r := range rows {
+		out[i] = toOrder(r)
+	}
+	return out, int(total), nil
+}

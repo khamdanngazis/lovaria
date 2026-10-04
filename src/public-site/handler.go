@@ -29,13 +29,14 @@ const openedEvery = 15 * time.Minute
 type Handler struct {
 	// BaseURL: URL utama Lovoria (kanonik & gambar OG landing page).
 	BaseURL string
-	// Packages: paket yang ditampilkan di landing (admin.Service); nil → tanpa harga.
-	Packages  LandingPackages
-	Views     *ViewBuilder
-	Guests    *guest.Service
-	Guestbook *guestbook.Service
-	Events    *event.Service
-	Log       *slog.Logger
+	// PublishPrice: harga publikasi sekali bayar (T23) untuk bagian Harga di
+	// landing; 0 → bagian harga disembunyikan.
+	PublishPrice int64
+	Views        *ViewBuilder
+	Guests       *guest.Service
+	Guestbook    *guestbook.Service
+	Events       *event.Service
+	Log          *slog.Logger
 	// Secret kunci HMAC token form RSVP (config APP_SECRET).
 	Secret []byte
 	now    func() time.Time

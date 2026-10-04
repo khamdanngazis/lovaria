@@ -12,6 +12,7 @@ test('alur utama pasangan & tamu', async ({ page, browser }) => {
   await page.locator('#register-name').fill('Tes E2E');
   await page.locator('#register-email').fill(email);
   await page.locator('#register-password').fill('password-e2e-123');
+  await page.locator('#register-password_confirmation').fill('password-e2e-123');
   await page.getByRole('button', { name: /daftar/i }).click();
 
   // 2. Wizard 3 langkah → beranda wedding

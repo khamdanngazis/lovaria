@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### T23 (bagian 2) — Registrasi, wizard, landing, dan admin untuk pembayaran
+- **Daftar**: kolom "Ulangi password" (dengan validasi langsung saat mengetik).
+- **Buat wedding**: alamat undangan (`/w/…`) bisa dipilih sendiri di langkah 2; kosong = otomatis.
+- **Custom domain** termasuk dalam harga dan terbuka setelah undangan dibayar.
+- **Landing**: bagian Harga menjadi satu harga Rp149.000 sekali bayar dengan daftar fitur, plus FAQ biaya.
+- **Admin**: status pembayaran & riwayat order di detail wedding, **Tandai lunas** manual (catatan wajib, tercatat di audit log), dan tab Pembayaran.
+- Syarat & Ketentuan: pembayaran sekali per undangan, tanpa langganan.
+
 ### Pembayaran dibuka di tab baru
 - "Bayar & Publikasikan" dan "Lanjutkan pembayaran" membuka halaman Midtrans di tab baru; tab Lovoria pindah ke halaman status yang memperbarui diri dan berubah menjadi "Pembayaran berhasil" begitu pembayaran diterima — tidak bergantung pada redirect balik dari Midtrans.
 

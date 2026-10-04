@@ -494,3 +494,76 @@ func TestPackageShowOnLanding(t *testing.T) {
 		t.Error("urutan negatif harus ditolak")
 	}
 }
+
+// T23: admin menandai wedding lunas tanpa gateway (catatan wajib, tercatat di
+// audit), melihat status & riwayat order; publikasi sebelum lunas ditolak rapi.
+func TestMarkWeddingPaid(t *testing.T) {
+	f := newFixture(t)
+	_, admin := f.user(t, "admin@example.com", true)
+	cu, couple := f.user(t, "couple@example.com", false)
+	w := f.wedding(t, cu.ID)
+	if _, err := f.pool.Exec(ctx, `UPDATE weddings SET status = 'draft', paid_at = NULL, paid_source = NULL WHERE id = $1`, w.ID); err != nil {
+		t.Fatal(err)
+	}
+	page := "/admin/weddings/" + w.ID.String()
+	f.weddings.SetEventCounter(oneEvent{}) // checklist publikasi terpenuhi
+
+	body := f.do(http.MethodGet, page, admin, reqOpt{}).Body.String()
+	if !strings.Contains(body, "Belum dibayar") || !strings.Contains(body, "Tandai lunas manual") {
+		t.Fatal("detail wedding: status pembayaran & form tandai lunas")
+	}
+	// Admin pun tidak bisa menerbitkan wedding yang belum lunas (pesan, bukan error 500).
+	rec := f.do(http.MethodPost, page+"/status", admin, reqOpt{form: url.Values{"status": {wedding.StatusPublished}}})
+	if got, _ := f.weddings.GetWedding(ctx, w.ID); rec.Code != http.StatusSeeOther || !strings.Contains(rec.Header().Get("Location"), "belum+dibayar") || got.Status != wedding.StatusDraft {
+		t.Errorf("publish sebelum lunas: %d %s", rec.Code, rec.Header().Get("Location"))
+	}
+	// Catatan wajib.
+	n := f.auditCount(t)
+	rec = f.do(http.MethodPost, page+"/paid", admin, reqOpt{form: url.Values{"note": {" "}}})
+	if got, _ := f.weddings.GetWedding(ctx, w.ID); rec.Code != http.StatusSeeOther || !strings.Contains(rec.Header().Get("Location"), "err=") || got.IsPaid() || f.auditCount(t) != n {
+		t.Errorf("tanpa catatan: %d paid=%v", rec.Code, got.IsPaid())
+	}
+	// Bukan admin → ditolak.
+	if rec := f.do(http.MethodPost, page+"/paid", couple, reqOpt{form: url.Values{"note": {"coba sendiri"}}}); rec.Code == http.StatusSeeOther || rec.Code == http.StatusOK {
+		t.Errorf("pasangan menandai lunas sendiri: %d", rec.Code)
+	}
+	if got, _ := f.weddings.GetWedding(ctx, w.ID); got.IsPaid() {
+		t.Fatal("wedding tidak boleh lunas oleh non-admin")
+	}
+	// Tandai lunas → sumber "admin", tercatat di audit dengan catatannya.
+	rec = f.do(http.MethodPost, page+"/paid", admin, reqOpt{form: url.Values{"note": {"transfer manual BCA 4 Okt"}}})
+	got, _ := f.weddings.GetWedding(ctx, w.ID)
+	if rec.Code != http.StatusSeeOther || !strings.Contains(rec.Header().Get("Location"), "ok=") || !got.IsPaid() || got.PaidSource != wedding.PaidAdmin {
+		t.Fatalf("tandai lunas: %d %+v", rec.Code, got.PaidSource)
+	}
+	es, _, _ := f.svc.AuditLog(ctx, w.ID.String(), 1)
+	if f.auditCount(t) != n+1 || es[0].Action != "wedding.mark_paid" || es[0].Details["note"] != "transfer manual BCA 4 Okt" {
+		t.Errorf("audit: %+v", es[0])
+	}
+	// Kedua kali: sudah lunas, tanpa audit baru.
+	rec = f.do(http.MethodPost, page+"/paid", admin, reqOpt{form: url.Values{"note": {"ulang lagi"}}})
+	if !strings.Contains(rec.Header().Get("Location"), "sudah+lunas") || f.auditCount(t) != n+1 {
+		t.Errorf("tandai lunas dua kali: %s", rec.Header().Get("Location"))
+	}
+	body = f.do(http.MethodGet, page, admin, reqOpt{}).Body.String()
+	if !strings.Contains(body, "Lunas ✓") || !strings.Contains(body, "ditandai admin") || strings.Contains(body, "Tandai lunas manual") {
+		t.Error("detail wedding setelah lunas")
+	}
+	// Setelah lunas admin bisa menerbitkan.
+	f.do(http.MethodPost, page+"/status", admin, reqOpt{form: url.Values{"status": {wedding.StatusPublished}}})
+	if got, _ := f.weddings.GetWedding(ctx, w.ID); got.Status != wedding.StatusPublished {
+		t.Errorf("publish setelah lunas: %s", got.Status)
+	}
+	// Halaman Pembayaran (tanpa service payment di fixture: kosong tetapi tampil).
+	if rec := f.do(http.MethodGet, "/admin/payments", admin, reqOpt{}); rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Belum ada pembayaran") {
+		t.Errorf("halaman pembayaran: %d", rec.Code)
+	}
+	if rec := f.do(http.MethodGet, "/admin/payments", couple, reqOpt{}); rec.Code == http.StatusOK {
+		t.Error("halaman pembayaran hanya untuk admin")
+	}
+}
+
+// oneEvent: penghitung acara tiruan (checklist publikasi butuh ≥ 1 acara).
+type oneEvent struct{}
+
+func (oneEvent) CountEvents(context.Context, uuid.UUID) (int, error) { return 1, nil }
