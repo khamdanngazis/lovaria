@@ -2,6 +2,7 @@ package theme
 
 import (
 	"fmt"
+	"reflect"
 	"regexp"
 	"strings"
 	"testing"
@@ -159,9 +160,8 @@ func TestThemesWithMinimalAndFullData(t *testing.T) {
 				if v.MainPhoto != "" && !strings.Contains(html, `loading="lazy"`) {
 					t.Error("foto panel desktop harus lazy")
 				}
-				// Sampul yang memakai base.CoverImage (Signature & base; tema lama
-				// menyusul di PR berikutnya): prioritas tinggi + srcset.
-				if v.CoverThumb != "" && strings.Contains(html, "lv-kenburns") {
+				// Semua sampul memakai base.CoverImage: prioritas tinggi + srcset.
+				if v.CoverThumb != "" {
 					if !strings.Contains(html, `fetchpriority="high"`) || !strings.Contains(html, "cover_thumb.jpg 480w, https://pub-x.r2.dev/cover.jpg 1600w") {
 						t.Error("foto sampul: fetchpriority / srcset")
 					}
@@ -214,5 +214,44 @@ func TestSignatureThemeAndSharedTitles(t *testing.T) {
 	v.MemoryPhotos = []view.Photo{{URL: "https://pub-x.r2.dev/m.jpg", ThumbURL: "https://pub-x.r2.dev/m_thumb.jpg"}}
 	if html := render(t, v); !strings.Contains(html, `href="#memories" data-open="lock"`) || !strings.Contains(html, "Lihat Kenangan") {
 		t.Error("kenangan: tombol pembuka harus menuju #memories")
+	}
+}
+
+// Kelima tema meng-override semua bagian visual & judul bagian (tidak ada yang
+// jatuh ke base), dan tiap bagian memakai judul milik temanya.
+func TestAllThemesOverrideVisualParts(t *testing.T) {
+	ptr := func(f any) uintptr { return reflect.ValueOf(f).Pointer() }
+	for _, d := range All() {
+		p := d.Parts
+		for name, pair := range map[string][2]uintptr{
+			"Hero": {ptr(p.Hero), ptr(base.Hero)}, "Couple": {ptr(p.Couple), ptr(base.Couple)},
+			"LoveStory": {ptr(p.LoveStory), ptr(base.LoveStory)}, "Events": {ptr(p.Events), ptr(base.Events)},
+			"Gallery": {ptr(p.Gallery), ptr(base.Gallery)}, "Closing": {ptr(p.Closing), ptr(base.Closing)},
+			"SectionTitle": {ptr(p.SectionTitle), ptr(base.SectionTitle)},
+		} {
+			if pair[0] == pair[1] {
+				t.Errorf("tema %s: %s masih memakai base", d.ID, name)
+			}
+		}
+	}
+	// Penanda judul bagian khas tiap tema, di bagian tema maupun bagian bersama.
+	marks := map[string]string{
+		"signature": "text-4xl leading-tight", "elegant": `viewBox="0 0 160 16"`, "minimal": "tracking-[0.08em]",
+		"romantic": `viewBox="0 0 144 28"`, "modern": "h-1.5 w-12 bg-accent",
+	}
+	for id, mark := range marks {
+		v := sample()
+		v.ThemeID = id
+		v.AllowRSVP, v.AllowGuestbook = true, true
+		html := render(t, v)
+		for _, sec := range []string{"couple", "story", "events", "gallery", "rsvp", "guestbook"} {
+			i := strings.Index(html, `id="`+sec+`"`)
+			if i < 0 {
+				t.Fatalf("%s: bagian %s tidak ada", id, sec)
+			}
+			if s := html[i : i+strings.Index(html[i:], "</section>")]; !strings.Contains(s, mark) {
+				t.Errorf("%s: bagian %s belum memakai judul tema", id, sec)
+			}
+		}
 	}
 }

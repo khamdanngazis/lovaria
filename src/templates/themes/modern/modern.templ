@@ -1,78 +1,213 @@
-// Package modern: tema tegas — sans tebal, blok warna penuh, kartu berwarna.
+// Package modern: tema Modern (T21) — tegas dan kontras: pembuka gelap, blok
+// warna penuh, tipografi sangat besar, kartu acara berwarna (Montserrat +
+// Poppins).
 package modern
 
 import (
+	"fmt"
+
 	"github.com/khamdanngazis/lovaria/src/modules/theme/view"
 	"github.com/khamdanngazis/lovaria/src/templates/themes/base"
 )
 
+const eyebrow = "text-[11px] font-semibold uppercase tracking-[0.28em]"
+
+// huge: judul sans tebal kapital yang rapat.
+const huge = "break-words font-semibold uppercase leading-[0.92] tracking-tight"
+
+// block: blok warna membulat.
+const block = "overflow-hidden rounded-[var(--lv-radius)]"
+
+func dayNum(v view.View) string { return fmt.Sprintf("%02d", v.Date.Day()) }
+
+func monthYear(v view.View) string {
+	return fmt.Sprintf("%02d / %d", int(v.Date.Month()), v.Date.Year())
+}
+
+// Hero: pembuka gelap — foto sampul meredup ke Deep, nama sangat besar di
+// kiri bawah, baris tamu + tombol di dasar. Tanpa foto: angka tanggal raksasa.
 templ Hero(v view.View) {
-	<section id="opening" class="flex min-h-dvh flex-col">
-		<div class="relative flex-1 bg-primary">
-			if base.CoverOf(v) != "" {
-				<img src={ base.CoverOf(v) } alt="" fetchpriority="low" class="absolute inset-0 h-full w-full object-cover mix-blend-multiply opacity-80"/>
-			}
-			<div class="relative flex h-full flex-col justify-end p-8 text-white">
-				<p class="text-xs font-semibold uppercase tracking-[0.3em]">We're getting married</p>
-				<h1 class="mt-3 text-5xl font-semibold leading-[1.05]">{ v.Couple.GroomName }<br/>&amp; { v.Couple.BrideName }</h1>
+	{{ groom, bride := base.FirstNames(v) }}
+	<section id="opening" class="relative flex min-h-dvh flex-col overflow-hidden bg-deep text-white">
+		if base.CoverOf(v) != "" {
+			@base.CoverImage(v, "absolute inset-0 h-full w-full object-cover opacity-70 lg:hidden")
+			<div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.35)_0%,rgba(0,0,0,0)_35%,var(--lv-deep)_88%)] lg:hidden"></div>
+		}
+		<div class="lv-cover-body relative flex flex-1 flex-col p-7">
+			<div class="flex items-center justify-between gap-4">
+				<p class={ eyebrow }>We're getting married</p>
+				<span class="h-2 w-2 flex-none rounded-full bg-accent" aria-hidden="true"></span>
 			</div>
-		</div>
-		<div class="grid grid-cols-2 items-center gap-4 bg-surface p-8">
-			<div>
-				<p class="text-xs uppercase tracking-widest opacity-80">{ base.GreetingText(v, "Untuk") }</p>
-				<p class="font-semibold">{ base.GuestName(v) }</p>
-				<p class="mt-2 text-sm">{ v.DateText }</p>
+			<p class={ "mt-auto text-[6.5rem] font-semibold leading-none tracking-tighter text-accent", templ.KV("lg:block hidden", base.CoverOf(v) != "") } style="font-family: var(--lv-font-heading)" aria-hidden="true">{ dayNum(v) }</p>
+			<h1 class={ "text-6xl", huge, templ.KV("mt-auto lg:mt-4", base.CoverOf(v) != ""), templ.KV("mt-4", base.CoverOf(v) == "") }>
+				{ groom }
+				<span class="text-accent">&amp;</span>
+				<br/>
+				{ bride }
+			</h1>
+			<p class="mt-4 text-sm opacity-85">{ v.DateText }</p>
+			<div class="mt-7 flex items-end justify-between gap-4 border-t border-white/20 pt-5">
+				<div class="min-w-0">
+					<p class={ "opacity-70", eyebrow }>{ base.GreetingText(v, "Untuk") }</p>
+					<p class="mt-1 break-words font-semibold">{ base.GuestName(v) }</p>
+				</div>
+				@base.OpenButton(v, "flex-none rounded-[var(--lv-radius-btn)] bg-white px-5 py-3.5 text-sm font-semibold text-deep", "Buka Undangan", "Lihat Kenangan")
 			</div>
-			<a href={ templ.SafeURL(base.OpenHref(v)) } data-open={ base.OpenLock(v) } class="justify-self-end rounded-xl bg-ink px-5 py-4 text-sm font-semibold text-surface" style="background: var(--lv-ink)">{ base.OpenText(v, "Buka Undangan", "Lihat Kenangan") } →</a>
 		</div>
 	</section>
+}
+
+// SectionTitle: balok aksen pendek → judul kapital sangat besar, rata kiri.
+templ SectionTitle(title, subtitle string) {
+	<div class="mb-9 text-left">
+		<div class="h-1.5 w-12 bg-accent" aria-hidden="true"></div>
+		<h2 class={ "mt-5 text-5xl", huge }>{ title }</h2>
+		if subtitle != "" {
+			<p class="mt-4 max-w-xs text-sm leading-relaxed opacity-75">{ subtitle }</p>
+		}
+	</div>
 }
 
 templ Couple(v view.View) {
 	<section id="couple" class="px-6 py-16">
-		<h2 class="text-4xl font-semibold">Mempelai</h2>
-		<div class="mt-8 space-y-4">
-			@person(v.Couple.GroomName, v.Couple.GroomPhoto, v.Couple.GroomDesc, "Mempelai Pria")
-			@person(v.Couple.BrideName, v.Couple.BridePhoto, v.Couple.BrideDesc, "Mempelai Wanita")
+		@base.Title(v, "Mempelai", "")
+		<div class="space-y-4">
+			@person(v.Couple.GroomName, v.Couple.GroomPhoto, v.Couple.GroomDesc, "Mempelai Pria", "bg-primary text-on-primary")
+			@person(v.Couple.BrideName, v.Couple.BridePhoto, v.Couple.BrideDesc, "Mempelai Wanita", "bg-deep text-white")
 		</div>
-		<div class="mt-8 rounded-3xl bg-ink p-8 text-surface" style="background: var(--lv-ink)">
-			<p class="text-xs font-semibold uppercase tracking-[0.3em] text-primary">Save the date</p>
-			<p class="mt-2 text-3xl font-semibold">{ v.DateText }</p>
+		<div class={ "mt-4 border border-line bg-white/60 p-7", block }>
+			<p class={ "text-muted", eyebrow }>Save the date</p>
+			<p class="mt-3 flex items-end gap-3" style="font-family: var(--lv-font-heading)">
+				<span class="text-7xl font-semibold leading-none tracking-tighter">{ dayNum(v) }</span>
+				<span class="pb-1 text-xl font-semibold">{ monthYear(v) }</span>
+			</p>
+			<p class="mt-3 text-sm">{ v.DateText }</p>
 			if v.Description != "" {
-				<p class="mt-3 whitespace-pre-line text-sm opacity-80">{ v.Description }</p>
+				<p class="mt-3 whitespace-pre-line text-sm leading-relaxed text-muted">{ v.Description }</p>
 			}
 		</div>
 	</section>
 }
 
-templ person(name, photo, desc, role string) {
-	<div class="flex items-center gap-4 rounded-3xl bg-primary/10 p-4">
+// person: blok warna penuh — foto lebar di atas, nama besar di bawah.
+templ person(name, photo, desc, role, tone string) {
+	<div class={ block, tone }>
 		if photo != "" {
-			<img src={ photo } alt={ name } loading="lazy" class="h-24 w-24 flex-none rounded-2xl object-cover"/>
+			<img src={ photo } alt={ name } loading="lazy" decoding="async" class="aspect-[4/3] w-full object-cover"/>
 		}
-		<div class="min-w-0">
-			<p class="text-xs font-semibold uppercase tracking-widest text-primary">{ role }</p>
-			<h3 class="text-2xl font-semibold">{ name }</h3>
+		<div class="p-6">
+			<p class={ "opacity-75", eyebrow }>{ role }</p>
+			<h3 class={ "mt-2 text-3xl", huge }>{ name }</h3>
 			if desc != "" {
-				<p class="whitespace-pre-line text-sm opacity-80">{ desc }</p>
+				<p class="mt-3 whitespace-pre-line text-sm leading-relaxed opacity-80">{ desc }</p>
 			}
 		</div>
 	</div>
 }
 
+// LoveStory: blok gelap penuh dengan nomor bab besar.
+templ LoveStory(v view.View) {
+	if len(v.Stories) > 0 {
+		<section id="story" class="bg-deep px-6 py-16 text-white">
+			@base.Title(v, "Cerita Kami", "")
+			<ol class="space-y-4">
+				for i, s := range v.Stories {
+					<li class={ "bg-white/[0.07]", block }>
+						if s.PhotoURL != "" {
+							<img src={ s.PhotoURL } alt="" loading="lazy" decoding="async" class="aspect-[16/10] w-full object-cover"/>
+						}
+						<div class="flex gap-4 p-6">
+							<span class="w-12 flex-none text-4xl font-semibold leading-none text-accent" style="font-family: var(--lv-font-heading)" aria-hidden="true">{ fmt.Sprintf("%02d", i+1) }</span>
+							<div class="min-w-0">
+								<p class={ "opacity-70", eyebrow }>{ s.DateText }</p>
+								<h3 class="mt-1 break-words text-xl font-semibold leading-snug">{ s.Title }</h3>
+								if s.Description != "" {
+									<p class="mt-2 whitespace-pre-line text-sm leading-relaxed opacity-80">{ s.Description }</p>
+								}
+							</div>
+						</div>
+					</li>
+				}
+			</ol>
+		</section>
+	}
+}
+
+// Events: kartu berwarna penuh (Primary) dengan tombol terang.
 templ Events(v view.View) {
 	if len(v.Events) > 0 {
 		<section id="events" class="px-6 py-16">
-			<h2 class="text-4xl font-semibold">Acara</h2>
-			if sub := base.EventsSubtitle(v); sub != "" {
-				<p class="mt-2 text-sm opacity-80">{ sub }</p>
-			}
-			<div class="mb-8"></div>
+			@base.Title(v, "Acara", base.EventsSubtitle(v))
 			<div class="space-y-4">
 				for _, e := range v.Events {
-					@base.EventCard(e, "rounded-3xl bg-primary p-7 text-left text-white [&_.text-primary]:text-white/80 [&_a]:!border-white [&_a]:!text-white [&_a.bg-primary]:!bg-white/20")
+					<article class={ "bg-primary p-7 text-on-primary", block }>
+						<p class={ "opacity-75", eyebrow }>{ e.TypeLabel }</p>
+						<h3 class={ "mt-2 text-3xl", huge }>{ e.Name }</h3>
+						<div class="mt-6 space-y-3 border-t border-current/20 pt-5 text-sm">
+							<div class="min-w-0">
+								<p class="font-semibold">{ e.DateText }</p>
+								<p class="opacity-80">{ e.TimeText }</p>
+							</div>
+							<div class="min-w-0">
+								<p class="break-words font-semibold">{ e.Venue }</p>
+								if e.Address != "" {
+									<p class="break-words opacity-80">{ e.Address }</p>
+								}
+							</div>
+						</div>
+						if e.Description != "" {
+							<p class="mt-4 whitespace-pre-line text-sm leading-relaxed opacity-80">{ e.Description }</p>
+						}
+						if e.MapsURL != "" || e.CalendarURL != "" {
+							<div class="mt-6 flex flex-wrap gap-2">
+								if e.MapsURL != "" {
+									<a href={ templ.SafeURL(e.MapsURL) } target="_blank" rel="noopener" class="rounded-[var(--lv-radius-btn)] bg-on-primary px-4 py-2 text-xs font-semibold text-primary">Buka Peta</a>
+								}
+								if e.CalendarURL != "" {
+									<a href={ templ.SafeURL(e.CalendarURL) } class="rounded-[var(--lv-radius-btn)] border border-current px-4 py-2 text-xs font-semibold">Simpan ke Kalender</a>
+								}
+							</div>
+						}
+					</article>
 				}
 			</div>
 		</section>
 	}
+}
+
+// Gallery: mozaik rapat tepi ke tepi — foto lebar diselingi dua kotak.
+templ Gallery(v view.View) {
+	if len(v.Gallery) > 0 {
+		<section id="gallery" class="py-16">
+			<div class="px-6">
+				@base.Title(v, "Galeri", "")
+			</div>
+			<div class="grid grid-cols-2 gap-1">
+				for i, p := range v.Gallery {
+					<a href={ templ.SafeURL(p.URL) } data-lightbox aria-label={ base.PhotoLabel(p, i) } class={ "block overflow-hidden", templ.KV("col-span-2", base.Wide(i, len(v.Gallery))) }>
+						<img src={ p.ThumbURL } alt={ p.Caption } loading="lazy" decoding="async" class={ "w-full object-cover", templ.KV("aspect-[16/10]", base.Wide(i, len(v.Gallery))), templ.KV("aspect-square", !base.Wide(i, len(v.Gallery))) }/>
+					</a>
+				}
+			</div>
+		</section>
+	}
+}
+
+// Closing: blok Primary penuh dengan nama sangat besar.
+templ Closing(v view.View) {
+	{{ groom, bride := base.FirstNames(v) }}
+	<section id="closing" class="bg-primary px-7 py-20 text-on-primary">
+		<div class="h-1.5 w-12 bg-accent" aria-hidden="true"></div>
+		<p class="mt-8 max-w-xs whitespace-pre-line text-sm leading-relaxed opacity-85">{ base.ClosingText(v, "Terima kasih. Sampai jumpa di hari bahagia kami.", "Terima kasih atas doa dan kehadiran Anda.") }</p>
+		<p class={ "mt-10 text-5xl", huge } style="font-family: var(--lv-font-heading)">
+			{ groom }
+			<span class="text-accent">&amp;</span>
+			<br/>
+			{ bride }
+		</p>
+		<div class="mt-12 flex items-center justify-between gap-4 border-t border-current/20 pt-5">
+			<p class={ "opacity-70", eyebrow }>{ v.DateText }</p>
+			<p class={ "opacity-70", eyebrow }>Lovoria</p>
+		</div>
+	</section>
 }

@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### T21 (bagian 2) — Tema Elegan, Romantis, dan Modern ditulis ulang
+- **Elegan**: bingkai ganda dengan ornamen sudut, foto sampul berpigura, kartu acara berbingkai, penutup gelap.
+- **Romantis**: foto sampul & mempelai melengkung, ornamen bunga garis, cerita berselang-seling, kartu lembut.
+- **Modern**: pembuka gelap dengan nama sangat besar, blok warna penuh, kartu acara berwarna. **Warna bawaan berubah dari hijau toska ke Deep Plum** — undangan Modern yang tidak mengganti warna ikut berubah.
+- Ketiganya kini meng-override semua bagian (sampul, mempelai, cerita, acara, galeri, penutup) dan judul bagian bersama; undangan yang sudah terbit dengan tema ini ikut tampil baru.
+
 ### T22 (bagian 3) — Panel admin memakai warna brand
 - Panel admin (ringkasan, customers, weddings, tema, paket, pembayaran, storage, domain, audit log) kini memakai token `lovoria-*` dan komponen `ui-*`: judul serif, tab `ui-tabs`, tabel `ui-table`.
 - Penjaga warna kini memindai semua templ dashboard, auth, admin, dan komponen ui secara otomatis (berkas baru ikut terpindai); hanya tampilan undangan dan situs publik yang dikecualikan.
