@@ -48,7 +48,7 @@ func notFoundPage() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section class=\"py-20 text-center\"><p class=\"font-heading text-5xl text-primary\">Oops</p><h1 class=\"mt-4 text-xl font-semibold\">Undangan tidak ditemukan</h1><p class=\"mx-auto mt-3 max-w-xs text-ink/70\">Link undangan mungkin salah ketik, sudah tidak aktif, atau belum dipublikasikan oleh pasangan. Coba periksa kembali link yang Anda terima.</p><a href=\"/\" class=\"mt-8 inline-block rounded-full bg-primary px-6 py-3 text-sm font-medium text-white\">Ke beranda Lovoria</a></section>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section class=\"py-20 text-center\"><p class=\"font-display text-6xl text-lovoria-primary\">Oops</p><h1 class=\"mt-4 font-display text-2xl text-lovoria-deep\">Undangan tidak ditemukan</h1><p class=\"mx-auto mt-3 max-w-xs text-lovoria-muted\">Link undangan mungkin salah ketik, sudah tidak aktif, atau belum dipublikasikan oleh pasangan. Coba periksa kembali link yang Anda terima.</p><a href=\"/\" class=\"ui-btn ui-btn-primary mt-8\">Ke beranda Lovoria</a></section>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -96,33 +96,33 @@ func archivedPage(names, date string) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<section class=\"py-24 text-center\"><p class=\"text-xs uppercase tracking-[0.3em] text-ink/70\">The Wedding of</p><h1 class=\"mt-3 font-heading text-4xl text-primary\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<section class=\"py-24 text-center\"><p class=\"text-xs uppercase tracking-[0.3em] text-lovoria-muted\">The Wedding of</p><h1 class=\"mt-3 font-display text-4xl text-lovoria-primary\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(names)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/public-site/pages.templ`, Line: 29, Col: 62}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/public-site/pages.templ`, Line: 29, Col: 70}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</h1><p class=\"mt-2 text-sm text-ink/80\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</h1><p class=\"mt-2 text-sm text-lovoria-muted\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(date)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/public-site/pages.templ`, Line: 30, Col: 45}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/public-site/pages.templ`, Line: 30, Col: 52}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</p><p class=\"mx-auto mt-10 max-w-xs text-ink/80\">Undangan ini telah diarsipkan. Terima kasih atas doa dan kehadiran Anda.</p></section>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</p><p class=\"mx-auto mt-10 max-w-xs text-lovoria-text\">Undangan ini telah diarsipkan. Terima kasih atas doa dan kehadiran Anda.</p></section>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -183,7 +183,7 @@ func guestbookMorePage(v view.View, prefix string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" class=\"text-sm text-primary\">‹ Kembali ke undangan</a><h1 class=\"font-heading text-3xl text-primary\">Ucapan & Doa</h1>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" class=\"ui-link text-sm\">‹ Kembali ke undangan</a><h1 class=\"font-display text-3xl text-lovoria-deep\">Ucapan & Doa</h1>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -239,20 +239,28 @@ func legalPage(title string) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<article class=\"space-y-4 py-8 text-sm leading-relaxed text-ink/90\"><h1 class=\"font-heading text-3xl text-primary\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<article class=\"space-y-4 py-8 text-sm leading-relaxed text-lovoria-text\"><a href=\"/\" aria-label=\"Lovoria — beranda\" class=\"inline-block text-lovoria-primary\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = layouts.BrandLogo("").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</a><h1 class=\"font-display text-3xl text-lovoria-deep\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/public-site/pages.templ`, Line: 53, Col: 57}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/public-site/pages.templ`, Line: 56, Col: 62}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</h1><p class=\"rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800\">Draf — teks final akan ditinjau sebelum peluncuran resmi.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</h1><p class=\"ui-alert ui-alert-warning text-xs\">Draf — teks final akan ditinjau sebelum peluncuran resmi.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -260,7 +268,7 @@ func legalPage(title string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</article>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</article>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -307,7 +315,7 @@ func privacyPage() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<p>Lovoria membantu pasangan membuat undangan pernikahan digital. Halaman ini menjelaskan data apa yang kami simpan dan untuk apa.</p><h2 class=\"pt-2 text-base font-semibold\">Data yang kami simpan</h2><ul class=\"list-disc space-y-1 pl-5\"><li><strong>Akun pasangan</strong>: nama, email, dan password (disimpan sebagai hash, tidak bisa dibaca siapa pun).</li><li><strong>Isi undangan</strong>: nama pasangan, acara, cerita, foto, dan pengaturan tampilan yang diunggah pasangan.</li><li><strong>Data tamu</strong> yang dimasukkan pasangan: nama, nomor HP, email, grup, serta jawaban RSVP dan ucapan dari tamu.</li><li><strong>Data teknis</strong>: alamat IP dan jenis browser di log server untuk keamanan (mis. membatasi spam), disimpan terbatas.</li></ul><h2 class=\"pt-2 text-base font-semibold\">Penggunaan</h2><p>Data hanya dipakai untuk menampilkan undangan, menerima RSVP dan ucapan, serta membantu pasangan mengelola tamu. Kami tidak menjual data dan tidak memakai pelacak iklan pihak ketiga. Halaman undangan tidak diindeks mesin pencari.</p><h2 class=\"pt-2 text-base font-semibold\">Penyimpanan &amp; penghapusan</h2><p>Data disimpan di penyedia cloud (database terkelola dan penyimpanan foto) dengan cadangan harian. Pasangan dapat menghapus tamu, ucapan, dan foto kapan saja; untuk penghapusan akun, hubungi kami.</p><h2 class=\"pt-2 text-base font-semibold\">Kontak</h2><p>Pertanyaan tentang privasi dapat dikirim ke admin Lovoria melalui email yang tercantum di situs.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<p>Lovoria membantu pasangan membuat undangan pernikahan digital. Halaman ini menjelaskan data apa yang kami simpan dan untuk apa.</p><h2 class=\"pt-2 text-base font-semibold\">Data yang kami simpan</h2><ul class=\"list-disc space-y-1 pl-5\"><li><strong>Akun pasangan</strong>: nama, email, dan password (disimpan sebagai hash, tidak bisa dibaca siapa pun).</li><li><strong>Isi undangan</strong>: nama pasangan, acara, cerita, foto, dan pengaturan tampilan yang diunggah pasangan.</li><li><strong>Data tamu</strong> yang dimasukkan pasangan: nama, nomor HP, email, grup, serta jawaban RSVP dan ucapan dari tamu.</li><li><strong>Data teknis</strong>: alamat IP dan jenis browser di log server untuk keamanan (mis. membatasi spam), disimpan terbatas.</li></ul><h2 class=\"pt-2 text-base font-semibold\">Penggunaan</h2><p>Data hanya dipakai untuk menampilkan undangan, menerima RSVP dan ucapan, serta membantu pasangan mengelola tamu. Kami tidak menjual data dan tidak memakai pelacak iklan pihak ketiga. Halaman undangan tidak diindeks mesin pencari.</p><h2 class=\"pt-2 text-base font-semibold\">Penyimpanan &amp; penghapusan</h2><p>Data disimpan di penyedia cloud (database terkelola dan penyimpanan foto) dengan cadangan harian. Pasangan dapat menghapus tamu, ucapan, dan foto kapan saja; untuk penghapusan akun, hubungi kami.</p><h2 class=\"pt-2 text-base font-semibold\">Kontak</h2><p>Pertanyaan tentang privasi dapat dikirim ke admin Lovoria melalui email yang tercantum di situs.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -354,7 +362,7 @@ func termsPage() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<p>Dengan memakai Lovoria, Anda menyetujui ketentuan berikut.</p><ul class=\"list-disc space-y-1 pl-5\"><li>Pasangan bertanggung jawab atas isi undangan dan data tamu yang dimasukkan, termasuk izin memakai foto dan nomor kontak.</li><li>Musik yang diunggah pasangan menjadi tanggung jawab pasangan: pastikan Anda memiliki hak atau izin untuk memakainya. Lovoria dapat menghapus berkas yang dilaporkan melanggar hak cipta. Lagu bawaan Lovoria berlisensi bebas royalti.</li><li>Dilarang memakai Lovoria untuk konten yang melanggar hukum, spam, atau penipuan. Akun yang melanggar dapat dinonaktifkan.</li><li>Kuota penyimpanan dan masa aktif undangan mengikuti paket yang berlaku. Undangan yang sudah lewat masa kenangan akan diarsipkan.</li><li>Kami berupaya menjaga layanan tetap tersedia, namun tidak menjamin bebas gangguan. Cadangan data dilakukan harian.</li><li>Ketentuan dapat diperbarui; perubahan penting akan diberitahukan melalui email akun.</li></ul>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<p>Dengan memakai Lovoria, Anda menyetujui ketentuan berikut.</p><ul class=\"list-disc space-y-1 pl-5\"><li>Pasangan bertanggung jawab atas isi undangan dan data tamu yang dimasukkan, termasuk izin memakai foto dan nomor kontak.</li><li>Musik yang diunggah pasangan menjadi tanggung jawab pasangan: pastikan Anda memiliki hak atau izin untuk memakainya. Lovoria dapat menghapus berkas yang dilaporkan melanggar hak cipta. Lagu bawaan Lovoria berlisensi bebas royalti.</li><li>Dilarang memakai Lovoria untuk konten yang melanggar hukum, spam, atau penipuan. Akun yang melanggar dapat dinonaktifkan.</li><li>Kuota penyimpanan dan masa aktif undangan mengikuti paket yang berlaku. Undangan yang sudah lewat masa kenangan akan diarsipkan.</li><li>Kami berupaya menjaga layanan tetap tersedia, namun tidak menjamin bebas gangguan. Cadangan data dilakukan harian.</li><li>Ketentuan dapat diperbarui; perubahan penting akan diberitahukan melalui email akun.</li></ul>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

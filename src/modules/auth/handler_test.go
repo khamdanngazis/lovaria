@@ -321,3 +321,48 @@ func TestLoginRateLimited(t *testing.T) {
 		t.Errorf("register setelah login dibatasi: %d", resp.StatusCode)
 	}
 }
+
+// T22: halaman auth memakai kerangka brand — logo menaut ke "/", huruf brand,
+// panel tagline, komponen ui-*; poin manfaat hanya di halaman daftar.
+func TestAuthPagesUseBrandShell(t *testing.T) {
+	srv, _, _ := newTestApp(t, RateLimit{PerMinute: 1, Burst: 1})
+	c := newClient(t, srv)
+	for _, path := range []string{"/login", "/register", "/forgot-password", "/reset-password?token=tidak-valid"} {
+		_, body := c.do(http.MethodGet, path, nil, nil)
+		for _, want := range []string{
+			`<a href="/" aria-label="Lovoria — beranda"`, "LOVORIA", "Your Forever.", "family=Inter", "Playfair+Display",
+			"bg-lovoria-bg", "bg-lovoria-deep", "ui-card", `href="/privacy"`, `href="/terms"`,
+		} {
+			if !strings.Contains(body, want) {
+				t.Errorf("%s: tidak memuat %q", path, want)
+			}
+		}
+		for _, bad := range []string{"slate-", "bg-primary", "text-primary", "red-600", "green-50", "amber-50"} {
+			if strings.Contains(body, bad) {
+				t.Errorf("%s: masih memuat kelas lama %q", path, bad)
+			}
+		}
+		if strings.Count(body, "<h1") != 1 {
+			t.Errorf("%s: h1 = %d, want 1", path, strings.Count(body, "<h1"))
+		}
+		if hasBenefits := strings.Contains(body, authBenefits[0]); hasBenefits != (path == "/register") {
+			t.Errorf("%s: poin manfaat tampil = %v", path, hasBenefits)
+		}
+	}
+	// id & tombol form tidak berubah (dipakai e2e dan handler test).
+	_, login := c.do(http.MethodGet, "/login", nil, nil)
+	for _, want := range []string{`id="login-email"`, `id="login-password"`, `class="ui-input"`, `class="ui-btn ui-btn-primary w-full"`, "Lupa password?"} {
+		if !strings.Contains(login, want) {
+			t.Errorf("login: tidak memuat %q", want)
+		}
+	}
+	// Pesan error, sukses, dan rate limit memakai ui-alert.
+	_, body := c.post("/login", url.Values{"email": {"x@example.com"}, "password": {"salah-banget"}}, true)
+	if !strings.Contains(body, "ui-alert ui-alert-danger") {
+		t.Errorf("error login: %s", body)
+	}
+	resp, body := c.post("/login", url.Values{"email": {"x@example.com"}, "password": {"salah-banget"}}, true)
+	if resp.StatusCode != http.StatusTooManyRequests || !strings.Contains(body, "ui-alert ui-alert-warning") {
+		t.Errorf("rate limit: %d %s", resp.StatusCode, body)
+	}
+}

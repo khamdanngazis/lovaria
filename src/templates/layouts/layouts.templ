@@ -86,21 +86,45 @@ templ Document(meta Meta, head templ.Component, bodyClass string) {
 	</html>
 }
 
-// Public adalah layout dasar website wedding & halaman publik (mobile-first).
+// BrandFontsURL: huruf brand (Inter untuk UI, Playfair Display untuk judul &
+// wordmark) — dipakai landing, auth, dashboard, dan halaman publik Lovoria.
+const BrandFontsURL = "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap"
+
+// BrandFonts memuat huruf brand. blocking=false: preload yang dijadikan
+// stylesheet oleh JS halaman (landing.js / lovoria.js, tanpa handler inline —
+// CSP); blocking=true untuk halaman tanpa JS tersebut (halaman Cacheable).
+templ BrandFonts(blocking bool) {
+	<link rel="preconnect" href="https://fonts.googleapis.com"/>
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+	if blocking {
+		<link rel="stylesheet" href={ BrandFontsURL }/>
+	} else {
+		<link rel="preload" as="style" href={ BrandFontsURL } data-font-css/>
+		<noscript><link rel="stylesheet" href={ BrandFontsURL }/></noscript>
+	}
+	<meta name="theme-color" content="#FAF7F5"/>
+}
+
+// BrandBody: kelas <body> halaman Lovoria di luar undangan (warna & huruf brand).
+const BrandBody = "min-h-dvh bg-lovoria-bg font-ui text-lovoria-text antialiased"
+
+// Public adalah layout dasar halaman publik Lovoria (error, privasi, syarat,
+// undangan tidak ditemukan / diarsipkan) — warna & huruf brand, mobile-first.
 templ Public(meta Meta) {
-	@base(meta, "min-h-dvh bg-surface text-ink antialiased") {
+	@Document(meta, BrandFonts(meta.Cacheable), BrandBody) {
 		<main class="mx-auto w-full max-w-screen-sm px-4 py-8">
 			{ children... }
 		</main>
-		@footer()
+		@LegalLinks("mx-auto max-w-screen-sm px-4 pb-8")
 	}
 }
 
-templ footer() {
-	<footer class="mx-auto max-w-screen-sm px-4 pb-8 text-center text-xs text-ink/60">
-		<a href="/privacy" class="hover:underline">Kebijakan Privasi</a>
+// LegalLinks: tautan Kebijakan Privasi & Syarat (footer halaman publik & auth).
+templ LegalLinks(class string) {
+	<footer class={ "text-center text-xs text-lovoria-muted", class }>
+		<a href="/privacy" class="hover:text-lovoria-primary hover:underline">Kebijakan Privasi</a>
 		<span aria-hidden="true">·</span>
-		<a href="/terms" class="hover:underline">Syarat &amp; Ketentuan</a>
+		<a href="/terms" class="hover:text-lovoria-primary hover:underline">Syarat &amp; Ketentuan</a>
 	</footer>
 }
 
@@ -108,13 +132,16 @@ templ footer() {
 templ ErrorPage(code int, title, message string) {
 	@Public(Meta{Title: title}) {
 		<section class="py-20 text-center">
-			<p class="font-heading text-6xl text-primary">{ fmt.Sprint(code) }</p>
-			<h1 class="mt-4 text-xl font-semibold">{ title }</h1>
-			<p class="mx-auto mt-3 max-w-sm text-ink/70">{ message }</p>
-			<div class="mt-8 flex flex-wrap justify-center gap-3 text-sm">
-				<a href="/" class="rounded-full bg-primary px-6 py-3 font-medium text-white">Ke beranda</a>
+			<a href="/" aria-label="Lovoria — beranda" class="inline-block text-lovoria-primary">
+				@BrandLogo("")
+			</a>
+			<p class="mt-10 font-display text-7xl text-lovoria-primary">{ fmt.Sprint(code) }</p>
+			<h1 class="mt-4 font-display text-2xl text-lovoria-deep">{ title }</h1>
+			<p class="mx-auto mt-3 max-w-sm text-lovoria-muted">{ message }</p>
+			<div class="mt-8 flex flex-wrap justify-center gap-3">
+				<a href="/" class="ui-btn ui-btn-primary">Ke beranda</a>
 				if _, ok := web.CurrentUser(ctx); ok {
-					<a href="/dashboard" class="rounded-full border border-primary px-6 py-3 font-medium text-primary">Ke dashboard</a>
+					<a href="/dashboard" class="ui-btn ui-btn-secondary">Ke dashboard</a>
 				}
 			</div>
 		</section>
