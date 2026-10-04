@@ -85,12 +85,19 @@ templ page(s pageState) {
 								<label class="block cursor-pointer">
 									<input type="radio" name="theme_id" value={ d.ID } checked?={ d.ID == s.ThemeID } class="peer sr-only"/>
 									<span class="block overflow-hidden rounded-2xl bg-lovoria-surface ring-1 ring-lovoria-border transition peer-checked:ring-4 peer-checked:ring-lovoria-primary peer-focus-visible:ring-4">
-										<span class="flex h-20 items-center justify-center text-2xl" style={ "background:" + d.Tokens.Surface + ";color:" + d.Tokens.Primary + ";font-family:" + d.Tokens.FontHeading }>A &amp; B</span>
+										if d.Thumb() != "" {
+											<img src={ d.Thumb() } alt="" width="600" height="750" loading="lazy" decoding="async" class="aspect-[4/5] w-full object-cover object-top"/>
+										} else {
+											<span class="flex h-20 items-center justify-center text-2xl" style={ "background:" + d.Tokens.Surface + ";color:" + d.Tokens.Primary + ";font-family:" + d.Tokens.FontHeading }>A &amp; B</span>
+										}
 										<span class="flex h-2">
 											<span class="flex-1" style={ "background:" + d.Tokens.Primary }></span>
 											<span class="flex-1" style={ "background:" + d.Tokens.Ink }></span>
 										</span>
 										<span class="block p-2">
+											if d.Featured() {
+												<span class="mb-1 inline-block whitespace-nowrap rounded-full bg-lovoria-primary-soft px-1.5 py-0.5 text-[10px] font-medium text-lovoria-primary">Pilihan Lovoria</span>
+											}
 											<span class="block text-sm font-semibold">{ d.Name }</span>
 											<span class="block text-xs text-lovoria-muted">{ d.Description }</span>
 										</span>

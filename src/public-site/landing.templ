@@ -26,6 +26,8 @@ type landingTheme struct {
 	DemoURL               string // "" bila undangan contoh belum dibuat
 	Photo                 string // thumbnail sampul undangan contoh ("" → kartu warna)
 	Couple                string // "Raka & Nadia"
+	Thumb                 string // tangkapan layar asli tema ("" → foto sampul / kartu warna)
+	Featured              bool   // label "Pilihan Lovoria"
 }
 
 // Teks utama landing di satu tempat supaya mudah disunting pemilik produk.
@@ -343,8 +345,13 @@ templ landingThemes(d landingData) {
 			@sectionHeading("Tema", "Pilih suasana yang paling kalian", "Setiap tema bisa disesuaikan warna, huruf, latar, dan foto sampulnya.")
 			<ul class="mt-12 grid grid-cols-2 gap-3 sm:mt-14 sm:grid-cols-3 sm:gap-5 lg:grid-cols-5">
 				for _, t := range d.Themes {
-					<li class="flex flex-col overflow-hidden rounded-2xl border border-lovoria-border bg-white">
-						if t.Photo != "" {
+					<li class={ "relative flex flex-col overflow-hidden rounded-2xl border bg-white", templ.KV("border-lovoria-primary ring-1 ring-lovoria-primary", t.Featured), templ.KV("border-lovoria-border", !t.Featured) }>
+						if t.Featured {
+							<p class="absolute left-2 top-2 z-10 rounded-full bg-lovoria-primary px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.12em] text-white shadow-sm sm:left-3 sm:top-3">Pilihan Lovoria</p>
+						}
+						if t.Thumb != "" {
+							@themeShot(t)
+						} else if t.Photo != "" {
 							<a href={ templ.SafeURL(t.DemoURL) } class="relative block aspect-[4/5] overflow-hidden" tabindex="-1" aria-hidden="true">
 								<img src={ t.Photo } alt="" width="384" height="480" loading="lazy" decoding="async" class="h-full w-full object-cover transition duration-500 hover:scale-105"/>
 								<div class="absolute inset-0 bg-[linear-gradient(180deg,transparent_45%,rgba(35,26,38,0.78))]"></div>
@@ -377,6 +384,19 @@ templ landingThemes(d landingData) {
 			</ul>
 		</div>
 	</section>
+}
+
+// themeShot: tangkapan layar asli sampul tema (make theme-thumbs).
+templ themeShot(t landingTheme) {
+	if t.DemoURL != "" {
+		<a href={ templ.SafeURL(t.DemoURL) } class="block aspect-[4/5] overflow-hidden" tabindex="-1" aria-hidden="true">
+			<img src={ t.Thumb } alt="" width="600" height="750" loading="lazy" decoding="async" class="h-full w-full object-cover object-top transition duration-500 hover:scale-105"/>
+		</a>
+	} else {
+		<div class="aspect-[4/5] overflow-hidden">
+			<img src={ t.Thumb } alt={ "Pratinjau tema " + t.Name } width="600" height="750" loading="lazy" decoding="async" class="h-full w-full object-cover object-top"/>
+		</div>
+	}
 }
 
 // ---------- Harga ----------

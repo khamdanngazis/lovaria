@@ -55,8 +55,12 @@ func TestLandingThemesPackagesAndLogin(t *testing.T) {
 	if !strings.Contains(body, `href="/w/contoh-elegant"`) {
 		t.Error("link contoh tema elegan")
 	}
-	if strings.Contains(body, ">Modern</h3>") {
+	if strings.Contains(body, ">Modern</h3>") || strings.Contains(body, "img/themes/modern.webp") {
 		t.Error("tema nonaktif tidak boleh ditawarkan")
+	}
+	// Etalase (T21): thumbnail asli tiap tema; hanya tema bawaan berlabel.
+	if !strings.Contains(body, `src="/static/img/themes/signature.webp`) || !strings.Contains(body, `src="/static/img/themes/elegant.webp`) || strings.Count(body, "Pilihan Lovoria") != 1 {
+		t.Error("etalase tema: thumbnail / label Pilihan Lovoria")
 	}
 	// Harga tunggal (T23): sekali bayar saat publikasi, semua fitur termasuk.
 	for _, want := range []string{`id="harga"`, "Rp149.000", "sekali bayar per undangan", "tanpa langganan", "Custom domain", "Berapa biayanya?", `href="#harga"`} {

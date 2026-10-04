@@ -73,6 +73,15 @@ func URL(name string) string {
 	return u + "?v=" + h
 }
 
+// Exists: apakah aset ada (mis. thumbnail tema yang dibuat `make theme-thumbs`).
+func Exists(name string) bool {
+	mu.RLock()
+	fsys := current
+	mu.RUnlock()
+	_, err := fs.Stat(fsys, strings.TrimPrefix(name, "/"))
+	return err == nil
+}
+
 // Register memasang handler aset statis di Prefix.
 func Register(e *echo.Echo) {
 	fileServer := http.StripPrefix(Prefix+"/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

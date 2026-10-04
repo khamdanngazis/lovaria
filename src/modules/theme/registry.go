@@ -15,6 +15,7 @@ import (
 	"github.com/khamdanngazis/lovaria/src/templates/themes/modern"
 	"github.com/khamdanngazis/lovaria/src/templates/themes/romantic"
 	"github.com/khamdanngazis/lovaria/src/templates/themes/signature"
+	"github.com/khamdanngazis/lovaria/static"
 )
 
 // Part adalah satu bagian halaman undangan.
@@ -129,6 +130,19 @@ func init() {
 			Gallery: modern.Gallery, Closing: modern.Closing, SectionTitle: modern.SectionTitle,
 		},
 	})
+}
+
+// Featured: tema unggulan etalase ("Pilihan Lovoria") — tema bawaan.
+func (d ThemeDef) Featured() bool { return d.ID == DefaultID }
+
+// Thumb: URL thumbnail tangkapan layar tema (static/img/themes/<id>.webp,
+// dibuat `make theme-thumbs`); "" bila berkasnya tidak ada → kartu warna.
+func (d ThemeDef) Thumb() string {
+	name := "img/themes/" + d.ID + ".webp"
+	if !static.Exists(name) {
+		return ""
+	}
+	return static.URL(name)
 }
 
 // Get mengembalikan tema; ok=false bila ID tidak terdaftar.
