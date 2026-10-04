@@ -122,8 +122,8 @@ func TestThemePageSaveAndPreview(t *testing.T) {
 	}
 	// Kartu tema memakai thumbnail asli (T21) & tema bawaan berlabel; style
 	// inline tetap CSS valid (tanpa kutip yang ter-escape ganda).
-	if !strings.Contains(rec.Body.String(), `src="/static/img/themes/elegant.webp`) || strings.Count(rec.Body.String(), "Pilihan Lovoria") != 1 || strings.Contains(rec.Body.String(), "&amp;#39;") {
-		t.Error("kartu tema: thumbnail / label Pilihan Lovoria / style tidak valid")
+	if !strings.Contains(rec.Body.String(), `src="/static/img/themes/elegant.webp`) || strings.Count(rec.Body.String(), "Pilihan Lunovia") != 1 || strings.Contains(rec.Body.String(), "&amp;#39;") {
+		t.Error("kartu tema: thumbnail / label Pilihan Lunovia / style tidak valid")
 	}
 	for _, name := range []string{"Elegan", "Minimalis", "Romantis", "Modern"} {
 		if !strings.Contains(rec.Body.String(), name) {

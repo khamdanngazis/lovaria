@@ -1,7 +1,7 @@
 {
   "name": "lovoria-e2e",
   "private": true,
-  "description": "E2E smoke test Lovoria (Playwright) — lihat e2e/README.md",
+  "description": "E2E smoke test Lunovia (Playwright) — lihat e2e/README.md",
   "scripts": {
     "test": "playwright test"
   },

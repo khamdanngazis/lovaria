@@ -59,8 +59,8 @@ func TestLandingThemesPackagesAndLogin(t *testing.T) {
 		t.Error("tema nonaktif tidak boleh ditawarkan")
 	}
 	// Etalase (T21): thumbnail asli tiap tema; hanya tema bawaan berlabel.
-	if !strings.Contains(body, `src="/static/img/themes/signature.webp`) || !strings.Contains(body, `src="/static/img/themes/elegant.webp`) || strings.Count(body, "Pilihan Lovoria") != 1 {
-		t.Error("etalase tema: thumbnail / label Pilihan Lovoria")
+	if !strings.Contains(body, `src="/static/img/themes/signature.webp`) || !strings.Contains(body, `src="/static/img/themes/elegant.webp`) || strings.Count(body, "Pilihan Lunovia") != 1 {
+		t.Error("etalase tema: thumbnail / label Pilihan Lunovia")
 	}
 	// Harga tunggal (T23): sekali bayar saat publikasi, semua fitur termasuk.
 	for _, want := range []string{`id="harga"`, "Rp149.000", "sekali bayar per undangan", "tanpa langganan", "Custom domain", "Berapa biayanya?", `href="#harga"`} {
@@ -85,7 +85,7 @@ func TestRobotsAndSitemap(t *testing.T) {
 	body := rec.Body.String()
 	if rec.Code != http.StatusOK || !strings.Contains(body, "Disallow: /i/") || !strings.Contains(body, "Disallow: /dashboard") ||
 		!strings.Contains(body, "Sitemap: https://lovoria.test/sitemap.xml") {
-		t.Errorf("robots domain Lovoria: %d %q", rec.Code, body)
+		t.Errorf("robots domain Lunovia: %d %q", rec.Code, body)
 	}
 	rec = f.get("/sitemap.xml", nil)
 	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "<loc>https://lovoria.test/privacy</loc>") || strings.Contains(rec.Body.String(), "/w/") {

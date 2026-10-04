@@ -16,7 +16,7 @@ import (
 )
 
 // Midtrans: Snap mode redirect (halaman bayar di domain Midtrans — tanpa script
-// pihak ketiga di halaman Lovoria). Dokumentasi: docs.midtrans.com (Snap API,
+// pihak ketiga di halaman Lunovia). Dokumentasi: docs.midtrans.com (Snap API,
 // HTTP notification, Get Status API).
 type Midtrans struct {
 	ServerKey string

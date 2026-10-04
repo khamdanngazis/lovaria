@@ -1,10 +1,10 @@
 # Custom domain — setup satu kali (Cloudflare for SaaS)
 
-Pasangan bisa memakai domain sendiri (`www.samuelsarah.com`) untuk undangannya. Lovoria mendaftarkan domain itu sebagai **custom hostname** di Cloudflare for SaaS; Cloudflare menerbitkan sertifikat TLS otomatis dan meneruskan trafik ke aplikasi. Kode: `src/modules/domain`, dokumentasi modul di bawah.
+Pasangan bisa memakai domain sendiri (`www.samuelsarah.com`) untuk undangannya. Lunovia mendaftarkan domain itu sebagai **custom hostname** di Cloudflare for SaaS; Cloudflare menerbitkan sertifikat TLS otomatis dan meneruskan trafik ke aplikasi. Kode: `src/modules/domain`, dokumentasi modul di bawah.
 
 ## 1. Prasyarat
 
-- Domain Lovoria sendiri (mis. `lovoria.com`) sudah memakai DNS Cloudflare (zona aktif).
+- Domain Lunovia sendiri (mis. `lovoria.com`) sudah memakai DNS Cloudflare (zona aktif).
 - Cloudflare for SaaS aktif di zona itu: **SSL/TLS → Custom Hostnames → Enable** (gratis sampai 100 hostname).
 
 ## 2. Fallback origin & target CNAME
@@ -28,7 +28,7 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const original = url.hostname;
-    // Domain Lovoria sendiri (lovoria.com, www., …) diteruskan apa adanya.
+    // Domain Lunovia sendiri (lovoria.com, www., …) diteruskan apa adanya.
     if (original === env.OWN_ZONE || original.endsWith('.' + env.OWN_ZONE)) {
       return fetch(request);
     }
@@ -42,9 +42,9 @@ export default {
 };
 ```
 
-Lalu isi `CUSTOM_DOMAIN_HOST_HEADER=X-Lovoria-Host`. Trafik domain Lovoria sendiri diteruskan Worker tanpa diubah.
+Lalu isi `CUSTOM_DOMAIN_HOST_HEADER=X-Lovoria-Host`. Trafik domain Lunovia sendiri diteruskan Worker tanpa diubah.
 
-**Domain lama tetap hidup.** Setelah domain sendiri didaftarkan di Railway, `RAILWAY_PUBLIC_DOMAIN` ikut berganti ke domain itu. Isi `EXTRA_HOSTS=<nama>.up.railway.app` supaya domain Railway lama tetap dikenali sebagai host Lovoria — tanpa ini link undangan yang sudah terkirim lewat domain lama menjadi 404 (aturan "host tak dikenal → 404"). Nilai ini juga dipakai sebagai `ORIGIN_HOST` Worker.
+**Domain lama tetap hidup.** Setelah domain sendiri didaftarkan di Railway, `RAILWAY_PUBLIC_DOMAIN` ikut berganti ke domain itu. Isi `EXTRA_HOSTS=<nama>.up.railway.app` supaya domain Railway lama tetap dikenali sebagai host Lunovia — tanpa ini link undangan yang sudah terkirim lewat domain lama menjadi 404 (aturan "host tak dikenal → 404"). Nilai ini juga dipakai sebagai `ORIGIN_HOST` Worker.
 
 **B. Origin yang menerima Host apa pun** (VPS / reverse proxy sendiri): tidak perlu Worker, biarkan `CUSTOM_DOMAIN_HOST_HEADER` kosong.
 
@@ -78,11 +78,11 @@ Ketiga variabel pertama wajib diisi bersamaan; kosong semua → menu Domain mena
 | Bagian | Perilaku |
 |---|---|
 | Tabel `custom_domains` (migration `00011`) | `wedding_id` unik, `domain` unik selama status bukan `removed`; `verification_errors` (jsonb) dari Cloudflare. |
-| Validasi | huruf kecil, titik akhir dibuang; skema/path/port/non-ASCII ditolak; domain Lovoria (`BASE_URL`, domain Railway, target CNAME, dan domain induknya) ditolak; domain yang dipakai wedding lain ditolak. Domain utama (tanpa www) diberi peringatan CNAME flattening. |
+| Validasi | huruf kecil, titik akhir dibuang; skema/path/port/non-ASCII ditolak; domain Lunovia (`BASE_URL`, domain Railway, target CNAME, dan domain induknya) ditolak; domain yang dipakai wedding lain ditolak. Domain utama (tanpa www) diberi peringatan CNAME flattening. |
 | Status | `pending_verification` → `active` (hostname **dan** SSL aktif) / `failed` (lewat 72 jam) / `removed` (hilang di Cloudflare). **Cek ulang** bisa mengaktifkan domain `failed` bila CNAME sudah benar. |
 | Scheduler | `RunPolling` tiap 5 menit (dan saat start), advisory lock `0x107E0002` — hanya satu instance yang memeriksa. |
 | Hapus | hapus custom hostname di Cloudflare **dulu**; bila gagal, baris tetap ada (tidak ada hostname yatim). |
-| Resolver (`public-site`) | Host (atau `CUSTOM_DOMAIN_HOST_HEADER`) = custom domain aktif → wedding itu; host Lovoria → path `/i/:code`, `/w/:slug`; host lain → **404 generik**. Lookup di-cache 60 detik per instance, dikosongkan saat status berubah. |
-| Redirect | domain aktif + wedding publik: `GET/HEAD /w/:slug…` → **301** `https://<domain>…` (query ikut). `/i/:code` di domain Lovoria tidak dialihkan. |
+| Resolver (`public-site`) | Host (atau `CUSTOM_DOMAIN_HOST_HEADER`) = custom domain aktif → wedding itu; host Lunovia → path `/i/:code`, `/w/:slug`; host lain → **404 generik**. Lookup di-cache 60 detik per instance, dikosongkan saat status berubah. |
+| Redirect | domain aktif + wedding publik: `GET/HEAD /w/:slug…` → **301** `https://<domain>…` (query ikut). `/i/:code` di domain Lunovia tidak dialihkan. |
 | URL kanonik | `wedding.Service.CanonicalBaseURL` = `https://<domain>` bila aktif, selain itu `BASE_URL/w/<slug>` (beranda dashboard, T14). |
 | Kuota | log `WARN` "mendekati kuota Cloudflare for SaaS" saat domain aktif ≥ 90; `ActiveCount` untuk panel admin (T16). |

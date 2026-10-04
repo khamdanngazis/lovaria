@@ -11,12 +11,12 @@ import (
 )
 
 // Fake: gateway simulasi untuk development, test, dan e2e — tidak ada uang
-// sungguhan. Halaman bayarnya dilayani Lovoria sendiri (FakeCheckout di
+// sungguhan. Halaman bayarnya dilayani Lunovia sendiri (FakeCheckout di
 // handler) dan "webhook"-nya ditandatangani HMAC dengan kunci aplikasi.
 // Config menolak gateway ini di production.
 type Fake struct {
 	Secret  []byte
-	BaseURL string // basis URL Lovoria (halaman bayar simulasi)
+	BaseURL string // basis URL Lunovia (halaman bayar simulasi)
 
 	mu     sync.Mutex
 	status map[string]Notification // status terakhir per nomor order

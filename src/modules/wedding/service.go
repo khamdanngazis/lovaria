@@ -521,7 +521,7 @@ type DomainSource interface {
 	ActiveDomain(ctx context.Context, weddingID uuid.UUID) (host string, ok bool, err error)
 }
 
-// SetDomains menghubungkan modul domain & basis URL Lovoria untuk CanonicalBaseURL.
+// SetDomains menghubungkan modul domain & basis URL Lunovia untuk CanonicalBaseURL.
 func (s *Service) SetDomains(d DomainSource, baseURL string) {
 	s.domains, s.baseURL = d, strings.TrimRight(baseURL, "/")
 }

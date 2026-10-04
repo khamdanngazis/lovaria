@@ -3,10 +3,10 @@
 **Estimasi:** 2 hari · **Depends on:** T08, T09, T16, T17 · **Modul:** `public-site` (landing), `templates/layouts`, `static/img`
 
 ## Konteks
-Beranda `lovoria.my.id` sekarang hanya dua baris ("Lovoria — Undangan pernikahan digital yang personal"). Calon pasangan tidak melihat apa itu Lovoria, kenapa berbeda, atau bagaimana memulai. Landing page adalah tempat positioning di `doc/brand-positioning.md` disampaikan: *"Lovoria is more than a wedding invitation. It is a digital home for a couple's love story and wedding memories."*
+Beranda `lovoria.my.id` sekarang hanya dua baris ("Lunovia — Undangan pernikahan digital yang personal"). Calon pasangan tidak melihat apa itu Lunovia, kenapa berbeda, atau bagaimana memulai. Landing page adalah tempat positioning di `doc/brand-positioning.md` disampaikan: *"Lunovia is more than a wedding invitation. It is a digital home for a couple's love story and wedding memories."*
 
 ## Scope (In)
-- **Hero**: nama Lovoria, tagline utama **"Your Love. Your Story. Your Forever."**, satu kalimat penjelas Bahasa Indonesia, tombol utama **"Buat undangan"** (→ `/register`) dan sekunder **"Lihat contoh"** (→ undangan demo).
+- **Hero**: nama Lunovia, tagline utama **"Your Love. Your Story. Your Forever."**, satu kalimat penjelas Bahasa Indonesia, tombol utama **"Buat undangan"** (→ `/register`) dan sekunder **"Lihat contoh"** (→ undangan demo).
 - **Alur produk** 4 langkah sesuai Product Framework: **Create → Invite → Experience → Remember**, masing-masing 1 judul + 1 kalimat + ikon/ilustrasi ringan.
 - **Fitur inti** (kartu): cerita cinta, acara & peta, galeri, RSVP, ucapan & doa, amplop digital, link pribadi per tamu + kirim WA, custom domain, status Kenangan setelah hari H. Hanya fitur yang **sudah ada** — jangan menjanjikan fitur Future Experience.
 - **Galeri tema**: 4 tema dari theme registry (`theme.All()`, hanya yang aktif — tema nonaktif dari admin T16 tidak ditampilkan) dengan thumbnail + tombol "Lihat contoh" per tema.

@@ -1,22 +1,22 @@
-# Lovoria - Product Vision & Positioning
+# Lunovia - Product Vision & Positioning
 
 ## 1. Brand
 
-**Lovoria**
+**Lunovia**
 
-Lovoria adalah platform digital untuk menciptakan pengalaman dan kenangan pernikahan secara online.
+Lunovia adalah platform digital untuk menciptakan pengalaman dan kenangan pernikahan secara online.
 
-Nama **Lovoria** membawa nuansa *love* dan *story*, dengan positioning yang romantic, elegant, modern, dan memorable.
+Nama **Lunovia** membawa nuansa *love* dan *story*, dengan positioning yang romantic, elegant, modern, dan memorable.
 
 ---
 
 ## 2. Product Vision
 
-> **Lovoria helps couples turn their wedding invitation into a lasting digital memory of their love story.**
+> **Lunovia helps couples turn their wedding invitation into a lasting digital memory of their love story.**
 
-Lovoria tidak hanya menyediakan website undangan pernikahan.
+Lunovia tidak hanya menyediakan website undangan pernikahan.
 
-Lovoria menjadi tempat digital bagi pasangan untuk:
+Lunovia menjadi tempat digital bagi pasangan untuk:
 
 - Menceritakan kisah cinta mereka
 - Mengundang tamu
@@ -42,7 +42,7 @@ Wedding Day
 ↓  
 Website becomes irrelevant
 
-### Lovoria
+### Lunovia
 
 Create Love Story  
 ↓  
@@ -58,13 +58,13 @@ Forever Digital Memory
 
 **Key differentiation:**
 
-> **Lovoria is more than a wedding invitation. It is a digital home for a couple's love story and wedding memories.**
+> **Lunovia is more than a wedding invitation. It is a digital home for a couple's love story and wedding memories.**
 
 ---
 
 ## 4. Unique Value Proposition
 
-> **Lovoria transforms a wedding invitation into a personal digital experience that guests can experience before, during, and after the wedding.**
+> **Lunovia transforms a wedding invitation into a personal digital experience that guests can experience before, during, and after the wedding.**
 
 ### Personal
 
@@ -84,7 +84,7 @@ The wedding website continues to hold meaning after the wedding day.
 
 > **Your Love. Your Story. Your Forever.**
 
-Lovoria memberikan pasangan sebuah ruang digital yang merepresentasikan cerita mereka, bukan sekadar template undangan.
+Lunovia memberikan pasangan sebuah ruang digital yang merepresentasikan cerita mereka, bukan sekadar template undangan.
 
 **Note:** "Forever" merupakan emotional positioning, bukan janji teknis mengenai unlimited lifetime storage atau jaminan penyimpanan tanpa batas.
 
@@ -128,16 +128,16 @@ Pasangan yang menginginkan pengalaman yang lebih personal dan premium dibandingk
 
 ### Customer Motivation
 
-Lovoria ditujukan untuk pasangan yang ingin wedding website mereka terasa personal dan bermakna, bukan seperti undangan digital generik.
+Lunovia ditujukan untuk pasangan yang ingin wedding website mereka terasa personal dan bermakna, bukan seperti undangan digital generik.
 
 **Feature = what they need.**  
-**Positioning = why Lovoria.**
+**Positioning = why Lunovia.**
 
 ---
 
 ## 8. Product Principles
 
-Lovoria harus mengikuti prinsip:
+Lunovia harus mengikuti prinsip:
 
 ### Personal
 
@@ -163,7 +163,7 @@ Website tidak dirancang hanya untuk aktif sampai hari pernikahan.
 
 ## 9. MVP Positioning
 
-Untuk MVP, Lovoria tetap fokus pada core wedding invitation experience.
+Untuk MVP, Lunovia tetap fokus pada core wedding invitation experience.
 
 ### Core MVP
 
@@ -196,9 +196,9 @@ MVP berfokus pada **Wedding Invitation Experience**, sementara visi jangka panja
 
 ---
 
-## 10. What Lovoria Is NOT
+## 10. What Lunovia Is NOT
 
-Lovoria bukan:
+Lunovia bukan:
 
 - Sekadar template undangan digital
 - Website builder yang kompleks
@@ -214,7 +214,7 @@ Fokus utama:
 
 ## 11. Long-Term Vision
 
-Lovoria dapat berkembang dari:
+Lunovia dapat berkembang dari:
 
 **Wedding Invitation**
 
@@ -230,7 +230,7 @@ Konsep jangka panjang:
 
 > **The wedding invitation is only the beginning.**
 
-Lovoria dimulai sebelum pernikahan, digunakan selama acara, dan tetap memiliki nilai setelah pernikahan selesai.
+Lunovia dimulai sebelum pernikahan, digunakan selama acara, dan tetap memiliki nilai setelah pernikahan selesai.
 
 ---
 
@@ -249,4 +249,4 @@ Framework ini dapat digunakan sebagai filter ketika menentukan fitur baru:
 
 > Apakah fitur tersebut membantu **Create, Invite, Experience, atau Remember**?
 
-Jika tidak, fitur tersebut perlu dievaluasi kembali terhadap positioning Lovoria.
+Jika tidak, fitur tersebut perlu dievaluasi kembali terhadap positioning Lunovia.

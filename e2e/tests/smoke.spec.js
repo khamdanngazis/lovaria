@@ -72,7 +72,12 @@ test('alur utama pasangan & tamu', async ({ page, browser }) => {
   ]);
   await expect(page.getByText('Menunggu konfirmasi')).toBeVisible();
   await expect(pay.getByText('Mode simulasi')).toBeVisible();
-  await pay.getByRole('button', { name: 'Simulasikan berhasil' }).click();
+  // Tunggu server selesai memproses sebelum tab ditutup — menutup lebih dulu
+  // membatalkan request sehingga pembayaran tidak tercatat.
+  await Promise.all([
+    pay.waitForResponse((r) => r.request().method() === 'POST'),
+    pay.getByRole('button', { name: 'Simulasikan berhasil' }).click(),
+  ]);
   await pay.close();
   await expect(page.getByText('Pembayaran berhasil')).toBeVisible({ timeout: 15_000 });
   await page.getByRole('link', { name: 'Lanjut publikasikan' }).click();

@@ -93,7 +93,7 @@ func authShell(title string, benefits bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<a href=\"/\" aria-label=\"Lovoria — beranda\" class=\"relative inline-block self-start text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<a href=\"/\" aria-label=\"Lunovia — beranda\" class=\"relative inline-block self-start text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -163,7 +163,7 @@ func authShell(title string, benefits bool) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</div><p class=\"relative text-xs text-white/60\">Romantic · Elegant · Modern · Timeless</p></aside><div class=\"flex min-h-dvh flex-col px-4 py-8 sm:py-12\"><div class=\"text-center lg:hidden\"><a href=\"/\" aria-label=\"Lovoria — beranda\" class=\"inline-block text-lovoria-primary\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</div><p class=\"relative text-xs text-white/60\">Romantic · Elegant · Modern · Timeless</p></aside><div class=\"flex min-h-dvh flex-col px-4 py-8 sm:py-12\"><div class=\"text-center lg:hidden\"><a href=\"/\" aria-label=\"Lunovia — beranda\" class=\"inline-block text-lovoria-primary\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

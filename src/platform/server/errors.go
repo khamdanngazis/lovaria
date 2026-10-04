@@ -19,7 +19,7 @@ var errorTexts = map[int][2]string{
 	http.StatusMethodNotAllowed:      {"Aksi tidak didukung", "Halaman ini tidak menerima aksi tersebut."},
 	http.StatusRequestEntityTooLarge: {"File terlalu besar", "Ukuran data yang dikirim melebihi batas. Coba dengan file yang lebih kecil."},
 	http.StatusTooManyRequests:       {"Terlalu banyak permintaan", "Tunggu sebentar lalu coba lagi."},
-	http.StatusInternalServerError:   {"Terjadi kesalahan", "Maaf, ada masalah di sisi kami. Tim Lovoria sudah dicatat otomatis — silakan coba lagi beberapa saat lagi."},
+	http.StatusInternalServerError:   {"Terjadi kesalahan", "Maaf, ada masalah di sisi kami. Tim Lunovia sudah dicatat otomatis — silakan coba lagi beberapa saat lagi."},
 }
 
 // errorHandler merender error sebagai halaman HTML bergaya (JSON bila klien

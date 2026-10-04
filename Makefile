@@ -1,4 +1,4 @@
-# Lovoria — task runner. Jalankan `make help` untuk daftar target.
+# Lunovia — task runner. Jalankan `make help` untuk daftar target.
 
 SHELL := /bin/bash
 

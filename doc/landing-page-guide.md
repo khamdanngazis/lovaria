@@ -1,8 +1,8 @@
-# Lovoria — Brand & Landing Page Design System
+# Lunovia — Brand & Landing Page Design System
 
 ## 1. Brand Direction
 
-Lovoria menggunakan visual identity yang:
+Lunovia menggunakan visual identity yang:
 - Romantic
 - Elegant
 - Modern
@@ -12,7 +12,7 @@ Lovoria menggunakan visual identity yang:
 
 Arah visual harus terasa seperti **premium wedding brand**, bukan SaaS biasa yang kebetulan menyediakan wedding invitation.
 
-**Brand:** Lovoria
+**Brand:** Lunovia
 
 **Tagline:**
 > Your Love. Your Story. Your Forever.
@@ -20,7 +20,7 @@ Arah visual harus terasa seperti **premium wedding brand**, bukan SaaS biasa yan
 ## 2. Logo
 
 ### Primary Logo
-**LV Monogram + LOVORIA wordmark**
+**LV Monogram + LUNOVIA wordmark**
 
 Digunakan pada landing page, website header, footer, dan marketing materials.
 
@@ -30,7 +30,7 @@ Digunakan pada landing page, website header, footer, dan marketing materials.
 Digunakan untuk favicon, app icon, mobile navigation, social media profile, dan small UI surfaces.
 
 ### Wordmark
-**LOVORIA**
+**LUNOVIA**
 
 Digunakan ketika logo mark tidak diperlukan atau ruang horizontal lebih sesuai.
 
@@ -214,7 +214,7 @@ Contoh:
 
 Recommended:
 ```text
-Lovoria
+Lunovia
 
 Home
 Features
@@ -236,7 +236,7 @@ Active navigation menggunakan `#6B4E71` dengan underline atau subtle indicator.
 
 ## 10. Hero Section
 
-Hero harus langsung menyampaikan positioning Lovoria.
+Hero harus langsung menyampaikan positioning Lunovia.
 
 Recommended:
 
@@ -327,7 +327,7 @@ box-shadow: 0 8px 30px rgba(51, 41, 54, 0.08);
 
 ## 16. Responsive Design
 
-Lovoria harus mobile-first karena mayoritas guest kemungkinan membuka invitation melalui smartphone.
+Lunovia harus mobile-first karena mayoritas guest kemungkinan membuka invitation melalui smartphone.
 
 ```text
 Mobile
@@ -353,7 +353,7 @@ Jika terlihat **Editorial + warm + intimate + elegant**, maka berada di arah yan
 
 > **Let the couple's story be the hero.**
 
-Lovoria menyediakan framework dan visual system. Yang menjadi pusat perhatian adalah couple, love story, wedding, dan memories.
+Lunovia menyediakan framework dan visual system. Yang menjadi pusat perhatian adalah couple, love story, wedding, dan memories.
 
 ## 19. Design Tokens — Initial
 
@@ -401,7 +401,7 @@ Contoh:
 
 ## 21. Final Brand Direction
 
-**Logo:** LV Monogram + LOVORIA
+**Logo:** LV Monogram + LUNOVIA
 
 **Heading:** Playfair Display
 

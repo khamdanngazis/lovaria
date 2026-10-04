@@ -58,7 +58,7 @@ Tombol "Buka Undangan" menuju anchor `#undangan` (awal bagian tengah, apa pun ur
 
 | Tema | Override | Karakter |
 |---|---|---|
-| `signature` (**bawaan**, T21) | Hero, Couple, LoveStory, Events, Gallery, Closing, SectionTitle | Editorial brand Lovoria: Dusty Plum + Champagne + Warm Ivory, Playfair Display + Inter, penutup & galeri Deep Plum, ornamen bintang |
+| `signature` (**bawaan**, T21) | Hero, Couple, LoveStory, Events, Gallery, Closing, SectionTitle | Editorial brand Lunovia: Dusty Plum + Champagne + Warm Ivory, Playfair Display + Inter, penutup & galeri Deep Plum, ornamen bintang |
 | `elegant` | semua + SectionTitle | Klasik formal: bingkai ganda dengan ornamen sudut, serba rata tengah, foto & kartu acara berpigura |
 | `minimal` (ditulis ulang T21) | Hero, Couple, LoveStory, Events, Gallery, Closing, SectionTitle | Putih lega, rata kiri, garis rambut, nama & angka tanggal besar, acara tanpa kartu, galeri grid rapat tanpa sudut membulat, penutup gelap. Sampul selalu muat satu layar (foto mengisi sisa tinggi). |
 | `romantic` | semua + SectionTitle | Lembut: foto melengkung (arch), ornamen bunga garis, judul tulisan tangan, cerita berselang-seling |
@@ -169,5 +169,5 @@ Kartu tema di landing dan pemilih tema dashboard memakai tangkapan layar asli sa
 
 - Membuat ulang: jalankan server dengan undangan contoh (`lovoria demo seed`), lalu `make theme-thumbs` (`E2E_BASE_URL` = alamat server; lokal boleh `PW_CHANNEL=chrome`). Skrip `e2e/theme-thumbs.js` mengambil daftar tema dari tautan "Lihat contoh" di landing, memotret sampul di viewport ponsel, menggeser jendela 4:5 ke nama pasangan, lalu mengubahnya ke WebP lewat canvas browser (tanpa dependensi tambahan).
 - Jalankan ulang setiap tampilan sampul tema berubah atau ada tema baru.
-- `ThemeDef.Thumb()` mengembalikan URL-nya, atau `""` bila berkas tidak ada — kartu lalu jatuh ke foto sampul contoh / kartu warna. `ThemeDef.Featured()` (tema bawaan) memberi label **Pilihan Lovoria**.
+- `ThemeDef.Thumb()` mengembalikan URL-nya, atau `""` bila berkas tidak ada — kartu lalu jatuh ke foto sampul contoh / kartu warna. `ThemeDef.Featured()` (tema bawaan) memberi label **Pilihan Lunovia**.
 - `TestThemeThumbsAndFeatured` memastikan tiap tema terdaftar punya thumbnail dan ukurannya dalam anggaran.

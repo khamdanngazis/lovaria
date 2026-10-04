@@ -7,10 +7,10 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// OwnHost: request datang ke domain Lovoria sendiri (bukan custom domain pasangan).
+// OwnHost: request datang ke domain Lunovia sendiri (bukan custom domain pasangan).
 func (r *Resolver) OwnHost(req *http.Request) bool { return r.isOwnHost(r.hostOf(req)) }
 
-// robots: domain Lovoria → landing & halaman legal boleh diindeks, undangan &
+// robots: domain Lunovia → landing & halaman legal boleh diindeks, undangan &
 // dashboard tidak; custom domain pasangan → tidak diindeks sama sekali.
 func robots(r *Resolver) echo.HandlerFunc {
 	return func(c echo.Context) error {

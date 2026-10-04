@@ -280,7 +280,7 @@ func TestHeaderAccountMenu(t *testing.T) {
 	menu = menu[:strings.Index(menu, "</nav>")]
 	for _, want := range []string{
 		"<details", "<summary", `href="/dashboard"`, `href="/dashboard/weddings"`, `href="/dashboard/weddings/new"`,
-		"Buat wedding baru", "Halaman utama Lovoria", `action="/logout"`, "Keluar", "<svg",
+		"Buat wedding baru", "Halaman utama Lunovia", `action="/logout"`, "Keluar", "<svg",
 	} {
 		if !strings.Contains(menu, want) {
 			t.Errorf("menu akun tidak memuat %q", want)

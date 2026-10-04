@@ -22,7 +22,7 @@ Satu-satunya tempat yang membaca Host header / slug / kode undangan (Arsitektur 
 
 Hasil (`Resolved{Wedding, Guest, Preview, Origin, Prefix}`) disimpan di context (`publicsite.FromContext`). Kode/slug tidak ditemukan → halaman 404 ramah.
 
-**Custom domain (T15):** host yang bukan milik Lovoria dan bukan custom domain aktif → 404 generik (tidak pernah jatuh ke wedding lain lewat path). Domain aktif → `GET /w/:slug…` dialihkan 301 ke `https://<domain>…`; `/i/:code` tidak dialihkan. Detail: [custom-domain.md](../custom-domain.md).
+**Custom domain (T15):** host yang bukan milik Lunovia dan bukan custom domain aktif → 404 generik (tidak pernah jatuh ke wedding lain lewat path). Domain aktif → `GET /w/:slug…` dialihkan 301 ke `https://<domain>…`; `/i/:code` tidak dialihkan. Detail: [custom-domain.md](../custom-domain.md).
 
 **Slug lama (T14):** `/w/<slug lama>…` → 301 ke `/w/<slug baru>…` (query ikut; selain GET/HEAD memakai 308 supaya POST tetap POST) selama 90 hari setelah pasangan mengganti slug (`slug_redirects`, migration `00017`). Slug lama yang masih dialihkan tidak bisa diambil wedding lain.
 
@@ -58,7 +58,7 @@ Tampilan (tetap lewat `theme.Render` & template tema, tanpa cabang status di han
 
 ## Landing page (T18)
 
-`GET /` di domain Lovoria (custom domain tetap menampilkan undangan). Desain: `doc/landing-page-guide.md` — ivory `#FAF7F5`, Playfair Display + Inter, Dusty Plum `#6B4E71`, aksen champagne `#C9A88A` (teks kecil memakai `lovoria-accent-ink` `#8C6B50` supaya kontras AA). Token Tailwind `lovoria-*`, `font-display`, `font-ui`, `shadow-soft` di `src/styles/app.css`; logo `layouts.BrandMark` / `BrandLogo` (monogram LV dari `doc/vector-logo.svg`, warna `currentColor`), aset di `static/img/brand/`.
+`GET /` di domain Lunovia (custom domain tetap menampilkan undangan). Desain: `doc/landing-page-guide.md` — ivory `#FAF7F5`, Playfair Display + Inter, Dusty Plum `#6B4E71`, aksen champagne `#C9A88A` (teks kecil memakai `lovoria-accent-ink` `#8C6B50` supaya kontras AA). Token Tailwind `lovoria-*`, `font-display`, `font-ui`, `shadow-soft` di `src/styles/app.css`; logo `layouts.BrandMark` / `BrandLogo` (monogram LV dari `doc/vector-logo.svg`, warna `currentColor`), aset di `static/img/brand/`.
 
 | Bagian | Sumber data |
 |---|---|
@@ -72,7 +72,7 @@ Tampilan (tetap lewat `theme.Render` & template tema, tanpa cabang status di han
   - Demo juga diberi kutipan contoh (T20).
   - Demo yang sudah ada tetapi galerinya kosong ikut dilengkapi (`ensureDemoMedia`); demo yang galerinya sudah berisi dilewati.
   - Kartu tema di landing memakai thumbnail sampul + nama pasangan demo; tanpa foto, kartu kembali ke tampilan warna.
-- **SEO**: landing boleh diindeks (undangan tetap `noindex`), `canonical` & Open Graph (`static/img/brand/og-lovoria.png` 1200×630), `robots.txt` (domain Lovoria: landing/privacy/terms saja; custom domain pasangan: `Disallow: /`), `sitemap.xml` (landing, privacy, terms).
+- **SEO**: landing boleh diindeks (undangan tetap `noindex`), `canonical` & Open Graph (`static/img/brand/og-lovoria.png` 1200×630), `robots.txt` (domain Lunovia: landing/privacy/terms saja; custom domain pasangan: `Disallow: /`), `sitemap.xml` (landing, privacy, terms).
 - **Performa**: tanpa Alpine; `static/js/landing.js` hanya memuat font tanpa memblokir render; CSP publik (`StrictCSP`). Lighthouse mobile lokal: 100 / 100 / 100 / 100.
 
 ## RSVP (T10)

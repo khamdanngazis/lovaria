@@ -16,7 +16,7 @@ templ notFoundPage() {
 				Link undangan mungkin salah ketik, sudah tidak aktif, atau belum dipublikasikan oleh pasangan.
 				Coba periksa kembali link yang Anda terima.
 			</p>
-			<a href="/" class="ui-btn ui-btn-primary mt-8">Ke beranda Lovoria</a>
+			<a href="/" class="ui-btn ui-btn-primary mt-8">Ke beranda Lunovia</a>
 		</section>
 	}
 }
@@ -50,7 +50,7 @@ templ guestbookMorePage(v view.View, prefix string) {
 templ legalPage(title string) {
 	@layouts.Public(layouts.Meta{Title: title}) {
 		<article class="space-y-4 py-8 text-sm leading-relaxed text-lovoria-text">
-			<a href="/" aria-label="Lovoria — beranda" class="inline-block text-lovoria-primary">
+			<a href="/" aria-label="Lunovia — beranda" class="inline-block text-lovoria-primary">
 				@layouts.BrandLogo("")
 			</a>
 			<h1 class="font-display text-3xl text-lovoria-deep">{ title }</h1>
@@ -62,7 +62,7 @@ templ legalPage(title string) {
 
 templ privacyPage() {
 	@legalPage("Kebijakan Privasi") {
-		<p>Lovoria membantu pasangan membuat undangan pernikahan digital. Halaman ini menjelaskan data apa yang kami simpan dan untuk apa.</p>
+		<p>Lunovia membantu pasangan membuat undangan pernikahan digital. Halaman ini menjelaskan data apa yang kami simpan dan untuk apa.</p>
 		<h2 class="pt-2 text-base font-semibold">Data yang kami simpan</h2>
 		<ul class="list-disc space-y-1 pl-5">
 			<li><strong>Akun pasangan</strong>: nama, email, dan password (disimpan sebagai hash, tidak bisa dibaca siapa pun).</li>
@@ -75,18 +75,18 @@ templ privacyPage() {
 		<h2 class="pt-2 text-base font-semibold">Penyimpanan &amp; penghapusan</h2>
 		<p>Data disimpan di penyedia cloud (database terkelola dan penyimpanan foto) dengan cadangan harian. Pasangan dapat menghapus tamu, ucapan, dan foto kapan saja; untuk penghapusan akun, hubungi kami.</p>
 		<h2 class="pt-2 text-base font-semibold">Kontak</h2>
-		<p>Pertanyaan tentang privasi dapat dikirim ke admin Lovoria melalui email yang tercantum di situs.</p>
+		<p>Pertanyaan tentang privasi dapat dikirim ke admin Lunovia melalui email yang tercantum di situs.</p>
 	}
 }
 
 templ termsPage() {
 	@legalPage("Syarat & Ketentuan") {
-		<p>Dengan memakai Lovoria, Anda menyetujui ketentuan berikut.</p>
+		<p>Dengan memakai Lunovia, Anda menyetujui ketentuan berikut.</p>
 		<ul class="list-disc space-y-1 pl-5">
-			<li>Membuat, menyunting, dan melihat pratinjau undangan tidak dipungut biaya. Mempublikasikan undangan dikenai pembayaran satu kali per undangan sesuai harga yang tertera saat pembayaran; tidak ada langganan atau tagihan berulang. Pembayaran diproses oleh penyedia pembayaran pihak ketiga — Lovoria tidak menyimpan data kartu atau rekening Anda.</li>
+			<li>Membuat, menyunting, dan melihat pratinjau undangan tidak dipungut biaya. Mempublikasikan undangan dikenai pembayaran satu kali per undangan sesuai harga yang tertera saat pembayaran; tidak ada langganan atau tagihan berulang. Pembayaran diproses oleh penyedia pembayaran pihak ketiga — Lunovia tidak menyimpan data kartu atau rekening Anda.</li>
 			<li>Pasangan bertanggung jawab atas isi undangan dan data tamu yang dimasukkan, termasuk izin memakai foto dan nomor kontak.</li>
-			<li>Musik yang diunggah pasangan menjadi tanggung jawab pasangan: pastikan Anda memiliki hak atau izin untuk memakainya. Lovoria dapat menghapus berkas yang dilaporkan melanggar hak cipta. Lagu bawaan Lovoria berlisensi bebas royalti.</li>
-			<li>Dilarang memakai Lovoria untuk konten yang melanggar hukum, spam, atau penipuan. Akun yang melanggar dapat dinonaktifkan.</li>
+			<li>Musik yang diunggah pasangan menjadi tanggung jawab pasangan: pastikan Anda memiliki hak atau izin untuk memakainya. Lunovia dapat menghapus berkas yang dilaporkan melanggar hak cipta. Lagu bawaan Lunovia berlisensi bebas royalti.</li>
+			<li>Dilarang memakai Lunovia untuk konten yang melanggar hukum, spam, atau penipuan. Akun yang melanggar dapat dinonaktifkan.</li>
 			<li>Kuota penyimpanan dan masa aktif undangan mengikuti paket yang berlaku. Undangan yang sudah lewat masa kenangan akan diarsipkan.</li>
 			<li>Kami berupaya menjaga layanan tetap tersedia, namun tidak menjamin bebas gangguan. Cadangan data dilakukan harian.</li>
 			<li>Ketentuan dapat diperbarui; perubahan penting akan diberitahukan melalui email akun.</li>

@@ -463,7 +463,7 @@ func TestCustomDomainRedirectAndHostHeader(t *testing.T) {
 	g, _ := f.guests.Create(ctx, w.ID, guest.Input{Name: "Budi"})
 	f.domains["www.samuelsarah.com"] = w.ID
 
-	// /w/:slug di domain Lovoria → 301 ke custom domain (path & query ikut).
+	// /w/:slug di domain Lunovia → 301 ke custom domain (path & query ikut).
 	rec := f.get("/w/"+w.Slug+"?ref=wa", nil)
 	if rec.Code != http.StatusMovedPermanently || rec.Header().Get("Location") != "https://www.samuelsarah.com?ref=wa" {
 		t.Fatalf("redirect: %d %s", rec.Code, rec.Header().Get("Location"))
@@ -472,7 +472,7 @@ func TestCustomDomainRedirectAndHostHeader(t *testing.T) {
 	if rec.Header().Get("Location") != "https://www.samuelsarah.com/events/x.ics" {
 		t.Errorf("redirect sub-path: %s", rec.Header().Get("Location"))
 	}
-	// Link tamu /i/:code di domain Lovoria tetap dilayani (tidak dialihkan).
+	// Link tamu /i/:code di domain Lunovia tetap dilayani (tidak dialihkan).
 	if rec := f.get("/i/"+g.InvitationCode, nil); rec.Code != http.StatusOK {
 		t.Errorf("/i/:code: %d", rec.Code)
 	}
@@ -480,7 +480,7 @@ func TestCustomDomainRedirectAndHostHeader(t *testing.T) {
 	if rec := f.post("/w/"+w.Slug+"/guestbook", gbForm(w.ID, "Ani", "Selamat"), true, ""); rec.Code != http.StatusOK {
 		t.Errorf("POST guestbook: %d", rec.Code)
 	}
-	// Draft: tidak dialihkan (pemilik tetap bisa preview di domain Lovoria).
+	// Draft: tidak dialihkan (pemilik tetap bisa preview di domain Lunovia).
 	f.setStatus(w.ID, "draft")
 	if rec := f.get("/w/"+w.Slug, map[string]string{"X-Test-User": owner.String()}); rec.Code != http.StatusOK {
 		t.Errorf("draft preview: %d", rec.Code)
@@ -493,7 +493,7 @@ func TestCustomDomainRedirectAndHostHeader(t *testing.T) {
 	if rec := f.get("/", proxied); rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Samuel") {
 		t.Errorf("host header: %d", rec.Code)
 	}
-	// Domain Railway sendiri tetap host Lovoria (landing, bukan 404).
+	// Domain Railway sendiri tetap host Lunovia (landing, bukan 404).
 	if rec := f.get("/", map[string]string{"Host": "lovaria.up.railway.app"}); rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Your Forever.") {
 		t.Errorf("extra host: %d", rec.Code)
 	}

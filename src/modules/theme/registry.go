@@ -76,7 +76,7 @@ func register(d ThemeDef) {
 // Accent (champagne) hanya untuk ornamen/garis, bukan teks isi atau tombol.
 func init() {
 	register(ThemeDef{
-		ID: "signature", Name: "Lovoria Signature", Description: "Editorial, hangat, dan premium — wajah Lovoria.",
+		ID: "signature", Name: "Lunovia Signature", Description: "Editorial, hangat, dan premium — wajah Lunovia.",
 		Tokens: view.Tokens{
 			Primary: "#6b4e71", Surface: "#faf7f5", Ink: "#292529", Accent: "#c9a88a", Deep: "#332936", Muted: "#6b666b", Border: "#e8dfd9",
 			FontHeading: "Playfair Display", FontBody: "Inter", Radius: "0.25rem", ButtonRadius: "0.5rem",
@@ -132,7 +132,7 @@ func init() {
 	})
 }
 
-// Featured: tema unggulan etalase ("Pilihan Lovoria") — tema bawaan.
+// Featured: tema unggulan etalase ("Pilihan Lunovia") — tema bawaan.
 func (d ThemeDef) Featured() bool { return d.ID == DefaultID }
 
 // Thumb: URL thumbnail tangkapan layar tema (static/img/themes/<id>.webp,

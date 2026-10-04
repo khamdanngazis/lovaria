@@ -142,10 +142,10 @@ func TestAddValidation(t *testing.T) {
 
 	for in, want := range map[string]string{
 		"https://www.x.com":    "tanpa http",
-		"undangan.lovoria.com": "Domain Lovoria",
-		"domains.lovoria.com":  "Domain Lovoria",
-		"lovoria.test":         "Domain Lovoria",
-		"budi.lovoria.test":    "Domain Lovoria",
+		"undangan.lovoria.com": "Domain Lunovia",
+		"domains.lovoria.com":  "Domain Lunovia",
+		"lovoria.test":         "Domain Lunovia",
+		"budi.lovoria.test":    "Domain Lunovia",
 	} {
 		if _, err := f.svc.Add(ctx, w.ID, in); !strings.Contains(field(err), want) {
 			t.Errorf("Add(%q): %v, want %q", in, err, want)
@@ -265,7 +265,7 @@ func TestPendingTimeoutAndRemoved(t *testing.T) {
 		t.Errorf("71 jam: %s", d.Status)
 	}
 	*f.clock = f.clock.Add(2 * time.Hour)
-	// b dihapus langsung di Cloudflare (di luar Lovoria).
+	// b dihapus langsung di Cloudflare (di luar Lunovia).
 	f.cf.mu.Lock()
 	delete(f.cf.hosts, "cf-2")
 	f.cf.mu.Unlock()

@@ -35,7 +35,7 @@ var statusBadge = map[string]string{
 }
 
 var statusHint = map[string]string{
-	StatusPending: "Lovoria sedang menunggu CNAME Anda terpasang. Biasanya selesai dalam beberapa menit, tapi perubahan DNS bisa butuh hingga 24 jam. Status dicek otomatis tiap 5 menit.",
+	StatusPending: "Lunovia sedang menunggu CNAME Anda terpasang. Biasanya selesai dalam beberapa menit, tapi perubahan DNS bisa butuh hingga 24 jam. Status dicek otomatis tiap 5 menit.",
 	StatusActive:  "Domain aktif dan aman (HTTPS). Alamat /w/… lama otomatis dialihkan ke domain ini; link pribadi tamu (/i/…) yang sudah terkirim tetap berfungsi.",
 	StatusFailed:  "Domain belum terverifikasi setelah 72 jam. Periksa kembali record CNAME, lalu klik Cek ulang — atau hapus dan daftarkan ulang.",
 	StatusRemoved: "Domain tidak lagi terdaftar. Hapus lalu daftarkan ulang.",
@@ -134,7 +134,7 @@ func section(s pageState) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<p class=\"font-medium\">Custom domain belum tersedia</p><p class=\"mt-1 text-sm text-lovoria-muted\">Fitur ini belum diaktifkan di server Lovoria. Undangan tetap bisa dibagikan lewat alamat Lovoria.</p>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<p class=\"font-medium\">Custom domain belum tersedia</p><p class=\"mt-1 text-sm text-lovoria-muted\">Fitur ini belum diaktifkan di server Lunovia. Undangan tetap bisa dibagikan lewat alamat Lunovia.</p>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -567,7 +567,7 @@ func status(s pageState, d Domain) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var27 string
-			templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.ResolveAttributeValue("Hapus domain " + d.Domain + "? Undangan kembali memakai alamat Lovoria.")
+			templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.ResolveAttributeValue("Hapus domain " + d.Domain + "? Undangan kembali memakai alamat Lunovia.")
 			if templ_7745c5c3_Err != nil {
 				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/domain/views.templ`, Line: 111, Col: 209}
 			}

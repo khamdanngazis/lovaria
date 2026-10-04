@@ -35,14 +35,14 @@ type landingTheme struct {
 	Photo                 string // thumbnail sampul undangan contoh ("" → kartu warna)
 	Couple                string // "Raka & Nadia"
 	Thumb                 string // tangkapan layar asli tema ("" → foto sampul / kartu warna)
-	Featured              bool   // label "Pilihan Lovoria"
+	Featured              bool   // label "Pilihan Lunovia"
 }
 
 // Teks utama landing di satu tempat supaya mudah disunting pemilik produk.
 const (
 	landingEyebrow = "THE DIGITAL WEDDING EXPERIENCE"
 	landingLead    = "Buat website pernikahan yang indah, undang orang-orang tersayang, dan simpan setiap momen berharga — dalam satu tempat."
-	landingDesc    = "Lovoria: website & undangan pernikahan digital yang personal — cerita cinta, RSVP, ucapan, dan kenangan dalam satu tempat."
+	landingDesc    = "Lunovia: website & undangan pernikahan digital yang personal — cerita cinta, RSVP, ucapan, dan kenangan dalam satu tempat."
 )
 
 func landingHead(d landingData) templ.Component {
@@ -96,7 +96,7 @@ func landingHead(d landingData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\"><meta property=\"og:type\" content=\"website\"><meta property=\"og:site_name\" content=\"Lovoria\"><meta property=\"og:title\" content=\"Lovoria — Your Love. Your Story. Your Forever.\"><meta property=\"og:description\" content=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\"><meta property=\"og:type\" content=\"website\"><meta property=\"og:site_name\" content=\"Lunovia\"><meta property=\"og:title\" content=\"Lunovia — Your Love. Your Story. Your Forever.\"><meta property=\"og:description\" content=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -554,7 +554,7 @@ func landingHeader(d landingData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\"><a href=\"/\" aria-label=\"Lovoria — beranda\" class=\"text-lovoria-primary\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\"><a href=\"/\" aria-label=\"Lunovia — beranda\" class=\"text-lovoria-primary\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -936,7 +936,7 @@ func landingPositioning() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "\"><div><p class=\"text-xs font-medium uppercase tracking-[0.25em] text-lovoria-accent-ink\">More than a wedding invitation</p><h2 class=\"mt-4 font-display text-3xl leading-tight text-lovoria-deep sm:text-4xl\">Undangan biasa selesai di hari H. Kisah kalian tidak.</h2></div><div class=\"space-y-4 text-lovoria-muted\"><p class=\"leading-relaxed\">Lovoria adalah rumah digital untuk kisah cinta dan kenangan pernikahan kalian — dimulai sebelum hari bahagia, hadir di hari H, dan tetap bermakna setelahnya.</p><div class=\"flex flex-wrap items-center gap-x-3 gap-y-2 font-display text-lg text-lovoria-deep\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "\"><div><p class=\"text-xs font-medium uppercase tracking-[0.25em] text-lovoria-accent-ink\">More than a wedding invitation</p><h2 class=\"mt-4 font-display text-3xl leading-tight text-lovoria-deep sm:text-4xl\">Undangan biasa selesai di hari H. Kisah kalian tidak.</h2></div><div class=\"space-y-4 text-lovoria-muted\"><p class=\"leading-relaxed\">Lunovia adalah rumah digital untuk kisah cinta dan kenangan pernikahan kalian — dimulai sebelum hari bahagia, hadir di hari H, dan tetap bermakna setelahnya.</p><div class=\"flex flex-wrap items-center gap-x-3 gap-y-2 font-display text-lg text-lovoria-deep\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1310,7 +1310,7 @@ func landingThemes(d landingData) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if t.Featured {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 90, "<p class=\"absolute left-2 top-2 z-10 rounded-full bg-lovoria-primary px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.12em] text-white shadow-sm sm:left-3 sm:top-3\">Pilihan Lovoria</p>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 90, "<p class=\"absolute left-2 top-2 z-10 rounded-full bg-lovoria-primary px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.12em] text-white shadow-sm sm:left-3 sm:top-3\">Pilihan Lunovia</p>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -2015,7 +2015,7 @@ func landingFooter() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 146, " Lovoria. Semua hak dilindungi.</p></footer>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 146, " Lunovia. Semua hak dilindungi.</p></footer>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

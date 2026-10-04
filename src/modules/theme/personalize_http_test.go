@@ -117,7 +117,7 @@ func (a app) upload(user uuid.UUID, path, filename string, data []byte) *httptes
 
 func TestMusicLibraryAndUpload(t *testing.T) {
 	old := theme.MusicLibrary
-	theme.MusicLibrary = []theme.Track{{ID: "sunrise", Title: "Sunrise", Artist: "Lovoria", Duration: "2:30", File: "sunrise.mp3", License: "CC0"}}
+	theme.MusicLibrary = []theme.Track{{ID: "sunrise", Title: "Sunrise", Artist: "Lunovia", Duration: "2:30", File: "sunrise.mp3", License: "CC0"}}
 	t.Cleanup(func() { theme.MusicLibrary = old })
 	a := newApp(t)
 	ctx := context.Background()

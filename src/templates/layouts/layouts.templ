@@ -35,9 +35,9 @@ func (m Meta) theme() string {
 
 func (m Meta) title() string {
 	if m.Title == "" {
-		return "Lovoria"
+		return "Lunovia"
 	}
-	return m.Title + " · Lovoria"
+	return m.Title + " · Lunovia"
 }
 
 templ base(meta Meta, bodyClass string) {
@@ -87,7 +87,7 @@ templ Document(meta Meta, head templ.Component, bodyClass string) {
 }
 
 // BrandFontsURL: huruf brand (Inter untuk UI, Playfair Display untuk judul &
-// wordmark) — dipakai landing, auth, dashboard, dan halaman publik Lovoria.
+// wordmark) — dipakai landing, auth, dashboard, dan halaman publik Lunovia.
 const BrandFontsURL = "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap"
 
 // BrandFonts memuat huruf brand. blocking=false: preload yang dijadikan
@@ -105,10 +105,10 @@ templ BrandFonts(blocking bool) {
 	<meta name="theme-color" content="#FAF7F5"/>
 }
 
-// BrandBody: kelas <body> halaman Lovoria di luar undangan (warna & huruf brand).
+// BrandBody: kelas <body> halaman Lunovia di luar undangan (warna & huruf brand).
 const BrandBody = "min-h-dvh bg-lovoria-bg font-ui text-lovoria-text antialiased"
 
-// Public adalah layout dasar halaman publik Lovoria (error, privasi, syarat,
+// Public adalah layout dasar halaman publik Lunovia (error, privasi, syarat,
 // undangan tidak ditemukan / diarsipkan) — warna & huruf brand, mobile-first.
 templ Public(meta Meta) {
 	@Document(meta, BrandFonts(meta.Cacheable), BrandBody) {
@@ -132,7 +132,7 @@ templ LegalLinks(class string) {
 templ ErrorPage(code int, title, message string) {
 	@Public(Meta{Title: title}) {
 		<section class="py-20 text-center">
-			<a href="/" aria-label="Lovoria — beranda" class="inline-block text-lovoria-primary">
+			<a href="/" aria-label="Lunovia — beranda" class="inline-block text-lovoria-primary">
 				@BrandLogo("")
 			</a>
 			<p class="mt-10 font-display text-7xl text-lovoria-primary">{ fmt.Sprint(code) }</p>
@@ -163,7 +163,7 @@ templ Dashboard(meta Meta) {
 		}
 		<header class="border-b border-lovoria-border bg-lovoria-surface">
 			<div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-				<a href="/dashboard" aria-label="Lovoria — dashboard" class="text-lovoria-primary">
+				<a href="/dashboard" aria-label="Lunovia — dashboard" class="text-lovoria-primary">
 					@BrandLogo("[&>span]:text-base")
 				</a>
 				@accountMenu()
@@ -217,7 +217,7 @@ templ accountMenu() {
 						if u.Role == "admin" {
 							@menuLink("/admin", "shield", "Panel admin")
 						}
-						@menuLink("/", "external", "Halaman utama Lovoria")
+						@menuLink("/", "external", "Halaman utama Lunovia")
 					</ul>
 					<form method="post" action="/logout" class="border-t border-lovoria-border p-1.5">
 						@CSRFField()

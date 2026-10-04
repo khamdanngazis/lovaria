@@ -11,7 +11,7 @@ Pasangan membagikan undangan via WhatsApp, copy link, dan sosial media (Produk Â
 - Penanda `shared_at` per tamu (diset saat tombol diklik) + filter "belum dibagikan"
 - Halaman Share: link umum (`/w/:slug`), Web Share API di mobile, tombol copy
 - Custom slug: couple bisa ubah slug (validasi format, reserved words seperti `admin`, `api`, `i`, `w`), slug lama redirect 301 selama 90 hari (tabel `slug_redirects`)
-- Link yang dibagikan memakai custom domain bila aktif (via fungsi `wedding.CanonicalBaseURL()` yang T15 isi), fallback domain Lovoria
+- Link yang dibagikan memakai custom domain bila aktif (via fungsi `wedding.CanonicalBaseURL()` yang T15 isi), fallback domain Lunovia
 
 ## Out of Scope
 - Kirim WA massal otomatis / WhatsApp Business API.

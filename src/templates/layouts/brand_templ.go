@@ -8,7 +8,7 @@ package layouts
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-// Logo Lovoria (T18): monogram LV dari doc/vector-logo.svg (dibersihkan),
+// Logo Lunovia (T18): monogram LV dari doc/vector-logo.svg (dibersihkan),
 // warnanya mengikuti currentColor (text-lovoria-primary / text-white).
 
 // BrandMark: monogram LV saja (favicon, navigasi kecil, ornamen).
@@ -59,7 +59,7 @@ func BrandMark(class string) templ.Component {
 	})
 }
 
-// BrandLogo: monogram + wordmark LOVORIA (header & footer).
+// BrandLogo: monogram + wordmark LUNOVIA (header & footer).
 func BrandLogo(class string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -107,7 +107,7 @@ func BrandLogo(class string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<span class=\"font-display text-lg tracking-[0.32em]\">LOVORIA</span></span>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<span class=\"font-display text-lg tracking-[0.32em]\">LUNOVIA</span></span>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

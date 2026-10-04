@@ -3,19 +3,19 @@
 **Estimasi:** 4–5 hari (bisa dipecah jadi 3 PR, lihat *Urutan Pengerjaan*) · **Depends on:** T08, T09, T18, T20 · **Modul:** `modules/theme` (registry, token), `templates/themes/*`, `templates/shared`, `src/styles/app.css`, `static/js/invitation.js`, `public-site` (landing), `cmd/server` (demo)
 
 ## Konteks
-Brand guide (`doc/landing-page-guide.md`) meminta Lovoria terasa seperti **premium wedding brand**: romantic, elegant, modern, timeless. Landing page sudah mengikuti arah itu (Dusty Plum, Champagne, Warm Ivory, Playfair Display + Inter). Template undangannya belum:
+Brand guide (`doc/landing-page-guide.md`) meminta Lunovia terasa seperti **premium wedding brand**: romantic, elegant, modern, timeless. Landing page sudah mengikuti arah itu (Dusty Plum, Champagne, Warm Ivory, Playfair Display + Inter). Template undangannya belum:
 
 - **Empat tema terasa satu tema.** Tiap tema hanya meng-override 3 dari 7 bagian (`registry.go`); cerita, galeri, dan seluruh bagian bersama (hitung mundur, kutipan, RSVP, ucapan, hadiah) memakai `base`/`shared` yang sama. Setelah pembuka, perbedaan antar tema tinggal warna dan huruf.
-- **Palet tidak terhubung ke brand.** Emas, abu-abu, merah muda, dan hijau toska berdiri sendiri; tidak ada tema yang memakai palet Lovoria. Token hanya `Primary/Surface/Ink`, tanpa aksen, warna gelap, atau garis.
+- **Palet tidak terhubung ke brand.** Emas, abu-abu, merah muda, dan hijau toska berdiri sendiri; tidak ada tema yang memakai palet Lunovia. Token hanya `Primary/Surface/Ink`, tanpa aksen, warna gelap, atau garis.
 - **Tidak ada momen "buka undangan".** Tombol pembuka hanya tautan anchor ke `#undangan`; ornamen hanya garis + belah ketupat; animasi hanya fade-in.
 - **Di desktop** undangan tampil sebagai kolom ponsel di atas latar polos.
 - **Kartu tema di landing & dashboard** menampilkan foto + nama pasangan, bukan tampilan tema itu sendiri, jadi calon pasangan tidak bisa membandingkan tema tanpa membuka demo satu per satu.
 
-Undangan demo adalah alat jual utama (tombol "Lihat contoh" di landing) dan setiap undangan yang dibagikan ke ratusan tamu adalah iklan Lovoria. Task ini membuat tampilan itu layak dijual.
+Undangan demo adalah alat jual utama (tombol "Lihat contoh" di landing) dan setiap undangan yang dibagikan ke ratusan tamu adalah iklan Lunovia. Task ini membuat tampilan itu layak dijual.
 
 ## Tujuan
 1. Tiap tema punya karakter yang terlihat **di seluruh halaman**, bukan hanya di pembuka.
-2. Ada satu tema unggulan dengan palet brand Lovoria yang menjadi bawaan untuk wedding baru.
+2. Ada satu tema unggulan dengan palet brand Lunovia yang menjadi bawaan untuk wedding baru.
 3. Kesan pertama (sampul + buka undangan) terasa premium di ponsel, dan halaman tetap bagus di desktop.
 4. Landing dan pemilih tema di dashboard memperlihatkan tampilan tema yang sebenarnya.
 
@@ -37,7 +37,7 @@ Undangan demo adalah alat jual utama (tombol "Lihat contoh" di landing) dan seti
 
 | ID | Nama | Karakter | Palet awal (Primary / Surface / Ink / Accent / Deep) | Huruf | Tata letak khas |
 |---|---|---|---|---|---|
-| `signature` **(baru, bawaan)** | Lovoria Signature | Editorial, hangat, premium — wajah brand | `#6B4E71` / `#FAF7F5` / `#292529` / `#C9A88A` / `#332936` | Playfair Display + Inter | Foto sampul potret besar, judul editorial besar, garis champagne tipis, penutup gelap Deep Plum |
+| `signature` **(baru, bawaan)** | Lunovia Signature | Editorial, hangat, premium — wajah brand | `#6B4E71` / `#FAF7F5` / `#292529` / `#C9A88A` / `#332936` | Playfair Display + Inter | Foto sampul potret besar, judul editorial besar, garis champagne tipis, penutup gelap Deep Plum |
 | `elegant` | Elegan | Klasik formal | `#8A6A3C` / `#FBF8F3` / `#2B2B2B` / `#C9A88A` / `#2E2620` | Cormorant Garamond + Lato | Bingkai ganda dengan ornamen sudut, semua rata tengah, kartu acara berbingkai |
 | `minimal` | Minimalis | Lega, tenang | `#5F5661` / `#FFFFFF` / `#1F1F1F` / `#B9B2B0` / `#1F1F1F` | Josefin Sans + Inter | Rata kiri, garis rambut, angka tanggal besar, galeri grid rapat tanpa sudut membulat |
 | `romantic` | Romantis | Lembut, personal | `#A85A67` / `#FBF3F1` / `#4A3B3B` / `#C9A88A` / `#5A3540` | Great Vibes + Lora | Foto melengkung (arch), ornamen bunga garis, linimasa cerita berselang-seling |
@@ -59,7 +59,7 @@ Undangan demo adalah alat jual utama (tombol "Lihat contoh" di landing) dan seti
 
 **7. Etalase tema**
 - Thumbnail tangkapan layar asli per tema (`static/img/themes/<id>.webp`, potret 4:5, ≤ 60 KB) dibuat oleh skrip Playwright dari undangan demo (`make theme-thumbs`), dipakai di kartu tema landing dan pemilih tema dashboard.
-- Kartu landing: tema `signature` tampil pertama dengan label "Pilihan Lovoria"; grid menyesuaikan 5 tema.
+- Kartu landing: tema `signature` tampil pertama dengan label "Pilihan Lunovia"; grid menyesuaikan 5 tema.
 - Undangan demo untuk `signature` (`demoCouples` + media) lewat `lovoria seed demo`.
 
 ## Out of Scope

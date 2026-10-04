@@ -1,6 +1,6 @@
 package layouts
 
-// Logo Lovoria (T18): monogram LV dari doc/vector-logo.svg (dibersihkan),
+// Logo Lunovia (T18): monogram LV dari doc/vector-logo.svg (dibersihkan),
 // warnanya mengikuti currentColor (text-lovoria-primary / text-white).
 
 // BrandMark: monogram LV saja (favicon, navigasi kecil, ornamen).
@@ -10,11 +10,11 @@ templ BrandMark(class string) {
 	</svg>
 }
 
-// BrandLogo: monogram + wordmark LOVORIA (header & footer).
+// BrandLogo: monogram + wordmark LUNOVIA (header & footer).
 templ BrandLogo(class string) {
 	<span class={ "inline-flex items-center gap-2.5", class }>
 		@BrandMark("h-8 w-auto")
-		<span class="font-display text-lg tracking-[0.32em]">LOVORIA</span>
+		<span class="font-display text-lg tracking-[0.32em]">LUNOVIA</span>
 	</span>
 }
 

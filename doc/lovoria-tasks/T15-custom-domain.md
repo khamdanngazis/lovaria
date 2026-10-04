@@ -13,7 +13,7 @@ Custom domain per wedding termasuk MVP (Arsitektur §5), memakai Cloudflare for 
 - Polling status: scheduler (reuse pola T12) cek domain `pending_verification` tiap 5 menit selama 72 jam lalu `failed`
 - Implementasi `DomainLookup` untuk middleware T09 dengan cache in-memory TTL 60 detik (invalidasi saat status berubah)
 - Isi `wedding.CanonicalBaseURL()` (dipakai T14 & OG tag)
-- Redirect: saat domain `active`, akses `/w/:slug` redirect 301 ke custom domain (link `/i/:code` di domain Lovoria tetap jalan, tidak di-redirect, supaya link yang sudah terkirim aman)
+- Redirect: saat domain `active`, akses `/w/:slug` redirect 301 ke custom domain (link `/i/:code` di domain Lunovia tetap jalan, tidak di-redirect, supaya link yang sudah terkirim aman)
 - Dokumentasi setup satu kali di `docs/custom-domain.md`: fallback origin, CNAME target, SSL settings
 
 ## Out of Scope

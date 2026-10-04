@@ -1,4 +1,4 @@
-# Contributing ke Lovoria
+# Contributing ke Lunovia
 
 Dokumen ini mengunci konvensi codebase. Baca sebelum mengerjakan task apa pun di `doc/lovoria-tasks/`.
 
