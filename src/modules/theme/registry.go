@@ -119,9 +119,9 @@ func init() {
 		},
 	})
 	register(ThemeDef{
-		ID: "modern", Name: "Modern", Description: "Tegas dan kontras: pembuka gelap, blok warna penuh, huruf sangat besar.",
+		ID: "modern", Name: "Modern", Description: "Tegas dan segar: blok warna penuh, huruf sangat besar, kartu acara berwarna.",
 		Tokens: view.Tokens{
-			Primary: "#332936", Surface: "#f6f3f1", Ink: "#191519", Accent: "#c9a88a", Deep: "#191519", Muted: "#5c565c", Border: "#e2dcd8",
+			Primary: "#2f7d6d", Surface: "#f4f6f5", Ink: "#16201e", Accent: "#c9a88a", Deep: "#1d4a43", Muted: "#55605d", Border: "#dde3e1",
 			FontHeading: "Montserrat", FontBody: "Poppins", Radius: "1.25rem", ButtonRadius: "0.75rem",
 		},
 		Parts: Parts{

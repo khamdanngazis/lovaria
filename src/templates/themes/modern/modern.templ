@@ -1,4 +1,4 @@
-// Package modern: tema Modern (T21) — tegas dan kontras: pembuka gelap, blok
+// Package modern: tema Modern (T21) — tegas dan kontras: pembuka berwarna, blok
 // warna penuh, tipografi sangat besar, kartu acara berwarna (Montserrat +
 // Poppins).
 package modern
@@ -24,14 +24,14 @@ func monthYear(v view.View) string {
 	return fmt.Sprintf("%02d / %d", int(v.Date.Month()), v.Date.Year())
 }
 
-// Hero: pembuka gelap — foto sampul meredup ke Deep, nama sangat besar di
+// Hero: pembuka berwarna — foto sampul meredup ke Deep, nama sangat besar di
 // kiri bawah, baris tamu + tombol di dasar. Tanpa foto: angka tanggal raksasa.
 templ Hero(v view.View) {
 	{{ groom, bride := base.FirstNames(v) }}
 	<section id="opening" class="relative flex min-h-dvh flex-col overflow-hidden bg-deep text-white">
 		if base.CoverOf(v) != "" {
-			@base.CoverImage(v, "absolute inset-0 h-full w-full object-cover opacity-70 lg:hidden")
-			<div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.35)_0%,rgba(0,0,0,0)_35%,var(--lv-deep)_88%)] lg:hidden"></div>
+			@base.CoverImage(v, "absolute inset-0 h-full w-full object-cover opacity-85 lg:hidden")
+			<div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.3)_0%,rgba(0,0,0,0)_35%,var(--lv-deep)_90%)] lg:hidden"></div>
 		}
 		<div class="lv-cover-body relative flex flex-1 flex-col p-7">
 			<div class="flex items-center justify-between gap-4">
@@ -73,7 +73,7 @@ templ Couple(v view.View) {
 		@base.Title(v, "Mempelai", "")
 		<div class="space-y-4">
 			@person(v.Couple.GroomName, v.Couple.GroomPhoto, v.Couple.GroomDesc, "Mempelai Pria", "bg-primary text-on-primary")
-			@person(v.Couple.BrideName, v.Couple.BridePhoto, v.Couple.BrideDesc, "Mempelai Wanita", "bg-deep text-white")
+			@person(v.Couple.BrideName, v.Couple.BridePhoto, v.Couple.BrideDesc, "Mempelai Wanita", "border border-line bg-white/80")
 		</div>
 		<div class={ "mt-4 border border-line bg-white/60 p-7", block }>
 			<p class={ "text-muted", eyebrow }>Save the date</p>
@@ -105,24 +105,24 @@ templ person(name, photo, desc, role, tone string) {
 	</div>
 }
 
-// LoveStory: blok gelap penuh dengan nomor bab besar.
+// LoveStory: kartu terang dengan nomor bab besar di atas latar Primary tipis.
 templ LoveStory(v view.View) {
 	if len(v.Stories) > 0 {
-		<section id="story" class="bg-deep px-6 py-16 text-white">
+		<section id="story" class="bg-primary/[0.08] px-6 py-16">
 			@base.Title(v, "Cerita Kami", "")
 			<ol class="space-y-4">
 				for i, s := range v.Stories {
-					<li class={ "bg-white/[0.07]", block }>
+					<li class={ "border border-line bg-white/80", block }>
 						if s.PhotoURL != "" {
 							<img src={ s.PhotoURL } alt="" loading="lazy" decoding="async" class="aspect-[16/10] w-full object-cover"/>
 						}
 						<div class="flex gap-4 p-6">
-							<span class="w-12 flex-none text-4xl font-semibold leading-none text-accent" style="font-family: var(--lv-font-heading)" aria-hidden="true">{ fmt.Sprintf("%02d", i+1) }</span>
+							<span class="w-12 flex-none text-4xl font-semibold leading-none text-primary" style="font-family: var(--lv-font-heading)" aria-hidden="true">{ fmt.Sprintf("%02d", i+1) }</span>
 							<div class="min-w-0">
-								<p class={ "opacity-70", eyebrow }>{ s.DateText }</p>
+								<p class={ "text-muted", eyebrow }>{ s.DateText }</p>
 								<h3 class="mt-1 break-words text-xl font-semibold leading-snug">{ s.Title }</h3>
 								if s.Description != "" {
-									<p class="mt-2 whitespace-pre-line text-sm leading-relaxed opacity-80">{ s.Description }</p>
+									<p class="mt-2 whitespace-pre-line text-sm leading-relaxed text-muted">{ s.Description }</p>
 								}
 							</div>
 						</div>
