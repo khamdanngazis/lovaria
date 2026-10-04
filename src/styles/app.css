@@ -121,9 +121,12 @@
 }
 
 /* Sampul terkunci (invitation.js menambah kelas saat muat — tanpa JS halaman
-   tetap bisa digulir). Setelah "Buka Undangan": isi sampul memudar ke atas. */
-html.lv-locked {
-  overflow: hidden;
+   tetap tampil utuh): isi setelah sampul disembunyikan. Scroll halaman TIDAK
+   dimatikan, supaya sampul yang lebih tinggi dari layar (nama panjang, layar
+   pendek) tetap bisa digulir sampai tombol "Buka Undangan". Setelah dibuka:
+   isi sampul memudar ke atas. */
+html.lv-locked #opening ~ * {
+  display: none;
 }
 .lv-cover-leave .lv-cover-body {
   opacity: 0;

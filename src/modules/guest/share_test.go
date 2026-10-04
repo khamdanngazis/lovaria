@@ -35,8 +35,8 @@ func TestWhatsAppURLEncoding(t *testing.T) {
 }
 
 func TestRenderTemplate(t *testing.T) {
-	got := Render(DefaultTemplates[LangID], ShareVars{GuestName: "Budi", Couple: "Khamdan & Sarah", Date: "Sabtu, 12 Desember 2026", Link: "https://x/i/A"})
-	for _, want := range []string{"*Budi*", "*Khamdan & Sarah*", "Sabtu, 12 Desember 2026", "https://x/i/A", "🙏"} {
+	got := Render(DefaultTemplates[LangID], ShareVars{GuestName: "Budi", Couple: "Samuel & Sarah", Date: "Sabtu, 12 Desember 2026", Link: "https://x/i/A"})
+	for _, want := range []string{"*Budi*", "*Samuel & Sarah*", "Sabtu, 12 Desember 2026", "https://x/i/A", "🙏"} {
 		if !strings.Contains(got, want) {
 			t.Errorf("tidak memuat %q", want)
 		}

@@ -97,7 +97,7 @@ func (f fixture) user(t *testing.T, email string, admin bool) (auth.User, string
 
 func (f fixture) wedding(t *testing.T, owner uuid.UUID) wedding.Wedding {
 	t.Helper()
-	w, err := f.weddings.CreateWedding(ctx, owner, wedding.CreateInput{GroomName: "Khamdan", BrideName: "Sarah", Title: "Pernikahan K & S", WeddingDate: "2026-12-12"})
+	w, err := f.weddings.CreateWedding(ctx, owner, wedding.CreateInput{GroomName: "Samuel", BrideName: "Sarah", Title: "Pernikahan K & S", WeddingDate: "2026-12-12"})
 	if err != nil {
 		t.Fatal(err)
 	}

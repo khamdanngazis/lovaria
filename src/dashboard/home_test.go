@@ -87,7 +87,7 @@ func (f fixture) newWedding(t *testing.T, email string) (uuid.UUID, wedding.Wedd
 	if err != nil {
 		t.Fatal(err)
 	}
-	w, err := f.home.Weddings.CreateWedding(ctx, u.ID, wedding.CreateInput{GroomName: "Khamdan", BrideName: "Sarah", Title: "Pernikahan K & S", WeddingDate: "2026-12-12"})
+	w, err := f.home.Weddings.CreateWedding(ctx, u.ID, wedding.CreateInput{GroomName: "Samuel", BrideName: "Sarah", Title: "Pernikahan K & S", WeddingDate: "2026-12-12"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -153,7 +153,7 @@ func TestOnboardingChecklist(t *testing.T) {
 	}
 
 	desc := "Putra/putri tercinta"
-	if _, err := f.home.Weddings.UpdateCouple(ctx, w.ID, wedding.CoupleInput{GroomName: "Khamdan", BrideName: "Sarah", GroomDescription: desc, BrideDescription: desc}); err != nil {
+	if _, err := f.home.Weddings.UpdateCouple(ctx, w.ID, wedding.CoupleInput{GroomName: "Samuel", BrideName: "Sarah", GroomDescription: desc, BrideDescription: desc}); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := f.home.Events.CreateEvent(ctx, w.ID, event.Input{Name: "Akad", Type: "akad", Date: "2026-12-12", StartTime: "08:00", Venue: "Masjid"}); err != nil {

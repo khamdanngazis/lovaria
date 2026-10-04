@@ -91,10 +91,10 @@ func TestRobotsAndSitemap(t *testing.T) {
 		t.Errorf("sitemap: %d %s", rec.Code, rec.Body.String())
 	}
 	// Custom domain pasangan: tidak diindeks sama sekali, tanpa sitemap.
-	_, w := f.newWedding(t, "a@example.com", "Khamdan", "Sarah")
+	_, w := f.newWedding(t, "a@example.com", "Samuel", "Sarah")
 	f.publish(w.ID)
-	f.domains["www.khamdansarah.com"] = w.ID
-	custom := map[string]string{"Host": "www.khamdansarah.com"}
+	f.domains["www.samuelsarah.com"] = w.ID
+	custom := map[string]string{"Host": "www.samuelsarah.com"}
 	if b := f.get("/robots.txt", custom).Body.String(); b != "User-agent: *\nDisallow: /\n" {
 		t.Errorf("robots custom domain: %q", b)
 	}

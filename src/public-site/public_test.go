@@ -170,7 +170,7 @@ func (f fixture) get(path string, hdr map[string]string) *httptest.ResponseRecor
 
 func TestDraftGate(t *testing.T) {
 	f := newFixture(t)
-	owner, w := f.newWedding(t, "a@example.com", "Khamdan", "Sarah")
+	owner, w := f.newWedding(t, "a@example.com", "Samuel", "Sarah")
 	g, _ := f.guests.Create(ctx, w.ID, guest.Input{Name: "Budi"})
 
 	for _, p := range []string{"/w/" + w.Slug, "/i/" + g.InvitationCode} {
@@ -197,7 +197,7 @@ func TestDraftGate(t *testing.T) {
 
 func TestPublishedInvitation(t *testing.T) {
 	f := newFixture(t)
-	_, w := f.newWedding(t, "a@example.com", "Khamdan Ngazis", "Sarah Putri")
+	_, w := f.newWedding(t, "a@example.com", "Samuel", "Sarah Putri")
 	f.publish(w.ID)
 	_, _ = f.events.CreateEvent(ctx, w.ID, event.Input{Name: "Akad Nikah", Type: event.TypeAkad, Date: "2026-12-12", StartTime: "08:00", Venue: "Masjid Istiqlal"})
 	g, _ := f.guests.Create(ctx, w.ID, guest.Input{Name: "Bapak Budi & Keluarga"})
@@ -209,7 +209,7 @@ func TestPublishedInvitation(t *testing.T) {
 		t.Fatalf("/w: %d", rec.Code)
 	}
 	for _, want := range []string{
-		`<meta property="og:title" content="The Wedding of Khamdan &amp; Sarah">`,
+		`<meta property="og:title" content="The Wedding of Samuel &amp; Sarah">`,
 		`<meta property="og:description" content="Sabtu, 12 Desember 2026 · Masjid Istiqlal">`,
 		`<meta property="og:url" content="https://lovoria.test/w/` + w.Slug + `">`,
 		"Tamu Undangan", "Akad Nikah", "/w/" + w.Slug + "/events/",
@@ -262,7 +262,7 @@ func TestNotFoundAndLanding(t *testing.T) {
 
 func TestCalendarICS(t *testing.T) {
 	f := newFixture(t)
-	_, w := f.newWedding(t, "a@example.com", "Khamdan", "Sarah")
+	_, w := f.newWedding(t, "a@example.com", "Samuel", "Sarah")
 	_, other := f.newWedding(t, "b@example.com", "Andi", "Rina")
 	f.publish(w.ID)
 	f.publish(other.ID)
@@ -274,7 +274,7 @@ func TestCalendarICS(t *testing.T) {
 	if rec.Code != http.StatusOK || !strings.HasPrefix(rec.Header().Get("Content-Type"), "text/calendar") {
 		t.Fatalf("ics: %d %s", rec.Code, rec.Header().Get("Content-Type"))
 	}
-	for _, want := range []string{"BEGIN:VCALENDAR", "DTSTART:20261212T010000Z", "DTEND:20261212T030000Z", `SUMMARY:Akad Nikah — Khamdan & Sarah`, `LOCATION:Masjid\, Jl. A\, No. 1`, "\r\n"} {
+	for _, want := range []string{"BEGIN:VCALENDAR", "DTSTART:20261212T010000Z", "DTEND:20261212T030000Z", `SUMMARY:Akad Nikah — Samuel & Sarah`, `LOCATION:Masjid\, Jl. A\, No. 1`, "\r\n"} {
 		if !strings.Contains(body, want) {
 			t.Errorf("ics tidak memuat %q:\n%s", want, body)
 		}
@@ -287,17 +287,17 @@ func TestCalendarICS(t *testing.T) {
 
 func TestCustomDomain(t *testing.T) {
 	f := newFixture(t)
-	_, w := f.newWedding(t, "a@example.com", "Khamdan", "Sarah")
+	_, w := f.newWedding(t, "a@example.com", "Samuel", "Sarah")
 	_, other := f.newWedding(t, "b@example.com", "Andi", "Rina")
 	f.publish(w.ID)
 	f.publish(other.ID)
-	f.domains["khamdansarah.com"] = w.ID
+	f.domains["samuelsarah.com"] = w.ID
 	g, _ := f.guests.Create(ctx, w.ID, guest.Input{Name: "Budi"})
 	gOther, _ := f.guests.Create(ctx, other.ID, guest.Input{Name: "Cici"})
 
-	host := map[string]string{"Host": "khamdansarah.com"}
+	host := map[string]string{"Host": "samuelsarah.com"}
 	rec := f.get("/", host)
-	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Khamdan") || !strings.Contains(rec.Body.String(), `og:url" content="https://khamdansarah.com"`) {
+	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Samuel") || !strings.Contains(rec.Body.String(), `og:url" content="https://samuelsarah.com"`) {
 		t.Fatalf("custom domain /: %d", rec.Code)
 	}
 	if rec := f.get("/i/"+g.InvitationCode, host); rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Budi") {
@@ -310,7 +310,7 @@ func TestCustomDomain(t *testing.T) {
 	// Host tak dikenal → 404 generik, tidak pernah wedding lain lewat path (T15).
 	for _, p := range []string{"/", "/w/" + other.Slug, "/i/" + gOther.InvitationCode} {
 		rec := f.get(p, map[string]string{"Host": "unknown.example"})
-		if body := rec.Body.String(); rec.Code != http.StatusNotFound || strings.Contains(body, "Andi") || strings.Contains(body, "Khamdan") {
+		if body := rec.Body.String(); rec.Code != http.StatusNotFound || strings.Contains(body, "Andi") || strings.Contains(body, "Samuel") {
 			t.Errorf("host tak dikenal %s: %d", p, rec.Code)
 		}
 	}
@@ -318,7 +318,7 @@ func TestCustomDomain(t *testing.T) {
 
 func TestMemoryAndArchivedPages(t *testing.T) {
 	f := newFixture(t)
-	owner, w := f.newWedding(t, "a@example.com", "Khamdan", "Sarah")
+	owner, w := f.newWedding(t, "a@example.com", "Samuel", "Sarah")
 	g, _ := f.guests.Create(ctx, w.ID, guest.Input{Name: "Budi"})
 	_, _ = f.events.CreateEvent(ctx, w.ID, event.Input{Name: "Akad Nikah", Type: event.TypeAkad, Date: "2026-12-12", StartTime: "08:00", Venue: "Masjid"})
 	_, _ = f.stories.CreateStory(ctx, w.ID, story.Input{Year: "2020", Title: "Pertama bertemu"})
@@ -435,7 +435,7 @@ func TestFavoriteInvalidatesCache(t *testing.T) {
 	f := newFixture(t)
 	f.views.CacheTTL = time.Hour
 	f.guestbook.OnChange(f.views.Invalidate) // wiring sama dengan cmd/server
-	_, w := f.newWedding(t, "a@example.com", "Khamdan", "Sarah")
+	_, w := f.newWedding(t, "a@example.com", "Samuel", "Sarah")
 	f.setStatus(w.ID, wedding.StatusMemory)
 	e, _ := f.guestbook.Post(ctx, w.ID, nil, "Ani", "Semoga sakinah")
 
@@ -458,18 +458,18 @@ func TestFavoriteInvalidatesCache(t *testing.T) {
 
 func TestCustomDomainRedirectAndHostHeader(t *testing.T) {
 	f := newFixture(t)
-	owner, w := f.newWedding(t, "a@example.com", "Khamdan", "Sarah")
+	owner, w := f.newWedding(t, "a@example.com", "Samuel", "Sarah")
 	f.publish(w.ID)
 	g, _ := f.guests.Create(ctx, w.ID, guest.Input{Name: "Budi"})
-	f.domains["www.khamdansarah.com"] = w.ID
+	f.domains["www.samuelsarah.com"] = w.ID
 
 	// /w/:slug di domain Lovoria → 301 ke custom domain (path & query ikut).
 	rec := f.get("/w/"+w.Slug+"?ref=wa", nil)
-	if rec.Code != http.StatusMovedPermanently || rec.Header().Get("Location") != "https://www.khamdansarah.com?ref=wa" {
+	if rec.Code != http.StatusMovedPermanently || rec.Header().Get("Location") != "https://www.samuelsarah.com?ref=wa" {
 		t.Fatalf("redirect: %d %s", rec.Code, rec.Header().Get("Location"))
 	}
 	rec = f.get("/w/"+w.Slug+"/events/x.ics", nil)
-	if rec.Header().Get("Location") != "https://www.khamdansarah.com/events/x.ics" {
+	if rec.Header().Get("Location") != "https://www.samuelsarah.com/events/x.ics" {
 		t.Errorf("redirect sub-path: %s", rec.Header().Get("Location"))
 	}
 	// Link tamu /i/:code di domain Lovoria tetap dilayani (tidak dialihkan).
@@ -489,8 +489,8 @@ func TestCustomDomainRedirectAndHostHeader(t *testing.T) {
 
 	// Proxy (Cloudflare Worker) menulis ulang Host ke domain Railway dan mengirim
 	// host asli lewat X-Forwarded-Host.
-	proxied := map[string]string{"Host": "lovaria.up.railway.app", "X-Forwarded-Host": "www.khamdansarah.com"}
-	if rec := f.get("/", proxied); rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Khamdan") {
+	proxied := map[string]string{"Host": "lovaria.up.railway.app", "X-Forwarded-Host": "www.samuelsarah.com"}
+	if rec := f.get("/", proxied); rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Samuel") {
 		t.Errorf("host header: %d", rec.Code)
 	}
 	// Domain Railway sendiri tetap host Lovoria (landing, bukan 404).
@@ -505,24 +505,24 @@ func TestCustomDomainRedirectAndHostHeader(t *testing.T) {
 
 func TestOldSlugRedirects(t *testing.T) {
 	f := newFixture(t)
-	_, w := f.newWedding(t, "a@example.com", "Khamdan", "Sarah")
+	_, w := f.newWedding(t, "a@example.com", "Samuel", "Sarah")
 	f.publish(w.ID)
 	old := w.Slug
-	if _, err := f.weddings.ChangeSlug(ctx, w.ID, "khamdan-sarah-baru"); err != nil {
+	if _, err := f.weddings.ChangeSlug(ctx, w.ID, "samuel-sarah-baru"); err != nil {
 		t.Fatal(err)
 	}
 	rec := f.get("/w/"+old+"?ref=wa", nil)
-	if rec.Code != http.StatusMovedPermanently || rec.Header().Get("Location") != "/w/khamdan-sarah-baru?ref=wa" {
+	if rec.Code != http.StatusMovedPermanently || rec.Header().Get("Location") != "/w/samuel-sarah-baru?ref=wa" {
 		t.Fatalf("slug lama: %d %s", rec.Code, rec.Header().Get("Location"))
 	}
-	if rec := f.get("/w/"+old+"/events/x.ics", nil); rec.Header().Get("Location") != "/w/khamdan-sarah-baru/events/x.ics" {
+	if rec := f.get("/w/"+old+"/events/x.ics", nil); rec.Header().Get("Location") != "/w/samuel-sarah-baru/events/x.ics" {
 		t.Errorf("sub-path: %s", rec.Header().Get("Location"))
 	}
 	// POST ke slug lama (buku ucapan) → 308 supaya tetap POST.
 	if rec := f.post("/w/"+old+"/guestbook", gbForm(w.ID, "Ani", "Halo"), false, ""); rec.Code != http.StatusPermanentRedirect {
 		t.Errorf("POST slug lama: %d", rec.Code)
 	}
-	if rec := f.get("/w/khamdan-sarah-baru", nil); rec.Code != http.StatusOK {
+	if rec := f.get("/w/samuel-sarah-baru", nil); rec.Code != http.StatusOK {
 		t.Errorf("slug baru: %d", rec.Code)
 	}
 	if rec := f.get("/w/tidak-pernah-ada", nil); rec.Code != http.StatusNotFound {
@@ -534,7 +534,7 @@ func TestOldSlugRedirects(t *testing.T) {
 // paralel pertama setelah start membuat proses crash (concurrent map writes).
 func TestResolverConcurrentFirstRequests(t *testing.T) {
 	f := newFixture(t)
-	_, w := f.newWedding(t, "a@example.com", "Khamdan", "Sarah")
+	_, w := f.newWedding(t, "a@example.com", "Samuel", "Sarah")
 	f.publish(w.ID)
 	var wg sync.WaitGroup
 	for i := 0; i < 50; i++ {
@@ -552,7 +552,7 @@ func TestResolverConcurrentFirstRequests(t *testing.T) {
 // last_opened_at diperbarui paling sering tiap 15 menit per tamu (hemat UPDATE saat ramai).
 func TestMarkOpenedThrottled(t *testing.T) {
 	f := newFixture(t)
-	_, w := f.newWedding(t, "a@example.com", "Khamdan", "Sarah")
+	_, w := f.newWedding(t, "a@example.com", "Samuel", "Sarah")
 	f.publish(w.ID)
 	g, _ := f.guests.Create(ctx, w.ID, guest.Input{Name: "Budi"})
 	f.get("/i/"+g.InvitationCode, nil)
@@ -569,7 +569,7 @@ func TestMarkOpenedThrottled(t *testing.T) {
 func TestPublicViewCache(t *testing.T) {
 	f := newFixture(t)
 	f.views.CacheTTL = time.Hour // cache aktif di test ini
-	owner, w := f.newWedding(t, "a@example.com", "Khamdan", "Sarah")
+	owner, w := f.newWedding(t, "a@example.com", "Samuel", "Sarah")
 	f.publish(w.ID)
 	g, _ := f.guests.Create(ctx, w.ID, guest.Input{Name: "Budi"})
 	gift1 := gift.Input{Type: gift.TypeBank, Provider: "BCA", AccountNumber: "1111111111", AccountName: "K"}

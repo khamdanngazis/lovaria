@@ -94,12 +94,15 @@ func init() {
 		Parts: Parts{Hero: elegant.Hero, Couple: elegant.Couple, Events: elegant.Events},
 	})
 	register(ThemeDef{
-		ID: "minimal", Name: "Minimalis", Description: "Bersih dan lega, huruf kapital, tanpa ornamen.",
+		ID: "minimal", Name: "Minimalis", Description: "Lega dan tenang: rata kiri, garis tipis, angka tanggal besar.",
 		Tokens: view.Tokens{
-			Primary: "#707070", Surface: "#ffffff", Ink: "#1f1f1f", Accent: "#b9b2b0", Deep: "#1f1f1f", Muted: "#666666", Border: "#e5e5e5",
-			FontHeading: "Josefin Sans", FontBody: "Inter",
+			Primary: "#5f5661", Surface: "#ffffff", Ink: "#1f1f1f", Accent: "#b9b2b0", Deep: "#1f1f1f", Muted: "#666666", Border: "#e5e5e5",
+			FontHeading: "Josefin Sans", FontBody: "Inter", Radius: "0", ButtonRadius: "0",
 		},
-		Parts: Parts{Hero: minimal.Hero, Couple: minimal.Couple, Closing: minimal.Closing},
+		Parts: Parts{
+			Hero: minimal.Hero, Couple: minimal.Couple, LoveStory: minimal.LoveStory, Events: minimal.Events,
+			Gallery: minimal.Gallery, Closing: minimal.Closing, SectionTitle: minimal.SectionTitle,
+		},
 	})
 	register(ThemeDef{
 		ID: "romantic", Name: "Romantis", Description: "Lembut dengan warna merah muda, tulisan tangan, foto melengkung.",

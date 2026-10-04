@@ -28,7 +28,7 @@ func (s shareCtx) Message(g Guest) string {
 
 func (s shareCtx) WhatsApp(g Guest) string { return WhatsAppURL(g.Phone, s.Message(g)) }
 
-// coupleNames: "Khamdan & Sarah" (nama depan, seperti judul undangan).
+// coupleNames: "Samuel & Sarah" (nama depan, seperti judul undangan).
 func coupleNames(c wedding.Couple) string {
 	first := func(s string) string {
 		for i, r := range s {

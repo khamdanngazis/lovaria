@@ -4,9 +4,10 @@ document.querySelectorAll('link[data-font-css]').forEach(function (l) {
   l.rel = 'stylesheet';
 });
 
-// Sampul "Buka Undangan" (T21): isi undangan dikunci di belakang sampul sampai
-// tombol pembuka ditekan. Kunci dipasang di sini (bukan di HTML), jadi tanpa JS
-// halaman tetap bisa digulir dan tombol berfungsi sebagai tautan anchor biasa.
+// Sampul "Buka Undangan" (T21): isi undangan dikunci (disembunyikan) di belakang
+// sampul sampai tombol pembuka ditekan. Kunci dipasang di sini (bukan di HTML),
+// jadi tanpa JS halaman tetap utuh dan tombol berfungsi sebagai tautan anchor
+// biasa. Sampulnya sendiri tetap bisa digulir bila lebih tinggi dari layar.
 // Tidak dikunci bila: sudah pernah dibuka di sesi ini, URL membawa hash (mis.
 // kembali ke #rsvp), atau preview dashboard (tombol tanpa data-open="lock").
 (function () {

@@ -67,7 +67,8 @@ const usage = `Usage:
                              ganti basis URL foto tersimpan (default --to = R2_PUBLIC_URL; tanpa --apply hanya simulasi)
   lovoria create-admin --email <email> [--name <nama>] [--password <pw>]
                              tanpa --password: env LOVORIA_ADMIN_PASSWORD, lalu prompt stdin
-  lovoria demo seed          buat undangan contoh per tema untuk landing page (/w/contoh-<tema>, idempoten)
+  lovoria demo seed [--refresh]  buat undangan contoh per tema untuk landing page (/w/contoh-<tema>, idempoten;
+                             --refresh mengganti foto demo yang sudah ada dengan versi terbaru)
   lovoria backup run         buat backup database sekarang (BACKUP_BUCKET / BACKUP_DIR)
   lovoria backup list        daftar backup, terbaru dulu
   lovoria backup restore <file> --to <database-url> [--overwrite]
@@ -140,7 +141,8 @@ func run(args []string) error {
 		if len(args) < 2 || args[1] != "seed" {
 			return fmt.Errorf("demo: perintah yang tersedia: seed\n%s", usage)
 		}
-		return a.seedDemo(ctx, os.Stdout)
+		// --refresh: ganti foto demo yang sudah ada dengan versi terbaru.
+		return a.seedDemo(ctx, os.Stdout, slices.Contains(args[2:], "--refresh"))
 	case "backup":
 		return a.backupCmd(ctx, args[1:], os.Stdout)
 	case "media":

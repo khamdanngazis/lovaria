@@ -30,12 +30,12 @@ func TestChangeSlug(t *testing.T) {
 		}
 	}
 	old := w.Slug
-	got, err := f.svc.ChangeSlug(ctx, w.ID, "  Khamdan-Sarah-2026 ")
-	if err != nil || got.Slug != "khamdan-sarah-2026" {
+	got, err := f.svc.ChangeSlug(ctx, w.ID, "  samuel-sarah-2026 ")
+	if err != nil || got.Slug != "samuel-sarah-2026" {
 		t.Fatalf("ganti: %+v %v", got, err)
 	}
 	// Slug lama dialihkan ke wedding ini.
-	if tw, ok, _ := f.svc.SlugRedirectTarget(ctx, old); !ok || tw.ID != w.ID || tw.Slug != "khamdan-sarah-2026" {
+	if tw, ok, _ := f.svc.SlugRedirectTarget(ctx, old); !ok || tw.ID != w.ID || tw.Slug != "samuel-sarah-2026" {
 		t.Errorf("redirect: %v %+v", ok, tw)
 	}
 	// Slug lama milik wedding ini tidak boleh diambil wedding lain selama redirect aktif.

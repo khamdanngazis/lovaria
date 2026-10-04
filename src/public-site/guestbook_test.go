@@ -40,7 +40,7 @@ func gbForm(weddingID uuid.UUID, name, msg string) url.Values {
 
 func TestGuestbookPostAndXSS(t *testing.T) {
 	f := newFixture(t)
-	_, w := f.newWedding(t, "a@example.com", "Khamdan", "Sarah")
+	_, w := f.newWedding(t, "a@example.com", "Samuel", "Sarah")
 	f.publish(w.ID)
 	g, _ := f.guests.Create(ctx, w.ID, guest.Input{Name: "Budi Santoso"})
 
@@ -81,7 +81,7 @@ func TestGuestbookPostAndXSS(t *testing.T) {
 
 func TestGuestbookSpamProtection(t *testing.T) {
 	f := newFixture(t)
-	_, w := f.newWedding(t, "a@example.com", "Khamdan", "Sarah")
+	_, w := f.newWedding(t, "a@example.com", "Samuel", "Sarah")
 	f.publish(w.ID)
 	path := "/w/" + w.Slug + "/guestbook"
 
@@ -124,7 +124,7 @@ func TestGuestbookSpamProtection(t *testing.T) {
 
 func TestGuestbookStatusAndLoadMore(t *testing.T) {
 	f := newFixture(t)
-	owner, w := f.newWedding(t, "a@example.com", "Khamdan", "Sarah")
+	owner, w := f.newWedding(t, "a@example.com", "Samuel", "Sarah")
 	_, other := f.newWedding(t, "b@example.com", "X", "Y")
 	path := "/w/" + w.Slug + "/guestbook"
 
@@ -195,7 +195,7 @@ func TestRSVPCopiesMessageToGuestbook(t *testing.T) {
 
 func TestGiftSection(t *testing.T) {
 	f := newFixture(t)
-	_, w := f.newWedding(t, "a@example.com", "Khamdan", "Sarah")
+	_, w := f.newWedding(t, "a@example.com", "Samuel", "Sarah")
 	f.publish(w.ID)
 	_, other := f.newWedding(t, "b@example.com", "X", "Y")
 	f.publish(other.ID)
@@ -203,7 +203,7 @@ func TestGiftSection(t *testing.T) {
 	if strings.Contains(f.get("/w/"+w.Slug, nil).Body.String(), `id="gift"`) {
 		t.Error("section hadiah harus disembunyikan bila tidak ada akun")
 	}
-	if _, err := f.gifts.Create(ctx, w.ID, gift.Input{Type: gift.TypeBank, Provider: "BCA", AccountNumber: "123 456 7890", AccountName: "Khamdan"}); err != nil {
+	if _, err := f.gifts.Create(ctx, w.ID, gift.Input{Type: gift.TypeBank, Provider: "BCA", AccountNumber: "123 456 7890", AccountName: "Samuel"}); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := f.gifts.Create(ctx, w.ID, gift.Input{Type: gift.TypeAddress, AccountName: "Sarah", Address: "Jl. Mawar 1, Jakarta"}); err != nil {

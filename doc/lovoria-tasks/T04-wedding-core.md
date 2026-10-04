@@ -12,7 +12,7 @@ Entitas pusat seluruh platform (Produk §5). Semua modul lain bergantung pada `w
 - **Authorization middleware** `RequireWeddingOwner`: route `/dashboard/weddings/:weddingID/*` memastikan user adalah owner, lalu menyimpan `wedding_id` di context. Middleware ini dipakai semua modul dashboard.
 - Setup wizard (multi-step, htmx): 1) nama pasangan 2) judul & tanggal 3) deskripsi → selesai ke dashboard wedding
 - Halaman edit couple info & wedding info
-- Slug auto-generate dari nama pasangan (`khamdan-sarah`, tambahkan suffix bila bentrok)
+- Slug auto-generate dari nama pasangan (`samuel-sarah`, tambahkan suffix bila bentrok)
 - Upload foto profil/main photo: **field URL saja** di task ini; tombol upload disambungkan di T06
 
 ## Out of Scope

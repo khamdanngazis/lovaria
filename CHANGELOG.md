@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### T21 (bagian 2a) — Perbaikan sampul terkunci & tema Minimalis baru
+- **Perbaikan**: di layar pendek tombol "Buka Undangan" bisa berada di bawah lipatan dan tidak terjangkau karena halaman dikunci. Sekarang yang dikunci adalah isi setelah sampul; sampulnya sendiri tetap bisa digulir. Berlaku untuk semua tema.
+- **Tema Minimalis ditulis ulang**: nama & angka tanggal besar rata kiri, garis rambut, acara tanpa kartu, galeri grid rapat, penutup gelap; sampul selalu muat satu layar. Warna utama menjadi `#5f5661`.
+- Demo Minimalis memakai foto baru; `lovoria demo seed --refresh` mengganti foto demo yang sudah ada.
+- E2E: tamu menekan "Buka Undangan" di layar 360×640 (regresi tombol terpotong).
+
 ### T21 (bagian 1) — Fondasi redesign template & tema Lovoria Signature
 - **Tema baru Lovoria Signature** (palet brand: Dusty Plum, Champagne, Warm Ivory; Playfair Display + Inter) dengan seluruh bagian didesain khusus. Menjadi **tema bawaan wedding baru** (migration `00023`); wedding lama tetap memakai temanya.
 - **Sampul "Buka Undangan"**: isi undangan terkunci di belakang sampul sampai tombol ditekan, dengan transisi halus, lalu musik mulai. Tanpa JS halaman tetap bisa digulir; muat ulang tidak mengunci lagi.
@@ -179,7 +185,7 @@
 ### T04 — Wedding core & setup wizard
 - Migration `00003_create_weddings.sql`: `weddings` (akar tenant; slug citext unik + CHECK `[a-z0-9-]`, status `draft|published|wedding_day|memory|archived`, `theme_id` default `elegant`) dan `couples` (`wedding_id` unik).
 - Modul `wedding` (sqlc `weddingdb`): `CreateWedding`, `GetWedding`, `GetWeddingForOwner`, `GetWeddingBySlug`, `GetCouple`, `UpdateWeddingInfo`, `UpdateCouple`, `ListWeddingsByOwner`; interface baca-saja `wedding.Reader` untuk modul lain.
-- Slug otomatis dari nama pasangan (`khamdan-sarah`, diakritik dibuang), suffix `-2`, `-3`… bila bentrok, retry saat race; `ValidateSlug` + daftar kata terlarang (dipakai T14).
+- Slug otomatis dari nama pasangan (`samuel-sarah`, diakritik dibuang), suffix `-2`, `-3`… bila bentrok, retry saat race; `ValidateSlug` + daftar kata terlarang (dipakai T14).
 - `RequireWeddingOwner` + `wedding.OwnerGroup`: wedding milik orang lain / ID tidak valid → 404; `wedding_id` tersedia di `web.WeddingID(ctx)`.
 - Setup wizard 3 langkah (htmx, stateless, tombol Kembali, tanpa JS tetap jalan); halaman ringkasan, edit info wedding, edit pasangan (URL foto; upload di T06).
 - `/dashboard` → wizard (belum punya wedding), langsung ke wedding (1), atau daftar (>1).

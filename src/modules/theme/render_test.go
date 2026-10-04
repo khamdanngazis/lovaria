@@ -13,7 +13,7 @@ import (
 func sample() view.View {
 	return view.View{
 		Title: "Pernikahan", Date: time.Date(2026, 12, 12, 0, 0, 0, 0, time.UTC), DateText: "Sabtu, 12 Desember 2026",
-		Couple:  view.Couple{GroomName: "Khamdan Ngazis", BrideName: "Sarah", GroomDesc: "Putra Bpk. A"},
+		Couple:  view.Couple{GroomName: "Samuel", BrideName: "Sarah", GroomDesc: "Putra Bpk. A"},
 		Guest:   &view.Guest{Name: `Budi <script>alert(1)</script>`},
 		Events:  []view.Event{{Name: "Akad Nikah", TypeLabel: "Akad", DateText: "Sabtu", TimeText: "08.00 WIB", Venue: "Masjid", MapsURL: "https://maps.google.com/?q=1,2"}},
 		Stories: []view.Story{{DateText: "2019", Title: "Pertama bertemu"}},
@@ -39,7 +39,7 @@ func TestRenderAllThemes(t *testing.T) {
 			for _, want := range []string{
 				`data-theme="` + d.ID + `"`,
 				`:root[data-theme="` + d.ID + `"]{--lv-primary:` + d.Tokens.Primary,
-				"Khamdan", "Sarah", "Sabtu, 12 Desember 2026", "Akad Nikah", "Pertama bertemu", "a_thumb.jpg",
+				"Samuel", "Sarah", "Sabtu, 12 Desember 2026", "Akad Nikah", "Pertama bertemu", "a_thumb.jpg",
 				`id="opening"`, `id="couple"`, `id="events"`, `id="story"`, `id="gallery"`, `id="closing"`,
 				"family=" + strings.ReplaceAll(d.Tokens.FontHeading, " ", "+"),
 			} {

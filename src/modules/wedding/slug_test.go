@@ -7,7 +7,7 @@ import (
 
 func TestSlugify(t *testing.T) {
 	cases := map[string]string{
-		"Khamdan & Sarah":       "khamdan-sarah",
+		"Samuel & Sarah":        "samuel-sarah",
 		"  Ádèlé  ":             "adele",
 		"Budi--Santoso!!":       "budi-santoso",
 		"日本":                    "",
@@ -22,7 +22,7 @@ func TestSlugify(t *testing.T) {
 }
 
 func TestBaseSlug(t *testing.T) {
-	if got := baseSlug("Khamdan Ngazis", "Sarah Putri"); got != "khamdan-sarah" {
+	if got := baseSlug("Samuel", "Sarah Putri"); got != "samuel-sarah" {
 		t.Errorf("baseSlug = %q", got)
 	}
 	got := baseSlug("日本", "中文")
@@ -41,8 +41,8 @@ func TestNextFreeSlug(t *testing.T) {
 }
 
 func TestValidateSlug(t *testing.T) {
-	valid := []string{"khamdan-sarah", "a1", "x-2"}
-	invalid := []string{"", "Khamdan", "a_b", "a--b", "-a", "a-", "a b", "admin", "w", strings.Repeat("a", 61)}
+	valid := []string{"samuel-sarah", "a1", "x-2"}
+	invalid := []string{"", "Samuel", "a_b", "a--b", "-a", "a-", "a b", "admin", "w", strings.Repeat("a", 61)}
 	for _, s := range valid {
 		if msg := ValidateSlug(s); msg != "" {
 			t.Errorf("%q harus valid: %s", s, msg)

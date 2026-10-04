@@ -60,7 +60,7 @@ Tombol "Buka Undangan" menuju anchor `#undangan` (awal bagian tengah, apa pun ur
 |---|---|---|
 | `signature` (**bawaan**, T21) | Hero, Couple, LoveStory, Events, Gallery, Closing, SectionTitle | Editorial brand Lovoria: Dusty Plum + Champagne + Warm Ivory, Playfair Display + Inter, penutup & galeri Deep Plum, ornamen bintang |
 | `elegant` | Hero, Couple, Events | Emas, serif klasik, bingkai garis & ornamen |
-| `minimal` | Hero, Couple, Closing | Putih lega, huruf kapital berjarak, rata kiri |
+| `minimal` (ditulis ulang T21) | Hero, Couple, LoveStory, Events, Gallery, Closing, SectionTitle | Putih lega, rata kiri, garis rambut, nama & angka tanggal besar, acara tanpa kartu, galeri grid rapat tanpa sudut membulat, penutup gelap. Sampul selalu muat satu layar (foto mengisi sisa tinggi). |
 | `romantic` | Hero, Couple, Closing | Merah muda, judul tulisan tangan, foto melengkung |
 | `modern` | Hero, Couple, Events | Sans tebal, blok warna penuh, kartu berwarna |
 
@@ -69,7 +69,7 @@ Tema bawaan wedding baru: `signature` (`theme.DefaultID`, `wedding.DefaultThemeI
 ## Sampul & "Buka Undangan" (T21)
 
 - Sampul (`#opening`) layar penuh: monogram inisial (`base.Monogram`, `base.Initials` — aman untuk nama satu kata & huruf non-ASCII), nama, tanggal, sapaan + nama tamu, tombol pembuka (`base.OpenButton`).
-- Tombol adalah tautan anchor biasa dengan `data-open="lock"`. `invitation.js` menambah kelas `lv-locked` ke `<html>` saat muat, sehingga isi terkunci di belakang sampul. Menekan tombol: isi sampul memudar ke atas (≤ 700 ms), kunci dilepas, halaman menggulir ke target, fokus pindah ke sana, dan musik mulai (T20).
+- Tombol adalah tautan anchor biasa dengan `data-open="lock"`. `invitation.js` menambah kelas `lv-locked` ke `<html>` saat muat; CSS lalu menyembunyikan semua isi setelah sampul (`html.lv-locked #opening ~ *`). Scroll halaman **tidak** dimatikan: sampul yang lebih tinggi dari layar (nama panjang, layar pendek) tetap bisa digulir sampai tombolnya — jangan mengunci dengan `overflow: hidden` (pernah membuat tombol tak terjangkau di layar 360×640). Menekan tombol: isi sampul memudar ke atas (≤ 700 ms), kunci dilepas, halaman menggulir ke target, fokus pindah ke sana, dan musik mulai (T20).
 - Tidak dikunci bila: tanpa JS (kunci tidak pernah dipasang), sudah dibuka di sesi ini (`sessionStorage` `lv-opened:<path>`), URL membawa hash (mis. `#rsvp`), atau preview dashboard (`base.OpenLock` mengosongkan `data-open`). Status terbuka hanya di sisi klien — halaman tetap bisa di-cache.
 - Mode Kenangan/Arsip: tombol "Lihat Kenangan" menuju `#memories`.
 - Foto sampul: `base.CoverImage` (`fetchpriority="high"`, `srcset` thumbnail + ukuran penuh bila sampul berasal dari galeri — `View.CoverThumb`/`CoverWidth`, zoom halus `lv-kenburns`). Sampul tanpa foto tetap utuh (bingkai/monogram di atas `Deep`).

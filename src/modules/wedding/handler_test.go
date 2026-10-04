@@ -82,9 +82,9 @@ func TestWizardEndToEnd(t *testing.T) {
 	}
 
 	// Langkah 1 valid → langkah 2, judul otomatis terisi, nama dibawa sebagai hidden field.
-	rec = req(e, owner, http.MethodPost, "/dashboard/weddings/new/steps/1", url.Values{"groom_name": {"Khamdan"}, "bride_name": {"Sarah"}}, true)
+	rec = req(e, owner, http.MethodPost, "/dashboard/weddings/new/steps/1", url.Values{"groom_name": {"Samuel"}, "bride_name": {"Sarah"}}, true)
 	body := rec.Body.String()
-	if rec.Code != http.StatusOK || !strings.Contains(body, `value="Pernikahan Khamdan &amp; Sarah"`) || !strings.Contains(body, `type="hidden" name="groom_name" value="Khamdan"`) {
+	if rec.Code != http.StatusOK || !strings.Contains(body, `value="Pernikahan Samuel &amp; Sarah"`) || !strings.Contains(body, `type="hidden" name="groom_name" value="Samuel"`) {
 		t.Fatalf("langkah 2: %d %s", rec.Code, body)
 	}
 	if strings.Contains(body, "<html") {
@@ -92,13 +92,13 @@ func TestWizardEndToEnd(t *testing.T) {
 	}
 
 	// Kembali dari langkah 2 → langkah 1 dengan nilai tetap.
-	rec = req(e, owner, http.MethodPost, "/dashboard/weddings/new/steps/2", url.Values{"groom_name": {"Khamdan"}, "bride_name": {"Sarah"}, "back": {"1"}}, true)
-	if !strings.Contains(rec.Body.String(), `id="wedding-groom-name" name="groom_name" type="text" value="Khamdan"`) {
+	rec = req(e, owner, http.MethodPost, "/dashboard/weddings/new/steps/2", url.Values{"groom_name": {"Samuel"}, "bride_name": {"Sarah"}, "back": {"1"}}, true)
+	if !strings.Contains(rec.Body.String(), `id="wedding-groom-name" name="groom_name" type="text" value="Samuel"`) {
 		t.Errorf("kembali ke langkah 1 kehilangan nilai: %s", rec.Body.String())
 	}
 
 	// Langkah 2 tanggal tidak valid → 422.
-	all := url.Values{"groom_name": {"Khamdan"}, "bride_name": {"Sarah"}, "title": {"Pernikahan Kami"}, "wedding_date": {"2026-13-40"}}
+	all := url.Values{"groom_name": {"Samuel"}, "bride_name": {"Sarah"}, "title": {"Pernikahan Kami"}, "wedding_date": {"2026-13-40"}}
 	if rec := req(e, owner, http.MethodPost, "/dashboard/weddings/new/steps/2", all, true); rec.Code != http.StatusUnprocessableEntity {
 		t.Errorf("tanggal invalid: %d", rec.Code)
 	}
@@ -115,7 +115,7 @@ func TestWizardEndToEnd(t *testing.T) {
 		t.Fatalf("create: %d %q", rec.Code, loc)
 	}
 	rec = req(e, owner, http.MethodGet, loc, nil, false)
-	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Khamdan &amp; Sarah") || !strings.Contains(rec.Body.String(), "Sabtu, 12 Desember 2026") {
+	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Samuel &amp; Sarah") || !strings.Contains(rec.Body.String(), "Sabtu, 12 Desember 2026") {
 		t.Errorf("overview: %d", rec.Code)
 	}
 }
@@ -158,7 +158,7 @@ func TestOtherUsersWeddingIs404(t *testing.T) {
 		t.Fatal("wedding alice berubah oleh bob!")
 	}
 	c, _ := f.svc.GetCouple(ctx, w.ID)
-	if c.GroomName != "Khamdan Ngazis" {
+	if c.GroomName != "Samuel" {
 		t.Fatal("couple alice berubah oleh bob!")
 	}
 
