@@ -62,7 +62,7 @@ Tombol "Buka Undangan" menuju anchor `#undangan` (awal bagian tengah, apa pun ur
 | `elegant` | semua + SectionTitle | Klasik formal: bingkai ganda dengan ornamen sudut, serba rata tengah, foto & kartu acara berpigura |
 | `minimal` (ditulis ulang T21) | Hero, Couple, LoveStory, Events, Gallery, Closing, SectionTitle | Putih lega, rata kiri, garis rambut, nama & angka tanggal besar, acara tanpa kartu, galeri grid rapat tanpa sudut membulat, penutup gelap. Sampul selalu muat satu layar (foto mengisi sisa tinggi). |
 | `romantic` | semua + SectionTitle | Lembut: foto melengkung (arch), ornamen bunga garis, judul tulisan tangan, cerita berselang-seling |
-| `modern` | semua + SectionTitle | Tegas: pembuka gelap, blok warna penuh (Deep Plum), huruf kapital sangat besar, kartu acara berwarna |
+| `modern` | semua + SectionTitle | Tegas: pembuka berwarna, blok warna penuh (hijau toska + hijau tua), huruf kapital sangat besar, kartu acara berwarna |
 
 Tema bawaan wedding baru: `signature` (`theme.DefaultID`, `wedding.DefaultThemeID`, default kolom `weddings.theme_id` — migration `00023`). Wedding lama tetap memakai `theme_id`-nya. Kelima tema meng-override semua bagian visual (`TestAllThemesOverrideVisualParts`); `base` tetap ada sebagai cadangan untuk tema baru.
 
