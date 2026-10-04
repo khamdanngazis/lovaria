@@ -113,7 +113,7 @@ func quickActions(d homeData) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<p class=\"text-xs uppercase tracking-wide text-slate-400\">Link undangan umum</p><div class=\"mt-2 flex items-center gap-2\" x-data=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<p class=\"text-xs uppercase tracking-wide text-lovoria-muted\">Link undangan umum</p><div class=\"mt-2 flex items-center gap-2\" x-data=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -139,7 +139,7 @@ func quickActions(d homeData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" aria-label=\"Link undangan umum\" class=\"min-w-0 flex-1 rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-700\" data-select-on-focus> <button type=\"button\" x-cloak @click=\"copy()\" class=\"flex-none rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium hover:bg-slate-50\" x-text=\"copied ? 'Tersalin ✓' : 'Salin'\">Salin</button></div><p class=\"mt-2 text-xs text-slate-500\">Untuk tamu tertentu, pakai link pribadi dari menu Tamu supaya nama tamu tampil & bisa RSVP.</p><div class=\"mt-4 grid grid-cols-3 gap-2 text-center text-sm\"><a href=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" aria-label=\"Link undangan umum\" class=\"ui-control min-w-0 flex-1 bg-lovoria-bg px-3 py-2 text-sm text-lovoria-text\" data-select-on-focus> <button type=\"button\" x-cloak @click=\"copy()\" class=\"ui-btn ui-btn-secondary flex-none px-3 py-2 text-sm\" x-text=\"copied ? 'Tersalin ✓' : 'Salin'\">Salin</button></div><p class=\"mt-2 text-xs text-lovoria-muted\">Untuk tamu tertentu, pakai link pribadi dari menu Tamu supaya nama tamu tampil & bisa RSVP.</p><div class=\"mt-4 grid grid-cols-3 gap-2 text-center text-sm\"><a href=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -152,7 +152,7 @@ func quickActions(d homeData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" target=\"_blank\" rel=\"noopener\" class=\"rounded-lg bg-primary px-2 py-2.5 font-medium text-white\">Buka website ↗</a> <a href=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" target=\"_blank\" rel=\"noopener\" class=\"ui-btn ui-btn-primary px-2 py-2.5\">Buka website ↗</a> <a href=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -165,7 +165,7 @@ func quickActions(d homeData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" class=\"rounded-lg border border-slate-300 px-2 py-2.5 font-medium text-slate-700 hover:bg-slate-50\">Kelola wedding</a> <a href=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" class=\"ui-btn ui-btn-secondary px-2 py-2.5\">Kelola wedding</a> <a href=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -178,7 +178,7 @@ func quickActions(d homeData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" class=\"rounded-lg border border-slate-300 px-2 py-2.5 font-medium text-slate-700 hover:bg-slate-50\">Bagikan undangan</a></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" class=\"ui-btn ui-btn-secondary px-2 py-2.5\">Bagikan undangan</a></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -196,7 +196,7 @@ func quickActions(d homeData) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" class=\"mt-3 inline-block text-sm text-primary hover:underline\">Unduh kenang-kenangan (PDF) — cerita & semua ucapan</a>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" class=\"mt-3 inline-block text-sm text-lovoria-primary hover:underline\">Unduh kenang-kenangan (PDF) — cerita & semua ucapan</a>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -246,7 +246,7 @@ func memoryCard(d homeData) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<h2 class=\"font-semibold\">Abadikan kenangan</h2><p class=\"mt-1 text-sm text-slate-600\">Website kalian kini tampil sebagai halaman kenangan.</p><ul class=\"mt-3 divide-y divide-slate-100\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<h2 class=\"font-semibold\">Abadikan kenangan</h2><p class=\"mt-1 text-sm text-lovoria-muted\">Website kalian kini tampil sebagai halaman kenangan.</p><ul class=\"mt-3 divide-y divide-lovoria-border\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -269,12 +269,12 @@ func memoryCard(d homeData) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				if s.Done {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<span class=\"flex h-6 w-6 flex-none items-center justify-center rounded-full bg-green-100 text-sm text-green-700\" aria-hidden=\"true\">✓</span> ")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<span class=\"flex h-6 w-6 flex-none items-center justify-center rounded-full bg-lovoria-success-soft text-sm text-lovoria-success\" aria-hidden=\"true\">✓</span> ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				} else {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<span class=\"h-6 w-6 flex-none rounded-full border-2 border-slate-300\" aria-hidden=\"true\"></span> ")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<span class=\"h-6 w-6 flex-none rounded-full border-2 border-lovoria-control\" aria-hidden=\"true\"></span> ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -292,14 +292,14 @@ func memoryCard(d homeData) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</span> <span class=\"block text-xs text-slate-500\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</span> <span class=\"block text-xs text-lovoria-muted\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var14 string
 				templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(s.Hint)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/dashboard/home.templ`, Line: 63, Col: 58}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/dashboard/home.templ`, Line: 63, Col: 62}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 				if templ_7745c5c3_Err != nil {
@@ -323,7 +323,7 @@ func memoryCard(d homeData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\" class=\"mt-3 inline-block rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white\">Unduh kenang-kenangan (PDF)</a>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\" class=\"ui-btn ui-btn-primary mt-3 inline-block px-4 py-2.5 text-sm\">Unduh kenang-kenangan (PDF)</a>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -370,14 +370,14 @@ func onboarding(d homeData) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<div class=\"flex items-center justify-between gap-3\"><h2 class=\"font-semibold\">Lengkapi undanganmu</h2><span class=\"text-sm text-slate-500\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<div class=\"flex items-center justify-between gap-3\"><h2 class=\"font-semibold\">Lengkapi undanganmu</h2><span class=\"text-sm text-lovoria-muted\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var18 string
 			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(d.done()))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/dashboard/home.templ`, Line: 77, Col: 64}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/dashboard/home.templ`, Line: 77, Col: 68}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 			if templ_7745c5c3_Err != nil {
@@ -390,20 +390,20 @@ func onboarding(d homeData) templ.Component {
 			var templ_7745c5c3_Var19 string
 			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(len(d.Onboarding)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/dashboard/home.templ`, Line: 77, Col: 100}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/dashboard/home.templ`, Line: 77, Col: 104}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</span></div><div class=\"mt-2 h-2 overflow-hidden rounded-full bg-slate-100\" role=\"progressbar\" aria-label=\"Kemajuan checklist\" aria-valuemin=\"0\" aria-valuemax=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</span></div><div class=\"mt-2 h-2 overflow-hidden rounded-full bg-lovoria-subtle\" role=\"progressbar\" aria-label=\"Kemajuan checklist\" aria-valuemin=\"0\" aria-valuemax=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var20 string
 			templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.ResolveAttributeValue(strconv.Itoa(len(d.Onboarding)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/dashboard/home.templ`, Line: 79, Col: 182}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/dashboard/home.templ`, Line: 79, Col: 187}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var20)
 			if templ_7745c5c3_Err != nil {
@@ -416,26 +416,26 @@ func onboarding(d homeData) templ.Component {
 			var templ_7745c5c3_Var21 string
 			templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.ResolveAttributeValue(strconv.Itoa(d.done()))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/dashboard/home.templ`, Line: 79, Col: 223}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/dashboard/home.templ`, Line: 79, Col: 228}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var21)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\"><div class=\"h-full rounded-full bg-primary\" style=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\"><div class=\"h-full rounded-full bg-lovoria-primary\" style=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var22 string
 			templ_7745c5c3_Var22, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues("width:" + strconv.Itoa(rate(d.done(), len(d.Onboarding))) + "%")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/dashboard/home.templ`, Line: 80, Col: 119}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/dashboard/home.templ`, Line: 80, Col: 127}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "\"></div></div><ul class=\"mt-3 divide-y divide-slate-100\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "\"></div></div><ul class=\"mt-3 divide-y divide-lovoria-border\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -458,12 +458,12 @@ func onboarding(d homeData) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				if s.Done {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<span class=\"flex h-6 w-6 flex-none items-center justify-center rounded-full bg-green-100 text-sm text-green-700\" aria-hidden=\"true\">✓</span> ")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<span class=\"flex h-6 w-6 flex-none items-center justify-center rounded-full bg-lovoria-success-soft text-sm text-lovoria-success\" aria-hidden=\"true\">✓</span> ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				} else {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<span class=\"h-6 w-6 flex-none rounded-full border-2 border-slate-300\" aria-hidden=\"true\"></span> ")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<span class=\"h-6 w-6 flex-none rounded-full border-2 border-lovoria-control\" aria-hidden=\"true\"></span> ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -472,7 +472,7 @@ func onboarding(d homeData) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var24 = []any{"block text-sm font-medium", templ.KV("text-slate-400 line-through", s.Done)}
+				var templ_7745c5c3_Var24 = []any{"block text-sm font-medium", templ.KV("text-lovoria-muted line-through", s.Done)}
 				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var24...)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
@@ -523,14 +523,14 @@ func onboarding(d homeData) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				if !s.Done {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "<span class=\"block text-xs text-slate-500\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "<span class=\"block text-xs text-lovoria-muted\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var27 string
 					templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(s.Hint)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/dashboard/home.templ`, Line: 103, Col: 59}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/dashboard/home.templ`, Line: 103, Col: 63}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 					if templ_7745c5c3_Err != nil {
@@ -546,7 +546,7 @@ func onboarding(d homeData) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				if !s.Done {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<span class=\"text-slate-400\" aria-hidden=\"true\">›</span>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<span class=\"text-lovoria-muted\" aria-hidden=\"true\">›</span>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -591,27 +591,27 @@ func stat(label, value, sub string) templ.Component {
 			templ_7745c5c3_Var28 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "<div class=\"rounded-xl bg-slate-50 px-3 py-2.5\"><p class=\"text-xs text-slate-500\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "<div class=\"rounded-xl bg-lovoria-bg px-3 py-2.5\"><p class=\"text-xs text-lovoria-muted\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var29 string
 		templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(label)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/dashboard/home.templ`, Line: 118, Col: 43}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/dashboard/home.templ`, Line: 118, Col: 47}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "</p><p class=\"text-xl font-semibold\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "</p><p class=\"font-display text-2xl leading-tight text-lovoria-deep\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var30 string
 		templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(value)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/dashboard/home.templ`, Line: 119, Col: 42}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/dashboard/home.templ`, Line: 119, Col: 74}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 		if templ_7745c5c3_Err != nil {
@@ -622,14 +622,14 @@ func stat(label, value, sub string) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if sub != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "<p class=\"text-xs text-slate-500\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "<p class=\"text-xs text-lovoria-muted\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var31 string
 			templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(sub)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/dashboard/home.templ`, Line: 121, Col: 42}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/dashboard/home.templ`, Line: 121, Col: 46}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
 			if templ_7745c5c3_Err != nil {
@@ -695,27 +695,27 @@ func bar(label string, pct int, detail string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "%</span></div><div class=\"mt-1 h-2 overflow-hidden rounded-full bg-slate-100\"><div class=\"h-full rounded-full bg-primary\" style=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "%</span></div><div class=\"mt-1 h-2 overflow-hidden rounded-full bg-lovoria-subtle\"><div class=\"h-full rounded-full bg-lovoria-primary\" style=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var35 string
 		templ_7745c5c3_Var35, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues("width:" + strconv.Itoa(pct) + "%")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/dashboard/home.templ`, Line: 133, Col: 89}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/dashboard/home.templ`, Line: 133, Col: 97}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "\"></div></div><p class=\"mt-0.5 text-xs text-slate-500\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "\"></div></div><p class=\"mt-0.5 text-xs text-lovoria-muted\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var36 string
 		templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(detail)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/dashboard/home.templ`, Line: 135, Col: 51}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/dashboard/home.templ`, Line: 135, Col: 55}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
 		if templ_7745c5c3_Err != nil {
@@ -775,12 +775,12 @@ func guestSummary(d homeData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "\" class=\"text-sm text-primary hover:underline\">Lihat RSVP</a></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "\" class=\"text-sm text-lovoria-primary hover:underline\">Lihat RSVP</a></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if d.Guests.Total == 0 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "<p class=\"mt-3 text-sm text-slate-500\">Belum ada tamu. <a href=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, "<p class=\"mt-3 text-sm text-lovoria-muted\">Belum ada tamu. <a href=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -793,7 +793,7 @@ func guestSummary(d homeData) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "\" class=\"text-primary hover:underline\">Tambah tamu</a> untuk membuat link undangan pribadi.</p>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "\" class=\"text-lovoria-primary hover:underline\">Tambah tamu</a> untuk membuat link undangan pribadi.</p>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -891,12 +891,12 @@ func recentMessages(d homeData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "\" class=\"text-sm text-primary hover:underline\">Semua ucapan</a></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "\" class=\"text-sm text-lovoria-primary hover:underline\">Semua ucapan</a></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if len(d.Messages) == 0 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "<p class=\"mt-3 text-sm text-slate-500\">Belum ada ucapan dari tamu.</p>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "<p class=\"mt-3 text-sm text-lovoria-muted\">Belum ada ucapan dari tamu.</p>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -906,27 +906,27 @@ func recentMessages(d homeData) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				for _, m := range d.Messages {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 67, "<li class=\"text-sm\"><p class=\"line-clamp-2 break-words text-slate-700\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 67, "<li class=\"text-sm\"><p class=\"line-clamp-2 break-words text-lovoria-text\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var44 string
 					templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.JoinStringErrs(m.Message)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/dashboard/home.templ`, Line: 176, Col: 68}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/dashboard/home.templ`, Line: 176, Col: 71}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var44))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "</p><p class=\"mt-0.5 text-xs text-slate-500\"><span class=\"font-medium text-slate-700\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "</p><p class=\"mt-0.5 text-xs text-lovoria-muted\"><span class=\"font-medium text-lovoria-text\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var45 string
 					templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.JoinStringErrs(m.Name)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/dashboard/home.templ`, Line: 178, Col: 56}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/dashboard/home.templ`, Line: 178, Col: 59}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var45))
 					if templ_7745c5c3_Err != nil {
@@ -939,7 +939,7 @@ func recentMessages(d homeData) templ.Component {
 					var templ_7745c5c3_Var46 string
 					templ_7745c5c3_Var46, templ_7745c5c3_Err = templ.JoinStringErrs(web.FormatDateID(m.CreatedAt))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/dashboard/home.templ`, Line: 178, Col: 100}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/dashboard/home.templ`, Line: 178, Col: 103}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var46))
 					if templ_7745c5c3_Err != nil {
@@ -950,7 +950,7 @@ func recentMessages(d homeData) templ.Component {
 						return templ_7745c5c3_Err
 					}
 					if m.Hidden {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, "· <span class=\"text-amber-700\">disembunyikan</span>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, "· <span class=\"text-lovoria-warning\">disembunyikan</span>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -1034,7 +1034,7 @@ func gallerySummary(d homeData) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 76, "\" class=\"text-sm text-primary hover:underline\">Kelola</a></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 76, "\" class=\"text-sm text-lovoria-primary hover:underline\">Kelola</a></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1067,7 +1067,7 @@ func gallerySummary(d homeData) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 81, "<p class=\"mt-3 text-sm text-slate-500\">Belum ada foto.</p>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 81, "<p class=\"mt-3 text-sm text-lovoria-muted\">Belum ada foto.</p>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

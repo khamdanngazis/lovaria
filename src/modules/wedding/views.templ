@@ -48,8 +48,8 @@ var stepTitles = [...]string{"", "Nama pasangan", "Judul & tanggal", "Cerita sin
 templ newPage(step int, f form) {
 	@layouts.Dashboard(layouts.Meta{Title: "Buat website pernikahan"}) {
 		<div class="mx-auto max-w-lg">
-			<h1 class="text-2xl font-semibold">Buat website pernikahan</h1>
-			<p class="mt-1 text-slate-600">Tiga langkah singkat — semuanya bisa diubah nanti.</p>
+			<h1 class="font-display text-2xl leading-tight text-lovoria-deep sm:text-3xl">Buat website pernikahan</h1>
+			<p class="mt-1 text-lovoria-muted">Tiga langkah singkat — semuanya bisa diubah nanti.</p>
 			<div class="mt-6">
 				@wizardStep(step, f)
 			</div>
@@ -62,12 +62,12 @@ templ wizardProgress(step int) {
 		for i := 1; i <= wizardSteps; i++ {
 			<li class="flex-1">
 				<span
-					class={ "block h-1.5 rounded-full", templ.KV("bg-primary", i <= step), templ.KV("bg-slate-200", i > step) }
+					class={ "block h-1.5 rounded-full", templ.KV("bg-lovoria-primary", i <= step), templ.KV("bg-lovoria-border", i > step) }
 					if i == step {
 						aria-current="step"
 					}
 				></span>
-				<span class={ "mt-1 block text-xs", templ.KV("text-slate-900 font-medium", i == step), templ.KV("text-slate-400", i != step) }>
+				<span class={ "mt-1 block text-xs", templ.KV("text-lovoria-text font-medium", i == step), templ.KV("text-lovoria-muted", i != step) }>
 					{ fmt.Sprintf("%d. %s", i, stepTitles[i]) }
 				</span>
 			</li>
@@ -147,19 +147,19 @@ templ wizardStep(step int, f form) {
 templ listPage(weddings []Wedding, now time.Time) {
 	@layouts.Dashboard(layouts.Meta{Title: "Wedding saya"}) {
 		<div class="flex items-center justify-between gap-4">
-			<h1 class="text-2xl font-semibold">Wedding saya</h1>
-			<a href="/dashboard/weddings/new" class="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white">+ Buat baru</a>
+			<h1 class="font-display text-2xl leading-tight text-lovoria-deep sm:text-3xl">Wedding saya</h1>
+			<a href="/dashboard/weddings/new" class="ui-btn ui-btn-primary px-3 py-2 text-sm">+ Buat baru</a>
 		</div>
 		<ul class="mt-6 grid gap-4 sm:grid-cols-2">
 			for _, w := range weddings {
 				<li>
-					<a href={ templ.SafeURL(weddingURL(w, "")) } class="block rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5 hover:ring-primary">
+					<a href={ templ.SafeURL(weddingURL(w, "")) } class="ui-card block p-5 transition hover:border-lovoria-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lovoria-primary">
 						<div class="flex items-start justify-between gap-3">
 							<p class="font-semibold">{ w.Title }</p>
 							<span class={ "flex-none rounded-full px-2.5 py-0.5 text-xs font-medium", statusBadge[w.Status] }>{ StatusLabel(w.Status) }</span>
 						</div>
-						<p class="mt-1 text-sm text-slate-600">{ web.FormatDateID(w.WeddingDate) } · <span class="font-medium text-slate-800">{ w.CountdownText(now) }</span></p>
-						<p class="mt-2 text-xs text-slate-400">/w/{ w.Slug }</p>
+						<p class="mt-1 text-sm text-lovoria-muted">{ web.FormatDateID(w.WeddingDate) } · <span class="font-medium text-lovoria-text">{ w.CountdownText(now) }</span></p>
+						<p class="mt-2 text-xs text-lovoria-muted">/w/{ w.Slug }</p>
 					</a>
 				</li>
 			}
@@ -207,14 +207,14 @@ templ Shell(w Wedding, active string) {
 					for _, g := range navGroups {
 						<div>
 							if g.Title != "" {
-								<p class="mb-1 px-3 text-xs font-medium uppercase tracking-wide text-slate-400">{ g.Title }</p>
+								<p class="mb-1 px-3 text-xs font-medium uppercase tracking-wide text-lovoria-muted">{ g.Title }</p>
 							}
 							<ul class="space-y-0.5">
 								for _, it := range g.Items {
 									<li>
 										<a
 											href={ templ.SafeURL(weddingURL(w, it.Suffix)) }
-											class={ "block rounded-lg px-3 py-2", templ.KV("bg-primary/10 font-medium text-primary", active == it.Suffix), templ.KV("text-slate-600 hover:bg-slate-100 hover:text-slate-900", active != it.Suffix) }
+											class={ "block rounded-lg px-3 py-2", templ.KV("bg-lovoria-primary-soft font-medium text-lovoria-primary", active == it.Suffix), templ.KV("text-lovoria-muted hover:bg-lovoria-subtle hover:text-lovoria-text", active != it.Suffix) }
 											if active == it.Suffix {
 												aria-current="page"
 											}
@@ -224,12 +224,12 @@ templ Shell(w Wedding, active string) {
 							</ul>
 						</div>
 					}
-					<a href={ templ.SafeURL("/w/" + w.Slug) } target="_blank" rel="noopener" class="block px-3 text-primary hover:underline">Lihat undangan ↗</a>
+					<a href={ templ.SafeURL("/w/" + w.Slug) } target="_blank" rel="noopener" class="block px-3 text-lovoria-primary hover:underline">Lihat undangan ↗</a>
 				</nav>
 			</aside>
 			<div class="min-w-0 pb-24 lg:pb-0">
-				<p class="text-sm text-slate-500"><a href="/dashboard/weddings" class="hover:underline">Wedding saya</a></p>
-				<h1 class="mt-1 break-words text-2xl font-semibold">{ w.Title }</h1>
+				<p class="text-sm text-lovoria-muted"><a href="/dashboard/weddings" class="hover:underline">Wedding saya</a></p>
+				<h1 class="mt-1 break-words font-display text-2xl leading-tight text-lovoria-deep sm:text-3xl">{ w.Title }</h1>
 				<div class="mt-6">
 					{ children... }
 				</div>
@@ -251,13 +251,13 @@ func inBottomNav(active string) bool {
 // bottomBar: navigasi bawah di ponsel. "Menu" memakai <details> sehingga
 // tetap berfungsi tanpa JS.
 templ bottomBar(w Wedding, active string) {
-	<nav class="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden" aria-label="Menu wedding (ponsel)">
+	<nav class="fixed inset-x-0 bottom-0 z-40 border-t border-lovoria-border bg-lovoria-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden" aria-label="Menu wedding (ponsel)">
 		<ul class="mx-auto grid max-w-md grid-cols-5 text-[11px]">
 			for _, it := range bottomNav {
 				<li>
 					<a
 						href={ templ.SafeURL(weddingURL(w, it.Suffix)) }
-						class={ "flex flex-col items-center gap-0.5 py-2", templ.KV("text-primary font-medium", active == it.Suffix), templ.KV("text-slate-500", active != it.Suffix) }
+						class={ "flex flex-col items-center gap-0.5 py-2", templ.KV("text-lovoria-primary font-medium", active == it.Suffix), templ.KV("text-lovoria-muted", active != it.Suffix) }
 						if active == it.Suffix {
 							aria-current="page"
 						}
@@ -269,25 +269,25 @@ templ bottomBar(w Wedding, active string) {
 			}
 			<li>
 				<details>
-					<summary class={ "flex cursor-pointer list-none flex-col items-center gap-0.5 py-2 [&::-webkit-details-marker]:hidden", templ.KV("text-primary font-medium", !inBottomNav(active)), templ.KV("text-slate-500", inBottomNav(active)) }>
+					<summary class={ "flex cursor-pointer list-none flex-col items-center gap-0.5 py-2 [&::-webkit-details-marker]:hidden", templ.KV("text-lovoria-primary font-medium", !inBottomNav(active)), templ.KV("text-lovoria-muted", inBottomNav(active)) }>
 						@navIcon("menu")
 						Menu
 					</summary>
-					<div class="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] max-h-[70dvh] overflow-y-auto border-t border-slate-200 bg-white px-4 py-4 shadow-2xl">
+					<div class="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] max-h-[70dvh] overflow-y-auto border-t border-lovoria-border bg-lovoria-surface px-4 py-4 shadow-2xl">
 						for _, g := range navGroups[1:] {
-							<p class="mt-3 text-xs font-medium uppercase tracking-wide text-slate-400 first:mt-0">{ g.Title }</p>
+							<p class="mt-3 text-xs font-medium uppercase tracking-wide text-lovoria-muted first:mt-0">{ g.Title }</p>
 							<ul class="mt-1 grid grid-cols-2 gap-1 text-sm">
 								for _, it := range g.Items {
 									<li>
 										<a
 											href={ templ.SafeURL(weddingURL(w, it.Suffix)) }
-											class={ "block rounded-lg px-3 py-2.5", templ.KV("bg-primary/10 font-medium text-primary", active == it.Suffix), templ.KV("text-slate-700 hover:bg-slate-100", active != it.Suffix) }
+											class={ "block rounded-lg px-3 py-2.5", templ.KV("bg-lovoria-primary-soft font-medium text-lovoria-primary", active == it.Suffix), templ.KV("text-lovoria-text hover:bg-lovoria-subtle", active != it.Suffix) }
 										>{ it.Label }</a>
 									</li>
 								}
 							</ul>
 						}
-						<a href={ templ.SafeURL("/w/" + w.Slug) } target="_blank" rel="noopener" class="mt-3 block px-3 py-2 text-sm text-primary">Lihat undangan ↗</a>
+						<a href={ templ.SafeURL("/w/" + w.Slug) } target="_blank" rel="noopener" class="mt-3 block px-3 py-2 text-sm text-lovoria-primary">Lihat undangan ↗</a>
 					</div>
 				</details>
 			</li>
@@ -327,11 +327,11 @@ var statusHint = map[string]string{
 }
 
 var statusBadge = map[string]string{
-	StatusDraft:      "bg-slate-100 text-slate-700",
-	StatusPublished:  "bg-green-100 text-green-800",
-	StatusWeddingDay: "bg-primary text-white",
-	StatusMemory:     "bg-amber-100 text-amber-800",
-	StatusArchived:   "bg-slate-200 text-slate-600",
+	StatusDraft:      "bg-lovoria-subtle text-lovoria-text",
+	StatusPublished:  "bg-lovoria-success-soft text-lovoria-success",
+	StatusWeddingDay: "bg-lovoria-primary text-white",
+	StatusMemory:     "bg-lovoria-warning-soft text-lovoria-warning",
+	StatusArchived:   "bg-lovoria-border text-lovoria-muted",
 }
 
 templ overviewPage(o overviewState) {
@@ -342,8 +342,8 @@ templ overviewPage(o overviewState) {
 			}
 			@ui.Notice(o.Notice)
 			@ui.Alert(o.Error)
-			<div class="rounded-2xl bg-primary p-5 text-white shadow-sm">
-				<p class="font-heading text-2xl">{ o.Couple.GroomName } &amp; { o.Couple.BrideName }</p>
+			<div class="rounded-2xl bg-lovoria-deep p-5 text-white shadow-soft">
+				<p class="font-display text-2xl">{ o.Couple.GroomName } &amp; { o.Couple.BrideName }</p>
 				<div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
 					<p class="text-sm text-white/90">{ web.FormatDateID(o.W.WeddingDate) }</p>
 					<p class="rounded-full bg-white/20 px-3 py-0.5 text-sm font-semibold">{ o.W.CountdownText(o.Now) }</p>
@@ -361,7 +361,7 @@ templ statusCard(o overviewState) {
 	@ui.Card() {
 		<div class="flex flex-wrap items-center justify-between gap-3">
 			<div>
-				<p class="text-xs uppercase tracking-wide text-slate-400">Status undangan</p>
+				<p class="text-xs uppercase tracking-wide text-lovoria-muted">Status undangan</p>
 				<p class="mt-1"><span class={ "rounded-full px-3 py-1 text-sm font-medium", statusBadge[o.W.Status] }>{ StatusLabel(o.W.Status) }</span></p>
 			</div>
 			if o.W.IsDraft() {
@@ -369,30 +369,30 @@ templ statusCard(o overviewState) {
 					@layouts.CSRFField()
 					<input type="hidden" name="_method" value="PATCH"/>
 					<input type="hidden" name="status" value="published"/>
-					<button type="submit" disabled?={ !o.ready() } class="rounded-lg bg-primary px-4 py-2.5 font-medium text-white disabled:cursor-not-allowed disabled:opacity-50">Publikasikan</button>
+					<button type="submit" disabled?={ !o.ready() } class="ui-btn ui-btn-primary px-4 py-2.5 disabled:cursor-not-allowed disabled:opacity-50">Publikasikan</button>
 				</form>
 			} else if o.W.Status == StatusPublished {
 				<form method="post" action={ templ.SafeURL(weddingURL(o.W, "/status")) } data-confirm="Tarik publikasi? Tamu tidak bisa membuka undangan sampai dipublikasikan lagi.">
 					@layouts.CSRFField()
 					<input type="hidden" name="_method" value="PATCH"/>
 					<input type="hidden" name="status" value="draft"/>
-					<button type="submit" class="rounded-lg border border-slate-300 bg-white px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-50">Tarik publikasi</button>
+					<button type="submit" class="ui-btn ui-btn-secondary px-4 py-2.5">Tarik publikasi</button>
 				</form>
 			}
 		</div>
-		<p class="mt-3 text-sm text-slate-600">{ statusHint[o.W.Status] }</p>
+		<p class="mt-3 text-sm text-lovoria-muted">{ statusHint[o.W.Status] }</p>
 		if o.W.IsDraft() {
 			<ul class="mt-3 space-y-1 text-sm" aria-label="Syarat publikasi">
 				for _, it := range o.Checklist {
-					<li class={ "flex items-center gap-2", templ.KV("text-green-700", it.Done), templ.KV("text-slate-700", !it.Done) }>
+					<li class={ "flex items-center gap-2", templ.KV("text-lovoria-success", it.Done), templ.KV("text-lovoria-text", !it.Done) }>
 						if it.Done {
 							<span aria-hidden="true">✓</span><span class="sr-only">Sudah:</span>
 						} else {
-							<span aria-hidden="true" class="text-red-600">✗</span><span class="sr-only">Belum:</span>
+							<span aria-hidden="true" class="text-lovoria-danger">✗</span><span class="sr-only">Belum:</span>
 						}
 						{ it.Label }
 						if !it.Done && it.Label == "Minimal 1 acara" {
-							<a href={ templ.SafeURL(weddingURL(o.W, "/events")) } class="text-primary hover:underline">Tambah acara</a>
+							<a href={ templ.SafeURL(weddingURL(o.W, "/events")) } class="text-lovoria-primary hover:underline">Tambah acara</a>
 						}
 					</li>
 				}
@@ -402,11 +402,11 @@ templ statusCard(o overviewState) {
 			@archiveVisibilityForm(o.W)
 		}
 		if len(o.History) > 0 {
-			<details class="mt-3 text-sm text-slate-600">
+			<details class="mt-3 text-sm text-lovoria-muted">
 				<summary class="cursor-pointer">Riwayat status</summary>
 				<ul class="mt-2 space-y-1">
 					for _, h := range o.History {
-						<li>{ h.At.Format("02/01/2006 15:04") } — { StatusLabel(h.From) } → { StatusLabel(h.To) } <span class="text-slate-400">({ actorLabel(h.Actor) })</span></li>
+						<li>{ h.At.Format("02/01/2006 15:04") } — { StatusLabel(h.From) } → { StatusLabel(h.To) } <span class="text-lovoria-muted">({ actorLabel(h.Actor) })</span></li>
 					}
 				</ul>
 			</details>
@@ -417,12 +417,12 @@ templ statusCard(o overviewState) {
 // archiveVisibilityForm: pilihan siapa yang bisa membuka arsip (T19). Muncul
 // sejak Kenangan supaya pasangan bisa memilih sebelum diarsipkan.
 templ archiveVisibilityForm(w Wedding) {
-	<form method="post" action={ templ.SafeURL(weddingURL(w, "/archive-visibility")) } class="mt-4 rounded-xl border border-slate-200 p-4">
+	<form method="post" action={ templ.SafeURL(weddingURL(w, "/archive-visibility")) } class="mt-4 rounded-xl border border-lovoria-border p-4">
 		@layouts.CSRFField()
 		<input type="hidden" name="_method" value="PATCH"/>
 		<fieldset>
-			<legend class="text-sm font-medium text-slate-800">Visibilitas arsip</legend>
-			<p class="mt-1 text-xs text-slate-500">Berlaku setelah undangan diarsipkan.</p>
+			<legend class="text-sm font-medium text-lovoria-text">Visibilitas arsip</legend>
+			<p class="mt-1 text-xs text-lovoria-muted">Berlaku setelah undangan diarsipkan.</p>
 			<div class="mt-3 space-y-2 text-sm">
 				<label class="flex items-start gap-2">
 					<input type="radio" name="visibility" value={ ArchivePublicVisibility } checked?={ w.ArchiveVisibility != ArchivePrivate } class="mt-1"/>
@@ -434,7 +434,7 @@ templ archiveVisibilityForm(w Wedding) {
 				</label>
 			</div>
 		</fieldset>
-		<button type="submit" class="mt-3 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Simpan visibilitas</button>
+		<button type="submit" class="ui-btn ui-btn-secondary mt-3 px-4 py-2 text-sm">Simpan visibilitas</button>
 	</form>
 }
 

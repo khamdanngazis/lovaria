@@ -78,11 +78,11 @@ func displayPhone(p string) string {
 func statusClass(s string) string {
 	switch s {
 	case StatusAttending:
-		return "bg-green-100 text-green-800"
+		return "bg-lovoria-success-soft text-lovoria-success"
 	case StatusDeclined:
-		return "bg-red-100 text-red-700"
+		return "bg-lovoria-danger-soft text-lovoria-danger"
 	default:
-		return "bg-slate-100 text-slate-600"
+		return "bg-lovoria-subtle text-lovoria-muted"
 	}
 }
 
@@ -92,9 +92,9 @@ templ page(s listState, editor templ.Component) {
 			@stats(s, false)
 			@quickAdd(s.W, form{Values: map[string]string{}, Errors: map[string]string{}}, false)
 			<div class="flex gap-2 overflow-x-auto whitespace-nowrap scrollbar-none">
-				<a href={ templ.SafeURL(base(s.W) + "/paste") } class="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white">Tempel daftar tamu</a>
-				<a href={ templ.SafeURL(base(s.W) + "/import") } class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-50">Import file CSV</a>
-				<a href={ templ.SafeURL(base(s.W) + "/export") } class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-50" download>Export CSV</a>
+				<a href={ templ.SafeURL(base(s.W) + "/paste") } class="ui-btn ui-btn-primary px-3 py-2 text-sm">Tempel daftar tamu</a>
+				<a href={ templ.SafeURL(base(s.W) + "/import") } class="ui-btn ui-btn-secondary px-3 py-2 text-sm">Import file CSV</a>
+				<a href={ templ.SafeURL(base(s.W) + "/export") } class="ui-btn ui-btn-secondary px-3 py-2 text-sm" download>Export CSV</a>
 			</div>
 			<div id="guest-editor">
 				if editor != nil {
@@ -123,11 +123,11 @@ templ stats(s listState, oob bool) {
 }
 
 templ statCard(label string, n int, sub string) {
-	<div class="rounded-2xl bg-white px-3 py-2.5 shadow-sm ring-1 ring-black/5 sm:p-4">
-		<p class="text-xs text-slate-500">{ label }</p>
+	<div class="ui-card px-3 py-2.5 sm:p-4">
+		<p class="text-xs text-lovoria-muted">{ label }</p>
 		<p class="text-xl font-semibold sm:mt-1 sm:text-2xl">{ strconv.Itoa(n) }</p>
 		if sub != "" {
-			<p class="text-xs text-slate-500">{ sub }</p>
+			<p class="text-xs text-lovoria-muted">{ sub }</p>
 		}
 	</div>
 }
@@ -135,15 +135,15 @@ templ statCard(label string, n int, sub string) {
 // filters berada di luar #guests supaya input pencarian tidak kehilangan fokus.
 templ filters(s listState) {
 	<form id="guest-filters" method="get" action={ templ.SafeURL(base(s.W)) } hx-get={ base(s.W) } hx-target="#guests" hx-swap="outerHTML" hx-push-url="true" hx-trigger="input changed delay:300ms from:input[name=q], change from:select, submit" class="grid gap-2 sm:grid-cols-[1fr_auto_auto_auto]">
-		<input type="search" name="q" value={ s.Filter.Q } placeholder="Cari nama, HP, email, atau kode…" aria-label="Cari tamu" class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-base"/>
-		<select name="status" aria-label="Filter status" class="rounded-lg border border-slate-300 bg-white px-3 py-2">
+		<input type="search" name="q" value={ s.Filter.Q } placeholder="Cari nama, HP, email, atau kode…" aria-label="Cari tamu" class="ui-control px-3 py-2 text-base"/>
+		<select name="status" aria-label="Filter status" class="ui-control px-3 py-2">
 			<option value="">Semua status</option>
 			for _, st := range Statuses {
 				<option value={ st.ID } selected?={ st.ID == s.Filter.Status }>{ st.Label }</option>
 			}
 		</select>
 		@groupSelect(s, false)
-		<select name="shared" aria-label="Filter dibagikan" class="rounded-lg border border-slate-300 bg-white px-3 py-2">
+		<select name="shared" aria-label="Filter dibagikan" class="ui-control px-3 py-2">
 			<option value="">Semua</option>
 			<option value="no" selected?={ s.Filter.Shared == "no" }>Belum dibagikan</option>
 			<option value="yes" selected?={ s.Filter.Shared == "yes" }>Sudah dibagikan</option>
@@ -160,7 +160,7 @@ templ groupSelect(s listState, oob bool) {
 		if oob {
 			hx-swap-oob="true"
 		}
-		class="rounded-lg border border-slate-300 bg-white px-3 py-2"
+		class="ui-control px-3 py-2"
 	>
 		<option value="">Semua grup</option>
 		for _, g := range s.Groups {
@@ -176,7 +176,7 @@ templ list(s listState) {
 			@ui.Notice(s.Notice)
 		}
 		if len(s.Page.Guests) == 0 {
-			<div class="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-slate-500">
+			<div class="rounded-2xl border border-dashed border-lovoria-control p-8 text-center text-lovoria-muted">
 				if s.Stats.Total == 0 {
 					Belum ada tamu. Ketik nama di kolom "Tambah cepat" di atas, atau tempel daftar dari catatan HP / Excel.
 				} else {
@@ -188,11 +188,11 @@ templ list(s listState) {
 				@layouts.CSRFField()
 				<input type="hidden" name="_method" value="DELETE"/>
 				<div class="flex items-center justify-between gap-2 text-sm">
-					<label class="flex items-center gap-2 text-slate-600">
+					<label class="flex items-center gap-2 text-lovoria-muted">
 						<input type="checkbox" class="h-4 w-4" @change={ fmt.Sprintf("selected = $event.target.checked ? %s : []", idsJSON(s.Page.Guests)) } :checked={ fmt.Sprintf("selected.length === %d", len(s.Page.Guests)) }/>
 						Pilih semua
 					</label>
-					<button type="submit" x-show="selected.length" x-cloak class="rounded-lg bg-red-600 px-3 py-1.5 text-white" x-text="'Hapus ' + selected.length + ' tamu'">Hapus terpilih</button>
+					<button type="submit" x-show="selected.length" x-cloak class="ui-btn ui-btn-danger px-3 py-1.5" x-text="'Hapus ' + selected.length + ' tamu'">Hapus terpilih</button>
 				</div>
 				<ul class="mt-2 space-y-2">
 					for _, g := range s.Page.Guests {
@@ -224,7 +224,7 @@ func idsJSON(gs []Guest) string {
 }
 
 templ row(s listState, g Guest) {
-	<li id={ "guest-" + g.ID.String() } class="flex flex-wrap gap-3 rounded-xl bg-white p-3 shadow-sm ring-1 ring-black/5" x-data={ shareRowData(guestURL(s.W, g.ID, "/shared"), g.SharedAt != nil) }>
+	<li id={ "guest-" + g.ID.String() } class="ui-card flex flex-wrap gap-3 rounded-xl p-3" x-data={ shareRowData(guestURL(s.W, g.ID, "/shared"), g.SharedAt != nil) }>
 		<input type="checkbox" name="ids" value={ g.ID.String() } x-model="selected" aria-label={ "Pilih " + g.Name } class="mt-1 h-4 w-4 flex-none"/>
 		<div class="min-w-0 flex-1">
 			<div class="flex flex-wrap items-center gap-2">
@@ -236,7 +236,7 @@ templ row(s listState, g Guest) {
 					}
 				</span>
 			</div>
-			<p class="mt-0.5 text-sm text-slate-600">
+			<p class="mt-0.5 text-sm text-lovoria-muted">
 				if g.GroupName != "" {
 					{ g.GroupName } ·
 				}
@@ -245,14 +245,14 @@ templ row(s listState, g Guest) {
 					· { displayPhone(g.Phone) }
 				}
 			</p>
-			<p class="mt-0.5 font-mono text-xs text-slate-500">{ g.InvitationCode }</p>
+			<p class="mt-0.5 font-mono text-xs text-lovoria-muted">{ g.InvitationCode }</p>
 			if g.RSVPMessage != "" {
-				<p class="mt-1 break-words text-sm italic text-slate-600">“{ g.RSVPMessage }”</p>
+				<p class="mt-1 break-words text-sm italic text-lovoria-muted">“{ g.RSVPMessage }”</p>
 			}
 		</div>
 		<div class="flex flex-none flex-col items-end gap-1 text-sm">
-			<a href={ templ.SafeURL(guestURL(s.W, g.ID, "/edit")) } hx-get={ guestURL(s.W, g.ID, "/edit") } hx-target="#guest-editor" hx-swap="innerHTML" class="text-primary hover:underline">Ubah</a>
-			<button type="button" hx-delete={ guestURL(s.W, g.ID, "") } hx-include="#guest-filters" hx-target="#guests" hx-swap="outerHTML" hx-confirm={ "Hapus " + g.Name + "?" } class="text-red-600 hover:underline">Hapus</button>
+			<a href={ templ.SafeURL(guestURL(s.W, g.ID, "/edit")) } hx-get={ guestURL(s.W, g.ID, "/edit") } hx-target="#guest-editor" hx-swap="innerHTML" class="text-lovoria-primary hover:underline">Ubah</a>
+			<button type="button" hx-delete={ guestURL(s.W, g.ID, "") } hx-include="#guest-filters" hx-target="#guests" hx-swap="outerHTML" hx-confirm={ "Hapus " + g.Name + "?" } class="text-lovoria-danger hover:underline">Hapus</button>
 		</div>
 		@shareActions(s, g)
 	</li>
@@ -260,22 +260,22 @@ templ row(s listState, g Guest) {
 
 // shareActions: Kirim WA / Salin link / Salin pesan; klik menandai tamu "dibagikan".
 templ shareActions(s listState, g Guest) {
-	<div class="flex w-full flex-wrap items-center gap-2 border-t border-slate-100 pt-2 text-sm">
+	<div class="flex w-full flex-wrap items-center gap-2 border-t border-lovoria-border pt-2 text-sm">
 		<a
 			href={ templ.SafeURL(s.Share.WhatsApp(g)) }
 			target="_blank"
 			rel="noopener"
 			@click="mark()"
-			class="inline-flex items-center gap-1 rounded-lg bg-green-600 px-3 py-1.5 font-medium text-white hover:bg-green-700"
+			class="inline-flex items-center gap-1 rounded-lg bg-whatsapp px-3 py-1.5 font-medium text-white hover:opacity-90"
 		>
 			Kirim WA
 			if g.Phone == "" {
 				<span class="text-xs font-normal opacity-80">(pilih kontak)</span>
 			}
 		</a>
-		<button type="button" x-cloak @click={ "copy(" + jsString(s.Share.Link(g)) + ", 'link')" } class="rounded-lg border border-slate-300 px-3 py-1.5 hover:bg-slate-50" x-text="copied === 'link' ? 'Tersalin ✓' : 'Salin link'">Salin link</button>
-		<button type="button" x-cloak @click={ "copy(" + jsString(s.Share.Message(g)) + ", 'msg')" } class="rounded-lg border border-slate-300 px-3 py-1.5 hover:bg-slate-50" x-text="copied === 'msg' ? 'Tersalin ✓' : 'Salin pesan'">Salin pesan</button>
-		<span x-show="shared" x-cloak class="ml-auto rounded-full bg-sky-100 px-2 py-0.5 text-xs text-sky-800">Sudah dibagikan</span>
+		<button type="button" x-cloak @click={ "copy(" + jsString(s.Share.Link(g)) + ", 'link')" } class="ui-btn ui-btn-secondary px-3 py-1.5" x-text="copied === 'link' ? 'Tersalin ✓' : 'Salin link'">Salin link</button>
+		<button type="button" x-cloak @click={ "copy(" + jsString(s.Share.Message(g)) + ", 'msg')" } class="ui-btn ui-btn-secondary px-3 py-1.5" x-text="copied === 'msg' ? 'Tersalin ✓' : 'Salin pesan'">Salin pesan</button>
+		<span x-show="shared" x-cloak class="ml-auto rounded-full bg-lovoria-info-soft px-2 py-0.5 text-xs text-lovoria-info">Sudah dibagikan</span>
 	</div>
 }
 
@@ -283,13 +283,13 @@ templ pagination(s listState) {
 	if s.Page.Pages() > 1 {
 		<nav class="flex items-center justify-between text-sm" aria-label="Halaman">
 			if s.Page.Page > 1 {
-				<a href={ templ.SafeURL(s.query(s.Page.Page - 1)) } hx-get={ s.query(s.Page.Page - 1) } hx-target="#guests" hx-swap="outerHTML" hx-push-url="true" class="rounded-lg border border-slate-300 bg-white px-3 py-1.5">‹ Sebelumnya</a>
+				<a href={ templ.SafeURL(s.query(s.Page.Page - 1)) } hx-get={ s.query(s.Page.Page - 1) } hx-target="#guests" hx-swap="outerHTML" hx-push-url="true" class="ui-btn ui-btn-secondary px-3 py-1.5">‹ Sebelumnya</a>
 			} else {
 				<span></span>
 			}
-			<span class="text-slate-500">Halaman { strconv.Itoa(s.Page.Page) } dari { strconv.Itoa(s.Page.Pages()) } · { strconv.Itoa(s.Page.Total) } tamu</span>
+			<span class="text-lovoria-muted">Halaman { strconv.Itoa(s.Page.Page) } dari { strconv.Itoa(s.Page.Pages()) } · { strconv.Itoa(s.Page.Total) } tamu</span>
 			if s.Page.Page < s.Page.Pages() {
-				<a href={ templ.SafeURL(s.query(s.Page.Page + 1)) } hx-get={ s.query(s.Page.Page + 1) } hx-target="#guests" hx-swap="outerHTML" hx-push-url="true" class="rounded-lg border border-slate-300 bg-white px-3 py-1.5">Berikutnya ›</a>
+				<a href={ templ.SafeURL(s.query(s.Page.Page + 1)) } hx-get={ s.query(s.Page.Page + 1) } hx-target="#guests" hx-swap="outerHTML" hx-push-url="true" class="ui-btn ui-btn-secondary px-3 py-1.5">Berikutnya ›</a>
 			} else {
 				<span></span>
 			}
@@ -315,7 +315,7 @@ templ editor(w wedding.Wedding, id uuid.UUID, g Guest, f form, link string) {
 		hx-disabled-elt="find button"
 		x-data="contactFill()"
 		x-init="$el.scrollIntoView({ behavior: 'smooth', block: 'start' })"
-		class="scroll-mt-4 space-y-4 rounded-2xl bg-white p-4 shadow-sm ring-2 ring-primary/40 sm:p-5"
+		class="scroll-mt-4 space-y-4 rounded-2xl bg-lovoria-surface p-4 shadow-soft ring-2 ring-lovoria-primary/40 sm:p-5"
 	>
 		@layouts.CSRFField()
 		if id != uuid.Nil {
@@ -329,27 +329,27 @@ templ editor(w wedding.Wedding, id uuid.UUID, g Guest, f form, link string) {
 			}
 		</h3>
 		if link != "" {
-			<p class="break-all rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">Link undangan: <span class="font-mono">{ link }</span></p>
+			<p class="break-all rounded-lg bg-lovoria-bg px-3 py-2 text-sm text-lovoria-muted">Link undangan: <span class="font-mono">{ link }</span></p>
 		}
 		@ui.Input(ui.Field{ID: formID(id) + "-name", Name: "name", Label: "Nama", Type: "text", Value: f.v("name"), Error: f.e("name"), Placeholder: "Bapak Budi & Keluarga", Required: true, MaxLength: 100})
 		<div class="grid gap-4 sm:grid-cols-2">
 			<div>
 				@ui.Input(ui.Field{ID: formID(id) + "-phone", Name: "phone", Label: "No. HP / WhatsApp", Type: "tel", Value: f.v("phone"), Error: f.e("phone"), Placeholder: "0812-3456-7890"})
-				<button type="button" x-show="supported" x-cloak @click="pick()" class="mt-1 text-sm text-primary hover:underline">Pilih dari kontak HP</button>
+				<button type="button" x-show="supported" x-cloak @click="pick()" class="mt-1 text-sm text-lovoria-primary hover:underline">Pilih dari kontak HP</button>
 			</div>
 			@ui.Input(ui.Field{ID: formID(id) + "-email", Name: "email", Label: "Email", Type: "email", Value: f.v("email"), Error: f.e("email")})
 		</div>
 		<div class="grid grid-cols-[1fr_7rem] gap-4">
 			<div>
-				<label for={ formID(id) + "-group" } class="block text-sm font-medium text-slate-800">Grup <span class="font-normal text-slate-400">(opsional)</span></label>
-				<input id={ formID(id) + "-group" } name="group_name" type="text" list="guest-groups" value={ f.v("group_name") } maxlength="50" placeholder="Keluarga, Kantor…" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base"/>
-				<p class="mt-1 text-sm text-red-600">{ f.e("group_name") }</p>
+				<label for={ formID(id) + "-group" } class="block text-sm font-medium text-lovoria-text">Grup <span class="font-normal text-lovoria-muted">(opsional)</span></label>
+				<input id={ formID(id) + "-group" } name="group_name" type="text" list="guest-groups" value={ f.v("group_name") } maxlength="50" placeholder="Keluarga, Kantor…" class="ui-input"/>
+				<p class="mt-1 text-sm text-lovoria-danger">{ f.e("group_name") }</p>
 			</div>
 			@ui.Input(ui.Field{ID: formID(id) + "-pax", Name: "max_pax", Label: "Maks. orang", Type: "number", Value: f.v("max_pax"), Error: f.e("max_pax"), Required: true})
 		</div>
 		@ui.TextArea(ui.Field{ID: formID(id) + "-notes", Name: "notes", Label: "Catatan", Value: f.v("notes"), Error: f.e("notes"), MaxLength: 500}, 2)
 		<div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-			<button type="button" @click="$el.closest('#guest-editor').innerHTML = ''" class="rounded-lg border border-slate-300 px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-50">Batal</button>
+			<button type="button" @click="$el.closest('#guest-editor').innerHTML = ''" class="ui-btn ui-btn-secondary px-4 py-2.5">Batal</button>
 			@ui.PrimaryButton("Simpan")
 		</div>
 	</form>
@@ -359,8 +359,8 @@ templ editor(w wedding.Wedding, id uuid.UUID, g Guest, f form, link string) {
 templ importPage(w wedding.Wedding, errMsg string) {
 	@wedding.Shell(w, "/guests") {
 		<div class="mx-auto max-w-2xl space-y-4">
-			<p><a href={ templ.SafeURL(base(w)) } class="text-sm text-slate-500 hover:underline">‹ Kembali ke daftar tamu</a></p>
-			<div class="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
+			<p><a href={ templ.SafeURL(base(w)) } class="text-sm text-lovoria-muted hover:underline">‹ Kembali ke daftar tamu</a></p>
+			<div class="rounded-xl bg-lovoria-warning-soft px-4 py-3 text-sm text-lovoria-warning">
 				Daftar tamu ada di catatan HP, chat, atau sudah terbuka di Excel?
 				<a href={ templ.SafeURL(base(w) + "/paste") } class="font-medium underline">Tempel daftar saja</a> — lebih cepat, tanpa file.
 			</div>
@@ -378,14 +378,14 @@ templ importPage(w wedding.Wedding, errMsg string) {
 					<label
 						for="import-file"
 						class="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed px-4 py-8 text-center transition"
-						:class="over ? 'border-primary bg-primary/5' : 'border-slate-300 bg-slate-50 hover:border-primary'"
+						:class="over ? 'border-lovoria-primary bg-lovoria-primary-soft' : 'border-lovoria-control bg-lovoria-bg hover:border-lovoria-primary'"
 						@dragover.prevent="over = true"
 						@dragleave.prevent="over = false"
 						@drop.prevent="over = false; $refs.file.files = $event.dataTransfer.files; name = $refs.file.files[0]?.name || ''; name && $el.closest('form').requestSubmit()"
 					>
-						<svg class="h-10 w-10 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0-4 4m4-4 4 4M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"></path></svg>
-						<span class="mt-2 text-base font-semibold text-slate-800" x-text="name ? 'Memproses ' + name + '…' : 'Pilih file CSV'">Pilih file CSV</span>
-						<span class="text-sm text-slate-500" x-show="!name">ketuk di sini, atau seret file ke kotak ini</span>
+						<svg class="h-10 w-10 text-lovoria-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0-4 4m4-4 4 4M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"></path></svg>
+						<span class="mt-2 text-base font-semibold text-lovoria-text" x-text="name ? 'Memproses ' + name + '…' : 'Pilih file CSV'">Pilih file CSV</span>
+						<span class="text-sm text-lovoria-muted" x-show="!name">ketuk di sini, atau seret file ke kotak ini</span>
 						<input
 							id="import-file"
 							x-ref="file"
@@ -401,38 +401,38 @@ templ importPage(w wedding.Wedding, errMsg string) {
 						@ui.PrimaryButton("Lihat pratinjau")
 					</noscript>
 				</form>
-				<h3 class="mt-6 border-t border-slate-100 pt-4 text-sm font-semibold text-slate-800">Belum punya file? Siapkan dalam 3 langkah</h3>
+				<h3 class="mt-6 border-t border-lovoria-border pt-4 text-sm font-semibold text-lovoria-text">Belum punya file? Siapkan dalam 3 langkah</h3>
 				<ol class="mt-2 space-y-3 text-sm">
 					<li class="flex gap-3">
-						<span class="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-primary text-xs font-semibold text-white">1</span>
+						<span class="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-lovoria-primary text-xs font-semibold text-white">1</span>
 						<div>
 							<p class="font-medium">Unduh template</p>
-							<a href={ templ.SafeURL(base(w) + "/import/template") } download class="mt-1 inline-flex items-center rounded-lg border border-slate-300 bg-white px-3 py-1.5 font-medium hover:bg-slate-50">Unduh template (.csv)</a>
+							<a href={ templ.SafeURL(base(w) + "/import/template") } download class="ui-btn ui-btn-secondary mt-1 px-3 py-1.5">Unduh template (.csv)</a>
 						</div>
 					</li>
 					<li class="flex gap-3">
-						<span class="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-primary text-xs font-semibold text-white">2</span>
+						<span class="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-lovoria-primary text-xs font-semibold text-white">2</span>
 						<div class="min-w-0 flex-1">
 							<p class="font-medium">Isi di Excel atau Google Sheets, satu baris satu tamu</p>
-							<p class="text-slate-600">Hanya kolom <b>nama</b> yang wajib. Contoh:</p>
-							<div class="mt-2 overflow-x-auto rounded-lg ring-1 ring-slate-200">
+							<p class="text-lovoria-muted">Hanya kolom <b>nama</b> yang wajib. Contoh:</p>
+							<div class="mt-2 overflow-x-auto rounded-lg ring-1 ring-lovoria-border">
 								<table class="w-full text-left text-xs">
-									<thead class="bg-slate-50 text-slate-500">
+									<thead class="bg-lovoria-bg text-lovoria-muted">
 										<tr><th class="px-2 py-1.5">nama</th><th class="px-2 py-1.5">hp</th><th class="px-2 py-1.5">email</th><th class="px-2 py-1.5">grup</th><th class="px-2 py-1.5">jumlah</th></tr>
 									</thead>
 									<tbody>
-										<tr class="border-t border-slate-100"><td class="px-2 py-1.5">Budi Santoso</td><td class="px-2 py-1.5">0812-3456-7890</td><td class="px-2 py-1.5">budi@email.com</td><td class="px-2 py-1.5">Keluarga</td><td class="px-2 py-1.5">2</td></tr>
-										<tr class="border-t border-slate-100"><td class="px-2 py-1.5">Sari</td><td class="px-2 py-1.5"></td><td class="px-2 py-1.5"></td><td class="px-2 py-1.5">Kantor</td><td class="px-2 py-1.5">1</td></tr>
+										<tr class="border-t border-lovoria-border"><td class="px-2 py-1.5">Budi Santoso</td><td class="px-2 py-1.5">0812-3456-7890</td><td class="px-2 py-1.5">budi@email.com</td><td class="px-2 py-1.5">Keluarga</td><td class="px-2 py-1.5">2</td></tr>
+										<tr class="border-t border-lovoria-border"><td class="px-2 py-1.5">Sari</td><td class="px-2 py-1.5"></td><td class="px-2 py-1.5"></td><td class="px-2 py-1.5">Kantor</td><td class="px-2 py-1.5">1</td></tr>
 									</tbody>
 								</table>
 							</div>
 						</div>
 					</li>
 					<li class="flex gap-3">
-						<span class="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-primary text-xs font-semibold text-white">3</span>
+						<span class="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-lovoria-primary text-xs font-semibold text-white">3</span>
 						<div class="min-w-0 flex-1">
 							<p class="font-medium">Simpan sebagai CSV, lalu unggah di kotak di atas</p>
-							<p class="text-slate-600">Excel: File › Save As › <i>CSV UTF-8</i>. Google Sheets: File › Download › <i>CSV</i>.</p>
+							<p class="text-lovoria-muted">Excel: File › Save As › <i>CSV UTF-8</i>. Google Sheets: File › Download › <i>CSV</i>.</p>
 						</div>
 					</li>
 				</ol>
@@ -444,32 +444,32 @@ templ importPage(w wedding.Wedding, errMsg string) {
 templ previewPage(w wedding.Wedding, p ImportPreview) {
 	@wedding.Shell(w, "/guests") {
 		<div class="mx-auto max-w-3xl space-y-4">
-			<p><a href={ templ.SafeURL(base(w) + "/import") } class="text-sm text-slate-500 hover:underline">‹ Pilih file lain</a></p>
+			<p><a href={ templ.SafeURL(base(w) + "/import") } class="text-sm text-lovoria-muted hover:underline">‹ Pilih file lain</a></p>
 			@ui.Card() {
 				<h2 class="text-lg font-semibold">Pratinjau import</h2>
 				<p class="mt-1 text-sm">
-					<span class="font-medium text-green-700">{ strconv.Itoa(len(p.Valid())) } baris siap diimport</span>
+					<span class="font-medium text-lovoria-success">{ strconv.Itoa(len(p.Valid())) } baris siap diimport</span>
 					if len(p.Invalid()) > 0 {
-						· <span class="font-medium text-red-700">{ strconv.Itoa(len(p.Invalid())) } baris bermasalah (akan dilewati)</span>
+						· <span class="font-medium text-lovoria-danger">{ strconv.Itoa(len(p.Invalid())) } baris bermasalah (akan dilewati)</span>
 					}
 				</p>
 				if len(p.Invalid()) > 0 {
-					<ul class="mt-3 max-h-64 space-y-1 overflow-y-auto rounded-lg bg-red-50 p-3 text-sm text-red-800">
+					<ul class="mt-3 max-h-64 space-y-1 overflow-y-auto rounded-lg bg-lovoria-danger-soft p-3 text-sm text-lovoria-danger">
 						for _, r := range p.Invalid() {
 							<li><span class="font-medium">{ rowLabel(r) }:</span> { errorList(r.Errors) }</li>
 						}
 					</ul>
 				}
 				if len(p.Valid()) > 0 {
-					<div class="mt-3 max-h-80 overflow-auto rounded-lg ring-1 ring-slate-200">
+					<div class="mt-3 max-h-80 overflow-auto rounded-lg ring-1 ring-lovoria-border">
 						<table class="w-full text-left text-sm">
-							<thead class="sticky top-0 bg-slate-50 text-xs text-slate-500">
+							<thead class="sticky top-0 bg-lovoria-bg text-xs text-lovoria-muted">
 								<tr><th class="px-3 py-2">Nama</th><th class="px-3 py-2">HP</th><th class="px-3 py-2">Grup</th><th class="px-3 py-2">Maks.</th></tr>
 							</thead>
 							<tbody>
 								for i, r := range p.Valid() {
 									if i < 100 {
-										<tr class="border-t border-slate-100">
+										<tr class="border-t border-lovoria-border">
 											<td class="px-3 py-1.5">{ r.Input.Name }</td>
 											<td class="px-3 py-1.5">{ r.Input.Phone }</td>
 											<td class="px-3 py-1.5">{ r.Input.GroupName }</td>
@@ -480,7 +480,7 @@ templ previewPage(w wedding.Wedding, p ImportPreview) {
 							</tbody>
 						</table>
 						if len(p.Valid()) > 100 {
-							<p class="bg-slate-50 px-3 py-2 text-xs text-slate-500">… dan { strconv.Itoa(len(p.Valid()) - 100) } baris lainnya</p>
+							<p class="bg-lovoria-bg px-3 py-2 text-xs text-lovoria-muted">… dan { strconv.Itoa(len(p.Valid()) - 100) } baris lainnya</p>
 						}
 					</div>
 					<form method="post" action={ templ.SafeURL(base(w) + "/import/confirm") } class="mt-4">
@@ -545,11 +545,11 @@ templ quickAdd(w wedding.Wedding, f form, focus bool) {
 			hx-swap-oob="true"
 		}
 		x-data="contactFill()"
-		class="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-black/5 sm:p-4"
+		class="ui-card p-3 sm:p-4"
 	>
 		@layouts.CSRFField()
 		<input type="hidden" name="quick" value="1"/>
-		<p class="mb-2 text-sm font-medium">Tambah cepat <span class="font-normal text-slate-500">— ketik lalu tekan Enter, lanjut ke tamu berikutnya</span></p>
+		<p class="mb-2 text-sm font-medium">Tambah cepat <span class="font-normal text-lovoria-muted">— ketik lalu tekan Enter, lanjut ke tamu berikutnya</span></p>
 		<div class="grid grid-cols-2 gap-2 sm:grid-cols-[2fr_1.3fr_1fr_auto]">
 			<input
 				name="name"
@@ -565,21 +565,21 @@ templ quickAdd(w wedding.Wedding, f form, focus bool) {
 					x-data
 					x-init="$el.focus()"
 				}
-				class={ "col-span-2 rounded-lg border bg-white px-3 py-2 text-base sm:col-span-1", templ.KV("border-red-400", f.e("name") != ""), templ.KV("border-slate-300", f.e("name") == "") }
+				class={ "col-span-2 rounded-lg border bg-lovoria-surface px-3 py-2 text-base sm:col-span-1", templ.KV("border-lovoria-danger", f.e("name") != ""), templ.KV("border-lovoria-control", f.e("name") == "") }
 			/>
 			<div class="relative">
-				<input name="phone" type="tel" value={ f.v("phone") } placeholder="No. HP (opsional)" aria-label="No. HP" autocomplete="off" class={ "w-full rounded-lg border bg-white px-3 py-2 text-base", templ.KV("border-red-400", f.e("phone") != ""), templ.KV("border-slate-300", f.e("phone") == "") } :class="supported && 'pr-10'"/>
+				<input name="phone" type="tel" value={ f.v("phone") } placeholder="No. HP (opsional)" aria-label="No. HP" autocomplete="off" class={ "w-full rounded-lg border bg-lovoria-surface px-3 py-2 text-base", templ.KV("border-lovoria-danger", f.e("phone") != ""), templ.KV("border-lovoria-control", f.e("phone") == "") } :class="supported && 'pr-10'"/>
 				@contactButton()
 			</div>
-			<input name="group_name" value={ f.v("group_name") } list="guest-groups" placeholder="Grup" aria-label="Grup" maxlength="50" autocomplete="off" class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-base"/>
-			<button type="submit" class="col-span-2 rounded-lg bg-primary px-4 py-2 font-medium text-white sm:col-span-1">Tambah</button>
+			<input name="group_name" value={ f.v("group_name") } list="guest-groups" placeholder="Grup" aria-label="Grup" maxlength="50" autocomplete="off" class="ui-control px-3 py-2 text-base"/>
+			<button type="submit" class="ui-btn ui-btn-primary col-span-2 px-4 py-2 sm:col-span-1">Tambah</button>
 		</div>
 		if f.e("name") != "" || f.e("phone") != "" {
-			<p class="mt-1 text-sm text-red-600" role="alert">{ f.e("name") } { f.e("phone") }</p>
+			<p class="mt-1 text-sm text-lovoria-danger" role="alert">{ f.e("name") } { f.e("phone") }</p>
 		}
-		<p class="mt-1 text-xs text-slate-500">
+		<p class="mt-1 text-xs text-lovoria-muted">
 			Butuh email, jumlah orang, atau catatan?
-			<a href={ templ.SafeURL(base(w) + "/new") } hx-get={ base(w) + "/new" } hx-target="#guest-editor" hx-swap="innerHTML" class="text-primary hover:underline">Pakai form lengkap</a>
+			<a href={ templ.SafeURL(base(w) + "/new") } hx-get={ base(w) + "/new" } hx-target="#guest-editor" hx-swap="innerHTML" class="text-lovoria-primary hover:underline">Pakai form lengkap</a>
 		</p>
 	</form>
 }
@@ -588,14 +588,14 @@ templ quickAdd(w wedding.Wedding, f form, focus bool) {
 templ pastePage(w wedding.Wedding, text, group, errMsg string, groups []string) {
 	@wedding.Shell(w, "/guests") {
 		<div class="mx-auto max-w-2xl space-y-4">
-			<p><a href={ templ.SafeURL(base(w)) } class="text-sm text-slate-500 hover:underline">‹ Kembali ke daftar tamu</a></p>
+			<p><a href={ templ.SafeURL(base(w)) } class="text-sm text-lovoria-muted hover:underline">‹ Kembali ke daftar tamu</a></p>
 			@ui.Card() {
 				<h2 class="text-lg font-semibold">Tempel daftar tamu</h2>
-				<p class="mt-1 text-sm text-slate-600">
+				<p class="mt-1 text-sm text-lovoria-muted">
 					Salin daftar dari catatan HP, chat WhatsApp, atau kolom Excel / Google Sheets, lalu tempel di bawah.
 					<b>Satu baris untuk satu tamu.</b> Nomor HP boleh ditulis di mana saja dalam baris.
 				</p>
-				<pre class="mt-3 overflow-x-auto rounded-lg bg-slate-50 p-3 text-xs text-slate-600">
+				<pre class="mt-3 overflow-x-auto rounded-lg bg-lovoria-bg p-3 text-xs text-lovoria-muted">
 					Budi Santoso 0812-3456-7890
 					Bu Sari - 081311112222 (2 orang)
 					Pak RT &amp; keluarga
@@ -604,11 +604,11 @@ templ pastePage(w wedding.Wedding, text, group, errMsg string, groups []string) 
 					@layouts.CSRFField()
 					@ui.Alert(errMsg)
 					<label for="paste-text" class="sr-only">Daftar tamu</label>
-					<textarea id="paste-text" name="text" rows="10" required x-ref="text" placeholder="Tempel daftar tamu di sini…" class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base">{ text }</textarea>
-					<button type="button" x-show="supported" x-cloak @click="pick()" class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-50">Pilih dari kontak HP</button>
+					<textarea id="paste-text" name="text" rows="10" required x-ref="text" placeholder="Tempel daftar tamu di sini…" class="ui-control block w-full px-3 py-2 text-base">{ text }</textarea>
+					<button type="button" x-show="supported" x-cloak @click="pick()" class="ui-btn ui-btn-secondary px-3 py-2 text-sm">Pilih dari kontak HP</button>
 					<div>
-						<label for="paste-group" class="block text-sm font-medium text-slate-800">Masukkan ke grup <span class="font-normal text-slate-400">(opsional)</span></label>
-						<input id="paste-group" name="group" value={ group } list="paste-groups" maxlength="50" placeholder="mis. Keluarga pria" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base"/>
+						<label for="paste-group" class="block text-sm font-medium text-lovoria-text">Masukkan ke grup <span class="font-normal text-lovoria-muted">(opsional)</span></label>
+						<input id="paste-group" name="group" value={ group } list="paste-groups" maxlength="50" placeholder="mis. Keluarga pria" class="ui-input"/>
 						<datalist id="paste-groups">
 							for _, g := range groups {
 								<option value={ g }></option>
@@ -626,7 +626,7 @@ templ pastePage(w wedding.Wedding, text, group, errMsg string, groups []string) 
 templ reviewPage(w wedding.Wedding, rows []Input, errs map[int]ValidationError, group string) {
 	@wedding.Shell(w, "/guests") {
 		<div class="mx-auto max-w-3xl space-y-4">
-			<p><a href={ templ.SafeURL(base(w) + "/paste") } class="text-sm text-slate-500 hover:underline">‹ Tempel ulang</a></p>
+			<p><a href={ templ.SafeURL(base(w) + "/paste") } class="text-sm text-lovoria-muted hover:underline">‹ Tempel ulang</a></p>
 			<form method="post" action={ templ.SafeURL(base(w) + "/paste/confirm") } x-data={ fmt.Sprintf("{ count: %d }", len(rows)) } class="space-y-3">
 				@layouts.CSRFField()
 				<input type="hidden" name="group" value={ group }/>
@@ -635,7 +635,7 @@ templ reviewPage(w wedding.Wedding, rows []Input, errs map[int]ValidationError, 
 					if len(errs) > 0 {
 						@ui.Alert(fmt.Sprintf("%d baris perlu diperbaiki (ditandai merah). Perbaiki atau hapus barisnya, lalu simpan lagi.", len(errs)))
 					} else {
-						<p class="text-sm text-slate-600">Ubah langsung bila ada yang keliru. Hapus baris yang bukan tamu dengan tombol ✕.</p>
+						<p class="text-sm text-lovoria-muted">Ubah langsung bila ada yang keliru. Hapus baris yang bukan tamu dengan tombol ✕.</p>
 					}
 				</div>
 				<ol class="space-y-2" x-ref="list">
@@ -646,9 +646,9 @@ templ reviewPage(w wedding.Wedding, rows []Input, errs map[int]ValidationError, 
 				<template x-ref="blank">
 					@reviewRow(Input{GroupName: group}, nil)
 				</template>
-				<button type="button" @click="$refs.list.insertAdjacentHTML('beforeend', $refs.blank.innerHTML); count++" class="text-sm text-primary hover:underline">+ Tambah baris</button>
-				<div class="sticky bottom-0 -mx-4 border-t border-slate-200 bg-slate-50/95 px-4 py-3 backdrop-blur">
-					<button type="submit" class="w-full rounded-lg bg-primary px-4 py-2.5 font-medium text-white" x-text="'Simpan ' + count + ' tamu'">Simpan</button>
+				<button type="button" @click="$refs.list.insertAdjacentHTML('beforeend', $refs.blank.innerHTML); count++" class="text-sm text-lovoria-primary hover:underline">+ Tambah baris</button>
+				<div class="sticky bottom-0 -mx-4 border-t border-lovoria-border bg-lovoria-bg/95 px-4 py-3 backdrop-blur">
+					<button type="submit" class="ui-btn ui-btn-primary w-full px-4 py-2.5" x-text="'Simpan ' + count + ' tamu'">Simpan</button>
 				</div>
 			</form>
 		</div>
@@ -656,19 +656,19 @@ templ reviewPage(w wedding.Wedding, rows []Input, errs map[int]ValidationError, 
 }
 
 templ reviewRow(in Input, errs ValidationError) {
-	<li class={ "rounded-xl bg-white p-3 shadow-sm ring-1", templ.KV("ring-red-300", len(errs) > 0), templ.KV("ring-black/5", len(errs) == 0) }>
+	<li class={ "rounded-xl bg-lovoria-surface p-3 shadow-soft ring-1", templ.KV("ring-lovoria-danger/50", len(errs) > 0), templ.KV("ring-lovoria-border", len(errs) == 0) }>
 		<div class="flex gap-2">
-			<input name="name" value={ in.Name } placeholder="Nama" aria-label="Nama" maxlength="100" class={ "min-w-0 flex-1 rounded-lg border px-2 py-1.5 text-base", templ.KV("border-red-400", errs["name"] != ""), templ.KV("border-slate-300", errs["name"] == "") }/>
-			<button type="button" @click="$el.closest('li').remove(); count--" aria-label="Hapus baris" class="h-9 w-9 flex-none rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50">✕</button>
+			<input name="name" value={ in.Name } placeholder="Nama" aria-label="Nama" maxlength="100" class={ "min-w-0 flex-1 rounded-lg border px-2 py-1.5 text-base", templ.KV("border-lovoria-danger", errs["name"] != ""), templ.KV("border-lovoria-control", errs["name"] == "") }/>
+			<button type="button" @click="$el.closest('li').remove(); count--" aria-label="Hapus baris" class="h-9 w-9 flex-none rounded-lg border border-lovoria-border text-lovoria-muted hover:bg-lovoria-subtle">✕</button>
 		</div>
 		<div class="mt-2 grid grid-cols-[1.4fr_1fr_4rem] gap-2">
-			<input name="phone" type="tel" value={ in.Phone } placeholder="No. HP" aria-label="No. HP" class={ "min-w-0 rounded-lg border px-2 py-1.5 text-sm", templ.KV("border-red-400", errs["phone"] != ""), templ.KV("border-slate-300", errs["phone"] == "") }/>
-			<input name="group_name" value={ in.GroupName } placeholder="Grup" aria-label="Grup" maxlength="50" class="min-w-0 rounded-lg border border-slate-300 px-2 py-1.5 text-sm"/>
-			<input name="max_pax" type="number" min="1" max="20" value={ orOne(in.MaxPax) } aria-label="Jumlah orang" title="Jumlah orang" class={ "min-w-0 rounded-lg border px-2 py-1.5 text-sm", templ.KV("border-red-400", errs["max_pax"] != ""), templ.KV("border-slate-300", errs["max_pax"] == "") }/>
+			<input name="phone" type="tel" value={ in.Phone } placeholder="No. HP" aria-label="No. HP" class={ "min-w-0 rounded-lg border px-2 py-1.5 text-sm", templ.KV("border-lovoria-danger", errs["phone"] != ""), templ.KV("border-lovoria-control", errs["phone"] == "") }/>
+			<input name="group_name" value={ in.GroupName } placeholder="Grup" aria-label="Grup" maxlength="50" class="ui-control min-w-0 px-2 py-1.5 text-sm"/>
+			<input name="max_pax" type="number" min="1" max="20" value={ orOne(in.MaxPax) } aria-label="Jumlah orang" title="Jumlah orang" class={ "min-w-0 rounded-lg border px-2 py-1.5 text-sm", templ.KV("border-lovoria-danger", errs["max_pax"] != ""), templ.KV("border-lovoria-control", errs["max_pax"] == "") }/>
 		</div>
 		<input type="hidden" name="email" value={ in.Email }/>
 		if len(errs) > 0 {
-			<p class="mt-1 text-xs text-red-600">{ errorList(errs) }</p>
+			<p class="mt-1 text-xs text-lovoria-danger">{ errorList(errs) }</p>
 		}
 	</li>
 }
@@ -676,7 +676,7 @@ templ reviewRow(in Input, errs ValidationError) {
 // contactButton: ikon kontak di dalam kolom No. HP (Tambah cepat); hanya
 // tampil bila browser mendukung Contact Picker API (Android).
 templ contactButton() {
-	<button type="button" x-show="supported" x-cloak @click="pick()" aria-label="Pilih dari kontak HP" title="Pilih dari kontak HP" class="absolute inset-y-0 right-0 flex items-center px-3 text-slate-500 hover:text-primary">
+	<button type="button" x-show="supported" x-cloak @click="pick()" aria-label="Pilih dari kontak HP" title="Pilih dari kontak HP" class="absolute inset-y-0 right-0 flex items-center px-3 text-lovoria-muted hover:text-lovoria-primary">
 		<svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-1a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v1M10 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM19 8v6M22 11h-6"></path></svg>
 	</button>
 }

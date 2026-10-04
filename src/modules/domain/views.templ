@@ -20,10 +20,10 @@ type pageState struct {
 func base(w wedding.Wedding) string { return w.DashboardURL("/domain") }
 
 var statusBadge = map[string]string{
-	StatusPending: "bg-amber-100 text-amber-800",
-	StatusActive:  "bg-green-100 text-green-800",
-	StatusFailed:  "bg-red-100 text-red-700",
-	StatusRemoved: "bg-slate-200 text-slate-600",
+	StatusPending: "bg-lovoria-warning-soft text-lovoria-warning",
+	StatusActive:  "bg-lovoria-success-soft text-lovoria-success",
+	StatusFailed:  "bg-lovoria-danger-soft text-lovoria-danger",
+	StatusRemoved: "bg-lovoria-border text-lovoria-muted",
 }
 
 var statusHint = map[string]string{
@@ -41,13 +41,13 @@ templ page(s pageState) {
 
 templ section(s pageState) {
 	<section id="domain" class="space-y-4">
-		<p class="text-sm text-slate-600">Pakai domain sendiri (mis. <span class="font-medium">www.samuelsarah.com</span>) untuk undangan Anda. Domain dibeli terpisah di penyedia domain (Niagahoster, Rumahweb, GoDaddy, dll.).</p>
+		<p class="text-sm text-lovoria-muted">Pakai domain sendiri (mis. <span class="font-medium">www.samuelsarah.com</span>) untuk undangan Anda. Domain dibeli terpisah di penyedia domain (Niagahoster, Rumahweb, GoDaddy, dll.).</p>
 		@ui.Notice(s.Notice)
 		@ui.Alert(s.Error)
 		if !s.Enabled && s.Domain == nil {
 			@ui.Card() {
 				<p class="font-medium">Custom domain belum tersedia</p>
-				<p class="mt-1 text-sm text-slate-600">Fitur ini belum diaktifkan di server Lovoria. Undangan tetap bisa dibagikan lewat alamat Lovoria.</p>
+				<p class="mt-1 text-sm text-lovoria-muted">Fitur ini belum diaktifkan di server Lovoria. Undangan tetap bisa dibagikan lewat alamat Lovoria.</p>
 			}
 		} else if s.Domain == nil {
 			@addForm(s)
@@ -72,18 +72,18 @@ templ status(s pageState, d Domain) {
 	@ui.Card() {
 		<div class="flex flex-wrap items-center justify-between gap-3">
 			<div class="min-w-0">
-				<p class="text-xs uppercase tracking-wide text-slate-400">Domain</p>
+				<p class="text-xs uppercase tracking-wide text-lovoria-muted">Domain</p>
 				<p class="mt-1 break-all text-lg font-semibold">{ d.Domain }</p>
 			</div>
 			<span class={ "rounded-full px-3 py-1 text-sm font-medium", statusBadge[d.Status] }>{ StatusLabel(d.Status) }</span>
 		</div>
-		<p class="mt-3 text-sm text-slate-600">{ statusHint[d.Status] }</p>
+		<p class="mt-3 text-sm text-lovoria-muted">{ statusHint[d.Status] }</p>
 		if d.Active() {
-			<a href={ templ.SafeURL("https://" + d.Domain) } target="_blank" rel="noopener" class="mt-3 inline-block text-sm font-medium text-primary hover:underline">Buka https://{ d.Domain } ↗</a>
+			<a href={ templ.SafeURL("https://" + d.Domain) } target="_blank" rel="noopener" class="mt-3 inline-block text-sm font-medium text-lovoria-primary hover:underline">Buka https://{ d.Domain } ↗</a>
 		}
 		if len(d.Errors) > 0 && !d.Active() {
-			<div class="mt-3 rounded-lg bg-slate-50 p-3 text-xs text-slate-600">
-				<p class="font-medium text-slate-700">Pesan dari Cloudflare:</p>
+			<div class="mt-3 rounded-lg bg-lovoria-bg p-3 text-xs text-lovoria-muted">
+				<p class="font-medium text-lovoria-text">Pesan dari Cloudflare:</p>
 				<ul class="mt-1 list-disc space-y-0.5 pl-4">
 					for _, e := range d.Errors {
 						<li class="break-words">{ e }</li>
@@ -92,19 +92,19 @@ templ status(s pageState, d Domain) {
 			</div>
 		}
 		if d.LastCheckedAt != nil {
-			<p class="mt-3 text-xs text-slate-400">Terakhir dicek: { web.FormatDateID(*d.LastCheckedAt) } { d.LastCheckedAt.Format("15.04") }</p>
+			<p class="mt-3 text-xs text-lovoria-muted">Terakhir dicek: { web.FormatDateID(*d.LastCheckedAt) } { d.LastCheckedAt.Format("15.04") }</p>
 		}
 		<div class="mt-4 flex flex-wrap gap-2">
 			if !d.Active() && s.Enabled {
 				<form method="post" action={ templ.SafeURL(base(s.W) + "/check") } hx-post={ base(s.W) + "/check" } hx-target="#domain" hx-swap="outerHTML" hx-disabled-elt="find button">
 					@layouts.CSRFField()
-					<button type="submit" class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white">Cek ulang</button>
+					<button type="submit" class="ui-btn ui-btn-primary px-4 py-2 text-sm">Cek ulang</button>
 				</form>
 			}
 			<form method="post" action={ templ.SafeURL(base(s.W)) } hx-delete={ base(s.W) } hx-target="#domain" hx-swap="outerHTML" hx-confirm={ "Hapus domain " + d.Domain + "? Undangan kembali memakai alamat Lovoria." }>
 				@layouts.CSRFField()
 				<input type="hidden" name="_method" value="DELETE"/>
-				<button type="submit" class="rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50">Hapus domain</button>
+				<button type="submit" class="rounded-lg border border-lovoria-danger/30 px-4 py-2 text-sm font-medium text-lovoria-danger hover:bg-lovoria-danger-soft">Hapus domain</button>
 			</form>
 		</div>
 	}
@@ -117,28 +117,28 @@ templ status(s pageState, d Domain) {
 templ instructions(s pageState, d Domain) {
 	@ui.Card() {
 		<h2 class="font-semibold">Cara menghubungkan domain</h2>
-		<ol class="mt-3 list-decimal space-y-2 pl-5 text-sm text-slate-700">
+		<ol class="mt-3 list-decimal space-y-2 pl-5 text-sm text-lovoria-text">
 			<li>Masuk ke akun penyedia domain Anda, buka pengaturan <span class="font-medium">DNS</span> / <span class="font-medium">DNS Management</span> untuk domain ini.</li>
 			<li>Tambahkan record baru dengan isian berikut:</li>
 		</ol>
-		<dl class="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 rounded-lg bg-slate-50 p-3 text-sm">
-			<dt class="text-slate-500">Type</dt>
+		<dl class="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 rounded-lg bg-lovoria-bg p-3 text-sm">
+			<dt class="text-lovoria-muted">Type</dt>
 			<dd class="font-mono font-semibold">CNAME</dd>
-			<dt class="text-slate-500">Host / Name</dt>
+			<dt class="text-lovoria-muted">Host / Name</dt>
 			<dd class="font-mono font-semibold">{ CNAMEHost(d.Domain) }</dd>
-			<dt class="text-slate-500">Value / Target</dt>
+			<dt class="text-lovoria-muted">Value / Target</dt>
 			<dd class="break-all font-mono font-semibold">{ s.Target }</dd>
-			<dt class="text-slate-500">TTL</dt>
+			<dt class="text-lovoria-muted">TTL</dt>
 			<dd class="font-mono">Auto / 3600</dd>
 		</dl>
-		<ol start="3" class="mt-3 list-decimal space-y-2 pl-5 text-sm text-slate-700">
+		<ol start="3" class="mt-3 list-decimal space-y-2 pl-5 text-sm text-lovoria-text">
 			<li>Hapus record lain dengan Host yang sama (A, AAAA, atau CNAME lama) bila ada.</li>
 			<li>Simpan, tunggu beberapa menit, lalu klik <span class="font-medium">Cek ulang</span>.</li>
 		</ol>
-		<ul class="mt-3 space-y-1 text-xs text-slate-500">
+		<ul class="mt-3 space-y-1 text-xs text-lovoria-muted">
 			<li>• Memakai Cloudflare untuk DNS domain ini? Setel record ke <span class="font-medium">DNS only</span> (awan abu-abu).</li>
 			if IsApex(d.Domain) {
-				<li class="text-amber-700">• Ini domain utama tanpa www. Tidak semua penyedia mendukung CNAME di domain utama (butuh "CNAME flattening" / ALIAS). Bila tidak bisa, hapus domain ini lalu daftarkan <span class="font-medium">www.{ d.Domain }</span>.</li>
+				<li class="text-lovoria-warning">• Ini domain utama tanpa www. Tidak semua penyedia mendukung CNAME di domain utama (butuh "CNAME flattening" / ALIAS). Bila tidak bisa, hapus domain ini lalu daftarkan <span class="font-medium">www.{ d.Domain }</span>.</li>
 			}
 		</ul>
 	}

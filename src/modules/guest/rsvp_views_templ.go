@@ -170,7 +170,7 @@ func rsvpList(s rsvpState) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if len(s.Page.Guests) == 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div class=\"rounded-2xl border border-dashed border-slate-300 p-8 text-center text-slate-500\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div class=\"rounded-2xl border border-dashed border-lovoria-control p-8 text-center text-lovoria-muted\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -195,7 +195,7 @@ func rsvpList(s rsvpState) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			for _, g := range s.Page.Guests {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<li class=\"rounded-xl bg-white p-3 shadow-sm ring-1 ring-black/5\"><div class=\"flex flex-wrap items-center gap-2\"><span class=\"break-words font-medium\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<li class=\"ui-card rounded-xl p-3\"><div class=\"flex flex-wrap items-center gap-2\"><span class=\"break-words font-medium\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -266,7 +266,7 @@ func rsvpList(s rsvpState) templ.Component {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</span></div><p class=\"mt-0.5 text-sm text-slate-500\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</span></div><p class=\"mt-0.5 text-sm text-lovoria-muted\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -299,14 +299,14 @@ func rsvpList(s rsvpState) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				if g.RSVPMessage != "" {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<p class=\"mt-1 break-words text-sm italic text-slate-600\">“")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<p class=\"mt-1 break-words text-sm italic text-lovoria-muted\">“")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var11 string
 					templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(g.RSVPMessage)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/rsvp_views.templ`, Line: 97, Col: 83}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/rsvp_views.templ`, Line: 97, Col: 87}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 					if templ_7745c5c3_Err != nil {
@@ -345,7 +345,7 @@ func rsvpList(s rsvpState) templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "\" class=\"rounded-lg border border-slate-300 bg-white px-3 py-1.5\">‹ Sebelumnya</a> ")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "\" class=\"ui-btn ui-btn-secondary px-3 py-1.5\">‹ Sebelumnya</a> ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -355,14 +355,14 @@ func rsvpList(s rsvpState) templ.Component {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<span class=\"text-slate-500\">Halaman ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<span class=\"text-lovoria-muted\">Halaman ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var13 string
 				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(s.Page.Page))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/rsvp_views.templ`, Line: 109, Col: 69}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/rsvp_views.templ`, Line: 109, Col: 73}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 				if templ_7745c5c3_Err != nil {
@@ -375,7 +375,7 @@ func rsvpList(s rsvpState) templ.Component {
 				var templ_7745c5c3_Var14 string
 				templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(s.Page.Pages()))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/rsvp_views.templ`, Line: 109, Col: 107}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/rsvp_views.templ`, Line: 109, Col: 111}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 				if templ_7745c5c3_Err != nil {
@@ -399,7 +399,7 @@ func rsvpList(s rsvpState) templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "\" class=\"rounded-lg border border-slate-300 bg-white px-3 py-1.5\">Berikutnya ›</a>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "\" class=\"ui-btn ui-btn-secondary px-3 py-1.5\">Berikutnya ›</a>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -444,7 +444,7 @@ func rsvpFilter(s rsvpState, status, label string) templ.Component {
 			templ_7745c5c3_Var16 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		var templ_7745c5c3_Var17 = []any{"rounded-full px-3 py-1.5", templ.KV("bg-primary text-white", s.Status == status), templ.KV("bg-white text-slate-600 ring-1 ring-slate-300", s.Status != status)}
+		var templ_7745c5c3_Var17 = []any{"rounded-full px-3 py-1.5", templ.KV("bg-lovoria-primary text-white", s.Status == status), templ.KV("bg-lovoria-surface text-lovoria-muted ring-1 ring-lovoria-border", s.Status != status)}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var17...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

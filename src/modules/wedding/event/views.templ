@@ -71,14 +71,14 @@ templ page(s pageState) {
 templ section(s pageState) {
 	<section id="events" class="space-y-4">
 		<div class="flex flex-wrap items-center justify-between gap-3">
-			<p class="text-sm text-slate-600">Detail acara yang tampil di undangan. Jam dalam { wedding.TimezoneAbbr(s.W.Timezone) }.</p>
+			<p class="text-sm text-lovoria-muted">Detail acara yang tampil di undangan. Jam dalam { wedding.TimezoneAbbr(s.W.Timezone) }.</p>
 			<div class="flex gap-2">
 				if len(s.Events) > 1 {
 					<form method="post" action={ templ.SafeURL(base(s.W) + "/order") } hx-patch={ base(s.W) + "/order" } hx-target="#events" hx-swap="outerHTML">
 						@layouts.CSRFField()
 						<input type="hidden" name="_method" value="PATCH"/>
 						<input type="hidden" name="by" value="date"/>
-						<button type="submit" class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-50">Urutkan per tanggal</button>
+						<button type="submit" class="ui-btn ui-btn-secondary px-3 py-2 text-sm">Urutkan per tanggal</button>
 					</form>
 				}
 				if !s.Creating {
@@ -87,7 +87,7 @@ templ section(s pageState) {
 						hx-get={ base(s.W) + "/new" }
 						hx-target="#event-editor"
 						hx-swap="innerHTML"
-						class="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white"
+						class="ui-btn ui-btn-primary px-3 py-2 text-sm"
 					>+ Tambah acara</a>
 				}
 			</div>
@@ -98,7 +98,7 @@ templ section(s pageState) {
 			}
 		</div>
 		if len(s.Events) == 0 && !s.Creating {
-			<div class="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-slate-500">
+			<div class="rounded-2xl border border-dashed border-lovoria-control p-8 text-center text-lovoria-muted">
 				Belum ada acara. Tambahkan akad, resepsi, atau acara lain.
 			</div>
 		}
@@ -115,38 +115,38 @@ templ section(s pageState) {
 }
 
 templ item(w wedding.Wedding, e Event, first, last bool) {
-	<li id={ "event-" + e.ID.String() } class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 sm:p-5">
+	<li id={ "event-" + e.ID.String() } class="ui-card p-4 sm:p-5">
 		<div class="flex items-start gap-3">
 			<div class="min-w-0 flex-1">
-				<p class="text-xs font-medium uppercase tracking-wide text-primary">{ TypeLabel(e.Type) }</p>
+				<p class="text-xs font-medium uppercase tracking-wide text-lovoria-primary">{ TypeLabel(e.Type) }</p>
 				<h3 class="mt-0.5 break-words text-lg font-semibold">{ e.Name }</h3>
-				<p class="mt-1 text-sm text-slate-700">{ web.FormatDateID(e.Date) }</p>
-				<p class="text-sm text-slate-700">{ timeRange(w, e) }</p>
+				<p class="mt-1 text-sm text-lovoria-text">{ web.FormatDateID(e.Date) }</p>
+				<p class="text-sm text-lovoria-text">{ timeRange(w, e) }</p>
 				<p class="mt-2 break-words text-sm font-medium">{ e.Venue }</p>
 				if e.Address != "" {
-					<p class="break-words text-sm text-slate-600">{ e.Address }</p>
+					<p class="break-words text-sm text-lovoria-muted">{ e.Address }</p>
 				}
 				if e.MapsURL != "" {
-					<a href={ templ.SafeURL(e.MapsURL) } target="_blank" rel="noopener noreferrer" class="mt-1 inline-block text-sm text-primary hover:underline">Buka di Google Maps ↗</a>
+					<a href={ templ.SafeURL(e.MapsURL) } target="_blank" rel="noopener noreferrer" class="mt-1 inline-block text-sm text-lovoria-primary hover:underline">Buka di Google Maps ↗</a>
 				}
 				if e.Description != "" {
-					<p class="mt-2 whitespace-pre-line break-words text-sm text-slate-600">{ e.Description }</p>
+					<p class="mt-2 whitespace-pre-line break-words text-sm text-lovoria-muted">{ e.Description }</p>
 				}
 			</div>
 			@moveButtons(itemURL(w, e.ID, "/position"), first, last)
 		</div>
-		<div class="mt-3 flex gap-4 border-t border-slate-100 pt-3 text-sm">
+		<div class="mt-3 flex gap-4 border-t border-lovoria-border pt-3 text-sm">
 			<a
 				href={ templ.SafeURL(itemURL(w, e.ID, "/edit")) }
 				hx-get={ itemURL(w, e.ID, "/edit") }
 				hx-target={ "#event-" + e.ID.String() }
 				hx-swap="outerHTML"
-				class="font-medium text-primary hover:underline"
+				class="font-medium text-lovoria-primary hover:underline"
 			>Ubah</a>
 			<form method="post" action={ templ.SafeURL(itemURL(w, e.ID, "")) } hx-delete={ itemURL(w, e.ID, "") } hx-target="#events" hx-swap="outerHTML" hx-confirm={ "Hapus acara \"" + e.Name + "\"?" }>
 				@layouts.CSRFField()
 				<input type="hidden" name="_method" value="DELETE"/>
-				<button type="submit" class="text-red-600 hover:underline">Hapus</button>
+				<button type="submit" class="text-lovoria-danger hover:underline">Hapus</button>
 			</form>
 		</div>
 	</li>
@@ -160,7 +160,7 @@ templ moveButtons(url string, first, last bool) {
 				@layouts.CSRFField()
 				<input type="hidden" name="_method" value="PATCH"/>
 				<input type="hidden" name="direction" value={ d.Dir }/>
-				<button type="submit" disabled?={ d.Disabled } aria-label={ d.Label } title={ d.Label } class="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-30">{ d.Icon }</button>
+				<button type="submit" disabled?={ d.Disabled } aria-label={ d.Label } title={ d.Label } class="flex h-9 w-9 items-center justify-center rounded-lg border border-lovoria-border text-lovoria-muted hover:bg-lovoria-subtle disabled:opacity-30">{ d.Icon }</button>
 			</form>
 		}
 	</div>
@@ -188,7 +188,7 @@ templ editor(w wedding.Wedding, id uuid.UUID, f form) {
 		hx-target="#events"
 		hx-swap="outerHTML"
 		hx-disabled-elt="find button"
-		class="space-y-4 rounded-2xl bg-white p-4 shadow-sm ring-2 ring-primary/40 sm:p-5"
+		class="space-y-4 rounded-2xl bg-lovoria-surface p-4 shadow-soft ring-2 ring-lovoria-primary/40 sm:p-5"
 	>
 		@layouts.CSRFField()
 		if id != uuid.Nil {
@@ -213,7 +213,7 @@ templ editor(w wedding.Wedding, id uuid.UUID, f form) {
 		@ui.Input(ui.Field{ID: formID(id) + "-maps", Name: "maps_url", Label: "Link Google Maps", Type: "url", Value: f.v("maps_url"), Error: f.e("maps_url"), Placeholder: "https://maps.app.goo.gl/…", Hint: "Salin dari tombol Bagikan di Google Maps."})
 		@ui.TextArea(ui.Field{ID: formID(id) + "-description", Name: "description", Label: "Keterangan", Value: f.v("description"), Error: f.e("description"), MaxLength: 1000, Placeholder: "Dress code, info parkir, dll."}, 2)
 		<div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-			<a href={ templ.SafeURL(base(w)) } hx-get={ base(w) } hx-target="#events" hx-swap="outerHTML" class="rounded-lg border border-slate-300 px-4 py-2.5 text-center font-medium text-slate-700 hover:bg-slate-50">Batal</a>
+			<a href={ templ.SafeURL(base(w)) } hx-get={ base(w) } hx-target="#events" hx-swap="outerHTML" class="ui-btn ui-btn-secondary px-4 py-2.5 text-center">Batal</a>
 			@ui.PrimaryButton("Simpan")
 		</div>
 	</form>

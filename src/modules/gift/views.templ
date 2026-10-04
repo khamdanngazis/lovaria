@@ -54,14 +54,14 @@ templ page(s pageState) {
 templ section(s pageState) {
 	<section id="gifts" class="space-y-4">
 		<div class="flex flex-wrap items-center justify-between gap-3">
-			<p class="text-sm text-slate-600">Rekening, e-wallet, atau alamat untuk tamu yang ingin memberi tanda kasih. Bagian ini tidak tampil di undangan bila kosong.</p>
+			<p class="text-sm text-lovoria-muted">Rekening, e-wallet, atau alamat untuk tamu yang ingin memberi tanda kasih. Bagian ini tidak tampil di undangan bila kosong.</p>
 			if !s.Creating {
 				<a
 					href={ templ.SafeURL(base(s.W) + "/new") }
 					hx-get={ base(s.W) + "/new" }
 					hx-target="#gift-editor"
 					hx-swap="innerHTML"
-					class="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white"
+					class="ui-btn ui-btn-primary px-3 py-2 text-sm"
 				>+ Tambah</a>
 			}
 		</div>
@@ -71,7 +71,7 @@ templ section(s pageState) {
 			}
 		</div>
 		if len(s.Accounts) == 0 && !s.Creating {
-			<div class="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-slate-500">
+			<div class="rounded-2xl border border-dashed border-lovoria-control p-8 text-center text-lovoria-muted">
 				Belum ada rekening atau alamat.
 			</div>
 		}
@@ -88,19 +88,19 @@ templ section(s pageState) {
 }
 
 templ item(w wedding.Wedding, a Account, first, last bool) {
-	<li id={ "gift-" + a.ID.String() } class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
+	<li id={ "gift-" + a.ID.String() } class="ui-card p-4">
 		<div class="flex items-start gap-3">
 			<div class="min-w-0 flex-1">
-				<p class="text-xs font-medium uppercase tracking-wide text-primary">{ TypeLabel(a.Type) }</p>
+				<p class="text-xs font-medium uppercase tracking-wide text-lovoria-primary">{ TypeLabel(a.Type) }</p>
 				if a.Type == TypeAddress {
 					<p class="mt-1 whitespace-pre-line break-words text-sm">{ a.Address }</p>
 					if a.AccountName != "" {
-						<p class="mt-1 text-sm text-slate-600">Penerima: { a.AccountName }</p>
+						<p class="mt-1 text-sm text-lovoria-muted">Penerima: { a.AccountName }</p>
 					}
 				} else {
 					<p class="mt-0.5 font-semibold">{ a.Provider }</p>
 					<p class="font-mono text-lg tracking-wide">{ a.AccountNumber }</p>
-					<p class="text-sm text-slate-600">a.n. { a.AccountName }</p>
+					<p class="text-sm text-lovoria-muted">a.n. { a.AccountName }</p>
 				}
 			</div>
 			<div class="flex flex-col gap-1">
@@ -109,17 +109,17 @@ templ item(w wedding.Wedding, a Account, first, last bool) {
 						@layouts.CSRFField()
 						<input type="hidden" name="_method" value="PATCH"/>
 						<input type="hidden" name="direction" value={ d.Dir }/>
-						<button type="submit" disabled?={ d.Disabled } aria-label={ d.Label } title={ d.Label } class="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-30">{ d.Icon }</button>
+						<button type="submit" disabled?={ d.Disabled } aria-label={ d.Label } title={ d.Label } class="flex h-9 w-9 items-center justify-center rounded-lg border border-lovoria-border text-lovoria-muted hover:bg-lovoria-subtle disabled:opacity-30">{ d.Icon }</button>
 					</form>
 				}
 			</div>
 		</div>
-		<div class="mt-3 flex gap-4 border-t border-slate-100 pt-3 text-sm">
-			<a href={ templ.SafeURL(itemURL(w, a.ID, "/edit")) } hx-get={ itemURL(w, a.ID, "/edit") } hx-target={ "#gift-" + a.ID.String() } hx-swap="outerHTML" class="font-medium text-primary hover:underline">Ubah</a>
+		<div class="mt-3 flex gap-4 border-t border-lovoria-border pt-3 text-sm">
+			<a href={ templ.SafeURL(itemURL(w, a.ID, "/edit")) } hx-get={ itemURL(w, a.ID, "/edit") } hx-target={ "#gift-" + a.ID.String() } hx-swap="outerHTML" class="font-medium text-lovoria-primary hover:underline">Ubah</a>
 			<form method="post" action={ templ.SafeURL(itemURL(w, a.ID, "")) } hx-delete={ itemURL(w, a.ID, "") } hx-target="#gifts" hx-swap="outerHTML" hx-confirm="Hapus data ini?">
 				@layouts.CSRFField()
 				<input type="hidden" name="_method" value="DELETE"/>
-				<button type="submit" class="text-red-600 hover:underline">Hapus</button>
+				<button type="submit" class="text-lovoria-danger hover:underline">Hapus</button>
 			</form>
 		</div>
 	</li>
@@ -148,24 +148,24 @@ templ editor(w wedding.Wedding, id uuid.UUID, f form) {
 		hx-swap="outerHTML"
 		hx-disabled-elt="find button"
 		x-data={ alpineType(f.v("type")) }
-		class="space-y-4 rounded-2xl bg-white p-4 shadow-sm ring-2 ring-primary/40 sm:p-5"
+		class="space-y-4 rounded-2xl bg-lovoria-surface p-4 shadow-soft ring-2 ring-lovoria-primary/40 sm:p-5"
 	>
 		@layouts.CSRFField()
 		if id != uuid.Nil {
 			<input type="hidden" name="_method" value="PATCH"/>
 		}
 		<fieldset>
-			<legend class="block text-sm font-medium text-slate-800">Jenis</legend>
+			<legend class="block text-sm font-medium text-lovoria-text">Jenis</legend>
 			<div class="mt-1 grid grid-cols-1 gap-2 sm:grid-cols-3">
 				for _, t := range Types {
-					<label class="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-						<input type="radio" name="type" value={ t.ID } checked?={ f.v("type") == t.ID } x-model="type" class="accent-primary"/>
+					<label class="flex cursor-pointer items-center gap-2 rounded-lg border border-lovoria-control px-3 py-2 text-sm has-[:checked]:border-lovoria-primary has-[:checked]:bg-lovoria-primary-soft">
+						<input type="radio" name="type" value={ t.ID } checked?={ f.v("type") == t.ID } x-model="type" class="accent-lovoria-primary"/>
 						{ t.Label }
 					</label>
 				}
 			</div>
 			if f.e("type") != "" {
-				<p class="mt-1 text-sm text-red-600">{ f.e("type") }</p>
+				<p class="mt-1 text-sm text-lovoria-danger">{ f.e("type") }</p>
 			}
 		</fieldset>
 		<div x-show="type !== 'address'" class="space-y-4">
@@ -187,7 +187,7 @@ templ editor(w wedding.Wedding, id uuid.UUID, f form) {
 			@ui.TextArea(ui.Field{ID: formID(id) + "-address", Name: "address", Label: "Alamat kirim hadiah", Value: f.v("address"), Error: f.e("address"), Hint: "Tampil di undangan untuk tamu yang ingin mengirim kado.", MaxLength: 500, Mandatory: true}, 3)
 		</div>
 		<div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-			<a href={ templ.SafeURL(base(w)) } hx-get={ base(w) } hx-target="#gifts" hx-swap="outerHTML" class="rounded-lg border border-slate-300 px-4 py-2.5 text-center font-medium text-slate-700 hover:bg-slate-50">Batal</a>
+			<a href={ templ.SafeURL(base(w)) } hx-get={ base(w) } hx-target="#gifts" hx-swap="outerHTML" class="ui-btn ui-btn-secondary px-4 py-2.5 text-center">Batal</a>
 			@ui.PrimaryButton("Simpan")
 		</div>
 	</form>

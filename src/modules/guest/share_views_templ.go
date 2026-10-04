@@ -116,7 +116,7 @@ func shareGeneral(s shareState) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<h2 class=\"font-semibold\">Link undangan umum</h2><p class=\"mt-1 text-sm text-slate-600\">Untuk dibagikan di grup atau media sosial. Tamu yang ingin RSVP memakai link pribadi masing-masing (menu Tamu).</p><div class=\"mt-3 flex items-center gap-2\" x-data=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<h2 class=\"font-semibold\">Link undangan umum</h2><p class=\"mt-1 text-sm text-lovoria-muted\">Untuk dibagikan di grup atau media sosial. Tamu yang ingin RSVP memakai link pribadi masing-masing (menu Tamu).</p><div class=\"mt-3 flex items-center gap-2\" x-data=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -142,7 +142,7 @@ func shareGeneral(s shareState) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" aria-label=\"Link undangan umum\" data-select-on-focus class=\"min-w-0 flex-1 rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm\"> <button type=\"button\" x-cloak @click=\"copy(link, 'link')\" class=\"flex-none rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium hover:bg-slate-50\" x-text=\"copied === 'link' ? 'Tersalin ✓' : 'Salin'\">Salin</button></div><div class=\"mt-3 flex flex-wrap gap-2 text-sm\" x-data=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" aria-label=\"Link undangan umum\" data-select-on-focus class=\"ui-control min-w-0 flex-1 bg-lovoria-bg px-3 py-2 text-sm\"> <button type=\"button\" x-cloak @click=\"copy(link, 'link')\" class=\"ui-btn ui-btn-secondary flex-none px-3 py-2 text-sm\" x-text=\"copied === 'link' ? 'Tersalin ✓' : 'Salin'\">Salin</button></div><div class=\"mt-3 flex flex-wrap gap-2 text-sm\" x-data=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -155,7 +155,7 @@ func shareGeneral(s shareState) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\"><button type=\"button\" x-cloak x-show=\"canShare\" @click=\"nativeShare()\" class=\"rounded-lg bg-primary px-3 py-2 font-medium text-white\">Bagikan…</button> <a href=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\"><button type=\"button\" x-cloak x-show=\"canShare\" @click=\"nativeShare()\" class=\"ui-btn ui-btn-primary px-3 py-2\">Bagikan…</button> <a href=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -168,7 +168,7 @@ func shareGeneral(s shareState) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" target=\"_blank\" rel=\"noopener\" class=\"rounded-lg bg-green-600 px-3 py-2 font-medium text-white hover:bg-green-700\">Kirim lewat WhatsApp</a> <button type=\"button\" x-cloak @click=\"copy(text, 'msg')\" class=\"rounded-lg border border-slate-300 px-3 py-2 font-medium hover:bg-slate-50\" x-text=\"copied === 'msg' ? 'Tersalin ✓' : 'Salin pesan'\">Salin pesan</button> <a href=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" target=\"_blank\" rel=\"noopener\" class=\"rounded-lg bg-whatsapp px-3 py-2 font-medium text-white hover:opacity-90\">Kirim lewat WhatsApp</a> <button type=\"button\" x-cloak @click=\"copy(text, 'msg')\" class=\"ui-btn ui-btn-secondary px-3 py-2\" x-text=\"copied === 'msg' ? 'Tersalin ✓' : 'Salin pesan'\">Salin pesan</button> <a href=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -181,7 +181,7 @@ func shareGeneral(s shareState) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" target=\"_blank\" rel=\"noopener\" class=\"rounded-lg border border-slate-300 px-3 py-2 font-medium hover:bg-slate-50\">Buka ↗</a></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" target=\"_blank\" rel=\"noopener\" class=\"ui-btn ui-btn-secondary px-3 py-2\">Buka ↗</a></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -229,53 +229,53 @@ func shareTemplateEditor(s shareState) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<h2 class=\"font-semibold\">Template pesan undangan</h2><p class=\"mt-1 text-sm text-slate-600\">Dipakai tombol Kirim WA & Salin pesan di daftar tamu. Kata dalam kurung kurawal diganti otomatis: <code class=\"rounded bg-slate-100 px-1\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<h2 class=\"font-semibold\">Template pesan undangan</h2><p class=\"mt-1 text-sm text-lovoria-muted\">Dipakai tombol Kirim WA & Salin pesan di daftar tamu. Kata dalam kurung kurawal diganti otomatis: <code class=\"rounded bg-lovoria-subtle px-1\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs("{guest_name}")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/share_views.templ`, Line: 45, Col: 59}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/share_views.templ`, Line: 45, Col: 64}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</code> <code class=\"rounded bg-slate-100 px-1\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</code> <code class=\"rounded bg-lovoria-subtle px-1\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs("{couple}")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/share_views.templ`, Line: 46, Col: 55}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/share_views.templ`, Line: 46, Col: 60}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</code> <code class=\"rounded bg-slate-100 px-1\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</code> <code class=\"rounded bg-lovoria-subtle px-1\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs("{date}")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/share_views.templ`, Line: 47, Col: 53}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/share_views.templ`, Line: 47, Col: 58}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</code> <code class=\"rounded bg-slate-100 px-1\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</code> <code class=\"rounded bg-lovoria-subtle px-1\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var15 string
 			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs("{link}")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/share_views.templ`, Line: 48, Col: 53}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/share_views.templ`, Line: 48, Col: 58}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {
@@ -315,7 +315,7 @@ func shareTemplateEditor(s shareState) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<div class=\"space-y-3\"><div class=\"flex flex-wrap items-center gap-2 text-sm\"><label for=\"share-lang\" class=\"font-medium\">Bahasa</label> <select id=\"share-lang\" name=\"language\" x-model=\"lang\" class=\"rounded-lg border border-slate-300 bg-white px-3 py-1.5\"><option value=\"id\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<div class=\"space-y-3\"><div class=\"flex flex-wrap items-center gap-2 text-sm\"><label for=\"share-lang\" class=\"font-medium\">Bahasa</label> <select id=\"share-lang\" name=\"language\" x-model=\"lang\" class=\"ui-control px-3 py-1.5\"><option value=\"id\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -335,14 +335,14 @@ func shareTemplateEditor(s shareState) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, ">English</option></select> <button type=\"button\" x-cloak @click=\"useDefault()\" class=\"text-primary hover:underline\">Pakai template bawaan</button></div><div><label for=\"share-body\" class=\"sr-only\">Isi pesan</label> <textarea id=\"share-body\" name=\"body\" rows=\"12\" maxlength=\"2000\" x-model=\"body\" class=\"block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 font-mono text-sm\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, ">English</option></select> <button type=\"button\" x-cloak @click=\"useDefault()\" class=\"text-lovoria-primary hover:underline\">Pakai template bawaan</button></div><div><label for=\"share-body\" class=\"sr-only\">Isi pesan</label> <textarea id=\"share-body\" name=\"body\" rows=\"12\" maxlength=\"2000\" x-model=\"body\" class=\"ui-control block w-full px-3 py-2 font-mono text-sm\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var18 string
 			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(s.Form.Body)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/share_views.templ`, Line: 64, Col: 191}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/share_views.templ`, Line: 64, Col: 158}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 			if templ_7745c5c3_Err != nil {
@@ -353,14 +353,14 @@ func shareTemplateEditor(s shareState) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if msg := s.Errors["body"]; msg != "" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<p class=\"mt-1 text-sm text-red-600\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<p class=\"mt-1 text-sm text-lovoria-danger\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var19 string
 				templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(msg)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/share_views.templ`, Line: 66, Col: 48}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/share_views.templ`, Line: 66, Col: 55}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 				if templ_7745c5c3_Err != nil {
@@ -371,7 +371,7 @@ func shareTemplateEditor(s shareState) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<p class=\"mt-1 text-xs text-slate-500\"><span x-text=\"body.length\">0</span>/2000 karakter</p></div><div class=\"flex flex-wrap gap-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<p class=\"mt-1 text-xs text-lovoria-muted\"><span x-text=\"body.length\">0</span>/2000 karakter</p></div><div class=\"flex flex-wrap gap-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -379,7 +379,7 @@ func shareTemplateEditor(s shareState) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</div></div><div><p class=\"mb-1 text-xs font-medium uppercase tracking-wide text-slate-400\">Preview (contoh tamu: Budi Santoso)</p><div class=\"rounded-2xl rounded-tl-sm bg-[#dcf8c6] p-3 text-sm text-slate-900 shadow-sm\"><p class=\"whitespace-pre-wrap break-words\" x-text=\"preview()\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</div></div><div><p class=\"mb-1 text-xs font-medium uppercase tracking-wide text-lovoria-muted\">Preview (contoh tamu: Budi Santoso)</p><div class=\"rounded-2xl rounded-tl-sm bg-[#dcf8c6] p-3 text-sm text-lovoria-text shadow-soft\"><p class=\"whitespace-pre-wrap break-words\" x-text=\"preview()\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -418,7 +418,7 @@ func shareTemplateEditor(s shareState) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<button type=\"submit\" class=\"text-sm text-slate-500 hover:underline\">Kembalikan ke template bawaan</button></form>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<button type=\"submit\" class=\"text-sm text-lovoria-muted hover:underline\">Kembalikan ke template bawaan</button></form>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -467,7 +467,7 @@ func slugEditor(s shareState) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<h2 class=\"font-semibold\">Alamat undangan</h2><p class=\"mt-1 text-sm text-slate-600\">Ganti bagian akhir alamat undangan umum. Link lama tetap berfungsi (dialihkan) selama 90 hari.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<h2 class=\"font-semibold\">Alamat undangan</h2><p class=\"mt-1 text-sm text-lovoria-muted\">Ganti bagian akhir alamat undangan umum. Link lama tetap berfungsi (dialihkan) selama 90 hari.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -496,14 +496,14 @@ func slugEditor(s shareState) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "<input type=\"hidden\" name=\"_method\" value=\"PATCH\"> <label for=\"slug-input\" class=\"block text-sm font-medium\">Alamat</label><div class=\"flex flex-wrap items-center gap-2\"><span class=\"text-sm text-slate-500\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "<input type=\"hidden\" name=\"_method\" value=\"PATCH\"> <label for=\"slug-input\" class=\"block text-sm font-medium\">Alamat</label><div class=\"flex flex-wrap items-center gap-2\"><span class=\"text-sm text-lovoria-muted\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var25 string
 			templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(s.Origin)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/share_views.templ`, Line: 101, Col: 51}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/share_views.templ`, Line: 101, Col: 55}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 			if templ_7745c5c3_Err != nil {
@@ -522,7 +522,7 @@ func slugEditor(s shareState) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "\" required maxlength=\"60\" pattern=\"[a-z0-9]+(-[a-z0-9]+)*\" autocomplete=\"off\" class=\"min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-base\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "\" required maxlength=\"60\" pattern=\"[a-z0-9]+(-[a-z0-9]+)*\" autocomplete=\"off\" class=\"ui-control min-w-0 flex-1 px-3 py-2 text-base\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -530,12 +530,12 @@ func slugEditor(s shareState) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "</div><p class=\"text-xs text-slate-500\">Huruf kecil a–z, angka, dan tanda hubung. Contoh: samuel-sarah</p></form>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "</div><p class=\"text-xs text-lovoria-muted\">Huruf kecil a–z, angka, dan tanda hubung. Contoh: samuel-sarah</p></form>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if len(s.Redirects) > 0 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "<div class=\"mt-4 text-sm\"><p class=\"font-medium text-slate-700\">Alamat lama yang masih dialihkan</p><ul class=\"mt-1 space-y-0.5 text-slate-600\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "<div class=\"mt-4 text-sm\"><p class=\"font-medium text-lovoria-text\">Alamat lama yang masih dialihkan</p><ul class=\"mt-1 space-y-0.5 text-lovoria-muted\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -553,14 +553,14 @@ func slugEditor(s shareState) templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, " <span class=\"text-xs text-slate-400\">— sampai ")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, " <span class=\"text-xs text-lovoria-muted\">— sampai ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var28 string
 					templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(web.FormatDateID(r.ExpiresAt))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/share_views.templ`, Line: 112, Col: 106}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/share_views.templ`, Line: 112, Col: 110}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 					if templ_7745c5c3_Err != nil {

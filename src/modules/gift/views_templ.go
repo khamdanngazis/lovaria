@@ -121,7 +121,7 @@ func section(s pageState) templ.Component {
 			templ_7745c5c3_Var3 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section id=\"gifts\" class=\"space-y-4\"><div class=\"flex flex-wrap items-center justify-between gap-3\"><p class=\"text-sm text-slate-600\">Rekening, e-wallet, atau alamat untuk tamu yang ingin memberi tanda kasih. Bagian ini tidak tampil di undangan bila kosong.</p>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section id=\"gifts\" class=\"space-y-4\"><div class=\"flex flex-wrap items-center justify-between gap-3\"><p class=\"text-sm text-lovoria-muted\">Rekening, e-wallet, atau alamat untuk tamu yang ingin memberi tanda kasih. Bagian ini tidak tampil di undangan bila kosong.</p>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -152,7 +152,7 @@ func section(s pageState) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" hx-target=\"#gift-editor\" hx-swap=\"innerHTML\" class=\"rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white\">+ Tambah</a>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" hx-target=\"#gift-editor\" hx-swap=\"innerHTML\" class=\"ui-btn ui-btn-primary px-3 py-2 text-sm\">+ Tambah</a>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -172,7 +172,7 @@ func section(s pageState) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if len(s.Accounts) == 0 && !s.Creating {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div class=\"rounded-2xl border border-dashed border-slate-300 p-8 text-center text-slate-500\">Belum ada rekening atau alamat.</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div class=\"rounded-2xl border border-dashed border-lovoria-control p-8 text-center text-lovoria-muted\">Belum ada rekening atau alamat.</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -236,14 +236,14 @@ func item(w wedding.Wedding, a Account, first, last bool) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" class=\"rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5\"><div class=\"flex items-start gap-3\"><div class=\"min-w-0 flex-1\"><p class=\"text-xs font-medium uppercase tracking-wide text-primary\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" class=\"ui-card p-4\"><div class=\"flex items-start gap-3\"><div class=\"min-w-0 flex-1\"><p class=\"text-xs font-medium uppercase tracking-wide text-lovoria-primary\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(TypeLabel(a.Type))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/gift/views.templ`, Line: 94, Col: 91}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/gift/views.templ`, Line: 94, Col: 99}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
@@ -272,14 +272,14 @@ func item(w wedding.Wedding, a Account, first, last bool) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if a.AccountName != "" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<p class=\"mt-1 text-sm text-slate-600\">Penerima: ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<p class=\"mt-1 text-sm text-lovoria-muted\">Penerima: ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var10 string
 				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(a.AccountName)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/gift/views.templ`, Line: 98, Col: 70}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/gift/views.templ`, Line: 98, Col: 74}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 				if templ_7745c5c3_Err != nil {
@@ -317,14 +317,14 @@ func item(w wedding.Wedding, a Account, first, last bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</p><p class=\"text-sm text-slate-600\">a.n. ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</p><p class=\"text-sm text-lovoria-muted\">a.n. ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(a.AccountName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/gift/views.templ`, Line: 103, Col: 59}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/gift/views.templ`, Line: 103, Col: 63}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
@@ -426,14 +426,14 @@ func item(w wedding.Wedding, a Account, first, last bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\" class=\"flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-30\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\" class=\"flex h-9 w-9 items-center justify-center rounded-lg border border-lovoria-border text-lovoria-muted hover:bg-lovoria-subtle disabled:opacity-30\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var19 string
 			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(d.Icon)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/gift/views.templ`, Line: 112, Col: 239}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/gift/views.templ`, Line: 112, Col: 254}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 			if templ_7745c5c3_Err != nil {
@@ -444,7 +444,7 @@ func item(w wedding.Wedding, a Account, first, last bool) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "</div></div><div class=\"mt-3 flex gap-4 border-t border-slate-100 pt-3 text-sm\"><a href=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "</div></div><div class=\"mt-3 flex gap-4 border-t border-lovoria-border pt-3 text-sm\"><a href=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -483,7 +483,7 @@ func item(w wedding.Wedding, a Account, first, last bool) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "\" hx-swap=\"outerHTML\" class=\"font-medium text-primary hover:underline\">Ubah</a><form method=\"post\" action=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "\" hx-swap=\"outerHTML\" class=\"font-medium text-lovoria-primary hover:underline\">Ubah</a><form method=\"post\" action=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -517,7 +517,7 @@ func item(w wedding.Wedding, a Account, first, last bool) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "<input type=\"hidden\" name=\"_method\" value=\"DELETE\"> <button type=\"submit\" class=\"text-red-600 hover:underline\">Hapus</button></form></div></li>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "<input type=\"hidden\" name=\"_method\" value=\"DELETE\"> <button type=\"submit\" class=\"text-lovoria-danger hover:underline\">Hapus</button></form></div></li>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -691,7 +691,7 @@ func editor(w wedding.Wedding, id uuid.UUID, f form) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "\" class=\"space-y-4 rounded-2xl bg-white p-4 shadow-sm ring-2 ring-primary/40 sm:p-5\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "\" class=\"space-y-4 rounded-2xl bg-lovoria-surface p-4 shadow-soft ring-2 ring-lovoria-primary/40 sm:p-5\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -705,12 +705,12 @@ func editor(w wedding.Wedding, id uuid.UUID, f form) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "<fieldset><legend class=\"block text-sm font-medium text-slate-800\">Jenis</legend><div class=\"mt-1 grid grid-cols-1 gap-2 sm:grid-cols-3\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "<fieldset><legend class=\"block text-sm font-medium text-lovoria-text\">Jenis</legend><div class=\"mt-1 grid grid-cols-1 gap-2 sm:grid-cols-3\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		for _, t := range Types {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "<label class=\"flex cursor-pointer items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5\"><input type=\"radio\" name=\"type\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "<label class=\"flex cursor-pointer items-center gap-2 rounded-lg border border-lovoria-control px-3 py-2 text-sm has-[:checked]:border-lovoria-primary has-[:checked]:bg-lovoria-primary-soft\"><input type=\"radio\" name=\"type\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -733,7 +733,7 @@ func editor(w wedding.Wedding, id uuid.UUID, f form) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, " x-model=\"type\" class=\"accent-primary\"> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, " x-model=\"type\" class=\"accent-lovoria-primary\"> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -756,14 +756,14 @@ func editor(w wedding.Wedding, id uuid.UUID, f form) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if f.e("type") != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "<p class=\"mt-1 text-sm text-red-600\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 60, "<p class=\"mt-1 text-sm text-lovoria-danger\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var36 string
 			templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(f.e("type"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/gift/views.templ`, Line: 168, Col: 54}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/gift/views.templ`, Line: 168, Col: 61}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
 			if templ_7745c5c3_Err != nil {
@@ -887,7 +887,7 @@ func editor(w wedding.Wedding, id uuid.UUID, f form) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 74, "\" hx-target=\"#gifts\" hx-swap=\"outerHTML\" class=\"rounded-lg border border-slate-300 px-4 py-2.5 text-center font-medium text-slate-700 hover:bg-slate-50\">Batal</a>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 74, "\" hx-target=\"#gifts\" hx-swap=\"outerHTML\" class=\"ui-btn ui-btn-secondary px-4 py-2.5 text-center\">Batal</a>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

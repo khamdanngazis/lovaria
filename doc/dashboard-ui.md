@@ -4,7 +4,7 @@ Landing, halaman auth, dashboard pasangan, dan panel admin memakai **satu set to
 
 Kode: token & kelas komponen di `src/styles/app.css` · komponen templ di `src/templates/ui` · kerangka di `src/templates/layouts`.
 
-> Status migrasi: PR 1 (fondasi + auth + halaman publik) selesai. Kerangka dashboard & halaman pasangan menyusul di PR 2, admin + penjaga penuh di PR 3. Berkas yang sudah dimigrasikan terdaftar di `migrated` (`src/templates/ui/ui_test.go`).
+> Status migrasi: PR 1 (fondasi + auth + halaman publik) dan PR 2 (kerangka dashboard + semua halaman pasangan) selesai. Panel admin + penjaga penuh menyusul di PR 3. Berkas yang sudah dimigrasikan terdaftar di `migrated` (`src/templates/ui/ui_test.go`).
 
 ## Aturan
 
@@ -36,6 +36,7 @@ Kode: token & kelas komponen di `src/styles/app.css` · komponen templ di `src/t
 | `lovoria-warning` / `-soft` | `#8a5a1c` / `#f8efdd` | Peringatan, draf, mode admin lihat-saja |
 | `lovoria-danger` / `-soft` | `#a23b45` / `#f9ebec` | Error, hapus, "Tidak hadir" |
 | `lovoria-info` / `-soft` | `#4a5f7a` / `#e9eef4` | Informasi netral |
+| `whatsapp` | `#0f7a43` | Hanya tombol "Kirim WA" (warna merek pihak ketiga, digelapkan agar teks putih terbaca) |
 
 `TestBrandTokenContrast` membaca nilai ini langsung dari `app.css`: teks ≥ 4.5:1 di atas latarnya, putih di atas warna pekat, tepi kontrol ≥ 3:1.
 
@@ -53,6 +54,7 @@ Kelas (`@layer components`, awalan `ui-`; `lv-*` milik undangan):
 |---|---|
 | `ui-btn` + `ui-btn-primary` / `-secondary` / `-ghost` / `-danger`, `ui-btn-sm` | `rounded-lg`, fokus terlihat (outline plum) |
 | `ui-label`, `ui-input`, `ui-hint`, `ui-error` | `ui-input[aria-invalid="true"]` bertepi danger |
+| `ui-control` | Tampilan kontrol saja (tepi, sudut, warna, fokus) untuk input/select kecil di baris filter atau tabel yang ukurannya diatur sendiri; `ui-input` = `ui-control` + ukuran field standar |
 | `ui-card` | `rounded-2xl`, garis `lovoria-border`, `shadow-soft` |
 | `ui-badge` + `-neutral` / `-muted` / `-success` / `-warning` / `-danger` / `-info` | |
 | `ui-alert` + `-success` / `-warning` / `-danger` / `-info` | |
@@ -74,3 +76,34 @@ Komponen templ (`src/templates/ui`): `Input`, `TextArea`, `Select`, `ImageUpload
 ## Halaman publik Lovoria
 
 `layouts.Public` (error, privasi, syarat, undangan tidak ditemukan / arsip ringkas) memakai warna & huruf brand; `layouts.ErrorPage` menampilkan logo + tombol `ui-btn`. Undangan (tema) tidak terpengaruh.
+
+## Kerangka dashboard
+
+- `layouts.Dashboard`: memuat huruf brand, header putih bergaris `lovoria-border` dengan `BrandLogo`; menu ponsel (☰) berupa panel kartu. Banner **mode admin lihat-saja** memakai `lovoria-warning` + teks putih dan tetap menempel; kontrol dinonaktifkan lewat `lv-readonly` seperti sebelumnya.
+- `wedding.Shell`: judul wedding `font-display`; menu aktif `bg-lovoria-primary-soft` + `text-lovoria-primary`; judul grup `lovoria-muted`. Bottom bar ponsel dan menu "Menu" tetap `<details>` (berfungsi tanpa JS).
+- Kartu nama pasangan di beranda memakai `lovoria-deep`; angka statistik beranda memakai `font-display`.
+- Badge status wedding (`statusBadge`): draf `subtle`, terbit `success`, hari H `primary`, kenangan `warning`, arsip `border`/`muted`.
+
+## Pemetaan dari kelas lama
+
+Dipakai saat memigrasikan berkas (pilih menurut **peran**, bukan cari-ganti buta):
+
+| Lama | Baru |
+|---|---|
+| `bg-slate-50` (latar halaman) | `bg-lovoria-bg` |
+| `bg-slate-100`, `hover:bg-slate-50/100` | `bg-lovoria-subtle`, `hover:bg-lovoria-subtle` |
+| `bg-white` | `bg-lovoria-surface` |
+| `border-slate-100/200`, `divide-slate-*`, `ring-black/5` | `*-lovoria-border` |
+| `border-slate-300` pada kontrol form / tombol | `ui-control` / `ui-input` / `ui-btn ui-btn-secondary` |
+| `text-slate-400/500/600` | `text-lovoria-muted` |
+| `text-slate-700/800/900` | `text-lovoria-text` (judul halaman: `text-lovoria-deep`) |
+| `bg-primary … text-white` (tombol) | `ui-btn ui-btn-primary` |
+| `text-primary`, `border-primary`, `ring-primary` | `*-lovoria-primary` |
+| `bg-primary/5`, `/10` | `bg-lovoria-primary-soft` |
+| `red-*` | `lovoria-danger` / `-soft` |
+| `green-*` | `lovoria-success` / `-soft` (tombol WA: `bg-whatsapp`) |
+| `amber-*` | `lovoria-warning` / `-soft` |
+| `sky-*` | `lovoria-info` / `-soft` |
+| panel `bg-white shadow-sm ring-1 ring-black/5` | `ui-card` (padding sendiri boleh ditimpa utilitas) |
+
+Kelas yang hanya dipakai dari JS (toast error htmx di `lovoria.js`) didaftarkan lewat `@source inline(...)` di `app.css`.
