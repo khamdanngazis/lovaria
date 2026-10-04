@@ -321,6 +321,21 @@ document.addEventListener('submit', (e) => {
     e.stopImmediatePropagation();
   }
 }, true);
+// data-then="<url>": setelah form dikirim / tautan diklik ke TAB BARU
+// (target=_blank, mis. halaman bayar gateway), tab ini pindah ke <url> —
+// dipakai tombol "Bayar" supaya dashboard langsung menampilkan halaman status.
+(() => {
+  const follow = (el) => {
+    const url = el && el.dataset && el.dataset.then;
+    if (url && el.target === '_blank') setTimeout(() => window.location.assign(url), 500);
+  };
+  document.addEventListener('submit', (e) => { if (!e.defaultPrevented) follow(e.target); });
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest && e.target.closest('a[data-then]');
+    if (a) follow(a);
+  });
+})();
+
 document.addEventListener('focusin', (e) => {
   if (e.target.matches && e.target.matches('[data-select-on-focus]')) e.target.select();
 });

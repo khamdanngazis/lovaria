@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Pembayaran dibuka di tab baru
+- "Bayar & Publikasikan" dan "Lanjutkan pembayaran" membuka halaman Midtrans di tab baru; tab Lovoria pindah ke halaman status yang memperbarui diri dan berubah menjadi "Pembayaran berhasil" begitu pembayaran diterima — tidak bergantung pada redirect balik dari Midtrans.
+
 ### Perbaikan — tombol "Bayar & Publikasikan" tidak membuka halaman pembayaran
 - CSP `form-action 'self'` membuat browser memblokir redirect dari form bayar ke halaman Midtrans, sehingga tombol terasa tidak berfungsi (order tetap terbuat di server). Domain halaman bayar Midtrans kini diizinkan di `form-action` (hanya sebagai tujuan navigasi).
 - "Lanjutkan pembayaran" menjadi tautan langsung ke halaman bayar.
