@@ -395,8 +395,11 @@ func TestPublishAndPaymentFlowViaHTTP(t *testing.T) {
 		t.Fatalf("bayar: %d %s", rec.Code, rec.Header().Get("Location"))
 	}
 	o := orders[0]
-	if page := do(e, owner, http.MethodGet, base+"/publish", nil, nil).Body.String(); !strings.Contains(page, "Lanjutkan pembayaran") || !strings.Contains(page, o.Number) {
-		t.Error("order pending: tombol lanjutkan pembayaran")
+	// Order pending: "Lanjutkan pembayaran" adalah tautan langsung ke halaman
+	// bayar gateway (bukan form — tidak bergantung pada redirect setelah POST).
+	if page := do(e, owner, http.MethodGet, base+"/publish", nil, nil).Body.String(); !strings.Contains(page, "Lanjutkan pembayaran") || !strings.Contains(page, o.Number) ||
+		!strings.Contains(page, `<a href="`+o.CheckoutURL+`"`) {
+		t.Error("order pending: tautan lanjutkan pembayaran")
 	}
 
 	// Kembali dari gateway SEBELUM webhook: redirect browser tidak menandai lunas.
@@ -415,8 +418,10 @@ func TestPublishAndPaymentFlowViaHTTP(t *testing.T) {
 	if rec := webhook(e, "fake", f.fake.Notify(o.Number, StatusPaid, 1, f.now)); rec.Code != http.StatusUnprocessableEntity {
 		t.Errorf("nominal salah: %d", rec.Code)
 	}
-	if rec := webhook(e, "fake", f.fake.Notify("LVR-20260101-000000", StatusPaid, price, f.now)); rec.Code != http.StatusNotFound {
-		t.Errorf("order tak dikenal: %d", rec.Code)
+	// Order tak dikenal dengan tanda tangan sah (mis. "Test notification" dari
+	// dashboard gateway): 200 supaya tidak dikirim ulang, tanpa efek apa pun.
+	if rec := webhook(e, "fake", f.fake.Notify("LVR-20260101-000000", StatusPaid, price, f.now)); rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "unknown-order") {
+		t.Errorf("order tak dikenal: %d %s", rec.Code, rec.Body.String())
 	}
 	if f.wedding(t, w.ID).IsPaid() {
 		t.Fatal("webhook yang ditolak tidak boleh membuka publikasi")

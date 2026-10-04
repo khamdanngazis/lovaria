@@ -14,10 +14,17 @@ import (
 //
 // style 'unsafe-inline': atribut style (lebar progress bar) & blok token CSS
 // tema. img-src https: untuk foto R2 / URL gambar yang diisi pasangan.
+// checkoutOrigins: halaman bayar payment gateway (T23). Tombol "Bayar" adalah
+// form POST yang dibalas redirect ke gateway — browser menerapkan form-action
+// ke seluruh rantai redirect, jadi tanpa ini redirect diblokir diam-diam dan
+// tombol terasa "tidak ke mana-mana". Hanya tujuan navigasi; script, frame, dan
+// koneksi ke domain ini tetap tidak diizinkan.
+const checkoutOrigins = "https://app.midtrans.com https://app.sandbox.midtrans.com"
+
 const (
 	cspBase = "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
 		"font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' https:; " +
-		"connect-src 'self'; frame-src 'self'; frame-ancestors 'self'; form-action 'self'; base-uri 'self'; object-src 'none'"
+		"connect-src 'self'; frame-src 'self'; frame-ancestors 'self'; form-action 'self' " + checkoutOrigins + "; base-uri 'self'; object-src 'none'"
 	CSPDashboard = cspBase + "; script-src 'self' 'unsafe-eval'"
 	CSPPublic    = cspBase + "; script-src 'self'"
 )

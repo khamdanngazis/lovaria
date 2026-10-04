@@ -31,6 +31,7 @@ Beranda (Draft · Belum dibayar)
                   └─ Lunas ✓ → …/publish → Publikasikan (PATCH …/status) → terbit
 ```
 
+- **CSP**: tombol "Bayar" adalah form POST yang dibalas redirect ke halaman bayar gateway. Browser menerapkan `form-action` ke seluruh rantai redirect, jadi domain halaman bayar harus terdaftar di `checkoutOrigins` (`src/platform/server/headers.go`) — tanpa itu redirect diblokir diam-diam dan tombol terasa tidak berfungsi (`TestCSPAllowsCheckoutRedirect`). Gateway baru = tambah domainnya di sana. "Lanjutkan pembayaran" memakai tautan langsung, tidak bergantung pada redirect.
 - **Redirect browser tidak pernah menandai lunas.** Halaman kembali hanya membaca status; `Service.Refresh` menanyakan status langsung ke gateway supaya pasangan tidak menunggu webhook, lewat jalur penerapan yang sama.
 - Order `pending` yang masih berlaku dipakai ulang (klik "Bayar" dua kali ≠ dua order). Setelah `expired`/`failed`/`cancelled`, percobaan berikutnya membuat order baru untuk wedding yang sama.
 - Nomor order: `LVR-YYYYMMDD-000001` (tanggal WIB + sequence `payment_order_seq`).
@@ -39,7 +40,7 @@ Beranda (Draft · Belum dibayar)
 
 1. Gateway memverifikasi **tanda tangan**; gagal → 403, dicatat `rejected:signature`.
 2. Untuk status lunas: **konfirmasi ulang** ke gateway (`FetchStatus`); tidak terkonfirmasi → 422 `rejected:unconfirmed`.
-3. Order dicari dari nomornya dan **dikunci** (`SELECT … FOR UPDATE`); tak dikenal → 404.
+3. Order dicari dari nomornya dan **dikunci** (`SELECT … FOR UPDATE`). Order tak dikenal dengan tanda tangan sah (mis. tombol "Test notification" di dashboard Midtrans, yang memakai `order_id` `payment_notif_test_…`) → dicatat `rejected:unknown-order` dan dibalas **200** supaya gateway tidak mengirim ulang; tidak ada yang berubah.
 4. **Nominal & mata uang** harus sama dengan order; beda → 422 `rejected:amount`.
 5. Status diterapkan sekali. `paid` final: notifikasi ulang → `duplicate` (200), `expire`/`deny` yang terlambat → `ignored`. Pengecualian: `expired → paid` (pembayaran masuk di detik terakhir tetap dihormati).
 6. Order `paid` → `wedding.MarkPaid(…, "gateway")` (idempoten; diulang pada notifikasi duplikat supaya pulih bila langkah ini sebelumnya gagal).
