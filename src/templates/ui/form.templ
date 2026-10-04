@@ -22,14 +22,15 @@ type Field struct {
 	List string
 }
 
-const inputClass = "mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+// inputClass: kelas kontrol form bersama (src/styles/app.css, T22).
+const inputClass = "ui-input"
 
 templ Input(f Field) {
 	<div>
-		<label for={ f.ID } class="block text-sm font-medium text-slate-800">
+		<label for={ f.ID } class="ui-label">
 			{ f.Label }
 			if !f.Required && !f.Mandatory {
-				<span class="font-normal text-slate-400">(opsional)</span>
+				<span class="font-normal text-lovoria-muted">(opsional)</span>
 			}
 		</label>
 		<input
@@ -62,10 +63,10 @@ templ Input(f Field) {
 
 templ TextArea(f Field, rows int) {
 	<div>
-		<label for={ f.ID } class="block text-sm font-medium text-slate-800">
+		<label for={ f.ID } class="ui-label">
 			{ f.Label }
 			if !f.Required && !f.Mandatory {
-				<span class="font-normal text-slate-400">(opsional)</span>
+				<span class="font-normal text-lovoria-muted">(opsional)</span>
 			}
 		</label>
 		<textarea
@@ -97,10 +98,10 @@ type Option struct {
 
 templ Select(f Field, options []Option) {
 	<div>
-		<label for={ f.ID } class="block text-sm font-medium text-slate-800">
+		<label for={ f.ID } class="ui-label">
 			{ f.Label }
 			if !f.Required && !f.Mandatory {
-				<span class="font-normal text-slate-400">(opsional)</span>
+				<span class="font-normal text-lovoria-muted">(opsional)</span>
 			}
 		</label>
 		<select
@@ -123,42 +124,114 @@ templ Select(f Field, options []Option) {
 
 templ hintAndError(f Field) {
 	if f.Hint != "" && f.Error == "" {
-		<p class="mt-1 text-xs text-slate-500">{ f.Hint }</p>
+		<p class="ui-hint">{ f.Hint }</p>
 	}
-	<p id={ f.ID + "-error" } class="mt-1 text-sm text-red-600">{ f.Error }</p>
+	<p id={ f.ID + "-error" } class="ui-error">{ f.Error }</p>
 }
 
 // Alert menampilkan pesan error umum form.
 templ Alert(msg string) {
 	if msg != "" {
-		<p class="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{ msg }</p>
+		<p class="ui-alert ui-alert-danger" role="alert">{ msg }</p>
 	}
 }
 
 // Notice menampilkan pesan sukses.
 templ Notice(msg string) {
 	if msg != "" {
-		<p class="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700" role="status">{ msg }</p>
+		<p class="ui-alert ui-alert-success" role="status">{ msg }</p>
 	}
 }
 
 templ PrimaryButton(label string) {
-	<button type="submit" class="w-full rounded-lg bg-primary px-4 py-2.5 font-medium text-white hover:opacity-90 disabled:opacity-60 sm:w-auto">
+	<button type="submit" class="ui-btn ui-btn-primary w-full sm:w-auto">
 		{ label }
 	</button>
 }
 
 // SecondaryButton adalah tombol submit sekunder dengan name/value (mis. "Kembali").
 templ SecondaryButton(label, name, value string) {
-	<button type="submit" name={ name } value={ value } formnovalidate class="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-50 sm:w-auto">
+	<button type="submit" name={ name } value={ value } formnovalidate class="ui-btn ui-btn-secondary w-full sm:w-auto">
 		{ label }
 	</button>
 }
 
 // Card membungkus konten dalam panel putih.
 templ Card() {
-	<div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5 sm:p-6">
+	<div class="ui-card">
 		{ children... }
+	</div>
+}
+
+// Varian Badge / Alert (warna status brand; selalu sertakan teks, bukan hanya warna).
+const (
+	Neutral = "neutral"
+	Muted   = "muted"
+	Success = "success"
+	Warning = "warning"
+	Danger  = "danger"
+	Info    = "info"
+)
+
+// badgeClass / alertClass: nama kelas ditulis lengkap supaya terdeteksi Tailwind.
+func badgeClass(variant string) string {
+	switch variant {
+	case Success:
+		return "ui-badge ui-badge-success"
+	case Warning:
+		return "ui-badge ui-badge-warning"
+	case Danger:
+		return "ui-badge ui-badge-danger"
+	case Info:
+		return "ui-badge ui-badge-info"
+	case Muted:
+		return "ui-badge ui-badge-muted"
+	}
+	return "ui-badge ui-badge-neutral"
+}
+
+// AlertClass: kelas kotak pesan sesuai varian (dipakai juga modul yang
+// merender pesan sendiri, mis. fragmen htmx).
+func AlertClass(variant string) string {
+	switch variant {
+	case Success:
+		return "ui-alert ui-alert-success"
+	case Warning:
+		return "ui-alert ui-alert-warning"
+	case Info:
+		return "ui-alert ui-alert-info"
+	}
+	return "ui-alert ui-alert-danger"
+}
+
+// Badge: label status kecil.
+templ Badge(variant, label string) {
+	<span class={ badgeClass(variant) }>{ label }</span>
+}
+
+// PageHeader: judul halaman (Playfair) + keterangan; children = aksi di kanan.
+templ PageHeader(title, subtitle string) {
+	<div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+		<div class="min-w-0">
+			<h1 class="font-display text-2xl leading-tight text-lovoria-deep sm:text-3xl">{ title }</h1>
+			if subtitle != "" {
+				<p class="mt-1 text-sm text-lovoria-muted">{ subtitle }</p>
+			}
+		</div>
+		{ children... }
+	</div>
+}
+
+// EmptyState: keadaan kosong (belum ada tamu/foto/ucapan); children = aksi.
+templ EmptyState(title, message string) {
+	<div class="rounded-2xl border border-dashed border-lovoria-border bg-lovoria-surface px-6 py-10 text-center">
+		<p class="font-display text-xl text-lovoria-deep">{ title }</p>
+		if message != "" {
+			<p class="mx-auto mt-2 max-w-sm text-sm text-lovoria-muted">{ message }</p>
+		}
+		<div class="mt-5 empty:hidden">
+			{ children... }
+		</div>
 	</div>
 }
 
@@ -167,31 +240,31 @@ templ Card() {
 // Butuh komponen Alpine imageUpload (static/js/lovoria.js).
 templ ImageUpload(f Field, uploadURL, category string) {
 	<div x-data={ templ.JSFuncCall("imageUpload", uploadURL, category, f.Value).CallInline }>
-		<span class="block text-sm font-medium text-slate-800">
+		<span class="ui-label">
 			{ f.Label }
 			if !f.Required && !f.Mandatory {
-				<span class="font-normal text-slate-400">(opsional)</span>
+				<span class="font-normal text-lovoria-muted">(opsional)</span>
 			}
 		</span>
 		<input type="hidden" name={ f.Name } value={ f.Value } :value="value"/>
 		<div class="mt-1 flex items-center gap-3">
-			<div class="flex h-20 w-20 flex-none items-center justify-center overflow-hidden rounded-xl bg-slate-100 text-xs text-slate-400">
+			<div class="flex h-20 w-20 flex-none items-center justify-center overflow-hidden rounded-xl bg-lovoria-subtle text-xs text-lovoria-muted">
 				<template x-if="value">
 					<img :src="value" alt="" class="h-full w-full object-cover"/>
 				</template>
 				<span x-show="!value">Belum ada</span>
 			</div>
 			<div class="min-w-0 space-y-1">
-				<label class="inline-flex cursor-pointer items-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium hover:bg-slate-50" :class="uploading && 'pointer-events-none opacity-60'">
+				<label class="ui-btn ui-btn-secondary ui-btn-sm cursor-pointer has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-lovoria-primary" :class="uploading && 'pointer-events-none opacity-60'">
 					<span x-text="uploading ? 'Mengunggah… ' + progress + '%' : (value ? 'Ganti foto' : 'Pilih foto')">Pilih foto</span>
 					<input id={ f.ID } type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" @change="pick($event)"/>
 				</label>
-				<button type="button" x-show="value && !uploading" @click="value = ''; $nextTick(() => $dispatch('image-change'))" class="block text-sm text-red-600 hover:underline">Hapus foto</button>
+				<button type="button" x-show="value && !uploading" @click="value = ''; $nextTick(() => $dispatch('image-change'))" class="block text-sm text-lovoria-danger hover:underline">Hapus foto</button>
 			</div>
 		</div>
 		if f.Error != "" {
-			<p class="mt-1 text-sm text-red-600">{ f.Error }</p>
+			<p class="ui-error">{ f.Error }</p>
 		}
-		<p class="mt-1 text-sm text-red-600" x-show="error" x-text="error"></p>
+		<p class="ui-error" x-show="error" x-text="error"></p>
 	</div>
 }

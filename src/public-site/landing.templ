@@ -26,8 +26,6 @@ type landingTheme struct {
 	Couple                string // "Raka & Nadia"
 }
 
-const landingFonts = "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap"
-
 // Teks utama landing di satu tempat supaya mudah disunting pemilik produk.
 const (
 	landingEyebrow = "THE DIGITAL WEDDING EXPERIENCE"
@@ -36,11 +34,7 @@ const (
 )
 
 templ landingHead(d landingData) {
-	<link rel="preconnect" href="https://fonts.googleapis.com"/>
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-	<link rel="preload" as="style" href={ landingFonts } data-font-css/>
-	<noscript><link rel="stylesheet" href={ landingFonts }/></noscript>
-	<meta name="theme-color" content="#FAF7F5"/>
+	@layouts.BrandFonts(false)
 	<link rel="apple-touch-icon" href={ static.URL("img/brand/apple-touch-icon.png") }/>
 	<link rel="canonical" href={ d.URL }/>
 	<meta property="og:type" content="website"/>

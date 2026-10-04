@@ -60,6 +60,7 @@ Setiap task ukurannya sedang (±1–3 hari kerja agent), punya scope jelas, dan 
 | T19 | Remember: halaman kenangan, arsip, & keepsake | T06, T11, T12, T16 |
 | T20 | Personalisasi undangan: musik, hitung mundur, kutipan, susunan bagian | T06, T08, T09 |
 | T21 | Redesign template undangan: lebih menjual & selaras brand | T08, T09, T18, T20 |
+| T22 | Redesign dashboard, login & register: selaras warna brand | T03, T13, T16, T18, T21 |
 
 ## Urutan & Paralelisasi
 

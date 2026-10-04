@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### T22 (bagian 1) — Fondasi UI brand & halaman auth baru
+- **Login, daftar, lupa & reset password** memakai tampilan brand: logo Lovoria, Dusty Plum, Playfair Display + Inter; di layar lebar dua panel dengan tagline "Your Love. Your Story. Your Forever." (halaman daftar menampilkan poin manfaat).
+- **Token warna dashboard** (`lovoria-*`: primary-hover, primary-soft, surface, subtle, control, success/warning/danger/info) dan **kelas komponen bersama** `ui-*` (tombol, input, kartu, badge, alert, tabel, tab, tautan). Komponen `templates/ui` beralih ke kelas ini; tambahan `ui.Badge`, `ui.PageHeader`, `ui.EmptyState`.
+- Halaman error, privasi, syarat, dan "undangan tidak ditemukan" memakai warna & huruf brand.
+- Uji kontras otomatis untuk token baru dan penjaga kelas palet mentah untuk berkas yang sudah dimigrasikan. Dokumentasi: `doc/dashboard-ui.md`.
+- Perbaikan: error console htmx di halaman daftar (validasi inline mewarisi `hx-disabled-elt` form).
+- Kerangka dashboard dan halaman pasangan/admin menyusul di bagian berikutnya.
+
 ### T21 (bagian 2a) — Perbaikan sampul terkunci & tema Minimalis baru
 - **Perbaikan**: di layar pendek tombol "Buka Undangan" bisa berada di bawah lipatan dan tidak terjangkau karena halaman dikunci. Sekarang yang dikunci adalah isi setelah sampul; sampulnya sendiri tetap bisa digulir. Berlaku untuk semua tema.
 - **Tema Minimalis ditulis ulang**: nama & angka tanggal besar rata kiri, garis rambut, acara tanpa kartu, galeri grid rapat, penutup gelap; sampul selalu muat satu layar. Warna utama menjadi `#5f5661`.

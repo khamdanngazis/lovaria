@@ -1,3 +1,9 @@
+// Huruf brand (T22): dimuat sebagai preload lalu dijadikan stylesheet di sini
+// (bukan atribut onload inline — CSP), supaya tidak memblokir render.
+document.querySelectorAll('link[data-font-css]').forEach(function (l) {
+  l.rel = 'stylesheet';
+});
+
 // Komponen Alpine milik Lovoria. Dimuat sebelum alpine.min.js (lihat layouts).
 (function () {
   const MAX_BYTES = 10 * 1024 * 1024;
