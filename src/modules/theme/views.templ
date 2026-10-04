@@ -78,13 +78,13 @@ templ page(s pageState) {
 					<fieldset>
 						<legend class="text-lg font-semibold">Pilih tema</legend>
 						if s.Errors["theme_id"] != "" {
-							<p role="alert" class="mt-1 text-sm text-red-600">{ s.Errors["theme_id"] }</p>
+							<p role="alert" class="mt-1 text-sm text-lovoria-danger">{ s.Errors["theme_id"] }</p>
 						}
 						<div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
 							for _, d := range s.Themes {
 								<label class="block cursor-pointer">
 									<input type="radio" name="theme_id" value={ d.ID } checked?={ d.ID == s.ThemeID } class="peer sr-only"/>
-									<span class="block overflow-hidden rounded-2xl bg-white ring-1 ring-black/10 transition peer-checked:ring-4 peer-checked:ring-primary peer-focus-visible:ring-4">
+									<span class="block overflow-hidden rounded-2xl bg-lovoria-surface ring-1 ring-lovoria-border transition peer-checked:ring-4 peer-checked:ring-lovoria-primary peer-focus-visible:ring-4">
 										<span class="flex h-20 items-center justify-center text-2xl" style={ "background:" + d.Tokens.Surface + ";color:" + d.Tokens.Primary + ";font-family:" + d.Tokens.FontHeading }>A &amp; B</span>
 										<span class="flex h-2">
 											<span class="flex-1" style={ "background:" + d.Tokens.Primary }></span>
@@ -92,7 +92,7 @@ templ page(s pageState) {
 										</span>
 										<span class="block p-2">
 											<span class="block text-sm font-semibold">{ d.Name }</span>
-											<span class="block text-xs text-slate-500">{ d.Description }</span>
+											<span class="block text-xs text-lovoria-muted">{ d.Description }</span>
 										</span>
 									</span>
 								</label>
@@ -101,35 +101,35 @@ templ page(s pageState) {
 					</fieldset>
 					@ui.Card() {
 						<h2 class="font-semibold">Sesuaikan</h2>
-						<p class="text-sm text-slate-500">Kosongkan untuk memakai bawaan tema.</p>
+						<p class="text-sm text-lovoria-muted">Kosongkan untuk memakai bawaan tema.</p>
 						<div class="mt-4 space-y-4">
 							<div x-data={ templ.JSFuncCall("colorField", s.Settings.PrimaryColor).CallInline }>
-								<label class="flex items-center gap-2 text-sm font-medium text-slate-800">
+								<label class="flex items-center gap-2 text-sm font-medium text-lovoria-text">
 									<input type="checkbox" x-model="custom" class="h-4 w-4"/>
 									Warna utama sendiri
 								</label>
 								<div class="mt-2 flex items-center gap-3" x-show="custom">
-									<input type="color" x-model="color" aria-label="Warna utama" class="h-10 w-16 cursor-pointer rounded border border-slate-300"/>
+									<input type="color" x-model="color" aria-label="Warna utama" class="h-10 w-16 cursor-pointer rounded border border-lovoria-control"/>
 									<span class="font-mono text-sm" x-text="color"></span>
 								</div>
 								<input type="hidden" name="primary_color" :value="custom ? color : ''" value={ s.Settings.PrimaryColor }/>
-								<p class="mt-1 text-sm text-red-600">{ s.Errors["primary_color"] }</p>
+								<p class="mt-1 text-sm text-lovoria-danger">{ s.Errors["primary_color"] }</p>
 							</div>
 							<div class="grid gap-4 sm:grid-cols-2">
 								@ui.Select(ui.Field{ID: "theme-font-heading", Name: "font_heading", Label: "Font judul", Value: s.Settings.FontHeading, Error: s.Errors["font_heading"]}, fontOptions(true))
 								@ui.Select(ui.Field{ID: "theme-font-body", Name: "font_body", Label: "Font isi", Value: s.Settings.FontBody, Error: s.Errors["font_body"]}, fontOptions(false))
 							</div>
 							<div x-data={ templ.JSFuncCall("colorField", bgColor(s.Settings.Background)).CallInline }>
-								<label class="flex items-center gap-2 text-sm font-medium text-slate-800">
+								<label class="flex items-center gap-2 text-sm font-medium text-lovoria-text">
 									<input type="checkbox" x-model="custom" class="h-4 w-4"/>
 									Warna latar sendiri
 								</label>
 								<div class="mt-2 flex items-center gap-3" x-show="custom">
-									<input type="color" x-model="color" aria-label="Warna latar" class="h-10 w-16 cursor-pointer rounded border border-slate-300"/>
+									<input type="color" x-model="color" aria-label="Warna latar" class="h-10 w-16 cursor-pointer rounded border border-lovoria-control"/>
 									<span class="font-mono text-sm" x-text="color"></span>
 								</div>
 								<input type="hidden" name="background" :value="custom ? color : ''" value={ bgColor(s.Settings.Background) }/>
-								<p class="mt-1 text-sm text-red-600">{ s.Errors["background"] }</p>
+								<p class="mt-1 text-sm text-lovoria-danger">{ s.Errors["background"] }</p>
 							</div>
 							@ui.ImageUpload(ui.Field{ID: "theme-cover", Name: "cover_image", Label: "Foto sampul (pembuka undangan)", Value: s.Settings.CoverImage, Error: s.Errors["cover_image"]}, s.W.DashboardURL("/gallery/items"), "cover")
 						</div>
@@ -138,7 +138,7 @@ templ page(s pageState) {
 					@quoteCard(s)
 					@musicCard(s)
 					@sectionsCard(s)
-					<div class="sticky bottom-0 -mx-4 border-t border-slate-200 bg-slate-50/95 px-4 py-3 backdrop-blur lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0">
+					<div class="sticky bottom-0 -mx-4 border-t border-lovoria-border bg-lovoria-bg/95 px-4 py-3 backdrop-blur lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0">
 						@ui.PrimaryButton("Simpan tema")
 					</div>
 				</form>
@@ -147,13 +147,13 @@ templ page(s pageState) {
 			<div class="lg:sticky lg:top-4 lg:self-start">
 				<div class="flex items-center justify-between">
 					<p class="text-sm font-medium">Preview</p>
-					<a href={ templ.SafeURL(pageURL(s.W) + "/preview") } target="_blank" class="text-sm text-primary hover:underline">Buka layar penuh ↗</a>
+					<a href={ templ.SafeURL(pageURL(s.W) + "/preview") } target="_blank" class="text-sm text-lovoria-primary hover:underline">Buka layar penuh ↗</a>
 				</div>
 				<iframe
 					id="theme-preview"
 					title="Preview undangan"
 					src={ pageURL(s.W) + "/preview" }
-					class="mt-2 h-[640px] w-full rounded-2xl bg-white shadow-sm ring-1 ring-black/10"
+					class="mt-2 h-[640px] w-full rounded-2xl bg-lovoria-surface shadow-soft ring-1 ring-lovoria-border"
 				></iframe>
 			</div>
 		</div>
@@ -171,7 +171,7 @@ func bgColor(bg string) string {
 templ textsCard(s pageState) {
 	@ui.Card() {
 		<h2 class="font-semibold">Teks pembuka &amp; penutup</h2>
-		<p class="text-sm text-slate-500">Kosongkan untuk memakai teks bawaan tema.</p>
+		<p class="text-sm text-lovoria-muted">Kosongkan untuk memakai teks bawaan tema.</p>
 		<div class="mt-4 space-y-4">
 			@ui.Input(ui.Field{ID: "theme-greeting", Name: "greeting", Label: "Teks sapaan", Type: "text", Value: s.Settings.Greeting, Error: s.Errors["greeting"], MaxLength: MaxGreeting, Placeholder: "Kepada Yth. Bapak/Ibu/Saudara/i", Hint: "Tampil di atas nama tamu pada bagian pembuka."})
 			@ui.TextArea(ui.Field{ID: "theme-closing", Name: "closing", Label: "Kalimat penutup", Value: s.Settings.Closing, Error: s.Errors["closing"], MaxLength: MaxClosing, Placeholder: "Merupakan suatu kehormatan dan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir dan memberikan doa restu."}, 3)
@@ -183,11 +183,11 @@ templ quoteCard(s pageState) {
 	@ui.Card() {
 		<div x-data={ templ.JSFuncCall("quotePicker", QuoteSamples).CallInline }>
 			<h2 class="font-semibold">Kutipan / ayat</h2>
-			<p class="text-sm text-slate-500">Tampil sebagai bagian tersendiri. Kosongkan bila tidak ingin memakai kutipan.</p>
+			<p class="text-sm text-lovoria-muted">Tampil sebagai bagian tersendiri. Kosongkan bila tidak ingin memakai kutipan.</p>
 			<div class="mt-4 space-y-4">
 				<div x-cloak>
-					<label for="theme-quote-sample" class="block text-sm font-medium text-slate-800">Pilih contoh <span class="font-normal text-slate-400">(bisa diedit setelahnya)</span></label>
-					<select id="theme-quote-sample" @change="pick($event)" class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base">
+					<label for="theme-quote-sample" class="block text-sm font-medium text-lovoria-text">Pilih contoh <span class="font-normal text-lovoria-muted">(bisa diedit setelahnya)</span></label>
+					<select id="theme-quote-sample" @change="pick($event)" class="ui-input">
 						<option value="">— Pilih contoh kutipan —</option>
 						for i, q := range QuoteSamples {
 							<option value={ strconv.Itoa(i) }>{ q.Label }</option>
@@ -205,17 +205,17 @@ templ musicCard(s pageState) {
 	@ui.Card() {
 		<div id="musik">
 			<h2 class="font-semibold">Musik latar</h2>
-			<p class="text-sm text-slate-500">Musik mulai diputar saat tamu menekan "Buka Undangan" (tidak otomatis saat halaman dibuka) dan bisa dijeda kapan saja.</p>
-			<label class="mt-4 flex items-center gap-2 text-sm font-medium text-slate-800">
+			<p class="text-sm text-lovoria-muted">Musik mulai diputar saat tamu menekan "Buka Undangan" (tidak otomatis saat halaman dibuka) dan bisa dijeda kapan saja.</p>
+			<label class="mt-4 flex items-center gap-2 text-sm font-medium text-lovoria-text">
 				<input type="checkbox" name="music_enabled" value="1" checked?={ s.Settings.MusicEnabled } class="h-4 w-4"/>
 				Putar musik di undangan
 			</label>
 			if s.Errors["music_url"] != "" {
-				<p role="alert" class="mt-2 text-sm text-red-600">{ s.Errors["music_url"] }</p>
+				<p role="alert" class="mt-2 text-sm text-lovoria-danger">{ s.Errors["music_url"] }</p>
 			}
 			<fieldset class="mt-3">
 				<legend class="sr-only">Pilih lagu</legend>
-				<ul class="divide-y divide-slate-100 rounded-xl border border-slate-200">
+				<ul class="divide-y divide-lovoria-border rounded-xl border border-lovoria-border">
 					if s.Music.UploadURL != "" {
 						@musicOption(s, s.Music.UploadURL, "Musik unggahan Anda", s.Music.UploadMB)
 					}
@@ -223,7 +223,7 @@ templ musicCard(s pageState) {
 						@musicOption(s, t.URL, t.Title, t.Artist+" · "+t.Duration)
 					}
 					if s.Music.UploadURL == "" && len(s.Music.Library) == 0 {
-						<li class="p-3 text-sm text-slate-500">Belum ada lagu bawaan. Unggah MP3 sendiri di bawah.</li>
+						<li class="p-3 text-sm text-lovoria-muted">Belum ada lagu bawaan. Unggah MP3 sendiri di bawah.</li>
 					}
 				</ul>
 			</fieldset>
@@ -236,7 +236,7 @@ templ musicOption(s pageState, url, title, meta string) {
 		<input type="radio" name="music_url" value={ url } checked?={ s.Settings.MusicURL == url } aria-label={ "Pakai lagu " + title } class="h-4 w-4 flex-none"/>
 		<div class="min-w-0 flex-1">
 			<p class="truncate text-sm font-medium">{ title }</p>
-			<p class="truncate text-xs text-slate-500">{ meta }</p>
+			<p class="truncate text-xs text-lovoria-muted">{ meta }</p>
 			<audio src={ url } controls preload="none" class="mt-2 h-8 w-full"></audio>
 		</div>
 	</li>
@@ -246,20 +246,20 @@ templ musicOption(s pageState, url, title, meta string) {
 templ musicUploadCard(s pageState) {
 	@ui.Card() {
 		<h2 class="font-semibold">Unggah musik sendiri</h2>
-		<p class="text-sm text-slate-500">MP3, maks. 8 MB, memakai kuota penyimpanan paket. Pastikan Anda berhak memakai lagu tersebut.</p>
+		<p class="text-sm text-lovoria-muted">MP3, maks. 8 MB, memakai kuota penyimpanan paket. Pastikan Anda berhak memakai lagu tersebut.</p>
 		<form method="post" enctype="multipart/form-data" action={ templ.SafeURL(pageURL(s.W) + "/music") } class="mt-3 flex flex-wrap items-center gap-3">
 			@layouts.CSRFField()
 			<input type="file" name="file" accept="audio/mpeg,.mp3" required aria-label="Berkas MP3" class="min-w-0 flex-1 text-sm"/>
-			<button type="submit" class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white">Unggah</button>
+			<button type="submit" class="ui-btn ui-btn-primary px-4 py-2 text-sm">Unggah</button>
 		</form>
 		if s.Errors["music_file"] != "" {
-			<p role="alert" class="mt-2 text-sm text-red-600">{ s.Errors["music_file"] }</p>
+			<p role="alert" class="mt-2 text-sm text-lovoria-danger">{ s.Errors["music_file"] }</p>
 		}
 		if s.Music.UploadURL != "" {
 			<form method="post" action={ templ.SafeURL(pageURL(s.W) + "/music") } data-confirm="Hapus musik unggahan? Kuota penyimpanan akan dikembalikan." class="mt-3">
 				@layouts.CSRFField()
 				<input type="hidden" name="_method" value="DELETE"/>
-				<button type="submit" class="text-sm text-red-600 hover:underline">Hapus musik unggahan ({ s.Music.UploadMB })</button>
+				<button type="submit" class="text-sm text-lovoria-danger hover:underline">Hapus musik unggahan ({ s.Music.UploadMB })</button>
 			</form>
 		}
 	}
@@ -269,12 +269,12 @@ templ sectionsCard(s pageState) {
 	@ui.Card() {
 		<div id="bagian" x-data="sectionOrder()">
 			<h2 class="font-semibold">Susunan bagian</h2>
-			<p class="text-sm text-slate-500">Atur urutan bagian di antara pembuka dan penutup, dan sembunyikan yang tidak dipakai. Acara, konfirmasi kehadiran, dan mempelai selalu tampil.</p>
+			<p class="text-sm text-lovoria-muted">Atur urutan bagian di antara pembuka dan penutup, dan sembunyikan yang tidak dipakai. Acara, konfirmasi kehadiran, dan mempelai selalu tampil.</p>
 			if s.Errors["hidden_sections"] != "" || s.Errors["section_order"] != "" {
-				<p role="alert" class="mt-2 text-sm text-red-600">{ s.Errors["hidden_sections"] }{ s.Errors["section_order"] }</p>
+				<p role="alert" class="mt-2 text-sm text-lovoria-danger">{ s.Errors["hidden_sections"] }{ s.Errors["section_order"] }</p>
 			}
 			{{ order := OrderedSections(s.Settings) }}
-			<ol class="mt-3 divide-y divide-slate-100 rounded-xl border border-slate-200">
+			<ol class="mt-3 divide-y divide-lovoria-border rounded-xl border border-lovoria-border">
 				for i, d := range order {
 					<li class="flex items-center gap-3 p-3" data-section={ d.ID }>
 						<input type="hidden" name="section_order" value={ d.ID }/>
@@ -284,8 +284,8 @@ templ sectionsCard(s pageState) {
 							<input type="checkbox" id={ "section-" + d.ID } checked disabled class="h-4 w-4 flex-none"/>
 						}
 						<label for={ "section-" + d.ID } class="min-w-0 flex-1 text-sm">{ d.Label }</label>
-						<button type="submit" name="move" value={ d.ID + ":up" } @click.prevent="move($event, -1)" disabled?={ i == 0 } aria-label={ "Naikkan " + d.Label } class="rounded-lg border border-slate-300 px-2.5 py-1 text-sm disabled:opacity-40">↑</button>
-						<button type="submit" name="move" value={ d.ID + ":down" } @click.prevent="move($event, 1)" disabled?={ i == len(order)-1 } aria-label={ "Turunkan " + d.Label } class="rounded-lg border border-slate-300 px-2.5 py-1 text-sm disabled:opacity-40">↓</button>
+						<button type="submit" name="move" value={ d.ID + ":up" } @click.prevent="move($event, -1)" disabled?={ i == 0 } aria-label={ "Naikkan " + d.Label } class="ui-btn ui-btn-secondary px-2.5 py-1 text-sm disabled:opacity-40">↑</button>
+						<button type="submit" name="move" value={ d.ID + ":down" } @click.prevent="move($event, 1)" disabled?={ i == len(order)-1 } aria-label={ "Turunkan " + d.Label } class="ui-btn ui-btn-secondary px-2.5 py-1 text-sm disabled:opacity-40">↓</button>
 					</li>
 				}
 			</ol>

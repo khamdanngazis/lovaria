@@ -2,6 +2,8 @@
 @import "tailwindcss";
 
 @source "../";
+/* Kelas yang hanya dipakai dari JS (toast error htmx di static/js/lovoria.js). */
+@source inline("bg-lovoria-danger");
 
 /* Token dasar. Nilai per tema di-override lewat [data-theme="..."] (theme registry, T08). */
 @theme {
@@ -47,6 +49,9 @@
   --color-lovoria-danger-soft: #f9ebec;
   --color-lovoria-info: #4a5f7a;
   --color-lovoria-info-soft: #e9eef4;
+  /* Warna merek pihak ketiga: tombol "Kirim WA" (hijau WhatsApp yang digelapkan
+     supaya teks putih terbaca ≥ 4.5:1). */
+  --color-whatsapp: #0f7a43;
   --font-display: "Playfair Display", ui-serif, Georgia, serif;
   --font-ui: "Inter", ui-sans-serif, system-ui, sans-serif;
   --shadow-soft: 0 8px 30px rgb(51 41 54 / 0.08);
@@ -273,10 +278,18 @@ html.lv-locked #opening ~ * {
   .ui-label {
     @apply block text-sm font-medium text-lovoria-text;
   }
+  /* ui-control: tampilan kontrol form saja (tepi, sudut, warna, fokus) — untuk
+     input/select kecil di baris filter atau tabel yang ukurannya diatur sendiri.
+     ui-input = ui-control + ukuran & tata letak field form standar. */
+  .ui-control,
   .ui-input {
-    @apply mt-1 block w-full rounded-lg border border-lovoria-control bg-lovoria-surface px-3 py-2 text-base text-lovoria-text;
+    @apply rounded-lg border border-lovoria-control bg-lovoria-surface text-lovoria-text;
     @apply focus:border-lovoria-primary focus:outline-none focus:ring-1 focus:ring-lovoria-primary;
   }
+  .ui-input {
+    @apply mt-1 block w-full px-3 py-2 text-base;
+  }
+  .ui-control[aria-invalid="true"],
   .ui-input[aria-invalid="true"] {
     @apply border-lovoria-danger;
   }

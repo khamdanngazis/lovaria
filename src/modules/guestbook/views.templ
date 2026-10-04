@@ -50,7 +50,7 @@ templ page(s pageState) {
 
 templ section(s pageState) {
 	<section id="guestbook" class="space-y-4">
-		<p class="text-sm text-slate-600">
+		<p class="text-sm text-lovoria-muted">
 			Ucapan & doa dari tamu. Pesan yang mengandung kata kasar otomatis disembunyikan; tampilkan lagi bila ternyata aman. Tandai ★ ucapan favorit — setelah hari H, ucapan favorit tampil paling atas di halaman kenangan.
 		</p>
 		<nav class="flex gap-2 overflow-x-auto whitespace-nowrap text-sm scrollbar-none" aria-label="Filter pesan">
@@ -64,7 +64,7 @@ templ section(s pageState) {
 			<input type="hidden" name="page" value={ strconv.Itoa(s.Page) }/>
 		</form>
 		if len(s.Entries) == 0 {
-			<div class="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-slate-500">
+			<div class="rounded-2xl border border-dashed border-lovoria-control p-8 text-center text-lovoria-muted">
 				if s.Stats.Total == 0 {
 					Belum ada ucapan. Pesan dari tamu akan muncul di sini.
 				} else {
@@ -80,12 +80,12 @@ templ section(s pageState) {
 		}
 		<nav class="flex items-center justify-between text-sm" aria-label="Halaman">
 			if s.Page > 1 {
-				<a href={ templ.SafeURL(s.query(s.Filter, s.Page-1)) } class="rounded-lg border border-slate-300 bg-white px-3 py-1.5">‹ Sebelumnya</a>
+				<a href={ templ.SafeURL(s.query(s.Filter, s.Page-1)) } class="ui-btn ui-btn-secondary px-3 py-1.5">‹ Sebelumnya</a>
 			} else {
 				<span></span>
 			}
 			if len(s.Entries) == DashboardPage {
-				<a href={ templ.SafeURL(s.query(s.Filter, s.Page+1)) } class="rounded-lg border border-slate-300 bg-white px-3 py-1.5">Berikutnya ›</a>
+				<a href={ templ.SafeURL(s.query(s.Filter, s.Page+1)) } class="ui-btn ui-btn-secondary px-3 py-1.5">Berikutnya ›</a>
 			}
 		</nav>
 	</section>
@@ -94,7 +94,7 @@ templ section(s pageState) {
 templ filterLink(s pageState, filter, label string) {
 	<a
 		href={ templ.SafeURL(s.query(filter, 1)) }
-		class={ "rounded-full px-3 py-1.5", templ.KV("bg-primary text-white", s.Filter == filter), templ.KV("bg-white text-slate-600 ring-1 ring-slate-300", s.Filter != filter) }
+		class={ "rounded-full px-3 py-1.5", templ.KV("bg-lovoria-primary text-white", s.Filter == filter), templ.KV("bg-lovoria-surface text-lovoria-muted ring-1 ring-lovoria-border", s.Filter != filter) }
 		if s.Filter == filter {
 			aria-current="page"
 		}
@@ -103,31 +103,31 @@ templ filterLink(s pageState, filter, label string) {
 
 templ item(s pageState, e Entry) {
 	{{ u := base(s.W) + "/" + e.ID.String() }}
-	<li class={ "rounded-xl bg-white p-3 shadow-sm ring-1 ring-black/5", templ.KV("opacity-70", e.Hidden) }>
+	<li class={ "rounded-xl bg-lovoria-surface p-3 shadow-soft ring-1 ring-lovoria-border", templ.KV("opacity-70", e.Hidden) }>
 		<div class="flex flex-wrap items-center gap-2">
 			<span class="break-words font-medium">{ e.Name }</span>
 			if e.GuestID != nil {
-				<span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">tamu undangan</span>
+				<span class="rounded-full bg-lovoria-subtle px-2 py-0.5 text-xs text-lovoria-muted">tamu undangan</span>
 			}
 			if e.Hidden {
-				<span class="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-800">Disembunyikan</span>
+				<span class="rounded-full bg-lovoria-warning-soft px-2 py-0.5 text-xs text-lovoria-warning">Disembunyikan</span>
 			}
 			if e.Favorite {
-				<span class="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">★ Favorit</span>
+				<span class="rounded-full bg-lovoria-primary-soft px-2 py-0.5 text-xs text-lovoria-primary">★ Favorit</span>
 			}
 		</div>
-		<p class="mt-1 whitespace-pre-line break-words text-sm text-slate-700">{ e.Message }</p>
-		<div class="mt-2 flex items-center gap-4 border-t border-slate-100 pt-2 text-sm">
-			<span class="flex-1 text-xs text-slate-500">{ s.when(e.CreatedAt) }</span>
+		<p class="mt-1 whitespace-pre-line break-words text-sm text-lovoria-text">{ e.Message }</p>
+		<div class="mt-2 flex items-center gap-4 border-t border-lovoria-border pt-2 text-sm">
+			<span class="flex-1 text-xs text-lovoria-muted">{ s.when(e.CreatedAt) }</span>
 			<form method="post" action={ templ.SafeURL(u + "/favorite") } hx-patch={ u + "/favorite" } hx-include="#guestbook-state" hx-target="#guestbook" hx-swap="outerHTML">
 				@layouts.CSRFField()
 				<input type="hidden" name="_method" value="PATCH"/>
 				if e.Favorite {
 					<input type="hidden" name="favorite" value="0"/>
-					<button type="submit" class="text-lg leading-none text-primary" aria-label={ "Lepas favorit: ucapan " + e.Name } title="Lepas dari favorit">★</button>
+					<button type="submit" class="text-lg leading-none text-lovoria-primary" aria-label={ "Lepas favorit: ucapan " + e.Name } title="Lepas dari favorit">★</button>
 				} else {
 					<input type="hidden" name="favorite" value="1"/>
-					<button type="submit" class="text-lg leading-none text-slate-300 hover:text-primary" aria-label={ "Jadikan favorit: ucapan " + e.Name } title="Jadikan favorit (tampil paling atas setelah hari H)">☆</button>
+					<button type="submit" class="text-lg leading-none text-lovoria-control hover:text-lovoria-primary" aria-label={ "Jadikan favorit: ucapan " + e.Name } title="Jadikan favorit (tampil paling atas setelah hari H)">☆</button>
 				}
 			</form>
 			<form method="post" action={ templ.SafeURL(u) } hx-patch={ u } hx-include="#guestbook-state" hx-target="#guestbook" hx-swap="outerHTML">
@@ -135,16 +135,16 @@ templ item(s pageState, e Entry) {
 				<input type="hidden" name="_method" value="PATCH"/>
 				if e.Hidden {
 					<input type="hidden" name="hidden" value="0"/>
-					<button type="submit" class="font-medium text-primary hover:underline">Tampilkan</button>
+					<button type="submit" class="font-medium text-lovoria-primary hover:underline">Tampilkan</button>
 				} else {
 					<input type="hidden" name="hidden" value="1"/>
-					<button type="submit" class="font-medium text-slate-600 hover:underline">Sembunyikan</button>
+					<button type="submit" class="font-medium text-lovoria-muted hover:underline">Sembunyikan</button>
 				}
 			</form>
 			<form method="post" action={ templ.SafeURL(u) } hx-delete={ u } hx-include="#guestbook-state" hx-target="#guestbook" hx-swap="outerHTML" hx-confirm={ "Hapus ucapan dari " + e.Name + "?" }>
 				@layouts.CSRFField()
 				<input type="hidden" name="_method" value="DELETE"/>
-				<button type="submit" class="text-red-600 hover:underline">Hapus</button>
+				<button type="submit" class="text-lovoria-danger hover:underline">Hapus</button>
 			</form>
 		</div>
 	</li>

@@ -69,6 +69,20 @@ func TestBrandTokenContrast(t *testing.T) {
 var migrated = []string{
 	"form.templ",
 	"../../modules/auth/views.templ",
+	// PR 2: kerangka dashboard & halaman pasangan.
+	"../layouts/layouts.templ",
+	"../../dashboard/home.templ",
+	"../../modules/wedding/views.templ",
+	"../../modules/wedding/event/views.templ",
+	"../../modules/wedding/story/views.templ",
+	"../../modules/guest/views.templ",
+	"../../modules/guest/share_views.templ",
+	"../../modules/guest/rsvp_views.templ",
+	"../../modules/gallery/views.templ",
+	"../../modules/theme/views.templ",
+	"../../modules/guestbook/views.templ",
+	"../../modules/gift/views.templ",
+	"../../modules/domain/views.templ",
 }
 
 var (

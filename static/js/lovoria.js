@@ -296,7 +296,7 @@ document.querySelectorAll('link[data-font-css]').forEach(function (l) {
     if (!box) {
       box = document.createElement('div');
       box.setAttribute('role', 'alert');
-      box.className = 'fixed inset-x-4 bottom-20 z-[60] mx-auto max-w-md rounded-xl bg-red-600 px-4 py-3 text-center text-sm text-white shadow-lg lg:bottom-6';
+      box.className = 'fixed inset-x-4 bottom-20 z-[60] mx-auto max-w-md rounded-xl bg-lovoria-danger px-4 py-3 text-center text-sm text-white shadow-lg lg:bottom-6';
       document.body.appendChild(box);
     }
     box.textContent = msg;

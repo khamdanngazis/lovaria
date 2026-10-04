@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### T22 (bagian 2) — Dashboard pasangan selaras brand
+- **Kerangka dashboard**: header, sidebar, bottom bar ponsel, dan banner mode admin memakai warna brand; huruf Inter + Playfair Display termuat di seluruh dashboard.
+- **Semua halaman pasangan** (beranda, wizard & daftar wedding, info, mempelai, acara, cerita, tamu, bagikan, RSVP, galeri, tema, ucapan, hadiah, domain) beralih dari abu-abu dingin & dusty rose ke token `lovoria-*` dan kelas `ui-*`: tombol utama Dusty Plum, kartu bergaris hangat, warna status versi teredam.
+- Judul halaman dan nama pasangan memakai Playfair Display; pratinjau & swatch tema tetap memakai warna tema masing-masing.
+- Penjaga kelas palet mentah kini mencakup 15 berkas dashboard/auth. Panel admin menyusul di bagian 3.
+
 ### T22 (bagian 1) — Fondasi UI brand & halaman auth baru
 - **Login, daftar, lupa & reset password** memakai tampilan brand: logo Lovoria, Dusty Plum, Playfair Display + Inter; di layar lebar dua panel dengan tagline "Your Love. Your Story. Your Forever." (halaman daftar menampilkan poin manfaat).
 - **Token warna dashboard** (`lovoria-*`: primary-hover, primary-soft, surface, subtle, control, success/warning/danger/info) dan **kelas komponen bersama** `ui-*` (tombol, input, kartu, badge, alert, tabel, tab, tautan). Komponen `templates/ui` beralih ke kelas ini; tambahan `ui.Badge`, `ui.PageHeader`, `ui.EmptyState`.

@@ -131,7 +131,7 @@ func TestMemoryCard(t *testing.T) {
 	if !strings.Contains(html, "Abadikan kenangan") || !strings.Contains(html, "Unggah foto hari bahagia") || !strings.Contains(html, "Pilih ucapan favorit") || !strings.Contains(html, "Unduh kenang-kenangan (PDF)") {
 		t.Fatal("kenangan: kartu saran tidak lengkap")
 	}
-	if strings.Count(html, "border-2 border-slate-300") < 2 {
+	if strings.Count(html, "border-2 border-lovoria-control") < 2 {
 		t.Error("kedua saran belum selesai")
 	}
 	// Setelah ada foto hari-H & ucapan favorit → keduanya tercentang.

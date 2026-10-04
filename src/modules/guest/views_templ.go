@@ -86,11 +86,11 @@ func displayPhone(p string) string {
 func statusClass(s string) string {
 	switch s {
 	case StatusAttending:
-		return "bg-green-100 text-green-800"
+		return "bg-lovoria-success-soft text-lovoria-success"
 	case StatusDeclined:
-		return "bg-red-100 text-red-700"
+		return "bg-lovoria-danger-soft text-lovoria-danger"
 	default:
-		return "bg-slate-100 text-slate-600"
+		return "bg-lovoria-subtle text-lovoria-muted"
 	}
 }
 
@@ -152,7 +152,7 @@ func page(s listState, editor templ.Component) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" class=\"rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white\">Tempel daftar tamu</a> <a href=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" class=\"ui-btn ui-btn-primary px-3 py-2 text-sm\">Tempel daftar tamu</a> <a href=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -165,7 +165,7 @@ func page(s listState, editor templ.Component) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" class=\"rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-50\">Import file CSV</a> <a href=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" class=\"ui-btn ui-btn-secondary px-3 py-2 text-sm\">Import file CSV</a> <a href=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -178,7 +178,7 @@ func page(s listState, editor templ.Component) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" class=\"rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-50\" download>Export CSV</a></div><div id=\"guest-editor\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" class=\"ui-btn ui-btn-secondary px-3 py-2 text-sm\" download>Export CSV</a></div><div id=\"guest-editor\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -294,14 +294,14 @@ func statCard(label string, n int, sub string) templ.Component {
 			templ_7745c5c3_Var7 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<div class=\"rounded-2xl bg-white px-3 py-2.5 shadow-sm ring-1 ring-black/5 sm:p-4\"><p class=\"text-xs text-slate-500\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<div class=\"ui-card px-3 py-2.5 sm:p-4\"><p class=\"text-xs text-lovoria-muted\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(label)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 127, Col: 43}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 127, Col: 47}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
@@ -325,14 +325,14 @@ func statCard(label string, n int, sub string) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if sub != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<p class=\"text-xs text-slate-500\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<p class=\"text-xs text-lovoria-muted\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(sub)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 130, Col: 42}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 130, Col: 46}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
@@ -412,7 +412,7 @@ func filters(s listState) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\" placeholder=\"Cari nama, HP, email, atau kode…\" aria-label=\"Cari tamu\" class=\"rounded-lg border border-slate-300 bg-white px-3 py-2 text-base\"> <select name=\"status\" aria-label=\"Filter status\" class=\"rounded-lg border border-slate-300 bg-white px-3 py-2\"><option value=\"\">Semua status</option> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\" placeholder=\"Cari nama, HP, email, atau kode…\" aria-label=\"Cari tamu\" class=\"ui-control px-3 py-2 text-base\"> <select name=\"status\" aria-label=\"Filter status\" class=\"ui-control px-3 py-2\"><option value=\"\">Semua status</option> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -466,7 +466,7 @@ func filters(s listState) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<select name=\"shared\" aria-label=\"Filter dibagikan\" class=\"rounded-lg border border-slate-300 bg-white px-3 py-2\"><option value=\"\">Semua</option> <option value=\"no\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<select name=\"shared\" aria-label=\"Filter dibagikan\" class=\"ui-control px-3 py-2\"><option value=\"\">Semua</option> <option value=\"no\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -525,7 +525,7 @@ func groupSelect(s listState, oob bool) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, " class=\"rounded-lg border border-slate-300 bg-white px-3 py-2\"><option value=\"\">Semua grup</option> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, " class=\"ui-control px-3 py-2\"><option value=\"\">Semua grup</option> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -612,7 +612,7 @@ func list(s listState) templ.Component {
 			}
 		}
 		if len(s.Page.Guests) == 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "<div class=\"rounded-2xl border border-dashed border-slate-300 p-8 text-center text-slate-500\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "<div class=\"rounded-2xl border border-dashed border-lovoria-control p-8 text-center text-lovoria-muted\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -666,7 +666,7 @@ func list(s listState) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "<input type=\"hidden\" name=\"_method\" value=\"DELETE\"><div class=\"flex items-center justify-between gap-2 text-sm\"><label class=\"flex items-center gap-2 text-slate-600\"><input type=\"checkbox\" class=\"h-4 w-4\" @change=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "<input type=\"hidden\" name=\"_method\" value=\"DELETE\"><div class=\"flex items-center justify-between gap-2 text-sm\"><label class=\"flex items-center gap-2 text-lovoria-muted\"><input type=\"checkbox\" class=\"h-4 w-4\" @change=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -692,7 +692,7 @@ func list(s listState) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "\"> Pilih semua</label> <button type=\"submit\" x-show=\"selected.length\" x-cloak class=\"rounded-lg bg-red-600 px-3 py-1.5 text-white\" x-text=\"'Hapus ' + selected.length + ' tamu'\">Hapus terpilih</button></div><ul class=\"mt-2 space-y-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "\"> Pilih semua</label> <button type=\"submit\" x-show=\"selected.length\" x-cloak class=\"ui-btn ui-btn-danger px-3 py-1.5\" x-text=\"'Hapus ' + selected.length + ' tamu'\">Hapus terpilih</button></div><ul class=\"mt-2 space-y-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -795,14 +795,14 @@ func row(s listState, g Guest) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "\" class=\"flex flex-wrap gap-3 rounded-xl bg-white p-3 shadow-sm ring-1 ring-black/5\" x-data=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "\" class=\"ui-card flex flex-wrap gap-3 rounded-xl p-3\" x-data=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var28 string
 		templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.ResolveAttributeValue(shareRowData(guestURL(s.W, g.ID, "/shared"), g.SharedAt != nil))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 227, Col: 192}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 227, Col: 161}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var28)
 		if templ_7745c5c3_Err != nil {
@@ -905,7 +905,7 @@ func row(s listState, g Guest) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 69, "</span></div><p class=\"mt-0.5 text-sm text-slate-600\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 69, "</span></div><p class=\"mt-0.5 text-sm text-lovoria-muted\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -956,14 +956,14 @@ func row(s listState, g Guest) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 74, "</p><p class=\"mt-0.5 font-mono text-xs text-slate-500\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 74, "</p><p class=\"mt-0.5 font-mono text-xs text-lovoria-muted\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var39 string
 		templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs(g.InvitationCode)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 248, Col: 72}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 248, Col: 76}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var39))
 		if templ_7745c5c3_Err != nil {
@@ -974,14 +974,14 @@ func row(s listState, g Guest) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if g.RSVPMessage != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 76, "<p class=\"mt-1 break-words text-sm italic text-slate-600\">“")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 76, "<p class=\"mt-1 break-words text-sm italic text-lovoria-muted\">“")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var40 string
 			templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.JoinStringErrs(g.RSVPMessage)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 250, Col: 80}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 250, Col: 84}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var40))
 			if templ_7745c5c3_Err != nil {
@@ -1018,7 +1018,7 @@ func row(s listState, g Guest) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 80, "\" hx-target=\"#guest-editor\" hx-swap=\"innerHTML\" class=\"text-primary hover:underline\">Ubah</a> <button type=\"button\" hx-delete=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 80, "\" hx-target=\"#guest-editor\" hx-swap=\"innerHTML\" class=\"text-lovoria-primary hover:underline\">Ubah</a> <button type=\"button\" hx-delete=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1044,7 +1044,7 @@ func row(s listState, g Guest) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 82, "\" class=\"text-red-600 hover:underline\">Hapus</button></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 82, "\" class=\"text-lovoria-danger hover:underline\">Hapus</button></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1082,7 +1082,7 @@ func shareActions(s listState, g Guest) templ.Component {
 			templ_7745c5c3_Var45 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 84, "<div class=\"flex w-full flex-wrap items-center gap-2 border-t border-slate-100 pt-2 text-sm\"><a href=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 84, "<div class=\"flex w-full flex-wrap items-center gap-2 border-t border-lovoria-border pt-2 text-sm\"><a href=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1095,7 +1095,7 @@ func shareActions(s listState, g Guest) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 85, "\" target=\"_blank\" rel=\"noopener\" @click=\"mark()\" class=\"inline-flex items-center gap-1 rounded-lg bg-green-600 px-3 py-1.5 font-medium text-white hover:bg-green-700\">Kirim WA ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 85, "\" target=\"_blank\" rel=\"noopener\" @click=\"mark()\" class=\"inline-flex items-center gap-1 rounded-lg bg-whatsapp px-3 py-1.5 font-medium text-white hover:opacity-90\">Kirim WA ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1118,7 +1118,7 @@ func shareActions(s listState, g Guest) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 88, "\" class=\"rounded-lg border border-slate-300 px-3 py-1.5 hover:bg-slate-50\" x-text=\"copied === 'link' ? 'Tersalin ✓' : 'Salin link'\">Salin link</button> <button type=\"button\" x-cloak @click=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 88, "\" class=\"ui-btn ui-btn-secondary px-3 py-1.5\" x-text=\"copied === 'link' ? 'Tersalin ✓' : 'Salin link'\">Salin link</button> <button type=\"button\" x-cloak @click=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1131,7 +1131,7 @@ func shareActions(s listState, g Guest) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 89, "\" class=\"rounded-lg border border-slate-300 px-3 py-1.5 hover:bg-slate-50\" x-text=\"copied === 'msg' ? 'Tersalin ✓' : 'Salin pesan'\">Salin pesan</button> <span x-show=\"shared\" x-cloak class=\"ml-auto rounded-full bg-sky-100 px-2 py-0.5 text-xs text-sky-800\">Sudah dibagikan</span></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 89, "\" class=\"ui-btn ui-btn-secondary px-3 py-1.5\" x-text=\"copied === 'msg' ? 'Tersalin ✓' : 'Salin pesan'\">Salin pesan</button> <span x-show=\"shared\" x-cloak class=\"ml-auto rounded-full bg-lovoria-info-soft px-2 py-0.5 text-xs text-lovoria-info\">Sudah dibagikan</span></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1192,7 +1192,7 @@ func pagination(s listState) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 93, "\" hx-target=\"#guests\" hx-swap=\"outerHTML\" hx-push-url=\"true\" class=\"rounded-lg border border-slate-300 bg-white px-3 py-1.5\">‹ Sebelumnya</a> ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 93, "\" hx-target=\"#guests\" hx-swap=\"outerHTML\" hx-push-url=\"true\" class=\"ui-btn ui-btn-secondary px-3 py-1.5\">‹ Sebelumnya</a> ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1202,14 +1202,14 @@ func pagination(s listState) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 95, "<span class=\"text-slate-500\">Halaman ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 95, "<span class=\"text-lovoria-muted\">Halaman ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var52 string
 			templ_7745c5c3_Var52, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(s.Page.Page))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 290, Col: 67}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 290, Col: 71}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var52))
 			if templ_7745c5c3_Err != nil {
@@ -1222,7 +1222,7 @@ func pagination(s listState) templ.Component {
 			var templ_7745c5c3_Var53 string
 			templ_7745c5c3_Var53, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(s.Page.Pages()))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 290, Col: 105}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 290, Col: 109}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var53))
 			if templ_7745c5c3_Err != nil {
@@ -1235,7 +1235,7 @@ func pagination(s listState) templ.Component {
 			var templ_7745c5c3_Var54 string
 			templ_7745c5c3_Var54, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(s.Page.Total))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 290, Col: 139}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 290, Col: 143}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var54))
 			if templ_7745c5c3_Err != nil {
@@ -1272,7 +1272,7 @@ func pagination(s listState) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 101, "\" hx-target=\"#guests\" hx-swap=\"outerHTML\" hx-push-url=\"true\" class=\"rounded-lg border border-slate-300 bg-white px-3 py-1.5\">Berikutnya ›</a>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 101, "\" hx-target=\"#guests\" hx-swap=\"outerHTML\" hx-push-url=\"true\" class=\"ui-btn ui-btn-secondary px-3 py-1.5\">Berikutnya ›</a>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1393,7 +1393,7 @@ func editor(w wedding.Wedding, id uuid.UUID, g Guest, f form, link string) templ
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 112, " hx-target=\"#guests\" hx-swap=\"outerHTML\" hx-include=\"#guest-filters\" hx-disabled-elt=\"find button\" x-data=\"contactFill()\" x-init=\"$el.scrollIntoView({ behavior: 'smooth', block: 'start' })\" class=\"scroll-mt-4 space-y-4 rounded-2xl bg-white p-4 shadow-sm ring-2 ring-primary/40 sm:p-5\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 112, " hx-target=\"#guests\" hx-swap=\"outerHTML\" hx-include=\"#guest-filters\" hx-disabled-elt=\"find button\" x-data=\"contactFill()\" x-init=\"$el.scrollIntoView({ behavior: 'smooth', block: 'start' })\" class=\"scroll-mt-4 space-y-4 rounded-2xl bg-lovoria-surface p-4 shadow-soft ring-2 ring-lovoria-primary/40 sm:p-5\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1427,14 +1427,14 @@ func editor(w wedding.Wedding, id uuid.UUID, g Guest, f form, link string) templ
 			return templ_7745c5c3_Err
 		}
 		if link != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 118, "<p class=\"break-all rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600\">Link undangan: <span class=\"font-mono\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 118, "<p class=\"break-all rounded-lg bg-lovoria-bg px-3 py-2 text-sm text-lovoria-muted\">Link undangan: <span class=\"font-mono\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var63 string
 			templ_7745c5c3_Var63, templ_7745c5c3_Err = templ.JoinStringErrs(link)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 332, Col: 125}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 332, Col: 131}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var63))
 			if templ_7745c5c3_Err != nil {
@@ -1457,7 +1457,7 @@ func editor(w wedding.Wedding, id uuid.UUID, g Guest, f form, link string) templ
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 121, "<button type=\"button\" x-show=\"supported\" x-cloak @click=\"pick()\" class=\"mt-1 text-sm text-primary hover:underline\">Pilih dari kontak HP</button></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 121, "<button type=\"button\" x-show=\"supported\" x-cloak @click=\"pick()\" class=\"mt-1 text-sm text-lovoria-primary hover:underline\">Pilih dari kontak HP</button></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1478,7 +1478,7 @@ func editor(w wedding.Wedding, id uuid.UUID, g Guest, f form, link string) templ
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 123, "\" class=\"block text-sm font-medium text-slate-800\">Grup <span class=\"font-normal text-slate-400\">(opsional)</span></label> <input id=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 123, "\" class=\"block text-sm font-medium text-lovoria-text\">Grup <span class=\"font-normal text-lovoria-muted\">(opsional)</span></label> <input id=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1504,14 +1504,14 @@ func editor(w wedding.Wedding, id uuid.UUID, g Guest, f form, link string) templ
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 125, "\" maxlength=\"50\" placeholder=\"Keluarga, Kantor…\" class=\"mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base\"><p class=\"mt-1 text-sm text-red-600\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 125, "\" maxlength=\"50\" placeholder=\"Keluarga, Kantor…\" class=\"ui-input\"><p class=\"mt-1 text-sm text-lovoria-danger\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var67 string
 		templ_7745c5c3_Var67, templ_7745c5c3_Err = templ.JoinStringErrs(f.e("group_name"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 346, Col: 60}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 346, Col: 67}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var67))
 		if templ_7745c5c3_Err != nil {
@@ -1533,7 +1533,7 @@ func editor(w wedding.Wedding, id uuid.UUID, g Guest, f form, link string) templ
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 128, "<div class=\"flex flex-col-reverse gap-2 sm:flex-row sm:justify-end\"><button type=\"button\" @click=\"$el.closest('#guest-editor').innerHTML = ''\" class=\"rounded-lg border border-slate-300 px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-50\">Batal</button>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 128, "<div class=\"flex flex-col-reverse gap-2 sm:flex-row sm:justify-end\"><button type=\"button\" @click=\"$el.closest('#guest-editor').innerHTML = ''\" class=\"ui-btn ui-btn-secondary px-4 py-2.5\">Batal</button>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1596,7 +1596,7 @@ func importPage(w wedding.Wedding, errMsg string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 131, "\" class=\"text-sm text-slate-500 hover:underline\">‹ Kembali ke daftar tamu</a></p><div class=\"rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900\">Daftar tamu ada di catatan HP, chat, atau sudah terbuka di Excel? <a href=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 131, "\" class=\"text-sm text-lovoria-muted hover:underline\">‹ Kembali ke daftar tamu</a></p><div class=\"rounded-xl bg-lovoria-warning-soft px-4 py-3 text-sm text-lovoria-warning\">Daftar tamu ada di catatan HP, chat, atau sudah terbuka di Excel? <a href=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1650,7 +1650,7 @@ func importPage(w wedding.Wedding, errMsg string) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 135, "<label for=\"import-file\" class=\"flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed px-4 py-8 text-center transition\" :class=\"over ? 'border-primary bg-primary/5' : 'border-slate-300 bg-slate-50 hover:border-primary'\" @dragover.prevent=\"over = true\" @dragleave.prevent=\"over = false\" @drop.prevent=\"over = false; $refs.file.files = $event.dataTransfer.files; name = $refs.file.files[0]?.name || ''; name && $el.closest('form').requestSubmit()\"><svg class=\"h-10 w-10 text-primary\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"1.5\" aria-hidden=\"true\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M12 16V4m0 0-4 4m4-4 4 4M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2\"></path></svg> <span class=\"mt-2 text-base font-semibold text-slate-800\" x-text=\"name ? 'Memproses ' + name + '…' : 'Pilih file CSV'\">Pilih file CSV</span> <span class=\"text-sm text-slate-500\" x-show=\"!name\">ketuk di sini, atau seret file ke kotak ini</span> <input id=\"import-file\" x-ref=\"file\" type=\"file\" name=\"file\" accept=\".csv,text/csv\" required class=\"sr-only\" @change=\"name = $event.target.files[0]?.name || ''; name && $el.form.requestSubmit()\"></label><noscript>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 135, "<label for=\"import-file\" class=\"flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed px-4 py-8 text-center transition\" :class=\"over ? 'border-lovoria-primary bg-lovoria-primary-soft' : 'border-lovoria-control bg-lovoria-bg hover:border-lovoria-primary'\" @dragover.prevent=\"over = true\" @dragleave.prevent=\"over = false\" @drop.prevent=\"over = false; $refs.file.files = $event.dataTransfer.files; name = $refs.file.files[0]?.name || ''; name && $el.closest('form').requestSubmit()\"><svg class=\"h-10 w-10 text-lovoria-primary\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"1.5\" aria-hidden=\"true\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M12 16V4m0 0-4 4m4-4 4 4M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2\"></path></svg> <span class=\"mt-2 text-base font-semibold text-lovoria-text\" x-text=\"name ? 'Memproses ' + name + '…' : 'Pilih file CSV'\">Pilih file CSV</span> <span class=\"text-sm text-lovoria-muted\" x-show=\"!name\">ketuk di sini, atau seret file ke kotak ini</span> <input id=\"import-file\" x-ref=\"file\" type=\"file\" name=\"file\" accept=\".csv,text/csv\" required class=\"sr-only\" @change=\"name = $event.target.files[0]?.name || ''; name && $el.form.requestSubmit()\"></label><noscript>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1658,7 +1658,7 @@ func importPage(w wedding.Wedding, errMsg string) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 136, "</noscript></form><h3 class=\"mt-6 border-t border-slate-100 pt-4 text-sm font-semibold text-slate-800\">Belum punya file? Siapkan dalam 3 langkah</h3><ol class=\"mt-2 space-y-3 text-sm\"><li class=\"flex gap-3\"><span class=\"flex h-6 w-6 flex-none items-center justify-center rounded-full bg-primary text-xs font-semibold text-white\">1</span><div><p class=\"font-medium\">Unduh template</p><a href=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 136, "</noscript></form><h3 class=\"mt-6 border-t border-lovoria-border pt-4 text-sm font-semibold text-lovoria-text\">Belum punya file? Siapkan dalam 3 langkah</h3><ol class=\"mt-2 space-y-3 text-sm\"><li class=\"flex gap-3\"><span class=\"flex h-6 w-6 flex-none items-center justify-center rounded-full bg-lovoria-primary text-xs font-semibold text-white\">1</span><div><p class=\"font-medium\">Unduh template</p><a href=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1671,7 +1671,7 @@ func importPage(w wedding.Wedding, errMsg string) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 137, "\" download class=\"mt-1 inline-flex items-center rounded-lg border border-slate-300 bg-white px-3 py-1.5 font-medium hover:bg-slate-50\">Unduh template (.csv)</a></div></li><li class=\"flex gap-3\"><span class=\"flex h-6 w-6 flex-none items-center justify-center rounded-full bg-primary text-xs font-semibold text-white\">2</span><div class=\"min-w-0 flex-1\"><p class=\"font-medium\">Isi di Excel atau Google Sheets, satu baris satu tamu</p><p class=\"text-slate-600\">Hanya kolom <b>nama</b> yang wajib. Contoh:</p><div class=\"mt-2 overflow-x-auto rounded-lg ring-1 ring-slate-200\"><table class=\"w-full text-left text-xs\"><thead class=\"bg-slate-50 text-slate-500\"><tr><th class=\"px-2 py-1.5\">nama</th><th class=\"px-2 py-1.5\">hp</th><th class=\"px-2 py-1.5\">email</th><th class=\"px-2 py-1.5\">grup</th><th class=\"px-2 py-1.5\">jumlah</th></tr></thead> <tbody><tr class=\"border-t border-slate-100\"><td class=\"px-2 py-1.5\">Budi Santoso</td><td class=\"px-2 py-1.5\">0812-3456-7890</td><td class=\"px-2 py-1.5\">budi@email.com</td><td class=\"px-2 py-1.5\">Keluarga</td><td class=\"px-2 py-1.5\">2</td></tr><tr class=\"border-t border-slate-100\"><td class=\"px-2 py-1.5\">Sari</td><td class=\"px-2 py-1.5\"></td><td class=\"px-2 py-1.5\"></td><td class=\"px-2 py-1.5\">Kantor</td><td class=\"px-2 py-1.5\">1</td></tr></tbody></table></div></div></li><li class=\"flex gap-3\"><span class=\"flex h-6 w-6 flex-none items-center justify-center rounded-full bg-primary text-xs font-semibold text-white\">3</span><div class=\"min-w-0 flex-1\"><p class=\"font-medium\">Simpan sebagai CSV, lalu unggah di kotak di atas</p><p class=\"text-slate-600\">Excel: File › Save As › <i>CSV UTF-8</i>. Google Sheets: File › Download › <i>CSV</i>.</p></div></li></ol>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 137, "\" download class=\"ui-btn ui-btn-secondary mt-1 px-3 py-1.5\">Unduh template (.csv)</a></div></li><li class=\"flex gap-3\"><span class=\"flex h-6 w-6 flex-none items-center justify-center rounded-full bg-lovoria-primary text-xs font-semibold text-white\">2</span><div class=\"min-w-0 flex-1\"><p class=\"font-medium\">Isi di Excel atau Google Sheets, satu baris satu tamu</p><p class=\"text-lovoria-muted\">Hanya kolom <b>nama</b> yang wajib. Contoh:</p><div class=\"mt-2 overflow-x-auto rounded-lg ring-1 ring-lovoria-border\"><table class=\"w-full text-left text-xs\"><thead class=\"bg-lovoria-bg text-lovoria-muted\"><tr><th class=\"px-2 py-1.5\">nama</th><th class=\"px-2 py-1.5\">hp</th><th class=\"px-2 py-1.5\">email</th><th class=\"px-2 py-1.5\">grup</th><th class=\"px-2 py-1.5\">jumlah</th></tr></thead> <tbody><tr class=\"border-t border-lovoria-border\"><td class=\"px-2 py-1.5\">Budi Santoso</td><td class=\"px-2 py-1.5\">0812-3456-7890</td><td class=\"px-2 py-1.5\">budi@email.com</td><td class=\"px-2 py-1.5\">Keluarga</td><td class=\"px-2 py-1.5\">2</td></tr><tr class=\"border-t border-lovoria-border\"><td class=\"px-2 py-1.5\">Sari</td><td class=\"px-2 py-1.5\"></td><td class=\"px-2 py-1.5\"></td><td class=\"px-2 py-1.5\">Kantor</td><td class=\"px-2 py-1.5\">1</td></tr></tbody></table></div></div></li><li class=\"flex gap-3\"><span class=\"flex h-6 w-6 flex-none items-center justify-center rounded-full bg-lovoria-primary text-xs font-semibold text-white\">3</span><div class=\"min-w-0 flex-1\"><p class=\"font-medium\">Simpan sebagai CSV, lalu unggah di kotak di atas</p><p class=\"text-lovoria-muted\">Excel: File › Save As › <i>CSV UTF-8</i>. Google Sheets: File › Download › <i>CSV</i>.</p></div></li></ol>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1741,7 +1741,7 @@ func previewPage(w wedding.Wedding, p ImportPreview) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 140, "\" class=\"text-sm text-slate-500 hover:underline\">‹ Pilih file lain</a></p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 140, "\" class=\"text-sm text-lovoria-muted hover:underline\">‹ Pilih file lain</a></p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1757,14 +1757,14 @@ func previewPage(w wedding.Wedding, p ImportPreview) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 141, "<h2 class=\"text-lg font-semibold\">Pratinjau import</h2><p class=\"mt-1 text-sm\"><span class=\"font-medium text-green-700\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 141, "<h2 class=\"text-lg font-semibold\">Pratinjau import</h2><p class=\"mt-1 text-sm\"><span class=\"font-medium text-lovoria-success\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var79 string
 				templ_7745c5c3_Var79, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(len(p.Valid())))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 451, Col: 76}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 451, Col: 82}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var79))
 				if templ_7745c5c3_Err != nil {
@@ -1775,14 +1775,14 @@ func previewPage(w wedding.Wedding, p ImportPreview) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				if len(p.Invalid()) > 0 {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 143, "· <span class=\"font-medium text-red-700\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 143, "· <span class=\"font-medium text-lovoria-danger\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var80 string
 					templ_7745c5c3_Var80, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(len(p.Invalid())))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 453, Col: 80}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 453, Col: 87}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var80))
 					if templ_7745c5c3_Err != nil {
@@ -1798,7 +1798,7 @@ func previewPage(w wedding.Wedding, p ImportPreview) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				if len(p.Invalid()) > 0 {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 146, "<ul class=\"mt-3 max-h-64 space-y-1 overflow-y-auto rounded-lg bg-red-50 p-3 text-sm text-red-800\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 146, "<ul class=\"mt-3 max-h-64 space-y-1 overflow-y-auto rounded-lg bg-lovoria-danger-soft p-3 text-sm text-lovoria-danger\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1844,13 +1844,13 @@ func previewPage(w wedding.Wedding, p ImportPreview) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				if len(p.Valid()) > 0 {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 152, "<div class=\"mt-3 max-h-80 overflow-auto rounded-lg ring-1 ring-slate-200\"><table class=\"w-full text-left text-sm\"><thead class=\"sticky top-0 bg-slate-50 text-xs text-slate-500\"><tr><th class=\"px-3 py-2\">Nama</th><th class=\"px-3 py-2\">HP</th><th class=\"px-3 py-2\">Grup</th><th class=\"px-3 py-2\">Maks.</th></tr></thead> <tbody>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 152, "<div class=\"mt-3 max-h-80 overflow-auto rounded-lg ring-1 ring-lovoria-border\"><table class=\"w-full text-left text-sm\"><thead class=\"sticky top-0 bg-lovoria-bg text-xs text-lovoria-muted\"><tr><th class=\"px-3 py-2\">Nama</th><th class=\"px-3 py-2\">HP</th><th class=\"px-3 py-2\">Grup</th><th class=\"px-3 py-2\">Maks.</th></tr></thead> <tbody>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					for i, r := range p.Valid() {
 						if i < 100 {
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 153, "<tr class=\"border-t border-slate-100\"><td class=\"px-3 py-1.5\">")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 153, "<tr class=\"border-t border-lovoria-border\"><td class=\"px-3 py-1.5\">")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
@@ -1913,14 +1913,14 @@ func previewPage(w wedding.Wedding, p ImportPreview) templ.Component {
 						return templ_7745c5c3_Err
 					}
 					if len(p.Valid()) > 100 {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 159, "<p class=\"bg-slate-50 px-3 py-2 text-xs text-slate-500\">… dan ")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 159, "<p class=\"bg-lovoria-bg px-3 py-2 text-xs text-lovoria-muted\">… dan ")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var87 string
 						templ_7745c5c3_Var87, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(len(p.Valid()) - 100))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 483, Col: 107}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 483, Col: 113}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var87))
 						if templ_7745c5c3_Err != nil {
@@ -2117,7 +2117,7 @@ func quickAdd(w wedding.Wedding, f form, focus bool) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 172, " x-data=\"contactFill()\" class=\"rounded-2xl bg-white p-3 shadow-sm ring-1 ring-black/5 sm:p-4\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 172, " x-data=\"contactFill()\" class=\"ui-card p-3 sm:p-4\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -2125,11 +2125,11 @@ func quickAdd(w wedding.Wedding, f form, focus bool) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 173, "<input type=\"hidden\" name=\"quick\" value=\"1\"><p class=\"mb-2 text-sm font-medium\">Tambah cepat <span class=\"font-normal text-slate-500\">— ketik lalu tekan Enter, lanjut ke tamu berikutnya</span></p><div class=\"grid grid-cols-2 gap-2 sm:grid-cols-[2fr_1.3fr_1fr_auto]\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 173, "<input type=\"hidden\" name=\"quick\" value=\"1\"><p class=\"mb-2 text-sm font-medium\">Tambah cepat <span class=\"font-normal text-lovoria-muted\">— ketik lalu tekan Enter, lanjut ke tamu berikutnya</span></p><div class=\"grid grid-cols-2 gap-2 sm:grid-cols-[2fr_1.3fr_1fr_auto]\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var94 = []any{"col-span-2 rounded-lg border bg-white px-3 py-2 text-base sm:col-span-1", templ.KV("border-red-400", f.e("name") != ""), templ.KV("border-slate-300", f.e("name") == "")}
+		var templ_7745c5c3_Var94 = []any{"col-span-2 rounded-lg border bg-lovoria-surface px-3 py-2 text-base sm:col-span-1", templ.KV("border-lovoria-danger", f.e("name") != ""), templ.KV("border-lovoria-control", f.e("name") == "")}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var94...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -2174,7 +2174,7 @@ func quickAdd(w wedding.Wedding, f form, focus bool) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var97 = []any{"w-full rounded-lg border bg-white px-3 py-2 text-base", templ.KV("border-red-400", f.e("phone") != ""), templ.KV("border-slate-300", f.e("phone") == "")}
+		var templ_7745c5c3_Var97 = []any{"w-full rounded-lg border bg-lovoria-surface px-3 py-2 text-base", templ.KV("border-lovoria-danger", f.e("phone") != ""), templ.KV("border-lovoria-control", f.e("phone") == "")}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var97...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -2226,19 +2226,19 @@ func quickAdd(w wedding.Wedding, f form, focus bool) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 183, "\" list=\"guest-groups\" placeholder=\"Grup\" aria-label=\"Grup\" maxlength=\"50\" autocomplete=\"off\" class=\"rounded-lg border border-slate-300 bg-white px-3 py-2 text-base\"> <button type=\"submit\" class=\"col-span-2 rounded-lg bg-primary px-4 py-2 font-medium text-white sm:col-span-1\">Tambah</button></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 183, "\" list=\"guest-groups\" placeholder=\"Grup\" aria-label=\"Grup\" maxlength=\"50\" autocomplete=\"off\" class=\"ui-control px-3 py-2 text-base\"> <button type=\"submit\" class=\"ui-btn ui-btn-primary col-span-2 px-4 py-2 sm:col-span-1\">Tambah</button></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if f.e("name") != "" || f.e("phone") != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 184, "<p class=\"mt-1 text-sm text-red-600\" role=\"alert\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 184, "<p class=\"mt-1 text-sm text-lovoria-danger\" role=\"alert\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var101 string
 			templ_7745c5c3_Var101, templ_7745c5c3_Err = templ.JoinStringErrs(f.e("name"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 578, Col: 66}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 578, Col: 73}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var101))
 			if templ_7745c5c3_Err != nil {
@@ -2251,7 +2251,7 @@ func quickAdd(w wedding.Wedding, f form, focus bool) templ.Component {
 			var templ_7745c5c3_Var102 string
 			templ_7745c5c3_Var102, templ_7745c5c3_Err = templ.JoinStringErrs(f.e("phone"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 578, Col: 83}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 578, Col: 90}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var102))
 			if templ_7745c5c3_Err != nil {
@@ -2262,7 +2262,7 @@ func quickAdd(w wedding.Wedding, f form, focus bool) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 187, "<p class=\"mt-1 text-xs text-slate-500\">Butuh email, jumlah orang, atau catatan? <a href=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 187, "<p class=\"mt-1 text-xs text-lovoria-muted\">Butuh email, jumlah orang, atau catatan? <a href=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -2288,7 +2288,7 @@ func quickAdd(w wedding.Wedding, f form, focus bool) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 189, "\" hx-target=\"#guest-editor\" hx-swap=\"innerHTML\" class=\"text-primary hover:underline\">Pakai form lengkap</a></p></form>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 189, "\" hx-target=\"#guest-editor\" hx-swap=\"innerHTML\" class=\"text-lovoria-primary hover:underline\">Pakai form lengkap</a></p></form>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -2343,7 +2343,7 @@ func pastePage(w wedding.Wedding, text, group, errMsg string, groups []string) t
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 191, "\" class=\"text-sm text-slate-500 hover:underline\">‹ Kembali ke daftar tamu</a></p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 191, "\" class=\"text-sm text-lovoria-muted hover:underline\">‹ Kembali ke daftar tamu</a></p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -2359,7 +2359,7 @@ func pastePage(w wedding.Wedding, text, group, errMsg string, groups []string) t
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 192, "<h2 class=\"text-lg font-semibold\">Tempel daftar tamu</h2><p class=\"mt-1 text-sm text-slate-600\">Salin daftar dari catatan HP, chat WhatsApp, atau kolom Excel / Google Sheets, lalu tempel di bawah. <b>Satu baris untuk satu tamu.</b> Nomor HP boleh ditulis di mana saja dalam baris.</p><pre class=\"mt-3 overflow-x-auto rounded-lg bg-slate-50 p-3 text-xs text-slate-600\">Budi Santoso 0812-3456-7890 Bu Sari - 081311112222 (2 orang) Pak RT &amp; keluarga</pre><form method=\"post\" action=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 192, "<h2 class=\"text-lg font-semibold\">Tempel daftar tamu</h2><p class=\"mt-1 text-sm text-lovoria-muted\">Salin daftar dari catatan HP, chat WhatsApp, atau kolom Excel / Google Sheets, lalu tempel di bawah. <b>Satu baris untuk satu tamu.</b> Nomor HP boleh ditulis di mana saja dalam baris.</p><pre class=\"mt-3 overflow-x-auto rounded-lg bg-lovoria-bg p-3 text-xs text-lovoria-muted\">Budi Santoso 0812-3456-7890 Bu Sari - 081311112222 (2 orang) Pak RT &amp; keluarga</pre><form method=\"post\" action=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -2384,20 +2384,20 @@ func pastePage(w wedding.Wedding, text, group, errMsg string, groups []string) t
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 194, "<label for=\"paste-text\" class=\"sr-only\">Daftar tamu</label> <textarea id=\"paste-text\" name=\"text\" rows=\"10\" required x-ref=\"text\" placeholder=\"Tempel daftar tamu di sini…\" class=\"block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 194, "<label for=\"paste-text\" class=\"sr-only\">Daftar tamu</label> <textarea id=\"paste-text\" name=\"text\" rows=\"10\" required x-ref=\"text\" placeholder=\"Tempel daftar tamu di sini…\" class=\"ui-control block w-full px-3 py-2 text-base\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var110 string
 				templ_7745c5c3_Var110, templ_7745c5c3_Err = templ.JoinStringErrs(text)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 607, Col: 210}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 607, Col: 177}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var110))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 195, "</textarea> <button type=\"button\" x-show=\"supported\" x-cloak @click=\"pick()\" class=\"rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-50\">Pilih dari kontak HP</button><div><label for=\"paste-group\" class=\"block text-sm font-medium text-slate-800\">Masukkan ke grup <span class=\"font-normal text-slate-400\">(opsional)</span></label> <input id=\"paste-group\" name=\"group\" value=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 195, "</textarea> <button type=\"button\" x-show=\"supported\" x-cloak @click=\"pick()\" class=\"ui-btn ui-btn-secondary px-3 py-2 text-sm\">Pilih dari kontak HP</button><div><label for=\"paste-group\" class=\"block text-sm font-medium text-lovoria-text\">Masukkan ke grup <span class=\"font-normal text-lovoria-muted\">(opsional)</span></label> <input id=\"paste-group\" name=\"group\" value=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -2410,7 +2410,7 @@ func pastePage(w wedding.Wedding, text, group, errMsg string, groups []string) t
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 196, "\" list=\"paste-groups\" maxlength=\"50\" placeholder=\"mis. Keluarga pria\" class=\"mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base\"> <datalist id=\"paste-groups\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 196, "\" list=\"paste-groups\" maxlength=\"50\" placeholder=\"mis. Keluarga pria\" class=\"ui-input\"> <datalist id=\"paste-groups\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -2512,7 +2512,7 @@ func reviewPage(w wedding.Wedding, rows []Input, errs map[int]ValidationError, g
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 203, "\" class=\"text-sm text-slate-500 hover:underline\">‹ Tempel ulang</a></p><form method=\"post\" action=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 203, "\" class=\"text-sm text-lovoria-muted hover:underline\">‹ Tempel ulang</a></p><form method=\"post\" action=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -2582,7 +2582,7 @@ func reviewPage(w wedding.Wedding, rows []Input, errs map[int]ValidationError, g
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 209, "<p class=\"text-sm text-slate-600\">Ubah langsung bila ada yang keliru. Hapus baris yang bukan tamu dengan tombol ✕.</p>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 209, "<p class=\"text-sm text-lovoria-muted\">Ubah langsung bila ada yang keliru. Hapus baris yang bukan tamu dengan tombol ✕.</p>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -2605,7 +2605,7 @@ func reviewPage(w wedding.Wedding, rows []Input, errs map[int]ValidationError, g
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 212, "</template><button type=\"button\" @click=\"$refs.list.insertAdjacentHTML('beforeend', $refs.blank.innerHTML); count++\" class=\"text-sm text-primary hover:underline\">+ Tambah baris</button><div class=\"sticky bottom-0 -mx-4 border-t border-slate-200 bg-slate-50/95 px-4 py-3 backdrop-blur\"><button type=\"submit\" class=\"w-full rounded-lg bg-primary px-4 py-2.5 font-medium text-white\" x-text=\"'Simpan ' + count + ' tamu'\">Simpan</button></div></form></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 212, "</template><button type=\"button\" @click=\"$refs.list.insertAdjacentHTML('beforeend', $refs.blank.innerHTML); count++\" class=\"text-sm text-lovoria-primary hover:underline\">+ Tambah baris</button><div class=\"sticky bottom-0 -mx-4 border-t border-lovoria-border bg-lovoria-bg/95 px-4 py-3 backdrop-blur\"><button type=\"submit\" class=\"ui-btn ui-btn-primary w-full px-4 py-2.5\" x-text=\"'Simpan ' + count + ' tamu'\">Simpan</button></div></form></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -2640,7 +2640,7 @@ func reviewRow(in Input, errs ValidationError) templ.Component {
 			templ_7745c5c3_Var120 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		var templ_7745c5c3_Var121 = []any{"rounded-xl bg-white p-3 shadow-sm ring-1", templ.KV("ring-red-300", len(errs) > 0), templ.KV("ring-black/5", len(errs) == 0)}
+		var templ_7745c5c3_Var121 = []any{"rounded-xl bg-lovoria-surface p-3 shadow-soft ring-1", templ.KV("ring-lovoria-danger/50", len(errs) > 0), templ.KV("ring-lovoria-border", len(errs) == 0)}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var121...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -2662,7 +2662,7 @@ func reviewRow(in Input, errs ValidationError) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var123 = []any{"min-w-0 flex-1 rounded-lg border px-2 py-1.5 text-base", templ.KV("border-red-400", errs["name"] != ""), templ.KV("border-slate-300", errs["name"] == "")}
+		var templ_7745c5c3_Var123 = []any{"min-w-0 flex-1 rounded-lg border px-2 py-1.5 text-base", templ.KV("border-lovoria-danger", errs["name"] != ""), templ.KV("border-lovoria-control", errs["name"] == "")}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var123...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -2693,11 +2693,11 @@ func reviewRow(in Input, errs ValidationError) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 217, "\"> <button type=\"button\" @click=\"$el.closest('li').remove(); count--\" aria-label=\"Hapus baris\" class=\"h-9 w-9 flex-none rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50\">✕</button></div><div class=\"mt-2 grid grid-cols-[1.4fr_1fr_4rem] gap-2\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 217, "\"> <button type=\"button\" @click=\"$el.closest('li').remove(); count--\" aria-label=\"Hapus baris\" class=\"h-9 w-9 flex-none rounded-lg border border-lovoria-border text-lovoria-muted hover:bg-lovoria-subtle\">✕</button></div><div class=\"mt-2 grid grid-cols-[1.4fr_1fr_4rem] gap-2\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var126 = []any{"min-w-0 rounded-lg border px-2 py-1.5 text-sm", templ.KV("border-red-400", errs["phone"] != ""), templ.KV("border-slate-300", errs["phone"] == "")}
+		var templ_7745c5c3_Var126 = []any{"min-w-0 rounded-lg border px-2 py-1.5 text-sm", templ.KV("border-lovoria-danger", errs["phone"] != ""), templ.KV("border-lovoria-control", errs["phone"] == "")}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var126...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -2741,11 +2741,11 @@ func reviewRow(in Input, errs ValidationError) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 221, "\" placeholder=\"Grup\" aria-label=\"Grup\" maxlength=\"50\" class=\"min-w-0 rounded-lg border border-slate-300 px-2 py-1.5 text-sm\"> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 221, "\" placeholder=\"Grup\" aria-label=\"Grup\" maxlength=\"50\" class=\"ui-control min-w-0 px-2 py-1.5 text-sm\"> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var130 = []any{"min-w-0 rounded-lg border px-2 py-1.5 text-sm", templ.KV("border-red-400", errs["max_pax"] != ""), templ.KV("border-slate-300", errs["max_pax"] == "")}
+		var templ_7745c5c3_Var130 = []any{"min-w-0 rounded-lg border px-2 py-1.5 text-sm", templ.KV("border-lovoria-danger", errs["max_pax"] != ""), templ.KV("border-lovoria-control", errs["max_pax"] == "")}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var130...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -2794,14 +2794,14 @@ func reviewRow(in Input, errs ValidationError) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if len(errs) > 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 226, "<p class=\"mt-1 text-xs text-red-600\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 226, "<p class=\"mt-1 text-xs text-lovoria-danger\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var134 string
 			templ_7745c5c3_Var134, templ_7745c5c3_Err = templ.JoinStringErrs(errorList(errs))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 671, Col: 57}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/guest/views.templ`, Line: 671, Col: 64}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var134))
 			if templ_7745c5c3_Err != nil {
@@ -2843,7 +2843,7 @@ func contactButton() templ.Component {
 			templ_7745c5c3_Var135 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 229, "<button type=\"button\" x-show=\"supported\" x-cloak @click=\"pick()\" aria-label=\"Pilih dari kontak HP\" title=\"Pilih dari kontak HP\" class=\"absolute inset-y-0 right-0 flex items-center px-3 text-slate-500 hover:text-primary\"><svg aria-hidden=\"true\" viewBox=\"0 0 24 24\" class=\"h-5 w-5\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M16 21v-1a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v1M10 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM19 8v6M22 11h-6\"></path></svg></button>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 229, "<button type=\"button\" x-show=\"supported\" x-cloak @click=\"pick()\" aria-label=\"Pilih dari kontak HP\" title=\"Pilih dari kontak HP\" class=\"absolute inset-y-0 right-0 flex items-center px-3 text-lovoria-muted hover:text-lovoria-primary\"><svg aria-hidden=\"true\" viewBox=\"0 0 24 24\" class=\"h-5 w-5\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M16 21v-1a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v1M10 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM19 8v6M22 11h-6\"></path></svg></button>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

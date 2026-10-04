@@ -67,7 +67,7 @@ templ rsvpList(s rsvpState) {
 			@rsvpFilter(s, StatusDeclined, "Tidak hadir")
 		</nav>
 		if len(s.Page.Guests) == 0 {
-			<div class="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-slate-500">
+			<div class="rounded-2xl border border-dashed border-lovoria-control p-8 text-center text-lovoria-muted">
 				if s.Status == "" {
 					Belum ada tamu yang konfirmasi. Respons muncul di sini begitu tamu mengisi RSVP dari link undangan pribadinya.
 				} else {
@@ -77,7 +77,7 @@ templ rsvpList(s rsvpState) {
 		} else {
 			<ul class="space-y-2">
 				for _, g := range s.Page.Guests {
-					<li class="rounded-xl bg-white p-3 shadow-sm ring-1 ring-black/5">
+					<li class="ui-card rounded-xl p-3">
 						<div class="flex flex-wrap items-center gap-2">
 							<span class="break-words font-medium">{ g.Name }</span>
 							<span class={ "rounded-full px-2 py-0.5 text-xs", statusClass(g.RSVPStatus) }>
@@ -87,14 +87,14 @@ templ rsvpList(s rsvpState) {
 								}
 							</span>
 						</div>
-						<p class="mt-0.5 text-sm text-slate-500">
+						<p class="mt-0.5 text-sm text-lovoria-muted">
 							if g.GroupName != "" {
 								{ g.GroupName } ·
 							}
 							{ s.when(g) }
 						</p>
 						if g.RSVPMessage != "" {
-							<p class="mt-1 break-words text-sm italic text-slate-600">“{ g.RSVPMessage }”</p>
+							<p class="mt-1 break-words text-sm italic text-lovoria-muted">“{ g.RSVPMessage }”</p>
 						}
 					</li>
 				}
@@ -102,13 +102,13 @@ templ rsvpList(s rsvpState) {
 			if s.Page.Pages() > 1 {
 				<nav class="flex items-center justify-between text-sm" aria-label="Halaman">
 					if s.Page.Page > 1 {
-						<a href={ templ.SafeURL(s.query(s.Status, s.Page.Page-1)) } class="rounded-lg border border-slate-300 bg-white px-3 py-1.5">‹ Sebelumnya</a>
+						<a href={ templ.SafeURL(s.query(s.Status, s.Page.Page-1)) } class="ui-btn ui-btn-secondary px-3 py-1.5">‹ Sebelumnya</a>
 					} else {
 						<span></span>
 					}
-					<span class="text-slate-500">Halaman { strconv.Itoa(s.Page.Page) } dari { strconv.Itoa(s.Page.Pages()) }</span>
+					<span class="text-lovoria-muted">Halaman { strconv.Itoa(s.Page.Page) } dari { strconv.Itoa(s.Page.Pages()) }</span>
 					if s.Page.Page < s.Page.Pages() {
-						<a href={ templ.SafeURL(s.query(s.Status, s.Page.Page+1)) } class="rounded-lg border border-slate-300 bg-white px-3 py-1.5">Berikutnya ›</a>
+						<a href={ templ.SafeURL(s.query(s.Status, s.Page.Page+1)) } class="ui-btn ui-btn-secondary px-3 py-1.5">Berikutnya ›</a>
 					} else {
 						<span></span>
 					}
@@ -121,7 +121,7 @@ templ rsvpList(s rsvpState) {
 templ rsvpFilter(s rsvpState, status, label string) {
 	<a
 		href={ templ.SafeURL(s.query(status, 1)) }
-		class={ "rounded-full px-3 py-1.5", templ.KV("bg-primary text-white", s.Status == status), templ.KV("bg-white text-slate-600 ring-1 ring-slate-300", s.Status != status) }
+		class={ "rounded-full px-3 py-1.5", templ.KV("bg-lovoria-primary text-white", s.Status == status), templ.KV("bg-lovoria-surface text-lovoria-muted ring-1 ring-lovoria-border", s.Status != status) }
 		if s.Status == status {
 			aria-current="page"
 		}

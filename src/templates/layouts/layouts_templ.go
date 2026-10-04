@@ -714,7 +714,7 @@ func Dashboard(meta Meta) templ.Component {
 			}
 			ctx = templ.InitializeContext(ctx)
 			if web.ReadOnly(ctx) {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, " <div class=\"sticky top-0 z-50 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-amber-500 px-4 py-2 text-center text-sm font-medium text-slate-900\"><span>Mode admin — lihat saja. Perubahan tidak bisa disimpan.</span><form method=\"post\" action=\"/admin/view/stop\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, " <div class=\"sticky top-0 z-50 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-lovoria-warning px-4 py-2 text-center text-sm font-medium text-white\"><span>Mode admin — lihat saja. Perubahan tidak bisa disimpan.</span><form method=\"post\" action=\"/admin/view/stop\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -722,12 +722,12 @@ func Dashboard(meta Meta) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "<button type=\"submit\" class=\"rounded bg-slate-900 px-2 py-0.5 text-xs text-white\">Keluar</button></form></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "<button type=\"submit\" class=\"rounded-md bg-white px-2.5 py-0.5 text-xs font-medium text-lovoria-warning focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white\">Keluar</button></form></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, " <header class=\"border-b border-slate-200 bg-white\"><div class=\"mx-auto flex max-w-5xl items-center justify-between px-4 py-3\"><a href=\"/dashboard\" aria-label=\"Lovoria — dashboard\" class=\"text-lovoria-primary\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, " <header class=\"border-b border-lovoria-border bg-lovoria-surface\"><div class=\"mx-auto flex max-w-5xl items-center justify-between px-4 py-3\"><a href=\"/dashboard\" aria-label=\"Lovoria — dashboard\" class=\"text-lovoria-primary\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -735,25 +735,25 @@ func Dashboard(meta Meta) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "</a><nav class=\"relative text-sm text-slate-600\" x-data=\"{ open: false }\"><button type=\"button\" class=\"sm:hidden\" @click=\"open = !open\" aria-label=\"Menu\">☰</button><div class=\"hidden items-center sm:flex sm:gap-4\" :class=\"open && '!flex flex-col items-end absolute right-0 top-6 z-10 gap-2 rounded bg-white p-3 shadow'\"><a href=\"/dashboard\">Beranda</a> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "</a><nav class=\"relative text-sm text-lovoria-muted\" x-data=\"{ open: false }\"><button type=\"button\" class=\"flex h-9 w-9 items-center justify-center rounded-lg text-lg text-lovoria-deep hover:bg-lovoria-subtle sm:hidden\" @click=\"open = !open\" :aria-expanded=\"open\" aria-label=\"Menu\">☰</button><div class=\"hidden items-center sm:flex sm:gap-5\" :class=\"open && '!flex flex-col items-end absolute right-0 top-11 z-10 w-44 gap-3 rounded-xl border border-lovoria-border bg-lovoria-surface p-4 shadow-soft'\"><a href=\"/dashboard\" class=\"hover:text-lovoria-primary\">Beranda</a> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if u, ok := web.CurrentUser(ctx); ok {
 				if u.Role == "admin" {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "<a href=\"/admin\" class=\"font-medium text-primary\">Admin</a>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "<a href=\"/admin\" class=\"font-medium text-lovoria-primary hover:underline\">Admin</a>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, " <span class=\"text-slate-400\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, " <span class=\"text-lovoria-muted\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var35 string
 				templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(u.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/layouts/layouts.templ`, Line: 177, Col: 44}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/layouts/layouts.templ`, Line: 177, Col: 48}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
 				if templ_7745c5c3_Err != nil {
@@ -767,7 +767,7 @@ func Dashboard(meta Meta) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "<button type=\"submit\" class=\"text-slate-600 hover:text-slate-900\">Keluar</button></form>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "<button type=\"submit\" class=\"text-lovoria-muted hover:text-lovoria-primary\">Keluar</button></form>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -801,7 +801,7 @@ func Dashboard(meta Meta) templ.Component {
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = base(meta, "min-h-dvh bg-slate-50 text-slate-900 antialiased").Render(templ.WithChildren(ctx, templ_7745c5c3_Var34), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Document(meta, BrandFonts(false), BrandBody).Render(templ.WithChildren(ctx, templ_7745c5c3_Var34), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

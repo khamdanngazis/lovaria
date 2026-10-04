@@ -28,10 +28,10 @@ type pageState struct {
 func base(w wedding.Wedding) string { return w.DashboardURL("/domain") }
 
 var statusBadge = map[string]string{
-	StatusPending: "bg-amber-100 text-amber-800",
-	StatusActive:  "bg-green-100 text-green-800",
-	StatusFailed:  "bg-red-100 text-red-700",
-	StatusRemoved: "bg-slate-200 text-slate-600",
+	StatusPending: "bg-lovoria-warning-soft text-lovoria-warning",
+	StatusActive:  "bg-lovoria-success-soft text-lovoria-success",
+	StatusFailed:  "bg-lovoria-danger-soft text-lovoria-danger",
+	StatusRemoved: "bg-lovoria-border text-lovoria-muted",
 }
 
 var statusHint = map[string]string{
@@ -109,7 +109,7 @@ func section(s pageState) templ.Component {
 			templ_7745c5c3_Var3 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section id=\"domain\" class=\"space-y-4\"><p class=\"text-sm text-slate-600\">Pakai domain sendiri (mis. <span class=\"font-medium\">www.samuelsarah.com</span>) untuk undangan Anda. Domain dibeli terpisah di penyedia domain (Niagahoster, Rumahweb, GoDaddy, dll.).</p>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section id=\"domain\" class=\"space-y-4\"><p class=\"text-sm text-lovoria-muted\">Pakai domain sendiri (mis. <span class=\"font-medium\">www.samuelsarah.com</span>) untuk undangan Anda. Domain dibeli terpisah di penyedia domain (Niagahoster, Rumahweb, GoDaddy, dll.).</p>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -134,7 +134,7 @@ func section(s pageState) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<p class=\"font-medium\">Custom domain belum tersedia</p><p class=\"mt-1 text-sm text-slate-600\">Fitur ini belum diaktifkan di server Lovoria. Undangan tetap bisa dibagikan lewat alamat Lovoria.</p>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<p class=\"font-medium\">Custom domain belum tersedia</p><p class=\"mt-1 text-sm text-lovoria-muted\">Fitur ini belum diaktifkan di server Lovoria. Undangan tetap bisa dibagikan lewat alamat Lovoria.</p>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -286,7 +286,7 @@ func status(s pageState, d Domain) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div class=\"flex flex-wrap items-center justify-between gap-3\"><div class=\"min-w-0\"><p class=\"text-xs uppercase tracking-wide text-slate-400\">Domain</p><p class=\"mt-1 break-all text-lg font-semibold\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div class=\"flex flex-wrap items-center justify-between gap-3\"><div class=\"min-w-0\"><p class=\"text-xs uppercase tracking-wide text-lovoria-muted\">Domain</p><p class=\"mt-1 break-all text-lg font-semibold\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -334,14 +334,14 @@ func status(s pageState, d Domain) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</span></div><p class=\"mt-3 text-sm text-slate-600\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</span></div><p class=\"mt-3 text-sm text-lovoria-muted\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var15 string
 			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(statusHint[d.Status])
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/domain/views.templ`, Line: 80, Col: 63}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/domain/views.templ`, Line: 80, Col: 67}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {
@@ -365,14 +365,14 @@ func status(s pageState, d Domain) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\" target=\"_blank\" rel=\"noopener\" class=\"mt-3 inline-block text-sm font-medium text-primary hover:underline\">Buka https://")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\" target=\"_blank\" rel=\"noopener\" class=\"mt-3 inline-block text-sm font-medium text-lovoria-primary hover:underline\">Buka https://")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var17 string
 				templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(d.Domain)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/domain/views.templ`, Line: 82, Col: 181}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/domain/views.templ`, Line: 82, Col: 189}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 				if templ_7745c5c3_Err != nil {
@@ -388,7 +388,7 @@ func status(s pageState, d Domain) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if len(d.Errors) > 0 && !d.Active() {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<div class=\"mt-3 rounded-lg bg-slate-50 p-3 text-xs text-slate-600\"><p class=\"font-medium text-slate-700\">Pesan dari Cloudflare:</p><ul class=\"mt-1 list-disc space-y-0.5 pl-4\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<div class=\"mt-3 rounded-lg bg-lovoria-bg p-3 text-xs text-lovoria-muted\"><p class=\"font-medium text-lovoria-text\">Pesan dari Cloudflare:</p><ul class=\"mt-1 list-disc space-y-0.5 pl-4\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -421,14 +421,14 @@ func status(s pageState, d Domain) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if d.LastCheckedAt != nil {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<p class=\"mt-3 text-xs text-slate-400\">Terakhir dicek: ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<p class=\"mt-3 text-xs text-lovoria-muted\">Terakhir dicek: ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var19 string
 				templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(web.FormatDateID(*d.LastCheckedAt))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/domain/views.templ`, Line: 95, Col: 94}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/domain/views.templ`, Line: 95, Col: 98}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 				if templ_7745c5c3_Err != nil {
@@ -441,7 +441,7 @@ func status(s pageState, d Domain) templ.Component {
 				var templ_7745c5c3_Var20 string
 				templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(d.LastCheckedAt.Format("15.04"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/domain/views.templ`, Line: 95, Col: 130}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/domain/views.templ`, Line: 95, Col: 134}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 				if templ_7745c5c3_Err != nil {
@@ -491,7 +491,7 @@ func status(s pageState, d Domain) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<button type=\"submit\" class=\"rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white\">Cek ulang</button></form>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<button type=\"submit\" class=\"ui-btn ui-btn-primary px-4 py-2 text-sm\">Cek ulang</button></form>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -543,7 +543,7 @@ func status(s pageState, d Domain) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "<input type=\"hidden\" name=\"_method\" value=\"DELETE\"> <button type=\"submit\" class=\"rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50\">Hapus domain</button></form></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "<input type=\"hidden\" name=\"_method\" value=\"DELETE\"> <button type=\"submit\" class=\"rounded-lg border border-lovoria-danger/30 px-4 py-2 text-sm font-medium text-lovoria-danger hover:bg-lovoria-danger-soft\">Hapus domain</button></form></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -597,7 +597,7 @@ func instructions(s pageState, d Domain) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<h2 class=\"font-semibold\">Cara menghubungkan domain</h2><ol class=\"mt-3 list-decimal space-y-2 pl-5 text-sm text-slate-700\"><li>Masuk ke akun penyedia domain Anda, buka pengaturan <span class=\"font-medium\">DNS</span> / <span class=\"font-medium\">DNS Management</span> untuk domain ini.</li><li>Tambahkan record baru dengan isian berikut:</li></ol><dl class=\"mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 rounded-lg bg-slate-50 p-3 text-sm\"><dt class=\"text-slate-500\">Type</dt><dd class=\"font-mono font-semibold\">CNAME</dd><dt class=\"text-slate-500\">Host / Name</dt><dd class=\"font-mono font-semibold\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<h2 class=\"font-semibold\">Cara menghubungkan domain</h2><ol class=\"mt-3 list-decimal space-y-2 pl-5 text-sm text-lovoria-text\"><li>Masuk ke akun penyedia domain Anda, buka pengaturan <span class=\"font-medium\">DNS</span> / <span class=\"font-medium\">DNS Management</span> untuk domain ini.</li><li>Tambahkan record baru dengan isian berikut:</li></ol><dl class=\"mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 rounded-lg bg-lovoria-bg p-3 text-sm\"><dt class=\"text-lovoria-muted\">Type</dt><dd class=\"font-mono font-semibold\">CNAME</dd><dt class=\"text-lovoria-muted\">Host / Name</dt><dd class=\"font-mono font-semibold\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -610,7 +610,7 @@ func instructions(s pageState, d Domain) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "</dd><dt class=\"text-slate-500\">Value / Target</dt><dd class=\"break-all font-mono font-semibold\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "</dd><dt class=\"text-lovoria-muted\">Value / Target</dt><dd class=\"break-all font-mono font-semibold\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -623,19 +623,19 @@ func instructions(s pageState, d Domain) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "</dd><dt class=\"text-slate-500\">TTL</dt><dd class=\"font-mono\">Auto / 3600</dd></dl><ol start=\"3\" class=\"mt-3 list-decimal space-y-2 pl-5 text-sm text-slate-700\"><li>Hapus record lain dengan Host yang sama (A, AAAA, atau CNAME lama) bila ada.</li><li>Simpan, tunggu beberapa menit, lalu klik <span class=\"font-medium\">Cek ulang</span>.</li></ol><ul class=\"mt-3 space-y-1 text-xs text-slate-500\"><li>• Memakai Cloudflare untuk DNS domain ini? Setel record ke <span class=\"font-medium\">DNS only</span> (awan abu-abu).</li>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "</dd><dt class=\"text-lovoria-muted\">TTL</dt><dd class=\"font-mono\">Auto / 3600</dd></dl><ol start=\"3\" class=\"mt-3 list-decimal space-y-2 pl-5 text-sm text-lovoria-text\"><li>Hapus record lain dengan Host yang sama (A, AAAA, atau CNAME lama) bila ada.</li><li>Simpan, tunggu beberapa menit, lalu klik <span class=\"font-medium\">Cek ulang</span>.</li></ol><ul class=\"mt-3 space-y-1 text-xs text-lovoria-muted\"><li>• Memakai Cloudflare untuk DNS domain ini? Setel record ke <span class=\"font-medium\">DNS only</span> (awan abu-abu).</li>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if IsApex(d.Domain) {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "<li class=\"text-amber-700\">• Ini domain utama tanpa www. Tidak semua penyedia mendukung CNAME di domain utama (butuh \"CNAME flattening\" / ALIAS). Bila tidak bisa, hapus domain ini lalu daftarkan <span class=\"font-medium\">www.")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "<li class=\"text-lovoria-warning\">• Ini domain utama tanpa www. Tidak semua penyedia mendukung CNAME di domain utama (butuh \"CNAME flattening\" / ALIAS). Bila tidak bisa, hapus domain ini lalu daftarkan <span class=\"font-medium\">www.")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var30 string
 				templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(d.Domain)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/domain/views.templ`, Line: 141, Col: 241}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/domain/views.templ`, Line: 141, Col: 247}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 				if templ_7745c5c3_Err != nil {
