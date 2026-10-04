@@ -63,7 +63,7 @@ func TestKeepsakePDF(t *testing.T) {
 	if !strings.HasPrefix(pdf, "%PDF-") {
 		t.Fatal("bukan PDF")
 	}
-	for _, want := range []string{"Khamdan & Sarah", "Pertama bertemu", "Di kampus", "Selamat berbahagia nomor 000", "Selamat berbahagia nomor 499", "Tamu 250", "1 undangan", "2 orang", "500 pesan", "/Subtype /Image"} {
+	for _, want := range []string{"Samuel & Sarah", "Pertama bertemu", "Di kampus", "Selamat berbahagia nomor 000", "Selamat berbahagia nomor 499", "Tamu 250", "1 undangan", "2 orang", "500 pesan", "/Subtype /Image"} {
 		if !strings.Contains(pdf, want) {
 			t.Errorf("PDF tidak memuat %q", want)
 		}

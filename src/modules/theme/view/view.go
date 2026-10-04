@@ -104,7 +104,7 @@ type Couple struct {
 	GroomDesc, BrideDesc   string
 }
 
-// Names: "Khamdan & Sarah" (nama depan).
+// Names: "Samuel & Sarah" (nama depan).
 func (c Couple) Names() string { return first(c.GroomName) + " & " + first(c.BrideName) }
 
 func first(s string) string {

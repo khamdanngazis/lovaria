@@ -151,18 +151,18 @@ func TestAddValidation(t *testing.T) {
 			t.Errorf("Add(%q): %v, want %q", in, err, want)
 		}
 	}
-	d, err := f.svc.Add(ctx, w.ID, " WWW.KhamdanSarah.com. ")
-	if err != nil || d.Domain != "www.khamdansarah.com" || d.Status != StatusPending || len(d.Errors) != 1 {
+	d, err := f.svc.Add(ctx, w.ID, " WWW.samuelsarah.com. ")
+	if err != nil || d.Domain != "www.samuelsarah.com" || d.Status != StatusPending || len(d.Errors) != 1 {
 		t.Fatalf("add: %+v %v", d, err)
 	}
 	// Sama lagi → idempoten (tidak membuat hostname kedua).
-	if again, err := f.svc.Add(ctx, w.ID, "www.khamdansarah.com"); err != nil || again.ID != d.ID || f.cf.n != 1 {
+	if again, err := f.svc.Add(ctx, w.ID, "www.samuelsarah.com"); err != nil || again.ID != d.ID || f.cf.n != 1 {
 		t.Errorf("idempoten: %v n=%d", err, f.cf.n)
 	}
 	if _, err := f.svc.Add(ctx, w.ID, "www.lain.com"); !strings.Contains(field(err), "Hapus dulu") {
 		t.Errorf("ganti domain: %v", err)
 	}
-	if _, err := f.svc.Add(ctx, other.ID, "www.khamdansarah.com"); !strings.Contains(field(err), "sudah dipakai") {
+	if _, err := f.svc.Add(ctx, other.ID, "www.samuelsarah.com"); !strings.Contains(field(err), "sudah dipakai") {
 		t.Errorf("dipakai wedding lain: %v", err)
 	}
 	// Cloudflare gagal → ErrProvider, tidak ada baris.
@@ -193,23 +193,23 @@ func TestDisabled(t *testing.T) {
 func TestLifecycleAndLookupCache(t *testing.T) {
 	f := newFixture(t)
 	_, w := f.newWedding(t, "a@example.com")
-	if _, err := f.svc.Add(ctx, w.ID, "www.khamdansarah.com"); err != nil {
+	if _, err := f.svc.Add(ctx, w.ID, "www.samuelsarah.com"); err != nil {
 		t.Fatal(err)
 	}
 	// Pending → belum dilayani.
-	if _, ok, _ := f.svc.WeddingIDByHost(ctx, "www.khamdansarah.com"); ok {
+	if _, ok, _ := f.svc.WeddingIDByHost(ctx, "www.samuelsarah.com"); ok {
 		t.Fatal("pending tidak boleh dilayani")
 	}
-	f.cf.activate("www.khamdansarah.com")
+	f.cf.activate("www.samuelsarah.com")
 	// Scheduler mengaktifkan & mengosongkan cache.
 	if n, err := f.svc.PollPending(ctx); err != nil || n != 1 {
 		t.Fatalf("poll: %d %v", n, err)
 	}
-	id, ok, err := f.svc.WeddingIDByHost(ctx, "WWW.khamdansarah.com.")
+	id, ok, err := f.svc.WeddingIDByHost(ctx, "WWW.samuelsarah.com.")
 	if err != nil || !ok || id != w.ID {
 		t.Fatalf("lookup aktif: %v %v %v", id, ok, err)
 	}
-	if host, ok, _ := f.svc.ActiveDomain(ctx, w.ID); !ok || host != "www.khamdansarah.com" {
+	if host, ok, _ := f.svc.ActiveDomain(ctx, w.ID); !ok || host != "www.samuelsarah.com" {
 		t.Errorf("ActiveDomain: %s %v", host, ok)
 	}
 	d, _ := f.svc.Get(ctx, w.ID)
@@ -223,7 +223,7 @@ func TestLifecycleAndLookupCache(t *testing.T) {
 	if len(f.cf.deleted) != 1 {
 		t.Errorf("hostname Cloudflare harus dihapus: %v", f.cf.deleted)
 	}
-	if _, ok, _ := f.svc.WeddingIDByHost(ctx, "www.khamdansarah.com"); ok {
+	if _, ok, _ := f.svc.WeddingIDByHost(ctx, "www.samuelsarah.com"); ok {
 		t.Error("cache harus dikosongkan saat domain dihapus")
 	}
 }
@@ -233,21 +233,21 @@ func TestCacheTTL(t *testing.T) {
 	_, w := f.newWedding(t, "a@example.com")
 	// Cache "tidak ada" berlaku 60 detik: domain yang aktif lewat jalur lain
 	// (instance lain) baru terlihat setelah TTL habis.
-	f.svc.WeddingIDByHost(ctx, "www.khamdansarah.com") //nolint:errcheck
+	f.svc.WeddingIDByHost(ctx, "www.samuelsarah.com") //nolint:errcheck
 	other := NewService(f.svc.pool, f.cf, Config{CNAMETarget: "domains.lovoria.com"}, slog.New(slog.NewTextHandler(io.Discard, nil)))
 	other.now = f.svc.now
-	if _, err := other.Add(ctx, w.ID, "www.khamdansarah.com"); err != nil {
+	if _, err := other.Add(ctx, w.ID, "www.samuelsarah.com"); err != nil {
 		t.Fatal(err)
 	}
-	f.cf.activate("www.khamdansarah.com")
+	f.cf.activate("www.samuelsarah.com")
 	if _, err := other.Recheck(ctx, w.ID); err != nil {
 		t.Fatal(err)
 	}
-	if _, ok, _ := f.svc.WeddingIDByHost(ctx, "www.khamdansarah.com"); ok {
+	if _, ok, _ := f.svc.WeddingIDByHost(ctx, "www.samuelsarah.com"); ok {
 		t.Error("masih dalam TTL: hasil cache lama")
 	}
 	*f.clock = f.clock.Add(61 * time.Second)
-	if _, ok, _ := f.svc.WeddingIDByHost(ctx, "www.khamdansarah.com"); !ok {
+	if _, ok, _ := f.svc.WeddingIDByHost(ctx, "www.samuelsarah.com"); !ok {
 		t.Error("setelah TTL: harus terbaca aktif")
 	}
 }

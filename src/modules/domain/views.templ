@@ -41,7 +41,7 @@ templ page(s pageState) {
 
 templ section(s pageState) {
 	<section id="domain" class="space-y-4">
-		<p class="text-sm text-slate-600">Pakai domain sendiri (mis. <span class="font-medium">www.khamdansarah.com</span>) untuk undangan Anda. Domain dibeli terpisah di penyedia domain (Niagahoster, Rumahweb, GoDaddy, dll.).</p>
+		<p class="text-sm text-slate-600">Pakai domain sendiri (mis. <span class="font-medium">www.samuelsarah.com</span>) untuk undangan Anda. Domain dibeli terpisah di penyedia domain (Niagahoster, Rumahweb, GoDaddy, dll.).</p>
 		@ui.Notice(s.Notice)
 		@ui.Alert(s.Error)
 		if !s.Enabled && s.Domain == nil {
@@ -61,7 +61,7 @@ templ addForm(s pageState) {
 	@ui.Card() {
 		<form method="post" action={ templ.SafeURL(base(s.W)) } hx-post={ base(s.W) } hx-target="#domain" hx-swap="outerHTML" hx-disabled-elt="find button" class="space-y-4">
 			@layouts.CSRFField()
-			@ui.Input(ui.Field{ID: "domain-input", Name: "domain", Label: "Domain Anda", Type: "text", Value: s.Input, Placeholder: "www.khamdansarah.com", Autocomplete: "off", Required: true, MaxLength: 253,
+			@ui.Input(ui.Field{ID: "domain-input", Name: "domain", Label: "Domain Anda", Type: "text", Value: s.Input, Placeholder: "www.samuelsarah.com", Autocomplete: "off", Required: true, MaxLength: 253,
 				Hint: "Disarankan memakai awalan www — paling mudah dipasang di semua penyedia domain."})
 			@ui.PrimaryButton("Daftarkan domain")
 		</form>

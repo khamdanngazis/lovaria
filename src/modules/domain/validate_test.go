@@ -4,10 +4,10 @@ import "testing"
 
 func TestNormalize(t *testing.T) {
 	ok := map[string]string{
-		"  WWW.KhamdanSarah.com.  ": "www.khamdansarah.com",
-		"khamdansarah.co.id":        "khamdansarah.co.id",
-		"xn--80ak6aa92e.com":        "xn--80ak6aa92e.com",
-		"a-b.c1.id":                 "a-b.c1.id",
+		"  WWW.samuelsarah.com.  ": "www.samuelsarah.com",
+		"samuelsarah.co.id":        "samuelsarah.co.id",
+		"xn--80ak6aa92e.com":       "xn--80ak6aa92e.com",
+		"a-b.c1.id":                "a-b.c1.id",
 	}
 	for in, want := range ok {
 		if got, err := Normalize(in); err != nil || got != want {
@@ -29,11 +29,11 @@ func TestCNAMEHostAndApex(t *testing.T) {
 		domain, host string
 		apex         bool
 	}{
-		{"www.khamdansarah.com", "www", false},
-		{"khamdansarah.com", "@", true},
-		{"undangan.khamdansarah.co.id", "undangan", false},
-		{"khamdansarah.co.id", "@", true},
-		{"a.b.khamdansarah.com", "a.b", false},
+		{"www.samuelsarah.com", "www", false},
+		{"samuelsarah.com", "@", true},
+		{"undangan.samuelsarah.co.id", "undangan", false},
+		{"samuelsarah.co.id", "@", true},
+		{"a.b.samuelsarah.com", "a.b", false},
 	}
 	for _, c := range cases {
 		if got := CNAMEHost(c.domain); got != c.host {

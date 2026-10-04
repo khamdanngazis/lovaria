@@ -45,7 +45,7 @@ func (f fixture) user(t *testing.T, email string) uuid.UUID {
 }
 
 func validInput() CreateInput {
-	return CreateInput{GroomName: "Khamdan Ngazis", BrideName: "Sarah", Title: "Pernikahan Khamdan & Sarah", WeddingDate: "2026-12-12", Description: " Kami mengundang "}
+	return CreateInput{GroomName: "Samuel", BrideName: "Sarah", Title: "Pernikahan Samuel & Sarah", WeddingDate: "2026-12-12", Description: " Kami mengundang "}
 }
 
 func TestCreateWedding(t *testing.T) {
@@ -56,17 +56,17 @@ func TestCreateWedding(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if w.Slug != "khamdan-sarah" || w.Status != StatusDraft || w.ThemeID != DefaultThemeID || w.OwnerUserID != owner {
+	if w.Slug != "samuel-sarah" || w.Status != StatusDraft || w.ThemeID != DefaultThemeID || w.OwnerUserID != owner {
 		t.Errorf("wedding = %+v", w)
 	}
 	if w.WeddingDate.Format(dateLayout) != "2026-12-12" || w.Description != "Kami mengundang" {
 		t.Errorf("date/description = %v %q", w.WeddingDate, w.Description)
 	}
 	c, err := f.svc.GetCouple(ctx, w.ID)
-	if err != nil || c.GroomName != "Khamdan Ngazis" || c.BrideName != "Sarah" {
+	if err != nil || c.GroomName != "Samuel" || c.BrideName != "Sarah" {
 		t.Errorf("couple = %+v err = %v", c, err)
 	}
-	if got, err := f.svc.GetWeddingBySlug(ctx, "KHAMDAN-SARAH"); err != nil || got.ID != w.ID {
+	if got, err := f.svc.GetWeddingBySlug(ctx, "samuel-sarah"); err != nil || got.ID != w.ID {
 		t.Errorf("by slug: %v", err)
 	}
 }
@@ -74,7 +74,7 @@ func TestCreateWedding(t *testing.T) {
 func TestCreateWeddingSlugCollision(t *testing.T) {
 	f := newFixture(t)
 	owner := f.user(t, "a@example.com")
-	want := []string{"khamdan-sarah", "khamdan-sarah-2", "khamdan-sarah-3"}
+	want := []string{"samuel-sarah", "samuel-sarah-2", "samuel-sarah-3"}
 	for _, slug := range want {
 		w, err := f.svc.CreateWedding(ctx, owner, validInput())
 		if err != nil {
@@ -87,7 +87,7 @@ func TestCreateWeddingSlugCollision(t *testing.T) {
 	// Prefix mirip tapi berbeda tidak dianggap bentrok.
 	in := validInput()
 	in.BrideName = "Sarahwati"
-	if w, _ := f.svc.CreateWedding(ctx, owner, in); w.Slug != "khamdan-sarahwati" {
+	if w, _ := f.svc.CreateWedding(ctx, owner, in); w.Slug != "samuel-sarahwati" {
 		t.Errorf("slug = %q", w.Slug)
 	}
 }

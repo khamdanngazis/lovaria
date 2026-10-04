@@ -16,9 +16,9 @@ func Normalize(input string) (string, error) {
 	case d == "":
 		return "", inputError("Domain wajib diisi")
 	case strings.Contains(d, "://"):
-		return "", inputError("Tulis domain saja tanpa http:// atau https://, mis. www.khamdansarah.com")
+		return "", inputError("Tulis domain saja tanpa http:// atau https://, mis. www.samuelsarah.com")
 	case strings.ContainsAny(d, "/?#"):
-		return "", inputError("Tulis domain saja tanpa garis miring atau path, mis. www.khamdansarah.com")
+		return "", inputError("Tulis domain saja tanpa garis miring atau path, mis. www.samuelsarah.com")
 	case strings.Contains(d, ":"):
 		return "", inputError("Domain tidak boleh memakai port (:8080)")
 	case strings.ContainsAny(d, " \t@"):
@@ -35,7 +35,7 @@ func Normalize(input string) (string, error) {
 	}
 	labels := strings.Split(d, ".")
 	if len(labels) < 2 {
-		return "", inputError("Domain tidak lengkap, mis. www.khamdansarah.com")
+		return "", inputError("Domain tidak lengkap, mis. www.samuelsarah.com")
 	}
 	for _, l := range labels {
 		if l == "" || len(l) > 63 || l[0] == '-' || l[len(l)-1] == '-' {
@@ -61,7 +61,7 @@ var secondLevel = map[string]bool{
 }
 
 // registrable mengembalikan jumlah label domain induk yang didaftarkan di
-// registrar (2 untuk khamdansarah.com, 3 untuk khamdansarah.co.id).
+// registrar (2 untuk samuelsarah.com, 3 untuk samuelsarah.co.id).
 func registrable(labels []string) int {
 	if len(labels) >= 3 && secondLevel[strings.Join(labels[len(labels)-2:], ".")] {
 		return 3
@@ -69,7 +69,7 @@ func registrable(labels []string) int {
 	return 2
 }
 
-// IsApex: domain utama tanpa subdomain (khamdansarah.com) — CNAME di apex
+// IsApex: domain utama tanpa subdomain (samuelsarah.com) — CNAME di apex
 // butuh CNAME flattening dari penyedia DNS.
 func IsApex(domain string) bool {
 	labels := strings.Split(domain, ".")
@@ -77,7 +77,7 @@ func IsApex(domain string) bool {
 }
 
 // CNAMEHost: isian kolom "Host/Name" record CNAME di penyedia DNS
-// ("www" untuk www.khamdansarah.com, "@" untuk domain utama).
+// ("www" untuk www.samuelsarah.com, "@" untuk domain utama).
 func CNAMEHost(domain string) string {
 	labels := strings.Split(domain, ".")
 	n := registrable(labels)

@@ -1,70 +1,200 @@
-// Package minimal: tema bersih — putih lega, huruf kapital berjarak, rata kiri.
+// Package minimal: tema Minimalis (T21) — lega dan tenang: rata kiri, garis
+// rambut, angka tanggal besar, galeri grid rapat tanpa sudut membulat
+// (Josefin Sans + Inter).
 package minimal
 
 import (
+	"fmt"
+
 	"github.com/khamdanngazis/lovaria/src/modules/theme/view"
 	"github.com/khamdanngazis/lovaria/src/templates/themes/base"
 )
 
+const eyebrow = "text-[11px] uppercase tracking-[0.32em]"
+
+// dayNum / monthYear: tanggal sebagai angka besar ("27" dan "02 · 2027").
+func dayNum(v view.View) string { return fmt.Sprintf("%02d", v.Date.Day()) }
+
+func monthYear(v view.View) string {
+	return fmt.Sprintf("%02d · %d", int(v.Date.Month()), v.Date.Year())
+}
+
+// Hero: sampul yang selalu muat satu layar — nama depan besar, foto mengisi
+// sisa tinggi (menyusut di layar pendek), tombol di baris bawah. Tanpa foto:
+// angka tanggal besar menggantikan foto.
 templ Hero(v view.View) {
-	<section id="opening" class="flex min-h-dvh flex-col justify-between px-8 py-12">
-		<p class="text-[11px] uppercase tracking-[0.4em] opacity-80">The Wedding of</p>
-		<div>
-			<h1 class="text-5xl font-semibold uppercase leading-none tracking-tight">
-				<span class="block">{ v.Couple.GroomName }</span>
-				<span class="my-3 block text-sm tracking-[0.4em] text-primary">and</span>
-				<span class="block">{ v.Couple.BrideName }</span>
-			</h1>
-			<p class="mt-6 text-sm">{ v.DateText }</p>
-		</div>
-		if base.CoverOf(v) != "" {
-			<img src={ base.CoverOf(v) } alt="" fetchpriority="low" class="my-8 aspect-[4/3] w-full object-cover grayscale-[20%]"/>
-		}
-		<div class="flex items-end justify-between gap-4 border-t border-current/20 pt-6">
-			<div>
-				<p class="text-[11px] uppercase tracking-[0.3em] opacity-80">{ base.GreetingText(v, "Untuk") }</p>
-				<p class="mt-1 font-semibold">{ base.GuestName(v) }</p>
+	{{ groom, bride := base.FirstNames(v) }}
+	<section id="opening" class="flex min-h-dvh flex-col px-7 pb-8 pt-10">
+		<div class="lv-cover-body flex flex-1 flex-col">
+			<div class="flex items-center justify-between gap-4">
+				<p class={ "text-muted", eyebrow }>The Wedding of</p>
+				<p class={ "text-muted", eyebrow }>{ dayNum(v) } · { monthYear(v) }</p>
 			</div>
-			<a href={ templ.SafeURL(base.OpenHref(v)) } data-open={ base.OpenLock(v) } class="bg-ink px-5 py-3 text-xs uppercase tracking-[0.25em] text-surface" style="background: var(--lv-ink)">{ base.OpenText(v, "Buka", "Kenangan") }</a>
+			<h1 class="mt-8 break-words text-6xl font-semibold uppercase leading-[0.95] tracking-tight">
+				{ groom }
+				<span class="my-2 block text-2xl font-normal text-muted">&amp;</span>
+				{ bride }
+			</h1>
+			if base.CoverOf(v) != "" {
+				// Desktop: foto ada di panel kiri → angka tanggal menggantikannya.
+				<div class="relative mt-8 min-h-44 flex-1 lg:hidden">
+					@base.CoverImage(v, "absolute inset-0 h-full w-full object-cover")
+				</div>
+				@bigDate(v, "hidden lg:flex")
+			} else {
+				@bigDate(v, "flex")
+			}
+			<div class="mt-8 flex items-end justify-between gap-4 border-t border-line pt-6">
+				<div class="min-w-0">
+					<p class={ "text-muted", eyebrow }>{ base.GreetingText(v, "Untuk") }</p>
+					<p class="mt-1 break-words font-semibold">{ base.GuestName(v) }</p>
+				</div>
+				@base.OpenButton(v, "lv-btn flex-none uppercase tracking-[0.18em]", "Buka Undangan", "Lihat Kenangan")
+			</div>
 		</div>
 	</section>
 }
 
-templ Couple(v view.View) {
-	<section id="couple" class="px-8 py-20">
-		<h2 class="text-[11px] uppercase tracking-[0.4em] text-primary">Mempelai</h2>
-		@person(v.Couple.GroomName, v.Couple.GroomPhoto, v.Couple.GroomDesc)
-		@person(v.Couple.BrideName, v.Couple.BridePhoto, v.Couple.BrideDesc)
-		<div class="mt-16 border-l-2 border-primary pl-5">
-			<p class="text-[11px] uppercase tracking-[0.4em] opacity-80">Tanggal</p>
-			<p class="mt-2 text-2xl font-semibold">{ v.DateText }</p>
-			if v.Description != "" {
-				<p class="mt-3 whitespace-pre-line text-sm opacity-80">{ v.Description }</p>
-			}
-		</div>
-	</section>
-}
-
-templ person(name, photo, desc string) {
-	<div class="mt-10 grid grid-cols-[6rem_1fr] items-center gap-5">
-		if photo != "" {
-			<img src={ photo } alt={ name } loading="lazy" class="aspect-square w-24 object-cover"/>
-		} else {
-			<div class="aspect-square w-24 bg-primary/10"></div>
-		}
-		<div>
-			<h3 class="text-2xl font-semibold">{ name }</h3>
-			if desc != "" {
-				<p class="mt-1 whitespace-pre-line text-sm opacity-80">{ desc }</p>
-			}
-		</div>
+templ bigDate(v view.View, class string) {
+	<div class={ "flex-1 flex-col justify-center py-8", class } aria-hidden="true">
+		<p class="text-[7.5rem] font-semibold leading-none tracking-tighter text-primary" style="font-family: var(--lv-font-heading)">{ dayNum(v) }</p>
+		<p class={ "mt-3 text-muted", eyebrow }>{ monthYear(v) }</p>
 	</div>
 }
 
+// SectionTitle: judul kapital rata kiri di atas garis rambut selebar kolom.
+templ SectionTitle(title, subtitle string) {
+	<div class="mb-10 text-left">
+		<h2 class="break-words text-3xl font-semibold uppercase leading-tight tracking-[0.08em]">{ title }</h2>
+		<div class="mt-4 h-px w-full bg-line" aria-hidden="true"></div>
+		if subtitle != "" {
+			<p class="mt-4 text-sm leading-relaxed text-muted">{ subtitle }</p>
+		}
+	</div>
+}
+
+templ Couple(v view.View) {
+	<section id="couple" class="px-7 py-20">
+		@base.Title(v, "Mempelai", "Dengan memohon rahmat Tuhan, kami bermaksud menyelenggarakan pernikahan")
+		<div class="grid grid-cols-2 gap-4">
+			@person(v.Couple.GroomName, v.Couple.GroomPhoto, v.Couple.GroomDesc)
+			@person(v.Couple.BrideName, v.Couple.BridePhoto, v.Couple.BrideDesc)
+		</div>
+		<div class="mt-16 border-t border-line pt-8">
+			<p class={ "text-muted", eyebrow }>Save the date</p>
+			<p class="mt-3 text-6xl font-semibold leading-none tracking-tighter text-primary" style="font-family: var(--lv-font-heading)">{ dayNum(v) }<span class="ml-3 text-2xl tracking-normal text-ink">{ monthYear(v) }</span></p>
+			<p class="mt-4 text-sm">{ v.DateText }</p>
+			if v.Description != "" {
+				<p class="mt-3 whitespace-pre-line text-sm leading-relaxed text-muted">{ v.Description }</p>
+			}
+		</div>
+	</section>
+}
+
+// person: potret 4:5 tanpa sudut membulat; tanpa foto → hanya teks.
+templ person(name, photo, desc string) {
+	<div class="min-w-0">
+		if photo != "" {
+			<img src={ photo } alt={ name } loading="lazy" decoding="async" class="aspect-[4/5] w-full object-cover"/>
+		}
+		<h3 class={ "break-words text-lg font-semibold uppercase leading-snug tracking-[0.06em]", templ.KV("mt-4", photo != "") }>{ name }</h3>
+		if desc != "" {
+			<p class="mt-2 whitespace-pre-line text-xs leading-relaxed text-muted">{ desc }</p>
+		}
+	</div>
+}
+
+// LoveStory: baris dipisah garis rambut — tanggal di kiri, cerita di kanan.
+templ LoveStory(v view.View) {
+	if len(v.Stories) > 0 {
+		<section id="story" class="px-7 py-20">
+			@base.Title(v, "Cerita Kami", "")
+			<ol class="divide-y divide-line border-b border-line">
+				for _, s := range v.Stories {
+					<li class="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-4 py-6 first:pt-0">
+						<p class={ "pt-1 text-muted", eyebrow }>{ s.DateText }</p>
+						<div>
+							<h3 class="break-words text-xl font-semibold leading-snug">{ s.Title }</h3>
+							if s.PhotoURL != "" {
+								<img src={ s.PhotoURL } alt="" loading="lazy" decoding="async" class="mt-3 aspect-[4/3] w-full object-cover"/>
+							}
+							if s.Description != "" {
+								<p class="mt-2 whitespace-pre-line text-sm leading-relaxed text-muted">{ s.Description }</p>
+							}
+						</div>
+					</li>
+				}
+			</ol>
+		</section>
+	}
+}
+
+// Events: tanpa kartu — baris dipisah garis rambut.
+templ Events(v view.View) {
+	if len(v.Events) > 0 {
+		<section id="events" class="px-7 py-20">
+			@base.Title(v, "Acara", base.EventsSubtitle(v))
+			<div class="divide-y divide-line border-b border-line">
+				for _, e := range v.Events {
+					<article class="py-7 first:pt-0">
+						<p class={ "text-muted", eyebrow }>{ e.TypeLabel }</p>
+						<h3 class="mt-2 break-words text-2xl font-semibold uppercase leading-tight tracking-[0.04em]">{ e.Name }</h3>
+						<p class="mt-4 text-sm font-medium">{ e.DateText }</p>
+						<p class="text-sm text-muted">{ e.TimeText }</p>
+						<p class="mt-3 text-sm font-medium">{ e.Venue }</p>
+						if e.Address != "" {
+							<p class="text-sm text-muted">{ e.Address }</p>
+						}
+						if e.Description != "" {
+							<p class="mt-3 whitespace-pre-line text-sm leading-relaxed text-muted">{ e.Description }</p>
+						}
+						if e.MapsURL != "" || e.CalendarURL != "" {
+							<div class="mt-5 flex flex-wrap gap-2">
+								if e.MapsURL != "" {
+									<a href={ templ.SafeURL(e.MapsURL) } target="_blank" rel="noopener" class="lv-btn lv-btn-sm uppercase tracking-[0.14em]">Buka Peta</a>
+								}
+								if e.CalendarURL != "" {
+									<a href={ templ.SafeURL(e.CalendarURL) } class="lv-btn-outline lv-btn-sm uppercase tracking-[0.14em]">Simpan ke Kalender</a>
+								}
+							</div>
+						}
+					</article>
+				}
+			</div>
+		</section>
+	}
+}
+
+// Gallery: grid rapat tiga kolom, tepi ke tepi, tanpa sudut membulat.
+templ Gallery(v view.View) {
+	if len(v.Gallery) > 0 {
+		<section id="gallery" class="py-20">
+			<div class="px-7">
+				@base.Title(v, "Galeri", "")
+			</div>
+			<div class="grid grid-cols-3 gap-0.5">
+				for i, p := range v.Gallery {
+					<a href={ templ.SafeURL(p.URL) } data-lightbox aria-label={ base.PhotoLabel(p, i) } class={ "block overflow-hidden", templ.KV("col-span-2 row-span-2", i%6 == 0) }>
+						<img src={ p.ThumbURL } alt={ p.Caption } loading="lazy" decoding="async" class="aspect-square h-full w-full object-cover"/>
+					</a>
+				}
+			</div>
+		</section>
+	}
+}
+
+// Closing: penutup gelap, rata kiri.
 templ Closing(v view.View) {
-	<section id="closing" class="px-8 py-24">
-		<p class="whitespace-pre-line text-sm opacity-80">{ base.ClosingText(v, "Terima kasih atas doa dan kehadiran Anda.", "") }</p>
-		<p class="mt-6 text-3xl font-semibold uppercase tracking-tight">{ v.Couple.Names() }</p>
-		<p class="mt-20 text-[11px] uppercase tracking-[0.3em] opacity-40">Lovoria</p>
+	{{ groom, bride := base.FirstNames(v) }}
+	<section id="closing" class="bg-deep px-7 py-24 text-white">
+		<p class="max-w-xs whitespace-pre-line text-sm leading-relaxed opacity-85">{ base.ClosingText(v, "Terima kasih atas doa dan kehadiran Anda.", "") }</p>
+		<p class={ "mt-12 opacity-70", eyebrow }>Kami yang berbahagia</p>
+		<p class="mt-4 break-words text-5xl font-semibold uppercase leading-[0.95] tracking-tight" style="font-family: var(--lv-font-heading)">
+			{ groom }
+			<span class="text-accent">&amp;</span>
+			{ bride }
+		</p>
+		<div class="mt-12 h-px w-full bg-white/20" aria-hidden="true"></div>
+		<p class={ "mt-6 opacity-60", eyebrow }>Dibuat dengan Lovoria</p>
 	</section>
 }

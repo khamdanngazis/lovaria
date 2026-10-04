@@ -53,7 +53,7 @@ func TestCountdownTimezones(t *testing.T) {
 func TestPersonalizedInvitation(t *testing.T) {
 	f := newFixture(t)
 	f.views.Now = func() time.Time { return time.Date(2026, 12, 1, 0, 0, 0, 0, time.UTC) }
-	_, w := f.newWedding(t, "a@example.com", "Khamdan", "Sarah")
+	_, w := f.newWedding(t, "a@example.com", "Samuel", "Sarah")
 	f.publish(w.ID)
 	ev, _ := f.events.CreateEvent(ctx, w.ID, event.Input{Name: "Akad Nikah", Type: event.TypeAkad, Date: "2026-12-12", StartTime: "08:00", Venue: "Masjid"})
 	g, _ := f.guests.Create(ctx, w.ID, guest.Input{Name: "Budi"})

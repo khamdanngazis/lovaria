@@ -102,7 +102,7 @@ templ slugEditor(s shareState) {
 				<input id="slug-input" type="text" name="slug" value={ s.W.Slug } required maxlength="60" pattern="[a-z0-9]+(-[a-z0-9]+)*" autocomplete="off" class="min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-base"/>
 				@ui.PrimaryButton("Simpan")
 			</div>
-			<p class="text-xs text-slate-500">Huruf kecil a–z, angka, dan tanda hubung. Contoh: khamdan-sarah</p>
+			<p class="text-xs text-slate-500">Huruf kecil a–z, angka, dan tanda hubung. Contoh: samuel-sarah</p>
 		</form>
 		if len(s.Redirects) > 0 {
 			<div class="mt-4 text-sm">

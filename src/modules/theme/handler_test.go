@@ -81,7 +81,7 @@ func (a app) newWedding(t *testing.T, email string) (uuid.UUID, wedding.Wedding)
 	if err != nil {
 		t.Fatal(err)
 	}
-	w, err := a.weddings.CreateWedding(ctx, u.ID, wedding.CreateInput{GroomName: "Khamdan", BrideName: "Sarah", Title: "T", WeddingDate: "2026-12-12"})
+	w, err := a.weddings.CreateWedding(ctx, u.ID, wedding.CreateInput{GroomName: "Samuel", BrideName: "Sarah", Title: "T", WeddingDate: "2026-12-12"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -151,7 +151,7 @@ func TestThemePageSaveAndPreview(t *testing.T) {
 	// Preview tersimpan: tema romantic + warna tersimpan + data contoh.
 	rec = a.do(owner, http.MethodGet, base+"/preview", nil)
 	html := rec.Body.String()
-	if rec.Code != http.StatusOK || !strings.Contains(html, `data-theme="romantic"`) || !strings.Contains(html, "--lv-primary:#aa3355;") || !strings.Contains(html, "Khamdan") || !strings.Contains(html, "sample-photo-1.svg") {
+	if rec.Code != http.StatusOK || !strings.Contains(html, `data-theme="romantic"`) || !strings.Contains(html, "--lv-primary:#aa3355;") || !strings.Contains(html, "Samuel") || !strings.Contains(html, "sample-photo-1.svg") {
 		t.Fatalf("preview: %d", rec.Code)
 	}
 	if rec.Header().Get("Cache-Control") != "no-store" {

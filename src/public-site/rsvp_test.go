@@ -35,7 +35,7 @@ func rsvpForm(code, status, pax, msg string) url.Values {
 
 func (f fixture) publishedGuest(t *testing.T, maxPax string) (wedding.Wedding, guest.Guest) {
 	t.Helper()
-	_, w := f.newWedding(t, "a@example.com", "Khamdan", "Sarah")
+	_, w := f.newWedding(t, "a@example.com", "Samuel", "Sarah")
 	f.publish(w.ID)
 	g, err := f.guests.Create(ctx, w.ID, guest.Input{Name: "Budi Santoso", MaxPax: maxPax})
 	if err != nil {

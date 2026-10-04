@@ -16,10 +16,10 @@ func TestSeedDemo(t *testing.T) {
 	a, _ := hardeningApp(t)
 	ctx := context.Background()
 	var out strings.Builder
-	if err := a.seedDemo(ctx, &out); err != nil {
+	if err := a.seedDemo(ctx, &out, false); err != nil {
 		t.Fatal(err)
 	}
-	if err := a.seedDemo(ctx, io.Discard); err != nil { // idempoten
+	if err := a.seedDemo(ctx, io.Discard, false); err != nil { // idempoten
 		t.Fatalf("seed ulang: %v", err)
 	}
 	for _, d := range theme.All() {
@@ -50,11 +50,19 @@ func TestSeedDemo(t *testing.T) {
 		t.Fatal(err)
 	}
 	out.Reset()
-	if err := a.seedDemo(ctx, &out); err != nil {
+	if err := a.seedDemo(ctx, &out, false); err != nil {
 		t.Fatal(err)
 	}
 	if strings.Count(out.String(), "dilengkapi:") != len(theme.All()) {
 		t.Errorf("seed ulang demo lama: %s", out.String())
+	}
+	// --refresh: foto lama dibuang (kuota dilepas) lalu diisi ulang.
+	out.Reset()
+	if err := a.seedDemo(ctx, &out, true); err != nil {
+		t.Fatal(err)
+	}
+	if strings.Count(out.String(), "dilengkapi:") != len(theme.All()) {
+		t.Errorf("refresh: %s", out.String())
 	}
 	if w, _ := a.weddings.GetWeddingBySlug(ctx, publicsite.DemoSlug("modern")); true {
 		if items, _ := photos.ListGallery(ctx, w.ID); len(items) != 7 {

@@ -116,7 +116,7 @@ templ wizardStep(step int, f form) {
 				switch step {
 					case 1:
 						@hiddenExcept(f, "groom_name", "bride_name")
-						@ui.Input(ui.Field{ID: "wedding-groom-name", Name: "groom_name", Label: "Nama mempelai pria", Type: "text", Value: f.v("groom_name"), Error: f.e("groom_name"), Placeholder: "Khamdan", Required: true, MaxLength: 100, Autocomplete: "off"})
+						@ui.Input(ui.Field{ID: "wedding-groom-name", Name: "groom_name", Label: "Nama mempelai pria", Type: "text", Value: f.v("groom_name"), Error: f.e("groom_name"), Placeholder: "Samuel", Required: true, MaxLength: 100, Autocomplete: "off"})
 						@ui.Input(ui.Field{ID: "wedding-bride-name", Name: "bride_name", Label: "Nama mempelai wanita", Type: "text", Value: f.v("bride_name"), Error: f.e("bride_name"), Placeholder: "Sarah", Required: true, MaxLength: 100, Autocomplete: "off"})
 					case 2:
 						@hiddenExcept(f, "title", "wedding_date")

@@ -58,10 +58,16 @@ test('alur utama pasangan & tamu', async ({ page, browser }) => {
   await expect(page.getByText('Undangan dipublikasikan')).toBeVisible();
 
   // 7–9. Sebagai tamu (tanpa login): undangan → RSVP → ucapan
-  const guestCtx = await browser.newContext();
+  // Layar pendek (360×640): sampul bisa lebih tinggi dari layar — tombol "Buka
+  // Undangan" harus tetap terjangkau (regresi T21: tombol terpotong & terkunci).
+  const guestCtx = await browser.newContext({ viewport: { width: 360, height: 640 } });
   const guest = await guestCtx.newPage();
   await guest.goto(`/i/${code}`);
   await expect(guest.getByText('Tamu E2E').first()).toBeVisible();
+  // Isi terkunci di belakang sampul sampai tombol pembuka ditekan.
+  await expect(guest.locator('#rsvp')).toBeHidden();
+  await guest.getByRole('link', { name: 'Buka Undangan' }).click();
+  await expect(guest.locator('#rsvp')).toBeVisible();
 
   await guest.locator('#rsvp label', { hasText: 'Hadir' }).first().click();
   await guest.locator('#rsvp-message').fill('Selamat ya! 🎉');

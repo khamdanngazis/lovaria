@@ -42,7 +42,7 @@ func firstWord(s string) string { return strings.Fields(s)[0] }
 // seedDemo membuat undangan contoh per tema (idempoten: yang sudah ada dilewati).
 // Pemiliknya akun sistem yang dinonaktifkan, jadi tidak bisa diubah siapa pun;
 // wedding ditandai is_demo (tidak dihitung admin, tidak diproses lifecycle).
-func (a *app) seedDemo(ctx context.Context, out io.Writer) error {
+func (a *app) seedDemo(ctx context.Context, out io.Writer, refresh bool) error {
 	events := event.NewService(event.NewRepository(a.pool))
 	a.weddings.SetEventCounter(events) // checklist publikasi
 	stories := story.NewService(story.NewRepository(a.pool))
@@ -64,6 +64,12 @@ func (a *app) seedDemo(ctx context.Context, out io.Writer) error {
 		slug := publicsite.DemoSlug(d.ID)
 		if existing, err := a.weddings.GetWeddingBySlug(ctx, slug); err == nil {
 			// Sudah ada: lengkapi foto & kutipan bila belum (demo dari versi lama).
+			// refresh: buang foto lama dulu supaya diganti set terbaru.
+			if refresh {
+				if err := clearDemoMedia(ctx, photos, existing.ID); err != nil {
+					return fmt.Errorf("demo %s: %w", d.ID, err)
+				}
+			}
 			added, err := a.ensureDemoMedia(ctx, photos, existing, d.ID)
 			if err == nil {
 				err = ensureDemoSettings(ctx, themes, existing.ID, d.ID)

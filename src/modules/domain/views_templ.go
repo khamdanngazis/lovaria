@@ -5,10 +5,9 @@ package domain
 
 //lint:file-ignore SA4006 This context is only used if a nested component is present.
 
-import "github.com/a-h/templ"
-import templruntime "github.com/a-h/templ/runtime"
-
 import (
+	"github.com/a-h/templ"
+	templruntime "github.com/a-h/templ/runtime"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding"
 	"github.com/khamdanngazis/lovaria/src/platform/web"
 	"github.com/khamdanngazis/lovaria/src/templates/layouts"
@@ -109,7 +108,7 @@ func section(s pageState) templ.Component {
 			templ_7745c5c3_Var3 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section id=\"domain\" class=\"space-y-4\"><p class=\"text-sm text-slate-600\">Pakai domain sendiri (mis. <span class=\"font-medium\">www.khamdansarah.com</span>) untuk undangan Anda. Domain dibeli terpisah di penyedia domain (Niagahoster, Rumahweb, GoDaddy, dll.).</p>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section id=\"domain\" class=\"space-y-4\"><p class=\"text-sm text-slate-600\">Pakai domain sendiri (mis. <span class=\"font-medium\">www.samuelsarah.com</span>) untuk undangan Anda. Domain dibeli terpisah di penyedia domain (Niagahoster, Rumahweb, GoDaddy, dll.).</p>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -230,7 +229,7 @@ func addForm(s pageState) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = ui.Input(ui.Field{ID: "domain-input", Name: "domain", Label: "Domain Anda", Type: "text", Value: s.Input, Placeholder: "www.khamdansarah.com", Autocomplete: "off", Required: true, MaxLength: 253,
+			templ_7745c5c3_Err = ui.Input(ui.Field{ID: "domain-input", Name: "domain", Label: "Domain Anda", Type: "text", Value: s.Input, Placeholder: "www.samuelsarah.com", Autocomplete: "off", Required: true, MaxLength: 253,
 				Hint: "Disarankan memakai awalan www — paling mudah dipasang di semua penyedia domain."}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err

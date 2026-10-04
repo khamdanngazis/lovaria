@@ -5,13 +5,12 @@ package wedding
 
 //lint:file-ignore SA4006 This context is only used if a nested component is present.
 
-import "github.com/a-h/templ"
-import templruntime "github.com/a-h/templ/runtime"
-
 import (
 	"fmt"
 	"time"
 
+	"github.com/a-h/templ"
+	templruntime "github.com/a-h/templ/runtime"
 	"github.com/khamdanngazis/lovaria/src/platform/web"
 	"github.com/khamdanngazis/lovaria/src/templates/layouts"
 	"github.com/khamdanngazis/lovaria/src/templates/ui"
@@ -387,7 +386,7 @@ func wizardStep(step int, f form) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = ui.Input(ui.Field{ID: "wedding-groom-name", Name: "groom_name", Label: "Nama mempelai pria", Type: "text", Value: f.v("groom_name"), Error: f.e("groom_name"), Placeholder: "Khamdan", Required: true, MaxLength: 100, Autocomplete: "off"}).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = ui.Input(ui.Field{ID: "wedding-groom-name", Name: "groom_name", Label: "Nama mempelai pria", Type: "text", Value: f.v("groom_name"), Error: f.e("groom_name"), Placeholder: "Samuel", Required: true, MaxLength: 100, Autocomplete: "off"}).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

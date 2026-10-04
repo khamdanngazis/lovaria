@@ -7,7 +7,7 @@ Panduan untuk menjalankan Lovoria di produksi (Railway + Postgres + Cloudflare R
 - Merge ke `main` → Railway build `Dockerfile` → *pre-deploy* `lovoria migrate up` → start `lovoria serve` → healthcheck `/healthz`. Migrasi gagal = deploy dibatalkan, versi lama tetap jalan.
 - CI wajib hijau sebelum merge: generate-check, test + integrasi (termasuk backup/restore), lint, `govulncheck`, E2E Playwright, build image < 50 MB.
 - Setelah deploy: buka `/healthz`, satu undangan publik, dan dashboard; cek log Railway tidak ada `level=ERROR`.
-- Undangan contoh landing page (idempoten): `railway ssh --service lovaria -- lovoria demo seed`. Jalankan ulang setelah deploy versi yang menambah isi demo: demo lama tanpa foto akan dilengkapi foto & kutipan ("dilengkapi: …"), sedangkan yang sudah lengkap dilewati.
+- Undangan contoh landing page (idempoten): `railway ssh --service lovaria -- lovoria demo seed`. Tambahkan `--refresh` untuk mengganti foto demo yang sudah ada dengan set terbaru (foto lama dihapus dari R2). Jalankan ulang setelah deploy versi yang menambah isi demo: demo lama tanpa foto akan dilengkapi foto & kutipan ("dilengkapi: …"), sedangkan yang sudah lengkap dilewati.
 
 ## 2. Rollback
 

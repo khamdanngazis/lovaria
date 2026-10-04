@@ -68,14 +68,14 @@ func TestDomainPageFlow(t *testing.T) {
 	if rec.Code != http.StatusUnprocessableEntity || !strings.Contains(rec.Body.String(), "tanpa http") || !strings.Contains(rec.Body.String(), `value="https://www.x.com"`) {
 		t.Fatalf("invalid: %d", rec.Code)
 	}
-	rec = req(e, owner, http.MethodPost, page, url.Values{"domain": {"khamdansarah.com"}}, true)
+	rec = req(e, owner, http.MethodPost, page, url.Values{"domain": {"samuelsarah.com"}}, true)
 	body := rec.Body.String()
 	for _, want := range []string{"Menunggu verifikasi", "CNAME", "domains.lovoria.com", `font-semibold">@</dd>`, "CNAME flattening", "CNAME belum ditemukan"} {
 		if !strings.Contains(body, want) {
 			t.Errorf("setelah daftar: tidak memuat %q", want)
 		}
 	}
-	f.cf.activate("khamdansarah.com")
+	f.cf.activate("samuelsarah.com")
 	rec = req(e, owner, http.MethodPost, page+"/check", url.Values{}, true)
 	if !strings.Contains(rec.Body.String(), "Status diperbarui: Aktif") || strings.Contains(rec.Body.String(), "Cara menghubungkan") {
 		t.Errorf("cek ulang: %s", rec.Body.String())

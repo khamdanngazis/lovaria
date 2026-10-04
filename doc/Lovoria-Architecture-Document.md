@@ -59,7 +59,7 @@
                     ▲
         ┌───────────┴────────────┐
         │  Domain milik couple     │
-        │  (mis. khamdansarah.com)│
+        │  (mis. samuelsarah.com)│
         │  → CNAME ke Lovoria     │
         └──────────────────────────┘
 ```
@@ -142,7 +142,7 @@ Draft → Published → Wedding Day → Memory → Archived
 ### Alur bagi couple
 
 ```text
-Couple masukkan domain (mis. khamdansarah.com) di dashboard
+Couple masukkan domain (mis. samuelsarah.com) di dashboard
        ↓
 Lovoria daftarkan domain ke Cloudflare for SaaS (Custom Hostnames)
        ↓
@@ -160,7 +160,7 @@ Domain langsung bisa diakses, trafik diteruskan ke aplikasi Go yang sama
 - Cloudflare for SaaS menyediakan **100 custom hostname gratis** di plan Free/Pro/Business, baru dikenakan biaya tambahan kecil per hostname di atas kuota tersebut. Untuk target 100 wedding, ini **praktis $0 tambahan**.
 - Sertifikat TLS di-provision otomatis oleh Cloudflare per domain — tidak perlu setup Let's Encrypt manual atau reverse proxy tambahan.
 - Aplikasi Go tidak perlu tahu domain mana yang dipakai; cukup satu middleware yang mencocokkan Host header ke `wedding_id` lewat tabel `custom_domains` (lihat §4), lalu proses render berjalan sama seperti biasa.
-- Link personalisasi tamu (`/i/ABCD123`) tetap jalan di atas custom domain (`khamdansarah.com/i/ABCD123`), tidak perlu redesign skema slug yang sudah ada.
+- Link personalisasi tamu (`/i/ABCD123`) tetap jalan di atas custom domain (`samuelsarah.com/i/ABCD123`), tidak perlu redesign skema slug yang sudah ada.
 
 ### Yang perlu disiapkan di UI dashboard
 
@@ -170,7 +170,7 @@ Domain langsung bisa diakses, trafik diteruskan ke aplikasi Go yang sama
 
 ### Batasan yang perlu disepakati untuk MVP
 
-- Dukungan **subdomain/CNAME standar** (`www.khamdansarah.com` atau domain penuh yang di-CNAME-kan) — ini yang didukung penuh di plan Cloudflare biasa.
+- Dukungan **subdomain/CNAME standar** (`www.samuelsarah.com` atau domain penuh yang di-CNAME-kan) — ini yang didukung penuh di plan Cloudflare biasa.
 - Dukungan **apex/root domain** tanpa `www` untuk sebagian kasus DNS provider tertentu bisa lebih rumit tergantung dukungan CNAME flattening dari provider domain couple — perlu dicek saat implementasi, bukan diasumsikan selalu mulus di semua provider domain.
 
 ---
@@ -263,7 +263,7 @@ Tidak ada biaya infrastruktur tambahan — semua tetap berjalan di stack yang su
 | Domain utama Lovoria sendiri | — | ~$1/bulan (dari $10–15/tahun) |
 | **Total** | | **≈ $16–22/bulan** |
 
-> Catatan: biaya di atas untuk domain **milik Lovoria sendiri** (mis. `lovoria.com`). Domain custom per wedding (mis. `khamdansarah.com`) dibeli dan dibayar sendiri oleh masing-masing couple di registrar pilihan mereka — Lovoria hanya menyediakan mekanisme koneksi/verifikasinya.
+> Catatan: biaya di atas untuk domain **milik Lovoria sendiri** (mis. `lovoria.com`). Domain custom per wedding (mis. `samuelsarah.com`) dibeli dan dibayar sendiri oleh masing-masing couple di registrar pilihan mereka — Lovoria hanya menyediakan mekanisme koneksi/verifikasinya.
 
 ---
 

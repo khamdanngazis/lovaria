@@ -73,7 +73,7 @@ Pemisah `,` atau `;` (dari baris `sep=` bila ada, selain itu dideteksi dari bari
 
 ## Bagikan undangan (T14)
 
-**Template pesan** (`share_templates`, migration `00016`, satu per wedding; tanpa baris = bawaan Bahasa Indonesia): placeholder `{guest_name}`, `{couple}` (nama depan "Khamdan & Sarah"), `{date}` (sesuai bahasa), `{link}` — wajib ada supaya pesan selalu berisi link. Bahasa `id`/`en`, maks. 2000 karakter; teks di antara `*bintang*` tampil tebal di WhatsApp.
+**Template pesan** (`share_templates`, migration `00016`, satu per wedding; tanpa baris = bawaan Bahasa Indonesia): placeholder `{guest_name}`, `{couple}` (nama depan "Samuel & Sarah"), `{date}` (sesuai bahasa), `{link}` — wajib ada supaya pesan selalu berisi link. Bahasa `id`/`en`, maks. 2000 karakter; teks di antara `*bintang*` tampil tebal di WhatsApp.
 
 **Halaman Bagikan** `GET …/share` (menu Tamu → Bagikan):
 - Link undangan umum = `wedding.CanonicalBaseURL` (custom domain bila aktif) + Salin, **Bagikan…** (Web Share API, hanya muncul bila browser mendukung), Kirim lewat WhatsApp (`wa.me/?text=`, pilih kontak), Salin pesan.

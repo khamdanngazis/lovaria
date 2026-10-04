@@ -1,6 +1,6 @@
 # Custom domain — setup satu kali (Cloudflare for SaaS)
 
-Pasangan bisa memakai domain sendiri (`www.khamdansarah.com`) untuk undangannya. Lovoria mendaftarkan domain itu sebagai **custom hostname** di Cloudflare for SaaS; Cloudflare menerbitkan sertifikat TLS otomatis dan meneruskan trafik ke aplikasi. Kode: `src/modules/domain`, dokumentasi modul di bawah.
+Pasangan bisa memakai domain sendiri (`www.samuelsarah.com`) untuk undangannya. Lovoria mendaftarkan domain itu sebagai **custom hostname** di Cloudflare for SaaS; Cloudflare menerbitkan sertifikat TLS otomatis dan meneruskan trafik ke aplikasi. Kode: `src/modules/domain`, dokumentasi modul di bawah.
 
 ## 1. Prasyarat
 
@@ -16,7 +16,7 @@ Pasangan bisa memakai domain sendiri (`www.khamdansarah.com`) untuk undangannya.
 
 ## 3. Host header (penting untuk Railway)
 
-Cloudflare meneruskan request custom hostname ke origin dengan `Host: www.khamdansarah.com`. Railway (dan banyak PaaS) merutekan berdasarkan Host, sehingga domain yang tidak terdaftar di Railway ditolak sebelum sampai ke aplikasi. Pilih salah satu:
+Cloudflare meneruskan request custom hostname ke origin dengan `Host: www.samuelsarah.com`. Railway (dan banyak PaaS) merutekan berdasarkan Host, sehingga domain yang tidak terdaftar di Railway ditolak sebelum sampai ke aplikasi. Pilih salah satu:
 
 **A. Cloudflare Worker (disarankan untuk Railway).** Worker menulis ulang Host ke domain Railway dan mengirim host asli lewat header yang dibaca aplikasi (`CUSTOM_DOMAIN_HOST_HEADER`):
 

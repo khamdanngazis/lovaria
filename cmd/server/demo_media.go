@@ -67,12 +67,12 @@ var demoMedia = map[string]demoSet{
 		{"ZYet8yoepik.jpg", gallery.CategoryWedding, ""},
 		{"4FGhD_iGuqg.jpg", gallery.CategoryWedding, ""},
 	}},
-	"minimal": {Cover: "nXmt5zQ7l0c.jpg", Gallery: []demoPhoto{
-		{"nXmt5zQ7l0c.jpg", gallery.CategoryPrewedding, ""},
+	"minimal": {Cover: "4rtHl_X5GNo.jpg", Gallery: []demoPhoto{
+		{"4rtHl_X5GNo.jpg", gallery.CategoryPrewedding, ""},
 		{"IfjHaIoAoqE.jpg", gallery.CategoryPrewedding, ""},
 		{"5BB_atDT4oA.jpg", gallery.CategoryWedding, ""},
 		{"UQl_-yabQiA.jpg", gallery.CategoryWedding, ""},
-		{"RHfYB_USSEc.jpg", gallery.CategoryWedding, ""},
+		{"rMO7SR9Z6RQ.jpg", gallery.CategoryPrewedding, ""},
 		{"qG2yK_iNspE.jpg", gallery.CategoryWedding, ""},
 	}},
 }
@@ -142,6 +142,21 @@ func (a *app) ensureDemoMedia(ctx context.Context, photos *gallery.Service, w we
 		}
 	}
 	return true, nil
+}
+
+// clearDemoMedia menghapus semua foto galeri demo (objek storage & kuotanya
+// ikut dilepas) supaya ensureDemoMedia mengisinya lagi dengan set terbaru.
+func clearDemoMedia(ctx context.Context, photos *gallery.Service, weddingID uuid.UUID) error {
+	items, err := photos.ListGallery(ctx, weddingID)
+	if err != nil {
+		return err
+	}
+	for _, it := range items {
+		if err := photos.DeleteItem(ctx, weddingID, it.ID); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // putDemoPortrait menyimpan potret mempelai langsung ke storage (R2 di

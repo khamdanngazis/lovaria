@@ -39,7 +39,7 @@ func ValidateSlug(s string) string {
 	return ""
 }
 
-// Slugify mengubah teks bebas menjadi slug: "Khamdan & Sárah" → "khamdan-sarah".
+// Slugify mengubah teks bebas menjadi slug: "Samuel & Sárah" → "samuel-sarah".
 func Slugify(s string) string {
 	// Buang diakritik: é → e.
 	t := transform.Chain(norm.NFD, runes.Remove(runes.In(unicode.Mn)), norm.NFC)
@@ -65,7 +65,7 @@ func Slugify(s string) string {
 	return out
 }
 
-// baseSlug membentuk slug dasar dari nama pasangan: "khamdan-sarah".
+// baseSlug membentuk slug dasar dari nama pasangan: "samuel-sarah".
 // Fallback "wedding-<acak>" bila nama tidak menghasilkan karakter latin.
 func baseSlug(groom, bride string) string {
 	s := Slugify(firstWord(groom) + " " + firstWord(bride))
