@@ -62,3 +62,51 @@ func TestChangeSlug(t *testing.T) {
 		t.Errorf("slug kedaluwarsa dipakai wedding lain: %v", err)
 	}
 }
+
+// T23: alamat undangan bisa dipilih saat membuat wedding (opsional).
+func TestCreateWeddingWithCustomSlug(t *testing.T) {
+	f := newFixture(t)
+	owner := f.user(t, "a@example.com")
+	in := validInput()
+
+	// Kosong → otomatis dari nama mempelai (perilaku lama).
+	auto, err := f.svc.CreateWedding(ctx, owner, in)
+	if err != nil || auto.Slug == "" {
+		t.Fatalf("otomatis: %q %v", auto.Slug, err)
+	}
+	// Pilihan sendiri: dinormalkan ke huruf kecil.
+	in.Slug = "  Azis-Ida "
+	w, err := f.svc.CreateWedding(ctx, owner, in)
+	if err != nil || w.Slug != "azis-ida" || w.Status != StatusDraft {
+		t.Fatalf("custom: %+v %v", w.Slug, err)
+	}
+	// Sudah dipakai (termasuk slug otomatis wedding lain) → error di kolom slug, wedding tidak dibuat.
+	before, _ := f.svc.ListWeddingsByOwner(ctx, owner)
+	for _, taken := range []string{"azis-ida", "AZIS-IDA", auto.Slug} {
+		in.Slug = taken
+		var ve ValidationError
+		if _, err := f.svc.CreateWedding(ctx, owner, in); !errors.As(err, &ve) || ve["slug"] != "Alamat ini sudah dipakai undangan lain" {
+			t.Errorf("slug %q terpakai: %v", taken, err)
+		}
+	}
+	// Format tidak valid & kata terlarang.
+	for _, bad := range []string{"ada spasi", "a/b", "dashboard", strings.Repeat("a", 61)} {
+		in.Slug = bad
+		var ve ValidationError
+		if _, err := f.svc.CreateWedding(ctx, owner, in); !errors.As(err, &ve) || ve["slug"] == "" {
+			t.Errorf("slug %q harus ditolak: %v", bad, err)
+		}
+	}
+	if after, _ := f.svc.ListWeddingsByOwner(ctx, owner); len(after) != len(before) {
+		t.Errorf("wedding bertambah walau slug ditolak: %d → %d", len(before), len(after))
+	}
+	// Slug lama yang masih dialihkan (redirect aktif) tidak bisa diambil wedding baru.
+	if _, err := f.svc.ChangeSlug(ctx, w.ID, "azis-ida-baru"); err != nil {
+		t.Fatal(err)
+	}
+	in.Slug = "azis-ida"
+	var ve ValidationError
+	if _, err := f.svc.CreateWedding(ctx, owner, in); !errors.As(err, &ve) || ve["slug"] == "" {
+		t.Errorf("slug dengan redirect aktif harus ditolak: %v", err)
+	}
+}

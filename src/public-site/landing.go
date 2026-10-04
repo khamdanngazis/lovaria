@@ -1,24 +1,17 @@
 package publicsite
 
 import (
-	"context"
 	"errors"
 	"strings"
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/khamdanngazis/lovaria/src/modules/admin"
 	"github.com/khamdanngazis/lovaria/src/modules/gallery"
 	"github.com/khamdanngazis/lovaria/src/modules/theme"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding"
 	"github.com/khamdanngazis/lovaria/src/platform/web"
 	"github.com/khamdanngazis/lovaria/static"
 )
-
-// LandingPackages: sumber paket untuk bagian harga landing (admin.Service).
-type LandingPackages interface {
-	LandingPackages(ctx context.Context) ([]admin.Package, error)
-}
 
 // DemoSlug: alamat undangan contoh per tema (dibuat `lovoria demo seed`).
 func DemoSlug(themeID string) string { return "contoh-" + themeID }
@@ -61,10 +54,6 @@ func (h *Handler) landing(c echo.Context) (landingData, error) {
 		}
 		d.Themes = append(d.Themes, lt)
 	}
-	if h.Packages != nil {
-		if d.Packages, err = h.Packages.LandingPackages(ctx); err != nil {
-			return d, err
-		}
-	}
+	d.PriceIDR = h.PublishPrice
 	return d, nil
 }

@@ -4,7 +4,13 @@
 
 Kode: `src/modules/payment` (order, gateway, webhook, halaman publikasi) · gerbang publikasi di `src/modules/wedding` (`paid_at`, `IsPaid`, `MarkPaid`, `ErrPaymentRequired`).
 
-> Status: PR 1 (inti pembayaran) selesai. Menyusul di PR 2: konfirmasi password di registrasi, slug di wizard, gerbang custom domain, harga tunggal di landing, dan aksi admin "Tandai lunas".
+## Sekeliling pembayaran
+
+- **Registrasi**: form daftar meminta **Ulangi password** (`password_confirmation`); dicek di handler bersama validasi kolom lain, plus validasi inline (`hx-include` kolom password). Setelah daftar → `/dashboard` → wizard buat wedding.
+- **Wizard wedding**: langkah 2 punya kolom **Alamat undangan** (slug) opsional — kosong = otomatis dari nama mempelai. Aturannya sama dengan ganti alamat (T14): format, kata terlarang, dan tidak boleh sedang dipakai wedding lain atau redirect slug lama yang masih aktif (`CreateInput.Slug`).
+- **Custom domain**: termasuk dalam harga, terbuka setelah lunas. Wedding belum lunas melihat kartu "termasuk dalam paket publikasi" dengan tautan ke `…/publish`; pendaftaran domain ditolak di handler sebelum menyentuh Cloudflare. Domain yang sudah terpasang tetap bisa dicek/dihapus.
+- **Landing**: bagian Harga adalah satu kartu harga (`Handler.PublishPrice` ← `PUBLISH_PRICE_IDR`) dengan daftar `payment.Features`, plus FAQ "Berapa biayanya?". Grid paket lama dihapus; tabel `packages` (admin) tetap dipakai untuk kuota storage & lama arsip — kolom `price_display` / `show_on_landing`-nya tidak lagi tampil di landing.
+- **Admin**: detail wedding menampilkan status pelunasan (waktu & sumber) dan riwayat order; **Tandai lunas** (`POST /admin/weddings/:id/paid`, catatan 3–300 karakter wajib) memanggil `wedding.MarkPaid(…, "admin")` dan mencatat `wedding.mark_paid` di audit log. Tab **Pembayaran** (`/admin/payments`) mendaftar semua order. Admin tidak bisa menerbitkan wedding belum lunas — pesannya tampil sebagai flash.
 
 ## Dua status yang terpisah
 

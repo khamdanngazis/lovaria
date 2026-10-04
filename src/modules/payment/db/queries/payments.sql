@@ -70,3 +70,7 @@ SELECT * FROM payment_events WHERE order_number = $1 ORDER BY received_at DESC, 
 -- name: GetOrderByNumber :one
 -- tenant:ignore — halaman bayar simulasi (dev/test) hanya membawa nomor order.
 SELECT * FROM payment_orders WHERE order_number = $1;
+
+-- name: AdminCountOrders :one
+-- tenant:ignore — panel admin: jumlah semua order.
+SELECT count(*) FROM payment_orders;

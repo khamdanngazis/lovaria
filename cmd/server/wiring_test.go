@@ -66,7 +66,7 @@ func TestWiring(t *testing.T) {
 	if resp := do(http.MethodGet, "/healthz", "", nil, ""); resp.StatusCode != http.StatusOK {
 		t.Fatalf("healthz: %d", resp.StatusCode)
 	}
-	ct, body := form(url.Values{"name": {"W"}, "email": {"wiring@example.com"}, "password": {"password123"}})
+	ct, body := form(url.Values{"name": {"W"}, "email": {"wiring@example.com"}, "password": {"password123"}, "password_confirmation": {"password123"}})
 	if resp := do(http.MethodPost, "/register", ct, body, ""); resp.StatusCode != http.StatusSeeOther {
 		t.Fatalf("register: %d", resp.StatusCode)
 	}

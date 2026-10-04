@@ -14,6 +14,8 @@ func Register(g *echo.Group, svc *Service) {
 	g.GET("/weddings/:weddingID", h.Wedding)
 	g.POST("/weddings/:weddingID/status", h.SetWeddingStatus)
 	g.POST("/weddings/:weddingID/package", h.AssignPackage)
+	g.POST("/weddings/:weddingID/paid", h.MarkWeddingPaid)
+	g.GET("/payments", h.Payments)
 	g.POST("/weddings/:weddingID/view", h.StartView)
 	g.POST("/view/stop", h.StopView)
 	g.GET("/themes", h.Themes)

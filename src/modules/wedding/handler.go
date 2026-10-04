@@ -30,8 +30,8 @@ func NewHandler(svc *Service) *Handler {
 }
 
 var (
-	wizardFields = []string{"groom_name", "bride_name", "title", "wedding_date", "description"}
-	stepFields   = map[int][]string{1: {"groom_name", "bride_name"}, 2: {"title", "wedding_date"}, 3: {"description"}}
+	wizardFields = []string{"groom_name", "bride_name", "title", "wedding_date", "slug", "description"}
+	stepFields   = map[int][]string{1: {"groom_name", "bride_name"}, 2: {"title", "wedding_date", "slug"}, 3: {"description"}}
 	infoFields   = []string{"title", "wedding_date", "description", "main_photo_url", "timezone"}
 	coupleFields = []string{"groom_name", "bride_name", "groom_photo_url", "bride_photo_url", "groom_description", "bride_description"}
 )
@@ -132,6 +132,7 @@ func (h *Handler) Create(c echo.Context) error {
 	w, err := h.svc.CreateWedding(c.Request().Context(), u.ID, CreateInput{
 		GroomName: f.v("groom_name"), BrideName: f.v("bride_name"),
 		Title: f.v("title"), WeddingDate: f.v("wedding_date"), Description: f.v("description"),
+		Slug: f.v("slug"),
 	})
 	if f.applyErr(err) {
 		// Kembali ke langkah paling awal yang punya error.

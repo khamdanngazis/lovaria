@@ -62,8 +62,8 @@ func (f fakeDomains) ActiveDomain(_ context.Context, weddingID uuid.UUID) (strin
 
 type fixture struct {
 	e         *echo.Echo
+	handler   *Handler
 	views     *ViewBuilder
-	pkgs      *fakePackages
 	themes    *theme.Service
 	weddings  *wedding.Service
 	guests    *guest.Service
@@ -99,7 +99,6 @@ func newFixture(t *testing.T) fixture {
 		CacheTTL: -1, // test lama menguji isi halaman; perilaku cache diuji di TestPublicViewCache
 	}
 	domains := fakeDomains{}
-	pkgs := &fakePackages{}
 	ws.SetDomains(domains, cfg.BaseURL)
 
 	e := server.New(cfg, log)
@@ -112,14 +111,15 @@ func newFixture(t *testing.T) fixture {
 			return next(c)
 		}
 	})
+	h := &Handler{BaseURL: cfg.BaseURL, PublishPrice: 149000, Views: views, Guests: gs, Guestbook: gb, Events: evs, Log: log, Secret: []byte(testSecret), now: func() time.Time { return testNow }}
 	Register(e, Deps{
 		Resolver:       &Resolver{Weddings: ws, Guests: gs, Domains: domains, BaseURL: cfg.BaseURL, ExtraHosts: []string{"lovaria.up.railway.app"}, HostHeader: "X-Forwarded-Host", Log: log},
-		Handler:        &Handler{BaseURL: cfg.BaseURL, Packages: pkgs, Views: views, Guests: gs, Guestbook: gb, Events: evs, Log: log, Secret: []byte(testSecret), now: func() time.Time { return testNow }},
+		Handler:        h,
 		RSVPLimit:      RSVPLimit{PerMinute: 60, Burst: 8},
 		GuestbookLimit: GuestbookLimit{PerMinute: 60, Burst: 8},
 	})
 	return fixture{
-		e: e, views: views, pkgs: pkgs, themes: views.Themes, weddings: ws, guests: gs, events: evs, domains: domains, guestbook: gb, gifts: gf,
+		e: e, handler: h, views: views, themes: views.Themes, weddings: ws, guests: gs, events: evs, domains: domains, guestbook: gb, gifts: gf,
 		auth: auth.NewService(auth.NewRepository(pool), &mail.LogMailer{Log: log}, "http://x", log),
 		publish: func(id uuid.UUID) {
 			if _, err := pool.Exec(ctx, `UPDATE weddings SET status = 'published' WHERE id = $1`, id); err != nil {

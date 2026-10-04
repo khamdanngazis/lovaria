@@ -12,6 +12,7 @@ import (
 	"github.com/khamdanngazis/lovaria/src/modules/auth"
 	"github.com/khamdanngazis/lovaria/src/modules/domain"
 	"github.com/khamdanngazis/lovaria/src/modules/gallery"
+	"github.com/khamdanngazis/lovaria/src/modules/payment"
 	"github.com/khamdanngazis/lovaria/src/modules/theme"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding"
 	"github.com/khamdanngazis/lovaria/src/platform/web"
@@ -54,7 +55,7 @@ func back(c echo.Context, path, notice string, err error) error {
 			for _, m := range ve {
 				v.Set("err", m)
 			}
-		case errors.As(err, &te), errors.As(err, &ce), errors.Is(err, ErrNotFound), errors.Is(err, ErrPackageUsed):
+		case errors.As(err, &te), errors.As(err, &ce), errors.Is(err, ErrNotFound), errors.Is(err, ErrPackageUsed), errors.Is(err, wedding.ErrPaymentRequired):
 			v.Set("err", err.Error())
 		default:
 			return err
@@ -208,6 +209,11 @@ func (h *Handler) Wedding(c echo.Context) error {
 	if d.History, err = h.svc.Weddings.History(ctx, id, 10); err != nil {
 		return err
 	}
+	if h.svc.Payments != nil {
+		if d.Orders, err = h.svc.Payments.ListOrders(ctx, id); err != nil {
+			return err
+		}
+	}
 	if d.Audit, _, err = h.svc.AuditLog(ctx, id.String(), 1); err != nil {
 		return err
 	}
@@ -240,6 +246,32 @@ func (h *Handler) AssignPackage(c echo.Context) error {
 	}
 	err = h.svc.AssignPackage(c.Request().Context(), id, pkg)
 	return back(c, "/admin/weddings/"+id.String(), "Paket diperbarui.", err)
+}
+
+// POST /admin/weddings/:weddingID/paid (note=…) — tandai lunas manual (T23).
+func (h *Handler) MarkWeddingPaid(c echo.Context) error {
+	id, err := idParam(c, "weddingID")
+	if err != nil {
+		return err
+	}
+	err = h.svc.MarkWeddingPaid(c.Request().Context(), id, c.FormValue("note"))
+	return back(c, "/admin/weddings/"+id.String(), "Wedding ditandai lunas. Publikasi & custom domain terbuka.", err)
+}
+
+// GET /admin/payments — semua order pembayaran terbaru.
+func (h *Handler) Payments(c echo.Context) error {
+	page := pageParam(c)
+	var (
+		orders []payment.Order
+		total  int
+		err    error
+	)
+	if h.svc.Payments != nil {
+		if orders, total, err = h.svc.Payments.AdminOrders(c.Request().Context(), page, PerPage); err != nil {
+			return err
+		}
+	}
+	return web.Render(c, http.StatusOK, paymentsPage(orders, total, page))
 }
 
 // POST /admin/weddings/:weddingID/view — mulai mode lihat-saja.

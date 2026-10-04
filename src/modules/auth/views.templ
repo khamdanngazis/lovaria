@@ -23,6 +23,9 @@ type fieldSpec struct {
 	Type         string
 	Autocomplete string
 	Validate     bool // validasi inline saat blur
+	// Include: selector kolom lain yang ikut dikirim saat validasi inline
+	// (mis. konfirmasi password perlu nilai password).
+	Include string
 }
 
 // Teks panel brand halaman auth (di satu tempat supaya mudah disunting).
@@ -126,6 +129,9 @@ templ field(f form, s fieldSpec) {
 				hx-target={ "#" + s.Form + "-" + s.Name + "-error" }
 				hx-swap="outerHTML"
 				hx-sync="closest form:abort"
+				if s.Include != "" {
+					hx-include={ s.Include }
+				}
 			}
 		/>
 		@fieldError(s.Form, s.Name, f.e(s.Name))
@@ -192,6 +198,7 @@ templ registerForm(f form) {
 		@field(f, fieldSpec{Form: "register", Name: "name", Label: "Nama", Type: "text", Autocomplete: "name", Validate: true})
 		@field(f, fieldSpec{Form: "register", Name: "email", Label: "Email", Type: "email", Autocomplete: "email", Validate: true})
 		@field(f, fieldSpec{Form: "register", Name: "password", Label: "Password (min. 8 karakter)", Type: "password", Autocomplete: "new-password", Validate: true})
+		@field(f, fieldSpec{Form: "register", Name: "password_confirmation", Label: "Ulangi password", Type: "password", Autocomplete: "new-password", Validate: true, Include: "#register-password"})
 		@submitButton("Daftar")
 	</form>
 }

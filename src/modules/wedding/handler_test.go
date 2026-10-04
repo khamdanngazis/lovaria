@@ -311,3 +311,41 @@ func TestArchiveVisibilityViaHTTP(t *testing.T) {
 		t.Errorf("setelah percobaan bob: %q", got.ArchiveVisibility)
 	}
 }
+
+// T23: wizard langkah 2 menawarkan alamat undangan; alamat terpakai kembali ke langkah itu.
+func TestWizardCustomSlug(t *testing.T) {
+	f := newFixture(t)
+	e := newTestServer(t, f)
+	owner := f.user(t, "a@example.com")
+	form := url.Values{"groom_name": {"Azis"}, "bride_name": {"Ida"}, "title": {"Pernikahan Azis & Ida"}, "wedding_date": {"2027-03-06"}, "slug": {"azis-ida"}}
+
+	// Langkah 1 → 2: kolom alamat tampil dengan contoh dari nama mempelai.
+	rec := req(e, owner, http.MethodPost, "/dashboard/weddings/new/steps/1", form, true)
+	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), `name="slug"`) || !strings.Contains(rec.Body.String(), `placeholder="azis-ida"`) {
+		t.Fatalf("langkah 2: %d", rec.Code)
+	}
+	// Format salah ditolak di langkah 2 (belum lanjut ke langkah 3).
+	bad := url.Values{}
+	for k, v := range form {
+		bad[k] = v
+	}
+	bad.Set("slug", "Azis & Ida")
+	if rec := req(e, owner, http.MethodPost, "/dashboard/weddings/new/steps/2", bad, true); rec.Code != http.StatusUnprocessableEntity || !strings.Contains(rec.Body.String(), "huruf kecil a-z") {
+		t.Errorf("slug tidak valid: %d", rec.Code)
+	}
+	rec = req(e, owner, http.MethodPost, "/dashboard/weddings", form, false)
+	if rec.Code != http.StatusSeeOther {
+		t.Fatalf("buat: %d %s", rec.Code, rec.Body.String())
+	}
+	if w, err := f.svc.GetWeddingBySlug(ctx, "azis-ida"); err != nil || w.Status != StatusDraft || w.IsPaid() {
+		t.Fatalf("wedding dengan slug pilihan: %+v %v", w.Slug, err)
+	}
+	// Alamat yang sama lagi → kembali ke langkah 2 dengan pesan, tanpa wedding baru.
+	rec = req(e, owner, http.MethodPost, "/dashboard/weddings", form, true)
+	if rec.Code != http.StatusUnprocessableEntity || !strings.Contains(rec.Body.String(), "Alamat ini sudah dipakai undangan lain") || !strings.Contains(rec.Body.String(), `id="wedding-slug"`) {
+		t.Errorf("slug terpakai: %d", rec.Code)
+	}
+	if ws, _ := f.svc.ListWeddingsByOwner(ctx, owner); len(ws) != 1 {
+		t.Errorf("wedding = %d, want 1", len(ws))
+	}
+}

@@ -10,6 +10,7 @@ Modul admin **hanya** memiliki tabel `packages`, `wedding_packages`, `admin_audi
 |---|---|
 | Customers (cari, detail, nonaktifkan) | `auth.SearchUsers`, `GetUser`, `SetDisabled` |
 | Daftar wedding (filter status, tanggal, cari judul/slug; urut dibuat/tanggal/storage), ringkasan status, pemakaian tema, total storage | `wedding.AdminList`, `CountByStatus`, `CountByTheme`, `StorageTotal` — query laporan lintas tenant di modul wedding |
+| Pembayaran (T23) | Status pelunasan + riwayat order di detail wedding; **Tandai lunas** manual dengan catatan wajib (`MarkWeddingPaid`, audit `wedding.mark_paid`); tab Pembayaran mendaftar semua order (`payment.AdminOrders`) |
 | Ubah status | `wedding.Transition` dengan aktor admin (`wedding.TargetsFor(status, ActorAdmin)`; mis. Diarsipkan → Kenangan) |
 | Detail wedding | `wedding.GetCouple`, `History`; `guest.Stats`; `gallery.StorageUsage`; `domain.Get` |
 | Tema | `theme.All`, `Disabled`, `SetEnabled` (tabel `disabled_themes`, migration `00014`, milik modul theme) |

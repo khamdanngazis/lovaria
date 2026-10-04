@@ -120,12 +120,28 @@ func (h *Handler) RegisterPage(c echo.Context) error {
 	return web.Render(c, http.StatusOK, registerPage(form{}))
 }
 
-// POST /register (form: name, email, password) → auto login → /dashboard
+// errPasswordMismatch: pesan kolom konfirmasi password (T23).
+const errPasswordMismatch = "Konfirmasi password tidak sama"
+
+// POST /register (form: name, email, password, password_confirmation) → auto
+// login → /dashboard (pengguna baru diarahkan ke wizard buat wedding).
 func (h *Handler) Register(c echo.Context) error {
 	f := formFrom(c, "name", "email")
-	u, err := h.svc.Register(c.Request().Context(), RegisterInput{
-		Name: f.v("name"), Email: f.v("email"), Password: c.FormValue("password"),
-	})
+	in := RegisterInput{Name: f.v("name"), Email: f.v("email"), Password: c.FormValue("password")}
+	// Konfirmasi password adalah urusan form (salah ketik), bukan aturan akun:
+	// diperiksa di sini bersama validasi kolom lain supaya semua pesan tampil sekaligus.
+	if c.FormValue("password_confirmation") != in.Password {
+		v := ValidationError{"password_confirmation": errPasswordMismatch}
+		for _, k := range []string{"name", "email", "password"} {
+			val := map[string]string{"name": in.Name, "email": in.Email, "password": in.Password}[k]
+			if msg := ValidateField(k, val); msg != "" {
+				v[k] = msg
+			}
+		}
+		f.applyErr(v)
+		return render(c, http.StatusUnprocessableEntity, registerForm(f), registerPage(f))
+	}
+	u, err := h.svc.Register(c.Request().Context(), in)
 	if f.applyErr(err) {
 		return render(c, http.StatusUnprocessableEntity, registerForm(f), registerPage(f))
 	}
@@ -140,6 +156,13 @@ func (h *Handler) ValidateRegisterField(c echo.Context) error {
 	name := c.FormValue("field")
 	switch name {
 	case "name", "email", "password":
+	case "password_confirmation":
+		// Dibandingkan dengan kolom password (ikut terkirim lewat hx-include).
+		msg := ""
+		if c.FormValue("password_confirmation") != c.FormValue("password") {
+			msg = errPasswordMismatch
+		}
+		return web.Render(c, http.StatusOK, fieldError("register", name, msg))
 	default:
 		return echo.NewHTTPError(http.StatusBadRequest)
 	}
