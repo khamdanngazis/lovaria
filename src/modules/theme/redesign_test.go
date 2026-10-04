@@ -2,6 +2,8 @@ package theme
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"strings"
@@ -253,5 +255,29 @@ func TestAllThemesOverrideVisualParts(t *testing.T) {
 				t.Errorf("%s: bagian %s belum memakai judul tema", id, sec)
 			}
 		}
+	}
+}
+
+// Etalase (T21): tiap tema bawaan punya thumbnail asli yang di-commit
+// (make theme-thumbs, ≤ 60 KB) dan hanya tema bawaan berlabel "Pilihan Lovoria".
+func TestThemeThumbsAndFeatured(t *testing.T) {
+	for _, d := range All() {
+		if d.Featured() != (d.ID == DefaultID) {
+			t.Errorf("%s: Featured = %v", d.ID, d.Featured())
+		}
+		if !strings.HasPrefix(d.Thumb(), "/static/img/themes/"+d.ID+".webp") {
+			t.Errorf("%s: thumbnail tidak ada (%q) — jalankan make theme-thumbs", d.ID, d.Thumb())
+			continue
+		}
+		fi, err := os.Stat(filepath.Join("..", "..", "..", "static", "img", "themes", d.ID+".webp"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if fi.Size() > 60*1024 {
+			t.Errorf("%s: thumbnail %d byte > 60 KB", d.ID, fi.Size())
+		}
+	}
+	if (ThemeDef{ID: "belum-ada"}).Thumb() != "" {
+		t.Error("tema tanpa berkas thumbnail harus jatuh ke kartu warna")
 	}
 }

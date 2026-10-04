@@ -120,9 +120,10 @@ func TestThemePageSaveAndPreview(t *testing.T) {
 			t.Errorf("select font tidak boleh required: %s", sel)
 		}
 	}
-	// Regresi: contoh font di kartu tema harus CSS valid (tanpa kutip yang ter-escape ganda).
-	if !strings.Contains(rec.Body.String(), "font-family:Cormorant Garamond;") || strings.Contains(rec.Body.String(), "&amp;#39;") {
-		t.Error("style font-family kartu tema tidak valid")
+	// Kartu tema memakai thumbnail asli (T21) & tema bawaan berlabel; style
+	// inline tetap CSS valid (tanpa kutip yang ter-escape ganda).
+	if !strings.Contains(rec.Body.String(), `src="/static/img/themes/elegant.webp`) || strings.Count(rec.Body.String(), "Pilihan Lovoria") != 1 || strings.Contains(rec.Body.String(), "&amp;#39;") {
+		t.Error("kartu tema: thumbnail / label Pilihan Lovoria / style tidak valid")
 	}
 	for _, name := range []string{"Elegan", "Minimalis", "Romantis", "Modern"} {
 		if !strings.Contains(rec.Body.String(), name) {

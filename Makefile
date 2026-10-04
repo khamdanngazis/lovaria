@@ -130,6 +130,10 @@ test-integration: db-up ## Jalankan semua test termasuk integration test Postgre
 e2e: ## E2E smoke test Playwright terhadap E2E_BASE_URL (default http://localhost:8080; server harus sudah jalan)
 	cd e2e && npm ci --no-audit --no-fund && npx playwright test
 
+.PHONY: theme-thumbs
+theme-thumbs: ## Buat ulang thumbnail etalase tema dari undangan contoh (server jalan di E2E_BASE_URL)
+	cd e2e && npm ci --no-audit --no-fund && node theme-thumbs.js
+
 .PHONY: loadtest
 loadtest: ## Load test k6 skenario H-1 (BASE_URL, DATA dari tools/loadseed) — JANGAN ke produksi tanpa izin
 	k6 run -e BASE_URL=$${BASE_URL:-http://localhost:8080} -e DATA=$${DATA:-/tmp/lovoria-load.json} tools/load/h1.js

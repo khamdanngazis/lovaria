@@ -162,3 +162,12 @@ Form memiliki tombol submit tersembunyi di awal supaya Enter di kolom teks menyi
 
 - Ekspresi di dalam `<style>` tidak dieksekusi templ — blok CSS token dirender lewat `@templ.Raw("<style>…</style>")` (aman karena nilainya tervalidasi).
 - Atribut `style={ … }` di-escape templ; jangan memakai tanda kutip di dalamnya (kutip ter-escape ganda sehingga deklarasi CSS dibuang browser). Nama font dengan spasi valid tanpa kutip.
+
+## Etalase tema (thumbnail)
+
+Kartu tema di landing dan pemilih tema dashboard memakai tangkapan layar asli sampul undangan contoh: `static/img/themes/<id>.webp` (600×750, potret 4:5, ≤ 60 KB, **di-commit**).
+
+- Membuat ulang: jalankan server dengan undangan contoh (`lovoria demo seed`), lalu `make theme-thumbs` (`E2E_BASE_URL` = alamat server; lokal boleh `PW_CHANNEL=chrome`). Skrip `e2e/theme-thumbs.js` mengambil daftar tema dari tautan "Lihat contoh" di landing, memotret sampul di viewport ponsel, menggeser jendela 4:5 ke nama pasangan, lalu mengubahnya ke WebP lewat canvas browser (tanpa dependensi tambahan).
+- Jalankan ulang setiap tampilan sampul tema berubah atau ada tema baru.
+- `ThemeDef.Thumb()` mengembalikan URL-nya, atau `""` bila berkas tidak ada — kartu lalu jatuh ke foto sampul contoh / kartu warna. `ThemeDef.Featured()` (tema bawaan) memberi label **Pilihan Lovoria**.
+- `TestThemeThumbsAndFeatured` memastikan tiap tema terdaftar punya thumbnail dan ukurannya dalam anggaran.

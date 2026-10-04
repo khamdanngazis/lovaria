@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### T21 (bagian 3) — Etalase tema dengan tangkapan layar asli
+- Kartu tema di landing dan pemilih tema dashboard menampilkan tangkapan layar asli sampul tiap tema, menggantikan kartu warna "A & B".
+- Lovoria Signature berlabel **Pilihan Lovoria**.
+- `make theme-thumbs` membuat ulang thumbnail dari undangan contoh.
+
 ### T21 (bagian 2) — Tema Elegan, Romantis, dan Modern ditulis ulang
 - **Elegan**: bingkai ganda dengan ornamen sudut, foto sampul berpigura, kartu acara berbingkai, penutup gelap.
 - **Romantis**: foto sampul & mempelai melengkung, ornamen bunga garis, cerita berselang-seling, kartu lembut.
