@@ -34,6 +34,7 @@ type landingTheme struct {
 	Thumb                 string // tangkapan layar asli tema ("" → foto sampul / kartu warna)
 	Featured              bool   // label "Pilihan Lunovia"
 	Pitch                 string // uraian panjang (halaman /tema/<id>)
+	Region                string // daerah inspirasi (Koleksi Daerah); "" = koleksi utama
 	Accent                string
 	FontHeading, FontBody string
 }
@@ -370,46 +371,80 @@ templ landingThemes(d landingData) {
 		<div class={ container }>
 			@sectionHeading("Tema", "Pilih suasana yang paling kalian", "Setiap tema bisa disesuaikan warna, huruf, latar, dan foto sampulnya.")
 			<ul class="mt-12 grid grid-cols-2 gap-3 sm:mt-14 sm:grid-cols-3 sm:gap-5 lg:grid-cols-5">
-				for _, t := range d.Themes {
-					<li class={ "relative flex flex-col overflow-hidden rounded-2xl border bg-white", templ.KV("border-lovoria-primary ring-1 ring-lovoria-primary", t.Featured), templ.KV("border-lovoria-border", !t.Featured) }>
-						if t.Featured {
-							<p class="absolute left-2 top-2 z-10 rounded-full bg-lovoria-primary px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.12em] text-white shadow-sm sm:left-3 sm:top-3">Pilihan Lunovia</p>
-						}
-						if t.Thumb != "" {
-							@themeShot(t)
-						} else if t.Photo != "" {
-							<a href={ templ.SafeURL(t.DemoURL) } class="relative block aspect-[4/5] overflow-hidden" tabindex="-1" aria-hidden="true">
-								<img src={ t.Photo } alt="" width="384" height="480" loading="lazy" decoding="async" class="h-full w-full object-cover transition duration-500 hover:scale-105"/>
-								<div class="absolute inset-0 bg-[linear-gradient(180deg,transparent_45%,rgba(35,26,38,0.78))]"></div>
-								<div class="absolute inset-x-0 bottom-0 p-3 text-center text-white sm:p-5">
-									<p class="text-[8px] uppercase tracking-[0.3em] opacity-90 sm:text-[10px]">The Wedding of</p>
-									<p class="mt-1 font-display text-lg leading-snug sm:text-2xl">{ t.Couple }</p>
-									<div class="mx-auto mt-2 h-px w-10" style={ "background:" + t.Primary }></div>
-								</div>
-							</a>
-						} else {
-							<div class="flex aspect-[4/5] flex-col items-center justify-center gap-2 px-3 text-center sm:gap-3 sm:px-6" style={ "background:" + t.Surface + ";color:" + t.Ink }>
-								<p class="text-[8px] uppercase tracking-[0.3em] sm:text-[10px]">The Wedding of</p>
-								<p class="font-display text-lg leading-snug sm:text-2xl" style={ "color:" + t.Primary }>Raka &amp; Nadia</p>
-								<div class="h-px w-12" style={ "background:" + t.Primary }></div>
-								<p class="text-[10px] opacity-80 sm:text-xs">14 · 02 · 2027</p>
-							</div>
-						}
-						<div class="flex flex-1 flex-col p-4 sm:p-5">
-							<h3 class="font-display text-lg text-lovoria-deep sm:text-xl"><a href={ templ.SafeURL("/tema/" + t.ID) } class="hover:text-lovoria-primary">{ t.Name }</a></h3>
-							<p class="mt-1 flex-1 text-xs leading-relaxed text-lovoria-muted sm:text-sm">{ t.Description }</p>
-							if t.DemoURL != "" {
-								<a href={ templ.SafeURL(t.DemoURL) } class="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-lovoria-primary hover:underline">
-									Lihat contoh
-									@icon("arrow", "h-4 w-4")
-								</a>
-							}
-						</div>
-					</li>
+				for _, t := range themesIn(d, false) {
+					@themeCard(t)
 				}
 			</ul>
+			if len(themesIn(d, true)) > 0 {
+				<div id="koleksi-daerah" class="mx-auto mt-16 max-w-2xl scroll-mt-24 text-center sm:mt-20">
+					<p class="text-xs font-medium uppercase tracking-[0.28em] text-lovoria-accent-ink">Koleksi Daerah</p>
+					<h3 class="mt-3 font-display text-2xl leading-tight text-lovoria-deep sm:text-3xl">Your love story, inspired by where you come from.</h3>
+					<p class="mt-3 leading-relaxed text-lovoria-muted">Tradisi yang dikemas dengan rasa modern — undangan digital dengan sentuhan adat Jawa, Sunda, Minang, Bali, dan Bugis.</p>
+				</div>
+				<ul class="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-5">
+					for _, t := range themesIn(d, true) {
+						@themeCard(t)
+					}
+				</ul>
+			}
+			<p class="mt-10 text-center text-sm">
+				<a href="/tema" class="inline-flex items-center gap-1.5 font-medium text-lovoria-primary hover:underline">
+					Lihat semua tema
+					@icon("arrow", "h-4 w-4")
+				</a>
+			</p>
 		</div>
 	</section>
+}
+
+// themesIn: tema koleksi utama (regional=false) atau Koleksi Daerah (true).
+func themesIn(d landingData, regional bool) []landingTheme {
+	var out []landingTheme
+	for _, t := range d.Themes {
+		if (t.Region != "") == regional {
+			out = append(out, t)
+		}
+	}
+	return out
+}
+
+// themeCard: kartu satu tema di landing.
+templ themeCard(t landingTheme) {
+	<li class={ "relative flex flex-col overflow-hidden rounded-2xl border bg-white", templ.KV("border-lovoria-primary ring-1 ring-lovoria-primary", t.Featured), templ.KV("border-lovoria-border", !t.Featured) }>
+		if t.Featured {
+			<p class="absolute left-2 top-2 z-10 rounded-full bg-lovoria-primary px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.12em] text-white shadow-sm sm:left-3 sm:top-3">Pilihan Lunovia</p>
+		}
+		if t.Thumb != "" {
+			@themeShot(t)
+		} else if t.Photo != "" {
+			<a href={ templ.SafeURL(t.DemoURL) } class="relative block aspect-[4/5] overflow-hidden" tabindex="-1" aria-hidden="true">
+				<img src={ t.Photo } alt="" width="384" height="480" loading="lazy" decoding="async" class="h-full w-full object-cover transition duration-500 hover:scale-105"/>
+				<div class="absolute inset-0 bg-[linear-gradient(180deg,transparent_45%,rgba(35,26,38,0.78))]"></div>
+				<div class="absolute inset-x-0 bottom-0 p-3 text-center text-white sm:p-5">
+					<p class="text-[8px] uppercase tracking-[0.3em] opacity-90 sm:text-[10px]">The Wedding of</p>
+					<p class="mt-1 font-display text-lg leading-snug sm:text-2xl">{ t.Couple }</p>
+					<div class="mx-auto mt-2 h-px w-10" style={ "background:" + t.Primary }></div>
+				</div>
+			</a>
+		} else {
+			<div class="flex aspect-[4/5] flex-col items-center justify-center gap-2 px-3 text-center sm:gap-3 sm:px-6" style={ "background:" + t.Surface + ";color:" + t.Ink }>
+				<p class="text-[8px] uppercase tracking-[0.3em] sm:text-[10px]">The Wedding of</p>
+				<p class="font-display text-lg leading-snug sm:text-2xl" style={ "color:" + t.Primary }>Raka &amp; Nadia</p>
+				<div class="h-px w-12" style={ "background:" + t.Primary }></div>
+				<p class="text-[10px] opacity-80 sm:text-xs">14 · 02 · 2027</p>
+			</div>
+		}
+		<div class="flex flex-1 flex-col p-4 sm:p-5">
+			<h3 class="font-display text-lg text-lovoria-deep sm:text-xl"><a href={ templ.SafeURL("/tema/" + t.ID) } class="hover:text-lovoria-primary">{ t.Name }</a></h3>
+			<p class="mt-1 flex-1 text-xs leading-relaxed text-lovoria-muted sm:text-sm">{ t.Description }</p>
+			if t.DemoURL != "" {
+				<a href={ templ.SafeURL(t.DemoURL) } class="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-lovoria-primary hover:underline">
+					Lihat contoh
+					@icon("arrow", "h-4 w-4")
+				</a>
+			}
+		</div>
+	</li>
 }
 
 // themeShot: tangkapan layar asli sampul tema (make theme-thumbs).

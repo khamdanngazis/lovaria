@@ -35,6 +35,12 @@ var demoCouples = map[string]demoCouple{
 	"romantic":  {"Bima Satria Nugraha", "Alya Maharani", "Putra kedua dari Bapak Agus Nugraha & Ibu Wulan Sari", "Putri pertama dari Bapak Rudi Hartono & Ibu Maya Indah"},
 	"modern":    {"Dimas Arya Saputra", "Salsabila Zahra", "Putra ketiga dari Bapak Budi Saputra & Ibu Rina Kartika", "Putri kedua dari Bapak Hadi Susanto & Ibu Fitri Amelia"},
 	"minimal":   {"Fajar Nugraha", "Intan Permata Sari", "Putra pertama dari Bapak Iwan Setiawan & Ibu Sri Rahayu", "Putri bungsu dari Bapak Tono Wibowo & Ibu Endang Pertiwi"},
+	// Koleksi Daerah (T28).
+	"jawa":   {"Bagas Wicaksono", "Larasati Kusumaningrum", "Putra pertama dari Bapak Suryo Wicaksono & Ibu Retno Wulandari", "Putri kedua dari Bapak Hadi Kusumo & Ibu Sri Lestari"},
+	"sunda":  {"Reza Permana", "Sekar Arum Kirana", "Putra kedua dari Bapak Dadang Permana & Ibu Euis Kartika", "Putri pertama dari Bapak Ujang Suherman & Ibu Nining Rahayu"},
+	"minang": {"Fadli Chaniago", "Annisa Rahmadani", "Putra pertama dari Bapak Syafrizal Chaniago & Ibu Yusnidar", "Putri bungsu dari Bapak Zulkifli Piliang & Ibu Erniwati"},
+	"bali":   {"Wira Adnyana Putra", "Ayu Saraswati Dewi", "Putra pertama dari Bapak I Ketut Adnyana & Ibu Ni Wayan Sukerti", "Putri kedua dari Bapak I Made Sudarma & Ibu Ni Nyoman Ariani"},
+	"bugis":  {"Ilham Mappasessu", "Tenri Ajeng Pratiwi", "Putra kedua dari Bapak Andi Mappasessu & Ibu Hj. Nurhayati", "Putri pertama dari Bapak Andi Baso & Ibu Hj. Rosmiati"},
 }
 
 func firstWord(s string) string { return strings.Fields(s)[0] }
