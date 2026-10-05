@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/khamdanngazis/lovaria/src/modules/payment"
+	"github.com/khamdanngazis/lovaria/src/platform/web"
 	"github.com/khamdanngazis/lovaria/src/templates/layouts"
 	"github.com/khamdanngazis/lovaria/static"
 )
@@ -509,6 +510,9 @@ templ landingFooter() {
 				<a href="/terms" class="hover:text-white">Syarat &amp; Ketentuan</a>
 				<a href="/login" class="hover:text-white">Masuk</a>
 				<a href="/register" class="hover:text-white">Daftar</a>
+				if web.SupportURL() != "" {
+					<a href={ templ.SafeURL(web.SupportURL()) } target="_blank" rel="noopener" class="hover:text-white">Bantuan (WhatsApp)</a>
+				}
 			</nav>
 		</div>
 		<p class={ container, "pb-10 text-xs text-white/50" }>© { fmt.Sprint(time.Now().Year()) } Lunovia. Semua hak dilindungi.</p>

@@ -262,7 +262,7 @@ type ListPackagesRow struct {
 }
 
 // Modul admin hanya menyentuh tabel miliknya sendiri: packages,
-// wedding_packages, admin_audit_logs. Data modul lain lewat service modul itu.
+// wedding_packages, admin_audit_logs, app_settings. Data modul lain lewat service modul itu.
 func (q *Queries) ListPackages(ctx context.Context) ([]ListPackagesRow, error) {
 	rows, err := q.db.Query(ctx, listPackages)
 	if err != nil {
@@ -284,6 +284,35 @@ func (q *Queries) ListPackages(ctx context.Context) ([]ListPackagesRow, error) {
 			&i.SortOrder,
 			&i.Weddings,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listSettings = `-- name: ListSettings :many
+SELECT key, value FROM app_settings
+`
+
+type ListSettingsRow struct {
+	Key   string
+	Value string
+}
+
+func (q *Queries) ListSettings(ctx context.Context) ([]ListSettingsRow, error) {
+	rows, err := q.db.Query(ctx, listSettings)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListSettingsRow{}
+	for rows.Next() {
+		var i ListSettingsRow
+		if err := rows.Scan(&i.Key, &i.Value); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -346,4 +375,20 @@ func (q *Queries) UpdatePackage(ctx context.Context, arg UpdatePackageParams) (P
 		&i.SortOrder,
 	)
 	return i, err
+}
+
+const upsertSetting = `-- name: UpsertSetting :exec
+INSERT INTO app_settings (key, value, updated_at) VALUES ($1, $2, $3)
+ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = EXCLUDED.updated_at
+`
+
+type UpsertSettingParams struct {
+	Key       string
+	Value     string
+	UpdatedAt time.Time
+}
+
+func (q *Queries) UpsertSetting(ctx context.Context, arg UpsertSettingParams) error {
+	_, err := q.db.Exec(ctx, upsertSetting, arg.Key, arg.Value, arg.UpdatedAt)
+	return err
 }

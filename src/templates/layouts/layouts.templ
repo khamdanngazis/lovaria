@@ -125,7 +125,22 @@ templ LegalLinks(class string) {
 		<a href="/privacy" class="hover:text-lovoria-primary hover:underline">Kebijakan Privasi</a>
 		<span aria-hidden="true">·</span>
 		<a href="/terms" class="hover:text-lovoria-primary hover:underline">Syarat &amp; Ketentuan</a>
+		if web.SupportURL() != "" {
+			<span aria-hidden="true">·</span>
+			<a href={ templ.SafeURL(web.SupportURL()) } target="_blank" rel="noopener" class="hover:text-lovoria-primary hover:underline">Bantuan (WhatsApp)</a>
+		}
 	</footer>
+}
+
+// SupportHint: ajakan singkat menghubungi bantuan lewat WhatsApp (T25); tidak
+// merender apa pun bila nomor bantuan belum diatur admin.
+templ SupportHint(class string) {
+	if web.SupportURL() != "" {
+		<p class={ "text-sm text-lovoria-muted", class }>
+			Butuh bantuan?
+			<a href={ templ.SafeURL(web.SupportURL()) } target="_blank" rel="noopener" class="ui-link">Chat kami di WhatsApp ↗</a>
+		</p>
+	}
 }
 
 // ErrorPage: halaman error bergaya (404, 403, 429, 500, …) untuk semua route.
@@ -218,6 +233,14 @@ templ accountMenu() {
 							@menuLink("/admin", "shield", "Panel admin")
 						}
 						@menuLink("/", "external", "Halaman utama Lunovia")
+						if web.SupportURL() != "" {
+							<li>
+								<a href={ templ.SafeURL(web.SupportURL()) } target="_blank" rel="noopener" class="flex items-center gap-3 rounded-lg px-3 py-2.5 font-medium text-lovoria-text hover:bg-lovoria-primary-soft hover:text-lovoria-primary focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-lovoria-primary">
+									@Icon("chat", "h-5 w-5 flex-none text-lovoria-primary")
+									Bantuan via WhatsApp
+								</a>
+							</li>
+						}
 					</ul>
 					<form method="post" action="/logout" class="border-t border-lovoria-border p-1.5">
 						@CSRFField()

@@ -421,6 +421,11 @@ func (a *app) routes() *echo.Echo {
 	a.weddings.SetArchiveDaysSource(admins.ArchiveDays)
 	photos.SetQuotaSource(admins.QuotaBytes)
 	admin.Register(e.Group("/admin", server.NoStore, authMW.RequireAuth, authMW.RequireRole(auth.RoleAdmin)), admins)
+	// Kontak bantuan WhatsApp (T25): dimuat sekali; perubahan admin langsung
+	// memperbarui salinan di memori.
+	if err := admins.LoadSupport(context.Background()); err != nil {
+		log.Warn("kontak bantuan belum termuat — tautan bantuan disembunyikan", slog.Any("error", err))
+	}
 	publicsite.Register(e, publicsite.Deps{
 		Resolver: &publicsite.Resolver{Weddings: a.weddings, Guests: guests, Domains: a.domains, BaseURL: cfg.BaseURL, ExtraHosts: cfg.ExtraHosts, HostHeader: cfg.Domain.HostHeader, Log: log},
 		Handler:  &publicsite.Handler{BaseURL: cfg.BaseURL, PublishPrice: cfg.Payment.PriceIDR, Views: views, Guests: guests, Guestbook: guestbooks, Events: events, Log: log, Secret: secret},

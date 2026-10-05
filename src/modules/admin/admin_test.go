@@ -30,6 +30,7 @@ import (
 	"github.com/khamdanngazis/lovaria/src/platform/mail"
 	"github.com/khamdanngazis/lovaria/src/platform/server"
 	"github.com/khamdanngazis/lovaria/src/platform/storage"
+	"github.com/khamdanngazis/lovaria/src/platform/web"
 )
 
 func TestMain(m *testing.M) { os.Exit(dbtest.Main(m)) }
@@ -462,7 +463,7 @@ func TestWeddingListWith1000(t *testing.T) {
 
 // Modul admin hanya menyentuh tabelnya sendiri; data modul lain lewat service.
 func TestAdminQueriesOwnTablesOnly(t *testing.T) {
-	own := map[string]bool{"packages": true, "wedding_packages": true, "admin_audit_logs": true}
+	own := map[string]bool{"packages": true, "wedding_packages": true, "admin_audit_logs": true, "app_settings": true}
 	files, _ := filepath.Glob("db/queries/*.sql")
 	if len(files) == 0 {
 		t.Fatal("query admin tidak ditemukan")
@@ -567,3 +568,51 @@ func TestMarkWeddingPaid(t *testing.T) {
 type oneEvent struct{}
 
 func (oneEvent) CountEvents(context.Context, uuid.UUID) (int, error) { return 1, nil }
+
+// T25: admin mengatur nomor WhatsApp bantuan; tautan wa.me langsung berlaku di
+// semua halaman, tercatat di audit log, dan hilang lagi saat nomor dikosongkan.
+func TestSupportWhatsApp(t *testing.T) {
+	f := newFixture(t)
+	t.Cleanup(func() { web.SetSupport(web.Support{}) })
+	web.SetSupport(web.Support{})
+	_, admin := f.user(t, "admin@example.com", true)
+
+	if rec := f.do(http.MethodGet, "/admin/support", admin, reqOpt{}); rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), `name="phone"`) || strings.Contains(rec.Body.String(), "wa.me") {
+		t.Fatalf("halaman bantuan awal: %d", rec.Code)
+	}
+	// Nomor tidak valid ditolak, tidak ada yang tersimpan.
+	before := f.auditCount(t)
+	rec := f.do(http.MethodPost, "/admin/support", admin, reqOpt{form: url.Values{"phone": {"abc"}}})
+	if rec.Code != http.StatusSeeOther || !strings.Contains(rec.Header().Get("Location"), "err=") || web.SupportURL() != "" || f.auditCount(t) != before {
+		t.Fatalf("nomor tidak valid: %d %s", rec.Code, rec.Header().Get("Location"))
+	}
+	// Nomor lokal dinormalkan ke 62…, pesan pembuka ikut di tautan.
+	rec = f.do(http.MethodPost, "/admin/support", admin, reqOpt{form: url.Values{"phone": {"0812-3456-7890"}, "message": {"Halo, saya mau tanya"}}})
+	if rec.Code != http.StatusSeeOther || strings.Contains(rec.Header().Get("Location"), "err=") {
+		t.Fatalf("simpan: %d %s", rec.Code, rec.Header().Get("Location"))
+	}
+	const want = "https://wa.me/6281234567890?text=Halo%2C%20saya%20mau%20tanya"
+	if got := web.SupportURL(); got != want {
+		t.Fatalf("SupportURL = %q, want %q", got, want)
+	}
+	if f.auditCount(t) != before+1 {
+		t.Error("perubahan kontak bantuan harus tercatat di audit log")
+	}
+	// Tersimpan di DB (bertahan setelah restart) & tampil di halaman admin.
+	web.SetSupport(web.Support{})
+	if err := f.svc.LoadSupport(ctx); err != nil || web.SupportURL() != want {
+		t.Fatalf("LoadSupport: %v %q", err, web.SupportURL())
+	}
+	if body := f.do(http.MethodGet, "/admin/support", admin, reqOpt{}).Body.String(); !strings.Contains(body, `value="+6281234567890"`) || !strings.Contains(body, "Bantuan via WhatsApp") {
+		t.Error("halaman admin: nomor tersimpan & tautan bantuan di menu akun")
+	}
+	// Pesan kosong → pesan bawaan; nomor kosong → tautan hilang.
+	f.do(http.MethodPost, "/admin/support", admin, reqOpt{form: url.Values{"phone": {"+62 812 3456 7890"}}})
+	if got := web.SupportURL(); !strings.HasPrefix(got, "https://wa.me/6281234567890?text=Halo%20Lunovia") {
+		t.Errorf("pesan bawaan: %q", got)
+	}
+	f.do(http.MethodPost, "/admin/support", admin, reqOpt{form: url.Values{"phone": {""}}})
+	if web.SupportURL() != "" {
+		t.Error("nomor kosong harus menyembunyikan tautan bantuan")
+	}
+}

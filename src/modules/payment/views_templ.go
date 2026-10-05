@@ -889,6 +889,10 @@ func paymentStatus(s publishState) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
+			templ_7745c5c3_Err = layouts.SupportHint("mt-5").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 		default:
 			if s.Summary.Latest != nil {
 				templ_7745c5c3_Err = ui.Badge(statusVariant(s.Summary.Latest.Status), StatusLabel(s.Summary.Latest.Status)).Render(ctx, templ_7745c5c3_Buffer)
@@ -903,13 +907,17 @@ func paymentStatus(s publishState) templ.Component {
 			var templ_7745c5c3_Var38 templ.SafeURL
 			templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(s.W.DashboardURL("/publish")))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/payment/views.templ`, Line: 263, Col: 57}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/payment/views.templ`, Line: 264, Col: 57}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 70, "\" class=\"ui-btn ui-btn-primary mt-5\">Coba lagi</a>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = layouts.SupportHint("mt-5").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -985,7 +993,7 @@ func fakeCheckoutPage(o Order) templ.Component {
 			var templ_7745c5c3_Var43 string
 			templ_7745c5c3_Var43, templ_7745c5c3_Err = templ.JoinStringErrs(o.Number)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/payment/views.templ`, Line: 275, Col: 43}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/payment/views.templ`, Line: 277, Col: 43}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var43))
 			if templ_7745c5c3_Err != nil {
@@ -998,7 +1006,7 @@ func fakeCheckoutPage(o Order) templ.Component {
 			var templ_7745c5c3_Var44 string
 			templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.JoinStringErrs(Rupiah(o.Amount))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/payment/views.templ`, Line: 276, Col: 81}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/payment/views.templ`, Line: 278, Col: 81}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var44))
 			if templ_7745c5c3_Err != nil {
@@ -1011,7 +1019,7 @@ func fakeCheckoutPage(o Order) templ.Component {
 			var templ_7745c5c3_Var45 templ.SafeURL
 			templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(FakeCheckoutPath + o.Number))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/payment/views.templ`, Line: 277, Col: 75}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/payment/views.templ`, Line: 279, Col: 75}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var45))
 			if templ_7745c5c3_Err != nil {
@@ -1032,7 +1040,7 @@ func fakeCheckoutPage(o Order) templ.Component {
 			var templ_7745c5c3_Var46 string
 			templ_7745c5c3_Var46, templ_7745c5c3_Err = templ.ResolveAttributeValue(StatusPaid)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/payment/views.templ`, Line: 279, Col: 59}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/payment/views.templ`, Line: 281, Col: 59}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var46)
 			if templ_7745c5c3_Err != nil {
@@ -1045,7 +1053,7 @@ func fakeCheckoutPage(o Order) templ.Component {
 			var templ_7745c5c3_Var47 string
 			templ_7745c5c3_Var47, templ_7745c5c3_Err = templ.ResolveAttributeValue(StatusFailed)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/payment/views.templ`, Line: 280, Col: 61}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/payment/views.templ`, Line: 282, Col: 61}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var47)
 			if templ_7745c5c3_Err != nil {
@@ -1058,7 +1066,7 @@ func fakeCheckoutPage(o Order) templ.Component {
 			var templ_7745c5c3_Var48 string
 			templ_7745c5c3_Var48, templ_7745c5c3_Err = templ.ResolveAttributeValue(StatusExpired)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/payment/views.templ`, Line: 281, Col: 62}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/modules/payment/views.templ`, Line: 283, Col: 62}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var48)
 			if templ_7745c5c3_Err != nil {

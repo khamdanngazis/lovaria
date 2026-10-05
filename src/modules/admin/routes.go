@@ -26,5 +26,7 @@ func Register(g *echo.Group, svc *Service) {
 	g.POST("/packages/:packageID/delete", h.DeletePackage)
 	g.GET("/storage", h.Storage)
 	g.GET("/domains", h.Domains)
+	g.GET("/support", h.Support)
+	g.POST("/support", h.SaveSupport)
 	g.GET("/audit", h.Audit)
 }

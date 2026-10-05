@@ -254,6 +254,7 @@ templ paymentStatus(s publishState) {
 					}
 					<a href={ templ.SafeURL(s.W.DashboardURL("/payment/return")) } class="ui-btn ui-btn-secondary">Periksa lagi</a>
 				</div>
+				@layouts.SupportHint("mt-5")
 			default:
 				if s.Summary.Latest != nil {
 					@ui.Badge(statusVariant(s.Summary.Latest.Status), StatusLabel(s.Summary.Latest.Status))
@@ -261,6 +262,7 @@ templ paymentStatus(s publishState) {
 				<h2 class="mt-3 font-display text-3xl text-lovoria-deep">Pembayaran belum berhasil</h2>
 				<p class="mt-2 text-sm text-lovoria-muted">Tidak ada dana yang ditagihkan untuk percobaan ini. Undangan Anda tetap tersimpan — silakan coba lagi.</p>
 				<a href={ templ.SafeURL(s.W.DashboardURL("/publish")) } class="ui-btn ui-btn-primary mt-5">Coba lagi</a>
+				@layouts.SupportHint("mt-5")
 		}
 	</div>
 }

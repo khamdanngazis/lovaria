@@ -49,3 +49,13 @@ Setiap method tulis di `admin.Service` memanggil `audit()` setelah aksi berhasil
 
 ## Performa
 `TestWeddingListWith1000`: 1.000 wedding, daftar urut storage halaman 2 ±4 ms di lokal.
+
+## Bantuan pelanggan lewat WhatsApp (T25)
+
+Tab **Bantuan** (`/admin/support`) menyimpan nomor WhatsApp (Business) dan pesan pembuka. Nilainya disimpan di tabel `app_settings` (kunci `support_whatsapp`, `support_message`; migration `00025`) sehingga bisa diganti kapan saja tanpa deploy, dan setiap perubahan tercatat di audit log (`support.update`).
+
+- Nomor dinormalkan ke format internasional (`0812…` → `62812…`); nomor tidak valid ditolak. Nomor kosong = tautan bantuan disembunyikan di semua halaman.
+- Pesan pembuka (maks. 300 karakter) terisi otomatis di WhatsApp; kosong → "Halo Lunovia, saya butuh bantuan."
+- Tautan `https://wa.me/<nomor>?text=…` dibuat oleh `web.SupportURL()` dari salinan di memori (`web.SetSupport`), dimuat saat start (`Service.LoadSupport`) dan diperbarui setiap kali admin menyimpan.
+- Tampil di: footer landing, footer halaman masuk/daftar/error (`layouts.LegalLinks`), menu akun dashboard, dan halaman status pembayaran (`layouts.SupportHint`).
+- Salinan di memori berlaku per instance; bila kelak ada lebih dari satu instance, instance lain baru memuat nilai baru saat restart.
