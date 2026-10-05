@@ -50,6 +50,12 @@ type Config struct {
 	Backup Backup
 	// Payment berisi setelan pembayaran publikasi (T23).
 	Payment Payment
+	// GoogleSiteVerification & BingSiteVerification: kode verifikasi kepemilikan
+	// situs untuk Google Search Console / Bing Webmaster Tools (T27) — hanya
+	// nilai atribut content dari meta tag (GOOGLE_SITE_VERIFICATION,
+	// BING_SITE_VERIFICATION). Kosong → meta tag tidak ditulis.
+	GoogleSiteVerification string
+	BingSiteVerification   string
 	// SentryDSN mengaktifkan pelaporan error 5xx ke Sentry (SENTRY_DSN, opsional).
 	SentryDSN string
 	// Secret kunci HMAC aplikasi, mis. token form RSVP publik (APP_SECRET, min 32
@@ -350,6 +356,8 @@ func LoadFrom(getenv func(string) string) (Config, error) {
 		errs = append(errs, fmt.Errorf("PAYMENT_GATEWAY: nilai tidak valid %q (midtrans | fake)", cfg.Payment.Gateway))
 	}
 	cfg.SentryDSN = get("SENTRY_DSN", "")
+	cfg.GoogleSiteVerification = get("GOOGLE_SITE_VERIFICATION", "")
+	cfg.BingSiteVerification = get("BING_SITE_VERIFICATION", "")
 	cfg.Backup = Backup{
 		Bucket: get("BACKUP_BUCKET", ""), Dir: get("BACKUP_DIR", ""),
 		PgDump: get("PG_DUMP_PATH", "pg_dump"), PgRestore: get("PG_RESTORE_PATH", "pg_restore"),

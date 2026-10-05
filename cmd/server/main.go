@@ -428,7 +428,7 @@ func (a *app) routes() *echo.Echo {
 	}
 	publicsite.Register(e, publicsite.Deps{
 		Resolver: &publicsite.Resolver{Weddings: a.weddings, Guests: guests, Domains: a.domains, BaseURL: cfg.BaseURL, ExtraHosts: cfg.ExtraHosts, HostHeader: cfg.Domain.HostHeader, Log: log},
-		Handler:  &publicsite.Handler{BaseURL: cfg.BaseURL, PublishPrice: cfg.Payment.PriceIDR, Views: views, Guests: guests, Guestbook: guestbooks, Events: events, Log: log, Secret: secret},
+		Handler:  &publicsite.Handler{BaseURL: cfg.BaseURL, PublishPrice: cfg.Payment.PriceIDR, GoogleVerification: cfg.GoogleSiteVerification, BingVerification: cfg.BingSiteVerification, Views: views, Guests: guests, Guestbook: guestbooks, Events: events, Log: log, Secret: secret},
 	})
 	return e
 }

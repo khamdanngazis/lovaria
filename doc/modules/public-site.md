@@ -127,3 +127,19 @@ Keputusan performa (hasil Lighthouse mobile — keempat tema Performance 100, Ac
 - Foto sampul `fetchpriority="low"`: elemen LCP pembuka adalah teks nama, dan foto besar yang diprioritaskan menunda font judul di jaringan lambat.
 - Respons teks dikompres gzip (middleware global, `/media/` dilewati).
 - Warna bawaan tema memenuhi kontras WCAG AA (≥ 4.5:1).
+
+## SEO (T27)
+
+Hanya halaman milik Lunovia yang boleh diindeks; undangan pasangan (`/w/`, `/i/`, custom domain) tetap `noindex`.
+
+| Bagian | Di mana |
+|---|---|
+| Judul & deskripsi berkata kunci | `seoTitle`, `seoDesc` (`seo.go`) — sunting di satu tempat |
+| Meta kanonik + Open Graph/Twitter | `seoHead` (`landing.templ`), dipakai landing & etalase tema |
+| Data terstruktur JSON-LD | `landingLD` (Organization, WebSite, SoftwareApplication + Offer dari `PUBLISH_PRICE_IDR`, FAQPage dari `faqs`), `breadcrumbLD`. Ditulis lewat `templ.JSONScript(...).WithType("application/ld+json")` — blok data, tidak terkena CSP |
+| Etalase tema | `/tema`, `/tema/<id>` (`themes.templ`, `Handler.Themes` / `ThemeDetail`); uraian panjang tiap tema = `ThemeDef.Pitch` di registry. Tema nonaktif & custom domain → 404 |
+| `sitemap.xml`, `robots.txt`, `llms.txt` | `seo.go`. Halaman baru yang boleh diindeks harus ditambahkan ke ketiganya |
+| Verifikasi mesin pencari | `GOOGLE_SITE_VERIFICATION`, `BING_SITE_VERIFICATION` → meta tag di landing |
+| Tautan dari undangan | `base.Credit` — "Dibuat dengan Lunovia" menautkan `view.SiteURL` (diisi public site; preview dashboard tetap teks) |
+
+Setelah deploy: daftarkan `https://lunovia.id` di Google Search Console dan Bing Webmaster Tools, isi kode verifikasinya di Railway, lalu kirim `https://lunovia.id/sitemap.xml` di keduanya.

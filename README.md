@@ -65,6 +65,7 @@ Semua lewat environment variable (lihat [`.env.example`](.env.example)), dibaca 
 | `BACKUP_RETENTION_DAYS`, `BACKUP_HOUR_UTC` | `14`, `19` | Retensi backup (hari) & jam backup harian UTC (19 = 02.00 WIB) |
 | `PG_DUMP_PATH`, `PG_RESTORE_PATH` | `pg_dump`, `pg_restore` | Binary Postgres client (versi mayor harus = server) |
 | `SENTRY_DSN` | – | Kirim error 5xx ke Sentry (opsional, tanpa data pribadi) |
+| `GOOGLE_SITE_VERIFICATION`, `BING_SITE_VERIFICATION` | – | Kode verifikasi Google Search Console / Bing Webmaster Tools (nilai `content` meta tag) |
 | `EXTRA_HOSTS` | – | Host Lunovia tambahan selain `BASE_URL`/`RAILWAY_PUBLIC_DOMAIN`, dipisah koma — mis. domain `*.up.railway.app` lama setelah pindah ke domain sendiri, supaya link undangan lama tetap jalan |
 | `CUSTOM_DOMAIN_HOST_HEADER` | – | Header berisi host asli bila Cloudflare Worker menulis ulang Host (mis. `X-Lovoria-Host`) |
 | `GUESTBOOK_BLOCKED_WORDS` | – | Kata kasar tambahan untuk filter buku ucapan, dipisah koma (ditambahkan ke daftar bawaan) |

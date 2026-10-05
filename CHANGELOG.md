@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### T27 — SEO: lebih mudah ditemukan di mesin pencari & asisten AI
+- **Landing**: judul dan deskripsi berkata kunci ("undangan pernikahan digital", "website pernikahan"), meta Open Graph/Twitter lengkap, dan data terstruktur JSON-LD (organisasi, aplikasi + harga, FAQ).
+- **Etalase tema** yang boleh diindeks: `/tema` dan satu halaman per tema (`/tema/<id>`) berisi uraian, huruf & warna, contoh undangan, dan ajakan mendaftar. Tema yang dinonaktifkan admin tidak tampil.
+- `sitemap.xml` memuat halaman tema; `robots.txt` mengizinkannya. Undangan pasangan tetap tidak diindeks.
+- **`/llms.txt`**: ringkasan layanan untuk asisten AI dan mesin pencari berbasis AI.
+- Verifikasi Google Search Console & Bing Webmaster lewat variabel `GOOGLE_SITE_VERIFICATION` / `BING_SITE_VERIFICATION`.
+- "Dibuat dengan Lunovia" di penutup undangan publik kini menautkan situs Lunovia.
+
 ### T26 — Kebijakan Privasi dan Syarat & Ketentuan final
 - Kedua halaman ditulis ulang sebagai teks final (label "Draf" dihapus), bertanggal berlaku, dan saling menautkan.
 - **Kebijakan Privasi**: data yang dikumpulkan (akun, isi undangan, data tamu, pembayaran, teknis), tujuan pemakaian, data tamu, siapa yang bisa melihat undangan, pihak pemroses (hosting, Cloudflare, Midtrans, email, Google Fonts), cookie, masa simpan, keamanan, hak pengguna, dan kontak.
