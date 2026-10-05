@@ -13,7 +13,7 @@ Panduan untuk menjalankan Lunovia di produksi (Railway + Postgres + Cloudflare R
 
 1. Buat akun di midtrans.com. Di dashboard Midtrans → **Settings → Access Keys**, salin **Server Key** (sandbox dulu).
 2. Railway → service `lovaria` → Variables: `PAYMENT_GATEWAY=midtrans`, `MIDTRANS_SERVER_KEY=<server key>`, `MIDTRANS_ENV=sandbox`. Jangan menaruh kunci di repo atau chat.
-3. Midtrans → **Settings → Payment → Notification URL**: `https://lovoria.my.id/webhooks/midtrans`. Opsional: isi Finish/Unfinish/Error Redirect URL dengan `https://lovoria.my.id/dashboard` sebagai cadangan — halaman bayar dibuka di tab baru dan tab Lunovia memperbarui statusnya sendiri, jadi alur tidak bergantung pada redirect balik dari Midtrans.
+3. Midtrans → **Settings → Payment → Notification URL**: `https://lunovia.id/webhooks/midtrans`. Opsional: isi Finish/Unfinish/Error Redirect URL dengan `https://lunovia.id/dashboard` sebagai cadangan — halaman bayar dibuka di tab baru dan tab Lunovia memperbarui statusnya sendiri, jadi alur tidak bergantung pada redirect balik dari Midtrans.
 4. Uji sandbox: buat wedding draf → Publikasikan → Bayar → di halaman Snap pilih QRIS/VA, selesaikan lewat simulator Midtrans (`simulator.sandbox.midtrans.com`). Halaman kembali harus berubah menjadi "Pembayaran berhasil" dan beranda "Lunas ✓". Cek webhook masuk: `SELECT outcome, signature_ok, received_at FROM payment_events ORDER BY received_at DESC LIMIT 5;`
 5. Uji juga: biarkan kedaluwarsa / batalkan → "Coba lagi" membuat order baru; kirim ulang notifikasi dari dashboard Midtrans → hasil `duplicate`.
 6. Go-live: ganti ke Server Key **production**, `MIDTRANS_ENV=production`, dan isi Notification URL di environment production Midtrans.
@@ -62,7 +62,7 @@ Teruji: `src/platform/backup` (dump → restore ke database baru, jumlah baris s
 
 - **Log**: JSON terstruktur di Railway, setiap request memuat `request_id`, `wedding_id`, `user_id`, `status`, `latency`. Cari keluhan pasangan: filter `wedding_id=<id>`; error 5xx: `level=ERROR`.
 - **Error tracking**: isi `SENTRY_DSN` (Sentry free tier). Hanya error 5xx yang dikirim, tanpa data pribadi (IP/cookie).
-- **Uptime** (gratis, mis. UptimeRobot / Better Stack): monitor HTTP 5 menit ke `https://lovoria.my.id/healthz` (harus 200) dan satu undangan contoh publik (mis. `https://lovoria.my.id/w/<slug-contoh>`, cari kata kunci nama pasangan). Kirim notifikasi ke email/Telegram pemilik.
+- **Uptime** (gratis, mis. UptimeRobot / Better Stack): monitor HTTP 5 menit ke `https://lunovia.id/healthz` (harus 200) dan satu undangan contoh publik (mis. `https://lunovia.id/w/<slug-contoh>`, cari kata kunci nama pasangan). Kirim notifikasi ke email/Telegram pemilik.
 - **Kuota custom domain**: log `WARN … mendekati kuota Cloudflare for SaaS` & kartu di `/admin` saat domain aktif ≥ 90.
 
 ## 6. Performa & kapasitas
@@ -84,7 +84,7 @@ BASE_URL=https://<staging> DATA=/tmp/lovoria-load.json make loadtest
 ## 7. Cloudflare
 
 - **`/static/*`**: aplikasi memakai URL ber-hash (`?v=<hash>`) dengan `Cache-Control: public, max-age=31536000, immutable` (tanpa hash: `max-age=3600`) — Cache Rule: *Cache eligible*, Edge TTL "Use cache-control header", sertakan query string di cache key.
-- **Foto (R2)**: saat ini `r2.dev` (dibatasi & tidak di-cache Cloudflare). Sebelum launch: R2 → bucket `lovaria` → **Custom Domains** → `media.lovoria.my.id`, lalu `R2_PUBLIC_URL=https://media.lovoria.my.id` dan `lovoria media rebase-urls --from https://pub-….r2.dev --apply`.
+- **Foto (R2)**: saat ini `r2.dev` (dibatasi & tidak di-cache Cloudflare). Sebelum launch: R2 → bucket `lovaria` → **Custom Domains** → `media.lunovia.id`, lalu `R2_PUBLIC_URL=https://media.lunovia.id` dan `lovoria media rebase-urls --from https://pub-….r2.dev --apply`.
 - **Dashboard & admin** tidak di-cache: aplikasi mengirim `Cache-Control: private, no-store` untuk `/dashboard/*` dan `/admin/*`; jangan buat Cache Rule "Cache everything" untuk path tersebut.
 - Undangan publik: `/w/*` `public, max-age=60`; `/i/*` `private, no-cache` (ETag).
 
