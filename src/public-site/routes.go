@@ -23,6 +23,7 @@ func Register(e *echo.Echo, d Deps) {
 		return server.StrictCSP(d.Resolver.ResolveWedding(next))
 	}
 	h := d.Handler
+	h.ownHost = d.Resolver.OwnHost
 
 	// Domain utama: "/" = landing. Custom domain (T15): "/" = undangan.
 	e.GET("/", h.Home, rw)
@@ -30,7 +31,11 @@ func Register(e *echo.Echo, d Deps) {
 
 	// Halaman legal (T17), tanpa resolver: sama di semua host.
 	e.GET("/robots.txt", robots(d.Resolver))
-	e.GET("/sitemap.xml", sitemap(d.Resolver))
+	e.GET("/sitemap.xml", h.Sitemap)
+	e.GET("/llms.txt", h.LLMs)
+	// Etalase tema (T27): halaman yang boleh diindeks, hanya di domain Lunovia.
+	e.GET("/tema", h.Themes)
+	e.GET("/tema/:id", h.ThemeDetail)
 	e.GET("/privacy", h.Privacy)
 	e.GET("/terms", h.Terms)
 

@@ -43,6 +43,9 @@ type View struct {
 
 	// OG: meta Open Graph / Twitter untuk preview link (WhatsApp dll.), diisi public site.
 	OG OG
+	// SiteURL: alamat situs Lunovia untuk tautan "Dibuat dengan Lunovia" di
+	// penutup undangan (diisi public site; kosong → teks biasa).
+	SiteURL string
 
 	// Status lifecycle (dari guard wedding, T12): Memory → banner terima kasih;
 	// AllowRSVP / AllowGuestbook menentukan apakah form tampil (T10/T11).

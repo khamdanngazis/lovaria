@@ -32,11 +32,17 @@ type Handler struct {
 	// PublishPrice: harga publikasi sekali bayar (T23) untuk bagian Harga di
 	// landing; 0 → bagian harga disembunyikan.
 	PublishPrice int64
-	Views        *ViewBuilder
-	Guests       *guest.Service
-	Guestbook    *guestbook.Service
-	Events       *event.Service
-	Log          *slog.Logger
+	// SiteVerification: kode verifikasi Google Search Console / Bing Webmaster
+	// (GOOGLE_SITE_VERIFICATION, BING_SITE_VERIFICATION) — meta tag di landing.
+	GoogleVerification string
+	BingVerification   string
+	// ownHost: request ke domain Lunovia sendiri (diisi Register dari Resolver).
+	ownHost   func(*http.Request) bool
+	Views     *ViewBuilder
+	Guests    *guest.Service
+	Guestbook *guestbook.Service
+	Events    *event.Service
+	Log       *slog.Logger
 	// Secret kunci HMAC token form RSVP (config APP_SECRET).
 	Secret []byte
 	now    func() time.Time
@@ -90,6 +96,7 @@ func (h *Handler) Invitation(c echo.Context) error {
 		}
 	}
 	v.OG = h.og(res, v)
+	v.SiteURL = strings.TrimRight(h.BaseURL, "/") + "/"
 	if !res.Preview {
 		h.setGuestbookForm(&v, res)
 		if c.QueryParam("guestbook") == "ok" { // kembali dari form tanpa JS

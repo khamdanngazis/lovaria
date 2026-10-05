@@ -1,8 +1,10 @@
 package publicsite
 
 import (
+	"encoding/json"
 	"github.com/khamdanngazis/lovaria/src/platform/web"
 	"net/http"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -137,5 +139,101 @@ func TestLegalPagesFinal(t *testing.T) {
 	web.SetSupport(web.Support{Phone: "6281234567890"})
 	if body := f.get("/terms", nil).Body.String(); !strings.Contains(body, `href="https://wa.me/6281234567890"`) || !strings.Contains(body, "WhatsApp Bantuan Lunovia") {
 		t.Error("kontak di halaman legal harus menautkan WhatsApp bantuan")
+	}
+}
+
+// T27: SEO — judul & deskripsi berkata kunci, data terstruktur JSON-LD yang
+// valid, etalase tema yang boleh diindeks, sitemap, llms.txt, kode verifikasi.
+func TestSEO(t *testing.T) {
+	f := newFixture(t)
+	f.handler.GoogleVerification, f.handler.BingVerification = "g-kode", "b-kode"
+	body := f.get("/", nil).Body.String()
+	for _, want := range []string{
+		"<title>Undangan Pernikahan Digital &amp; Website Pernikahan · Lunovia</title>",
+		`name="description" content="Buat undangan pernikahan digital`,
+		`property="og:locale" content="id_ID"`, `name="twitter:image"`,
+		`name="google-site-verification" content="g-kode"`, `name="msvalidate.01" content="b-kode"`,
+		`href="/tema"`, `href="/tema/signature"`,
+	} {
+		if !strings.Contains(body, want) {
+			t.Errorf("landing tidak memuat %q", want)
+		}
+	}
+	// JSON-LD: JSON valid, memuat organisasi, aplikasi + harga, dan FAQ.
+	m := regexp.MustCompile(`(?s)<script id="ld-site" type="application/ld\+json">(.*?)</script>`).FindStringSubmatch(body)
+	if m == nil {
+		t.Fatal("landing tanpa JSON-LD")
+	}
+	var doc struct {
+		Graph []map[string]any `json:"@graph"`
+	}
+	if err := json.Unmarshal([]byte(m[1]), &doc); err != nil {
+		t.Fatalf("JSON-LD tidak valid: %v", err)
+	}
+	types := map[string]map[string]any{}
+	for _, n := range doc.Graph {
+		types[n["@type"].(string)] = n
+	}
+	for _, typ := range []string{"Organization", "WebSite", "SoftwareApplication", "FAQPage"} {
+		if types[typ] == nil {
+			t.Errorf("JSON-LD tanpa %s", typ)
+		}
+	}
+	if offer, _ := types["SoftwareApplication"]["offers"].(map[string]any); offer["priceCurrency"] != "IDR" || offer["price"] != float64(149000) {
+		t.Errorf("JSON-LD harga: %v", types["SoftwareApplication"]["offers"])
+	}
+
+	// Etalase tema: boleh diindeks, kanonik, satu h1, breadcrumb JSON-LD.
+	for path, wants := range map[string][]string{
+		"/tema":         {`rel="canonical" href="https://lovoria.test/tema"`, "Tema undangan pernikahan digital", `href="/tema/elegant"`, `href="/#fitur"`},
+		"/tema/elegant": {`rel="canonical" href="https://lovoria.test/tema/elegant"`, "Tema undangan pernikahan Elegan", "Cormorant Garamond", "BreadcrumbList", `href="/register"`},
+	} {
+		rec := f.get(path, nil)
+		b := rec.Body.String()
+		if rec.Code != http.StatusOK || strings.Count(b, "<h1") != 1 || strings.Contains(b, `content="noindex"`) {
+			t.Fatalf("%s: %d", path, rec.Code)
+		}
+		for _, want := range wants {
+			if !strings.Contains(b, want) {
+				t.Errorf("%s tidak memuat %q", path, want)
+			}
+		}
+	}
+	if rec := f.get("/tema/tidak-ada", nil); rec.Code != http.StatusNotFound {
+		t.Errorf("tema tak dikenal: %d", rec.Code)
+	}
+	// Tema yang dinonaktifkan admin hilang dari etalase, sitemap, dan llms.txt.
+	if err := f.themes.SetEnabled(ctx, "modern", false); err != nil {
+		t.Fatal(err)
+	}
+	if rec := f.get("/tema/modern", nil); rec.Code != http.StatusNotFound {
+		t.Errorf("tema nonaktif: %d", rec.Code)
+	}
+	sm := f.get("/sitemap.xml", nil).Body.String()
+	if !strings.Contains(sm, "<loc>https://lovoria.test/tema</loc>") || !strings.Contains(sm, "<loc>https://lovoria.test/tema/elegant</loc>") || strings.Contains(sm, "/tema/modern") {
+		t.Errorf("sitemap: %s", sm)
+	}
+	rec := f.get("/llms.txt", nil)
+	llm := rec.Body.String()
+	if rec.Code != http.StatusOK || !strings.HasPrefix(llm, "# Lunovia\n") || !strings.Contains(llm, "Rp149.000") || !strings.Contains(llm, "https://lovoria.test/tema/elegant") || strings.Contains(llm, "/tema/modern") {
+		t.Errorf("llms.txt: %d %s", rec.Code, llm)
+	}
+	if rb := f.get("/robots.txt", nil).Body.String(); !strings.Contains(rb, "Allow: /tema") || !strings.Contains(rb, "Disallow: /w/") {
+		t.Errorf("robots: %s", rb)
+	}
+	// Custom domain pasangan: tanpa etalase, sitemap, maupun llms.txt.
+	_, w := f.newWedding(t, "a@example.com", "Samuel", "Sarah")
+	f.publish(w.ID)
+	f.domains["www.samuelsarah.com"] = w.ID
+	custom := map[string]string{"Host": "www.samuelsarah.com"}
+	for _, p := range []string{"/tema", "/tema/elegant", "/llms.txt", "/sitemap.xml"} {
+		if rec := f.get(p, custom); rec.Code != http.StatusNotFound {
+			t.Errorf("custom domain %s: %d", p, rec.Code)
+		}
+	}
+	// Penutup undangan publik menautkan situs Lunovia (tetap noindex).
+	inv := f.get("/", custom).Body.String() // undangan di custom domain pasangan
+	if !strings.Contains(inv, `<a href="https://lovoria.test/" target="_blank" rel="noopener"`) || !strings.Contains(inv, `content="noindex"`) {
+		t.Error("undangan: tautan Dibuat dengan Lunovia / noindex")
 	}
 }

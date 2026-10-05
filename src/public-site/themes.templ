@@ -1,0 +1,218 @@
+package publicsite
+
+import (
+	"strings"
+
+	"github.com/khamdanngazis/lovaria/src/modules/payment"
+	"github.com/khamdanngazis/lovaria/src/templates/layouts"
+)
+
+// Etalase tema (T27): halaman yang boleh diindeks mesin pencari — daftar tema
+// (/tema) dan satu halaman per tema (/tema/<id>) dengan uraian, contoh, dan
+// ajakan mendaftar.
+
+func siteBase(d landingData) string { return strings.TrimSuffix(d.URL, "/") }
+
+// themeImage: gambar pratinjau tema untuk Open Graph (URL absolut).
+func themeImage(d landingData, t landingTheme) string {
+	if t.Thumb != "" {
+		return siteBase(d) + t.Thumb
+	}
+	return d.OGImage
+}
+
+const themesDesc = "Pilih tema undangan pernikahan digital di Lunovia: Signature, Elegan, Minimalis, Romantis, dan Modern. Lihat contoh undangannya, lalu sesuaikan warna, huruf, dan foto sampul."
+
+// themeCommon: yang didapat di semua tema.
+var themeCommon = []string{
+	"Sampul \"Buka Undangan\" dengan nama tamu",
+	"Cerita cinta, rangkaian acara, peta, dan simpan ke kalender",
+	"Galeri foto dan musik latar",
+	"RSVP online, buku ucapan & doa, amplop digital",
+	"Hitung mundur dan kutipan pilihan",
+	"Warna utama, huruf, latar, dan foto sampul bisa diganti",
+}
+
+templ themesHead(d landingData) {
+	@seoHead(siteBase(d)+"/tema", "Tema Undangan Pernikahan Digital — Lunovia", themesDesc, d.OGImage)
+	@templ.JSONScript("ld-breadcrumb", breadcrumbLD(siteBase(d), [2]string{"Beranda", "/"}, [2]string{"Tema undangan", "/tema"})).WithType("application/ld+json")
+}
+
+templ sitePage(d landingData, meta layouts.Meta, head templ.Component) {
+	@layouts.Document(meta, head, "bg-lovoria-bg font-ui text-lovoria-text antialiased") {
+		@landingHeader(d)
+		<main>
+			{ children... }
+		</main>
+		@landingFooter()
+	}
+}
+
+templ crumbs(items ...[2]string) {
+	<nav aria-label="Jejak halaman" class="text-sm text-lovoria-muted">
+		<ol class="flex flex-wrap items-center gap-2">
+			for i, c := range items {
+				if i > 0 {
+					<li aria-hidden="true">›</li>
+				}
+				if i == len(items)-1 {
+					<li aria-current="page" class="text-lovoria-text">{ c[0] }</li>
+				} else {
+					<li><a href={ templ.SafeURL(c[1]) } class="hover:text-lovoria-primary hover:underline">{ c[0] }</a></li>
+				}
+			}
+		</ol>
+	</nav>
+}
+
+templ themeShotLink(t landingTheme, href string) {
+	<a href={ templ.SafeURL(href) } class="block aspect-[4/5] overflow-hidden" tabindex="-1" aria-hidden="true">
+		if t.Thumb != "" {
+			<img src={ t.Thumb } alt="" width="600" height="750" loading="lazy" decoding="async" class="h-full w-full object-cover object-top transition duration-500 hover:scale-105"/>
+		} else {
+			<span class="flex h-full items-center justify-center font-display text-2xl" style={ "background:" + t.Surface + ";color:" + t.Primary }>{ t.Name }</span>
+		}
+	</a>
+}
+
+templ themesPage(d landingData) {
+	@sitePage(d, layouts.Meta{Title: "Tema Undangan Pernikahan Digital", Description: themesDesc, Cacheable: true}, themesHead(d)) {
+		<section class="py-12 sm:py-16">
+			<div class={ container }>
+				@crumbs([2]string{"Beranda", "/"}, [2]string{"Tema undangan", "/tema"})
+				<h1 class="mt-6 font-display text-4xl leading-tight text-lovoria-deep sm:text-5xl">Tema undangan pernikahan digital</h1>
+				<p class="mt-4 max-w-2xl leading-relaxed text-lovoria-muted">Setiap tema Lunovia punya karakter sendiri — dari klasik formal sampai modern yang tegas. Semuanya ramah ponsel, bisa disesuaikan warna, huruf, dan foto sampulnya, dan sudah termasuk RSVP, buku ucapan, serta amplop digital.</p>
+				<ul class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+					for _, t := range d.Themes {
+						<li class="flex flex-col overflow-hidden rounded-2xl border border-lovoria-border bg-white">
+							@themeShotLink(t, "/tema/"+t.ID)
+							<div class="flex flex-1 flex-col p-5">
+								<h2 class="font-display text-2xl text-lovoria-deep">
+									<a href={ templ.SafeURL("/tema/" + t.ID) } class="hover:text-lovoria-primary">Tema { t.Name }</a>
+								</h2>
+								<p class="mt-2 flex-1 text-sm leading-relaxed text-lovoria-muted">{ t.Description }</p>
+								<div class="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm font-medium">
+									<a href={ templ.SafeURL("/tema/" + t.ID) } class="text-lovoria-primary hover:underline">Detail tema</a>
+									if t.DemoURL != "" {
+										<a href={ templ.SafeURL(t.DemoURL) } class="text-lovoria-primary hover:underline">Lihat contoh undangan ↗</a>
+									}
+								</div>
+							</div>
+						</li>
+					}
+				</ul>
+			</div>
+		</section>
+		@themeCTA(d)
+	}
+}
+
+templ themeDetailHead(d landingData, t landingTheme) {
+	@seoHead(siteBase(d)+"/tema/"+t.ID, "Tema "+t.Name+" — Undangan Pernikahan Digital Lunovia", t.Description+" "+themeLead, themeImage(d, t))
+	@templ.JSONScript("ld-breadcrumb", breadcrumbLD(siteBase(d), [2]string{"Beranda", "/"}, [2]string{"Tema undangan", "/tema"}, [2]string{"Tema " + t.Name, "/tema/" + t.ID})).WithType("application/ld+json")
+}
+
+const themeLead = "Lihat contoh undangannya dan buat undangan pernikahan digitalmu di Lunovia."
+
+templ themeDetailPage(d landingData, t landingTheme) {
+	@sitePage(d, layouts.Meta{Title: "Tema " + t.Name + " — Undangan Pernikahan Digital", Description: t.Description + " " + themeLead, Cacheable: true}, themeDetailHead(d, t)) {
+		<section class="py-12 sm:py-16">
+			<div class={ container }>
+				@crumbs([2]string{"Beranda", "/"}, [2]string{"Tema undangan", "/tema"}, [2]string{"Tema " + t.Name, "/tema/" + t.ID})
+				<div class="mt-8 grid gap-10 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:gap-14">
+					<div class="mx-auto w-full max-w-xs self-start overflow-hidden rounded-3xl border border-lovoria-border bg-white shadow-soft lg:mx-0">
+						if t.Thumb != "" {
+							<img src={ t.Thumb } alt={ "Tampilan sampul undangan pernikahan digital tema " + t.Name } width="600" height="750" fetchpriority="high" decoding="async" class="aspect-[4/5] w-full object-cover object-top"/>
+						} else {
+							<div class="flex aspect-[4/5] items-center justify-center font-display text-3xl" style={ "background:" + t.Surface + ";color:" + t.Primary }>{ t.Name }</div>
+						}
+					</div>
+					<div>
+						if t.Featured {
+							<p class="inline-block rounded-full bg-lovoria-primary-soft px-3 py-1 text-xs font-medium text-lovoria-primary">Pilihan Lunovia</p>
+						}
+						<h1 class="mt-3 font-display text-4xl leading-tight text-lovoria-deep sm:text-5xl">Tema undangan pernikahan { t.Name }</h1>
+						<p class="mt-4 text-lg leading-relaxed text-lovoria-text">{ t.Description }</p>
+						if t.Pitch != "" {
+							<p class="mt-4 leading-relaxed text-lovoria-muted">{ t.Pitch }</p>
+						}
+						<dl class="mt-6 grid grid-cols-2 gap-4 text-sm sm:max-w-md">
+							<div>
+								<dt class="text-lovoria-muted">Huruf judul</dt>
+								<dd class="mt-0.5 font-medium text-lovoria-deep">{ t.FontHeading }</dd>
+							</div>
+							<div>
+								<dt class="text-lovoria-muted">Huruf isi</dt>
+								<dd class="mt-0.5 font-medium text-lovoria-deep">{ t.FontBody }</dd>
+							</div>
+							<div class="col-span-2">
+								<dt class="text-lovoria-muted">Warna bawaan</dt>
+								<dd class="mt-1.5 flex gap-2" aria-hidden="true">
+									for _, c := range []string{t.Primary, t.Accent, t.Surface, t.Ink} {
+										<span class="h-7 w-7 rounded-full border border-lovoria-border" style={ "background:" + c }></span>
+									}
+								</dd>
+							</div>
+						</dl>
+						<div class="mt-8 flex flex-wrap gap-3">
+							<a href="/register" class={ btnPrimary }>Pakai tema ini</a>
+							if t.DemoURL != "" {
+								<a href={ templ.SafeURL(t.DemoURL) } class={ btnSecondary }>Lihat contoh undangan ↗</a>
+							}
+						</div>
+					</div>
+				</div>
+				<div class="mt-16 grid gap-10 lg:grid-cols-2">
+					<div>
+						<h2 class="font-display text-2xl text-lovoria-deep">Yang ada di setiap undangan</h2>
+						<ul class="mt-4 space-y-2.5 text-sm leading-relaxed text-lovoria-text">
+							for _, f := range themeCommon {
+								<li class="flex gap-2.5">
+									<span class="mt-1.5 h-1.5 w-1.5 flex-none rounded-full bg-lovoria-accent" aria-hidden="true"></span>
+									{ f }
+								</li>
+							}
+						</ul>
+					</div>
+					<div>
+						<h2 class="font-display text-2xl text-lovoria-deep">Cara memakai tema { t.Name }</h2>
+						<ol class="mt-4 list-decimal space-y-2.5 pl-5 text-sm leading-relaxed text-lovoria-text">
+							<li>Daftar gratis dan isi nama pasangan serta tanggal acara.</li>
+							<li>Pilih tema { t.Name } di menu Tema, lalu atur warna, huruf, dan foto sampul.</li>
+							<li>Lengkapi acara, cerita, dan galeri — pratinjau kapan saja tanpa biaya.</li>
+							if d.PriceIDR > 0 {
+								<li>Publikasikan dengan sekali bayar { payment.Rupiah(d.PriceIDR) }, lalu bagikan link pribadi ke tiap tamu lewat WhatsApp.</li>
+							} else {
+								<li>Publikasikan, lalu bagikan link pribadi ke tiap tamu lewat WhatsApp.</li>
+							}
+						</ol>
+					</div>
+				</div>
+				if len(d.Themes) > 1 {
+					<h2 class="mt-16 font-display text-2xl text-lovoria-deep">Tema lainnya</h2>
+					<ul class="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
+						for _, o := range d.Themes {
+							if o.ID != t.ID {
+								<li class="overflow-hidden rounded-2xl border border-lovoria-border bg-white">
+									@themeShotLink(o, "/tema/"+o.ID)
+									<p class="p-3 text-sm font-medium"><a href={ templ.SafeURL("/tema/" + o.ID) } class="text-lovoria-deep hover:text-lovoria-primary">Tema { o.Name }</a></p>
+								</li>
+							}
+						}
+					</ul>
+				}
+			</div>
+		</section>
+		@themeCTA(d)
+	}
+}
+
+templ themeCTA(d landingData) {
+	<section class="bg-lovoria-deep py-16 text-center text-white">
+		<div class={ container }>
+			<h2 class="mx-auto max-w-2xl font-display text-3xl leading-tight sm:text-4xl">Buat undangan pernikahan digitalmu hari ini</h2>
+			<p class="mx-auto mt-4 max-w-xl text-white/75">Gratis dibuat dan dipratinjau. Tema bisa diganti kapan saja sebelum maupun sesudah dipublikasikan.</p>
+			<a href="/register" class="mt-8 inline-flex items-center rounded-xl bg-white px-6 py-3.5 font-medium text-lovoria-deep hover:bg-lovoria-bg">Mulai gratis</a>
+		</div>
+	</section>
+}

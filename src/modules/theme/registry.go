@@ -35,8 +35,10 @@ type ThemeDef struct {
 	ID          string
 	Name        string
 	Description string
-	Tokens      view.Tokens
-	Parts       Parts
+	// Pitch: uraian lebih panjang untuk halaman etalase tema (/tema/<id>, T27).
+	Pitch  string
+	Tokens view.Tokens
+	Parts  Parts
 	// Islands: komponen interaktif berat (Svelte) yang dimuat tema ini — kosong di MVP.
 	Islands []string
 	order   int
@@ -77,6 +79,7 @@ func register(d ThemeDef) {
 func init() {
 	register(ThemeDef{
 		ID: "signature", Name: "Lunovia Signature", Description: "Editorial, hangat, dan premium — wajah Lunovia.",
+		Pitch: "Lunovia Signature adalah tema andalan kami: sampul foto potret layar penuh, judul serif besar bergaya majalah, dan garis champagne tipis di atas warna plum yang hangat. Cocok untuk pasangan yang ingin undangan terasa premium dan modern tanpa terlihat ramai — foto prewedding menjadi pusat perhatian, sementara detail acara tersaji rapi dan mudah dibaca.",
 		Tokens: view.Tokens{
 			Primary: "#6b4e71", Surface: "#faf7f5", Ink: "#292529", Accent: "#c9a88a", Deep: "#332936", Muted: "#6b666b", Border: "#e8dfd9",
 			FontHeading: "Playfair Display", FontBody: "Inter", Radius: "0.25rem", ButtonRadius: "0.5rem",
@@ -88,6 +91,7 @@ func init() {
 	})
 	register(ThemeDef{
 		ID: "elegant", Name: "Elegan", Description: "Klasik formal: bingkai ganda, ornamen sudut, serba rata tengah.",
+		Pitch: "Tema Elegan membawa nuansa undangan cetak klasik ke layar ponsel: bingkai ganda dengan ornamen sudut, huruf serif Cormorant Garamond, dan tata letak serba rata tengah. Pilihan yang pas untuk akad dan resepsi formal, pernikahan adat, atau pasangan yang menyukai kesan anggun dan tak lekang waktu dengan sentuhan warna emas.",
 		Tokens: view.Tokens{
 			Primary: "#8a6a3c", Surface: "#fbf8f3", Ink: "#2b2b2b", Accent: "#c9a88a", Deep: "#2e2620", Muted: "#6a6258", Border: "#e6dccb",
 			FontHeading: "Cormorant Garamond", FontBody: "Lato", Radius: "0.125rem", ButtonRadius: "0.125rem",
@@ -99,6 +103,7 @@ func init() {
 	})
 	register(ThemeDef{
 		ID: "minimal", Name: "Minimalis", Description: "Lega dan tenang: rata kiri, garis tipis, angka tanggal besar.",
+		Pitch: "Tema Minimalis mengutamakan ruang kosong dan keterbacaan: teks rata kiri, garis tipis, angka tanggal besar, dan galeri grid tanpa sudut membulat. Cocok untuk pasangan yang menyukai desain bersih ala Skandinavia atau Jepang, dan ingin informasi acara langsung terbaca tanpa ornamen berlebih.",
 		Tokens: view.Tokens{
 			Primary: "#5f5661", Surface: "#ffffff", Ink: "#1f1f1f", Accent: "#b9b2b0", Deep: "#1f1f1f", Muted: "#666666", Border: "#e5e5e5",
 			FontHeading: "Josefin Sans", FontBody: "Inter", Radius: "0", ButtonRadius: "0",
@@ -110,6 +115,7 @@ func init() {
 	})
 	register(ThemeDef{
 		ID: "romantic", Name: "Romantis", Description: "Lembut dan personal: foto melengkung, ornamen bunga, tulisan tangan.",
+		Pitch: "Tema Romantis terasa lembut dan personal: foto berbentuk lengkung, ornamen ranting bunga, judul tulisan tangan, dan warna merah muda yang hangat. Cocok untuk pernikahan taman, intimate wedding, atau pasangan yang ingin undangan terasa manis dan penuh cerita.",
 		Tokens: view.Tokens{
 			Primary: "#a85a67", Surface: "#fff6f6", Ink: "#4a3b3b", Accent: "#c9a88a", Deep: "#5a3540", Muted: "#735e5e", Border: "#f0dcdc",
 			FontHeading: "Great Vibes", FontBody: "Lora", Radius: "1.5rem",
@@ -121,6 +127,7 @@ func init() {
 	})
 	register(ThemeDef{
 		ID: "modern", Name: "Modern", Description: "Tegas dan segar: blok warna penuh, huruf sangat besar, kartu acara berwarna.",
+		Pitch: "Tema Modern tampil tegas dan segar: nama pasangan dengan huruf kapital sangat besar, blok warna penuh, dan kartu acara berwarna hijau toska. Cocok untuk pasangan muda yang menyukai tampilan berani dan kontemporer, dengan foto sampul sebagai latar pembuka.",
 		Tokens: view.Tokens{
 			Primary: "#2f7d6d", Surface: "#f4f6f5", Ink: "#16201e", Accent: "#c9a88a", Deep: "#1d4a43", Muted: "#55605d", Border: "#dde3e1",
 			FontHeading: "Montserrat", FontBody: "Poppins", Radius: "1.25rem", ButtonRadius: "0.75rem",

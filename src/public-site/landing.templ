@@ -19,6 +19,10 @@ type landingData struct {
 	LoggedIn bool
 	OGImage  string // URL absolut gambar Open Graph
 	URL      string // URL kanonik landing
+	// Kode verifikasi Search Console / Bing Webmaster (kosong → tanpa meta).
+	GoogleVerification, BingVerification string
+	// NavPrefix: awalan tautan menu (#fitur, …): "" di landing, "/" di halaman lain.
+	NavPrefix string
 }
 
 type landingTheme struct {
@@ -29,33 +33,54 @@ type landingTheme struct {
 	Couple                string // "Raka & Nadia"
 	Thumb                 string // tangkapan layar asli tema ("" → foto sampul / kartu warna)
 	Featured              bool   // label "Pilihan Lunovia"
+	Pitch                 string // uraian panjang (halaman /tema/<id>)
+	Accent                string
+	FontHeading, FontBody string
 }
 
 // Teks utama landing di satu tempat supaya mudah disunting pemilik produk.
 const (
 	landingEyebrow = "THE DIGITAL WEDDING EXPERIENCE"
 	landingLead    = "Buat website pernikahan yang indah, undang orang-orang tersayang, dan simpan setiap momen berharga — dalam satu tempat."
-	landingDesc    = "Lunovia: website & undangan pernikahan digital yang personal — cerita cinta, RSVP, ucapan, dan kenangan dalam satu tempat."
+	landingDesc    = seoDesc
 )
 
-templ landingHead(d landingData) {
+// seoHead: meta kanonik + Open Graph / Twitter untuk halaman publik yang
+// boleh diindeks (landing & etalase tema).
+templ seoHead(url, title, desc, image string) {
 	@layouts.BrandFonts(false)
 	<link rel="apple-touch-icon" href={ static.URL("img/brand/apple-touch-icon.png") }/>
-	<link rel="canonical" href={ d.URL }/>
+	<link rel="canonical" href={ url }/>
+	<meta name="robots" content="index, follow, max-image-preview:large"/>
 	<meta property="og:type" content="website"/>
 	<meta property="og:site_name" content="Lunovia"/>
-	<meta property="og:title" content="Lunovia — Your Love. Your Story. Your Forever."/>
-	<meta property="og:description" content={ landingDesc }/>
-	<meta property="og:url" content={ d.URL }/>
-	<meta property="og:image" content={ d.OGImage }/>
+	<meta property="og:locale" content="id_ID"/>
+	<meta property="og:title" content={ title }/>
+	<meta property="og:description" content={ desc }/>
+	<meta property="og:url" content={ url }/>
+	<meta property="og:image" content={ image }/>
+	<meta name="twitter:card" content="summary_large_image"/>
+	<meta name="twitter:title" content={ title }/>
+	<meta name="twitter:description" content={ desc }/>
+	<meta name="twitter:image" content={ image }/>
+}
+
+templ landingHead(d landingData) {
+	@seoHead(d.URL, "Lunovia — "+seoTitle, landingDesc, d.OGImage)
 	<meta property="og:image:width" content="1200"/>
 	<meta property="og:image:height" content="630"/>
-	<meta name="twitter:card" content="summary_large_image"/>
+	if d.GoogleVerification != "" {
+		<meta name="google-site-verification" content={ d.GoogleVerification }/>
+	}
+	if d.BingVerification != "" {
+		<meta name="msvalidate.01" content={ d.BingVerification }/>
+	}
+	@templ.JSONScript("ld-site", landingLD(d)).WithType("application/ld+json")
 	<script src={ static.URL("js/landing.js") } defer></script>
 }
 
 templ landingPage(d landingData) {
-	@layouts.Document(layouts.Meta{Title: "Website & Undangan Pernikahan Digital", Description: landingDesc, Cacheable: true}, landingHead(d), "bg-lovoria-bg font-ui text-lovoria-text antialiased") {
+	@layouts.Document(layouts.Meta{Title: seoTitle, Description: landingDesc, Cacheable: true}, landingHead(d), "bg-lovoria-bg font-ui text-lovoria-text antialiased") {
 		@landingHeader(d)
 		<main>
 			@landingHero(d)
@@ -126,13 +151,13 @@ templ sectionHeading(eyebrow, title, lead string) {
 
 // ---------- Header ----------
 templ landingNavLinks(d landingData) {
-	<a href="#fitur" class="hover:text-lovoria-primary">Fitur</a>
-	<a href="#cara-kerja" class="hover:text-lovoria-primary">Cara Kerja</a>
-	<a href="#tema" class="hover:text-lovoria-primary">Tema</a>
+	<a href={ templ.SafeURL(d.NavPrefix + "#fitur") } class="hover:text-lovoria-primary">Fitur</a>
+	<a href={ templ.SafeURL(d.NavPrefix + "#cara-kerja") } class="hover:text-lovoria-primary">Cara Kerja</a>
+	<a href={ templ.SafeURL(d.NavPrefix + "#tema") } class="hover:text-lovoria-primary">Tema</a>
 	if d.PriceIDR > 0 {
-		<a href="#harga" class="hover:text-lovoria-primary">Harga</a>
+		<a href={ templ.SafeURL(d.NavPrefix + "#harga") } class="hover:text-lovoria-primary">Harga</a>
 	}
-	<a href="#faq" class="hover:text-lovoria-primary">FAQ</a>
+	<a href={ templ.SafeURL(d.NavPrefix + "#faq") } class="hover:text-lovoria-primary">FAQ</a>
 }
 
 templ landingHeader(d landingData) {
@@ -371,7 +396,7 @@ templ landingThemes(d landingData) {
 							</div>
 						}
 						<div class="flex flex-1 flex-col p-4 sm:p-5">
-							<h3 class="font-display text-lg text-lovoria-deep sm:text-xl">{ t.Name }</h3>
+							<h3 class="font-display text-lg text-lovoria-deep sm:text-xl"><a href={ templ.SafeURL("/tema/" + t.ID) } class="hover:text-lovoria-primary">{ t.Name }</a></h3>
 							<p class="mt-1 flex-1 text-xs leading-relaxed text-lovoria-muted sm:text-sm">{ t.Description }</p>
 							if t.DemoURL != "" {
 								<a href={ templ.SafeURL(t.DemoURL) } class="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-lovoria-primary hover:underline">
@@ -506,7 +531,7 @@ templ landingFooter() {
 			<nav aria-label="Tautan footer" class="grid grid-cols-2 gap-x-12 gap-y-2 text-sm">
 				<a href="#fitur" class="hover:text-white">Fitur</a>
 				<a href="/privacy" class="hover:text-white">Kebijakan Privasi</a>
-				<a href="#tema" class="hover:text-white">Tema</a>
+				<a href="/tema" class="hover:text-white">Tema undangan</a>
 				<a href="/terms" class="hover:text-white">Syarat &amp; Ketentuan</a>
 				<a href="/login" class="hover:text-white">Masuk</a>
 				<a href="/register" class="hover:text-white">Daftar</a>

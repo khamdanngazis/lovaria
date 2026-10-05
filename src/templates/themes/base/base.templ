@@ -402,6 +402,17 @@ templ Closing(v view.View) {
 		<p class="mx-auto max-w-xs whitespace-pre-line text-sm opacity-80">{ ClosingText(v, "Merupakan suatu kehormatan dan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir dan memberikan doa restu.", "Terima kasih atas doa dan restu yang telah Bapak/Ibu/Saudara/i berikan untuk kami.") }</p>
 		<p class="mt-8 text-sm">Kami yang berbahagia,</p>
 		<p class="mt-2 text-4xl text-primary" style="font-family: var(--lv-font-heading)">{ v.Couple.Names() }</p>
-		<p class="mt-16 text-xs text-muted">Dibuat dengan Lunovia</p>
+		@Credit(v, "mt-16 text-xs text-muted", "Dibuat dengan Lunovia")
 	</section>
+}
+
+// Credit: baris "Dibuat dengan Lunovia" di penutup undangan. Di undangan publik
+// menjadi tautan ke situs Lunovia (tamu yang tertarik bisa membuat undangannya
+// sendiri); di preview dashboard tetap teks biasa.
+templ Credit(v view.View, class, text string) {
+	if v.SiteURL != "" {
+		<p class={ class }><a href={ templ.SafeURL(v.SiteURL) } target="_blank" rel="noopener" class="underline-offset-4 hover:underline">{ text }</a></p>
+	} else {
+		<p class={ class }>{ text }</p>
+	}
 }

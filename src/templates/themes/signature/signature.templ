@@ -197,6 +197,6 @@ templ Closing(v view.View) {
 		<p class={ "mt-10 opacity-75", eyebrow }>Kami yang berbahagia</p>
 		<p class="mt-4 break-words text-5xl leading-tight" style="font-family: var(--lv-font-heading)">{ v.Couple.Names() }</p>
 		@divider("mt-8")
-		<p class="mt-12 text-xs opacity-60">Dibuat dengan Lunovia</p>
+		@base.Credit(v, "mt-12 text-xs opacity-60", "Dibuat dengan Lunovia")
 	</section>
 }

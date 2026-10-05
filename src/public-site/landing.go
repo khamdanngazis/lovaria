@@ -2,6 +2,7 @@ package publicsite
 
 import (
 	"errors"
+	"net/http"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -23,6 +24,7 @@ func (h *Handler) landing(c echo.Context) (landingData, error) {
 	base := strings.TrimRight(h.BaseURL, "/")
 	d := landingData{URL: base + "/", OGImage: base + static.URL("img/brand/og-lovoria.png")}
 	_, d.LoggedIn = web.CurrentUser(ctx)
+	d.GoogleVerification, d.BingVerification = h.GoogleVerification, h.BingVerification
 
 	off, err := h.Views.Themes.Disabled(ctx)
 	if err != nil {
@@ -32,7 +34,8 @@ func (h *Handler) landing(c echo.Context) (landingData, error) {
 		if off[t.ID] {
 			continue // tema dinonaktifkan admin (T16) tidak ditawarkan
 		}
-		lt := landingTheme{ID: t.ID, Name: t.Name, Description: t.Description, Primary: t.Tokens.Primary, Surface: t.Tokens.Surface, Ink: t.Tokens.Ink, Thumb: t.Thumb(), Featured: t.Featured()}
+		lt := landingTheme{ID: t.ID, Name: t.Name, Description: t.Description, Primary: t.Tokens.Primary, Surface: t.Tokens.Surface, Ink: t.Tokens.Ink, Thumb: t.Thumb(), Featured: t.Featured(),
+			Pitch: t.Pitch, Accent: t.Tokens.Accent, FontHeading: t.Tokens.FontHeading, FontBody: t.Tokens.FontBody}
 		w, err := h.Views.Weddings.GetWeddingBySlug(ctx, DemoSlug(t.ID))
 		switch {
 		case errors.Is(err, wedding.ErrNotFound):
@@ -56,4 +59,37 @@ func (h *Handler) landing(c echo.Context) (landingData, error) {
 	}
 	d.PriceIDR = h.PublishPrice
 	return d, nil
+}
+
+// GET /tema — etalase semua tema (boleh diindeks; hanya di domain Lunovia).
+func (h *Handler) Themes(c echo.Context) error {
+	if !h.ownHost(c.Request()) {
+		return notFound(c)
+	}
+	d, err := h.landing(c)
+	if err != nil {
+		return err
+	}
+	c.Response().Header().Set("Cache-Control", "public, max-age=300")
+	d.NavPrefix = "/"
+	return web.Render(c, http.StatusOK, themesPage(d))
+}
+
+// GET /tema/:id — halaman satu tema. Tema tak dikenal / nonaktif → 404.
+func (h *Handler) ThemeDetail(c echo.Context) error {
+	if !h.ownHost(c.Request()) {
+		return notFound(c)
+	}
+	d, err := h.landing(c)
+	if err != nil {
+		return err
+	}
+	for _, t := range d.Themes {
+		if t.ID == c.Param("id") {
+			c.Response().Header().Set("Cache-Control", "public, max-age=300")
+			d.NavPrefix = "/"
+			return web.Render(c, http.StatusOK, themeDetailPage(d, t))
+		}
+	}
+	return notFound(c)
 }

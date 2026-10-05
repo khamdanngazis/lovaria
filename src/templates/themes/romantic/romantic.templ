@@ -206,6 +206,6 @@ templ Closing(v view.View) {
 		<p class="mx-auto mt-8 max-w-xs whitespace-pre-line text-sm leading-relaxed opacity-85">{ base.ClosingText(v, "Terima kasih telah menjadi bagian dari hari bahagia kami.", "Terima kasih atas doa dan restu yang telah diberikan untuk kami.") }</p>
 		<p class={ "mt-10 opacity-75", eyebrow }>Dengan cinta</p>
 		<p class="mt-3 break-words text-6xl leading-[1.15]" style="font-family: var(--lv-font-heading)">{ groom } &amp; { bride }</p>
-		<p class="mt-12 text-xs opacity-60">Dibuat dengan ♡ di Lunovia</p>
+		@base.Credit(v, "mt-12 text-xs opacity-60", "Dibuat dengan ♡ di Lunovia")
 	</section>
 }

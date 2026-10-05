@@ -123,9 +123,12 @@ func TestSecurityHeadersAndErrorPages(t *testing.T) {
 	if csp := rec.Header().Get("Content-Security-Policy"); csp != server.CSPPublic || strings.Contains(csp, "unsafe-eval") {
 		t.Errorf("CSP publik: %q", csp)
 	}
-	// Tidak ada script / handler inline yang akan diblok CSP.
-	for _, p := range []string{"/", "/login", "/register", "/privacy", "/terms"} {
-		body := request(e, http.MethodGet, p, "", nil).Body.String()
+	// Tidak ada script / handler inline yang akan diblok CSP. Blok data JSON-LD
+	// (type="application/ld+json", T27) bukan script yang dieksekusi, jadi tidak
+	// terkena CSP dan dikecualikan dari pemeriksaan.
+	ldBlock := regexp.MustCompile(`(?s)<script id="[a-z-]+" type="application/ld\+json">.*?</script>`)
+	for _, p := range []string{"/", "/login", "/register", "/privacy", "/terms", "/tema", "/tema/signature"} {
+		body := ldBlock.ReplaceAllString(request(e, http.MethodGet, p, "", nil).Body.String(), "")
 		if regexp.MustCompile(`<script(?:\s[^>]*)?>\s*[^<\s]`).MatchString(body) || regexp.MustCompile(`\son(?:click|submit|load|focus|change|input)=`).MatchString(body) {
 			t.Errorf("%s memuat script/handler inline", p)
 		}
