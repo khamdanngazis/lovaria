@@ -1,6 +1,7 @@
 package publicsite
 
 import (
+	"github.com/khamdanngazis/lovaria/src/platform/web"
 	"net/http"
 	"strings"
 	"testing"
@@ -101,5 +102,40 @@ func TestRobotsAndSitemap(t *testing.T) {
 	}
 	if rec := f.get("/sitemap.xml", custom); rec.Code != http.StatusNotFound {
 		t.Errorf("sitemap custom domain: %d", rec.Code)
+	}
+}
+
+// T26: Kebijakan Privasi & Syarat & Ketentuan adalah teks final — tanpa label
+// draf, bertanggal berlaku, memuat bagian wajib, dan menautkan kontak bantuan.
+func TestLegalPagesFinal(t *testing.T) {
+	f := newFixture(t)
+	t.Cleanup(func() { web.SetSupport(web.Support{}) })
+	web.SetSupport(web.Support{})
+	pages := map[string][]string{
+		"/privacy": {"Kebijakan Privasi", "Data yang kami kumpulkan", "Data tamu", "Midtrans", "Google Fonts", "Berapa lama data disimpan", "Hak Anda", `href="/terms"`},
+		"/terms":   {"Syarat &amp; Ketentuan", "Harga dan pembayaran", "satu kali per undangan", "Pengembalian dana", "Masa aktif undangan", "Penggunaan yang dilarang", "Batasan tanggung jawab", "hukum Republik Indonesia", `href="/privacy"`},
+	}
+	for path, wants := range pages {
+		rec := f.get(path, nil)
+		body := rec.Body.String()
+		if rec.Code != http.StatusOK {
+			t.Fatalf("%s: %d", path, rec.Code)
+		}
+		if strings.Contains(strings.ToLower(body), "draf") {
+			t.Errorf("%s masih berlabel draf", path)
+		}
+		for _, want := range append(wants, "Berlaku sejak "+legalEffective, "kontak bantuan yang tercantum") {
+			if !strings.Contains(body, want) {
+				t.Errorf("%s tidak memuat %q", path, want)
+			}
+		}
+		if strings.Count(body, "<h1") != 1 {
+			t.Errorf("%s: harus tepat satu h1", path)
+		}
+	}
+	// Nomor bantuan diatur admin (T25) → kontak menjadi tautan WhatsApp.
+	web.SetSupport(web.Support{Phone: "6281234567890"})
+	if body := f.get("/terms", nil).Body.String(); !strings.Contains(body, `href="https://wa.me/6281234567890"`) || !strings.Contains(body, "WhatsApp Bantuan Lunovia") {
+		t.Error("kontak di halaman legal harus menautkan WhatsApp bantuan")
 	}
 }

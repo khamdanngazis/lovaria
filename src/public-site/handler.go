@@ -252,7 +252,7 @@ func slugFile(s string) string {
 	return "acara"
 }
 
-// GET /privacy, /terms — halaman legal (draf).
+// GET /privacy, /terms — halaman legal (teks final, T26).
 func (h *Handler) Privacy(c echo.Context) error {
 	c.Response().Header().Set("Cache-Control", "public, max-age=3600")
 	return web.Render(c, http.StatusOK, privacyPage())

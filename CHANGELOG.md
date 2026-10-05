@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### T26 — Kebijakan Privasi dan Syarat & Ketentuan final
+- Kedua halaman ditulis ulang sebagai teks final (label "Draf" dihapus), bertanggal berlaku, dan saling menautkan.
+- **Kebijakan Privasi**: data yang dikumpulkan (akun, isi undangan, data tamu, pembayaran, teknis), tujuan pemakaian, data tamu, siapa yang bisa melihat undangan, pihak pemroses (hosting, Cloudflare, Midtrans, email, Google Fonts), cookie, masa simpan, keamanan, hak pengguna, dan kontak.
+- **Syarat & Ketentuan**: akun, layanan, harga & pembayaran sekali per undangan, **pengembalian dana**, masa aktif undangan, konten pengguna, penggunaan terlarang, domain kustom, ketersediaan, batasan tanggung jawab, penghentian, perubahan, hukum yang berlaku, dan kontak.
+- Kontak di kedua halaman menautkan WhatsApp bantuan (T25) bila nomornya sudah diisi admin.
+
 ### T25 — Bantuan pelanggan lewat WhatsApp
 - Tautan **Bantuan (WhatsApp)** membuka chat `wa.me` ke nomor bantuan dengan pesan pembuka terisi: di footer landing, halaman masuk/daftar, menu akun dashboard, dan halaman status pembayaran.
 - Nomor dan pesan pembuka diatur admin di tab **Bantuan** panel admin, bisa diganti kapan saja tanpa deploy, dan tercatat di audit log. Selama nomor belum diisi, tautan tidak ditampilkan.
