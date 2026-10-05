@@ -77,6 +77,21 @@ var demoMedia = map[string]demoSet{
 	}},
 }
 
+// demoMediaAlias: tema yang belum punya set foto sendiri meminjam set tema lain
+// (Koleksi Daerah, T28 — foto berbusana adat daerah masing-masing menyusul).
+var demoMediaAlias = map[string]string{"jawa": "minimal", "sunda": "elegant", "minang": "signature", "bali": "romantic", "bugis": "modern"}
+
+// demoMediaSource: nama set foto untuk sebuah tema (cadangan: elegant).
+func demoMediaSource(themeID string) string {
+	if a, ok := demoMediaAlias[themeID]; ok {
+		themeID = a
+	}
+	if _, ok := demoMedia[themeID]; !ok {
+		return "elegant"
+	}
+	return themeID
+}
+
 // demoSettings: personalisasi undangan contoh (kutipan, T20).
 func demoSettings() view.Settings {
 	q := theme.QuoteSamples[0]
@@ -87,10 +102,8 @@ func demoSettings() view.Settings {
 // galeri. Dilewati bila galeri sudah berisi (idempoten; demo lama tanpa foto
 // ikut dilengkapi saat seed dijalankan ulang). added = foto baru diunggah.
 func (a *app) ensureDemoMedia(ctx context.Context, photos *gallery.Service, w wedding.Wedding, themeID string) (added bool, err error) {
-	set, ok := demoMedia[themeID]
-	if !ok {
-		set = demoMedia["elegant"]
-	}
+	src := demoMediaSource(themeID)
+	set := demoMedia[src]
 	items, err := photos.ListGallery(ctx, w.ID)
 	if err != nil || len(items) > 0 {
 		return false, err
@@ -118,11 +131,11 @@ func (a *app) ensureDemoMedia(ctx context.Context, photos *gallery.Service, w we
 	if err := photos.SetCover(ctx, w.ID, cover.ID); err != nil {
 		return false, err
 	}
-	groom, err := a.putDemoPortrait(ctx, w.ID, themeID+"-groom.jpg")
+	groom, err := a.putDemoPortrait(ctx, w.ID, src+"-groom.jpg")
 	if err != nil {
 		return false, err
 	}
-	bride, err := a.putDemoPortrait(ctx, w.ID, themeID+"-bride.jpg")
+	bride, err := a.putDemoPortrait(ctx, w.ID, src+"-bride.jpg")
 	if err != nil {
 		return false, err
 	}

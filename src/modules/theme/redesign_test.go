@@ -74,7 +74,7 @@ func TestContrastAndOnColor(t *testing.T) {
 
 func TestRegistrySignatureDefault(t *testing.T) {
 	all := All()
-	if len(all) != 5 || all[0].ID != "signature" || DefaultID != "signature" {
+	if len(all) != 10 || all[0].ID != "signature" || DefaultID != "signature" {
 		t.Fatalf("tema = %d, pertama %q, bawaan %q", len(all), all[0].ID, DefaultID)
 	}
 	for _, d := range all {
@@ -240,6 +240,9 @@ func TestAllThemesOverrideVisualParts(t *testing.T) {
 	marks := map[string]string{
 		"signature": "text-4xl leading-tight", "elegant": `viewBox="0 0 160 16"`, "minimal": "tracking-[0.08em]",
 		"romantic": `viewBox="0 0 144 28"`, "modern": "h-1.5 w-12 bg-accent",
+		// Koleksi Daerah (T28): ornamen pembatas khas tiap daerah.
+		"jawa": `<ellipse cx="12" cy="5.5"`, "sunda": "M12 22V11", "minang": `viewBox="0 0 240 70"`,
+		"bali": "M12 12c-2-3-2-7 0-10", "bugis": "M12 1l11 11-11 11L1 12z",
 	}
 	for id, mark := range marks {
 		v := sample()

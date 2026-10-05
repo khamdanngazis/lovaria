@@ -11,6 +11,22 @@ import (
 // (/tema) dan satu halaman per tema (/tema/<id>) dengan uraian, contoh, dan
 // ajakan mendaftar.
 
+// themeH1: judul halaman tema — tema daerah menyebut adatnya (kata kunci
+// "undangan pernikahan adat Jawa", dst.).
+func themeH1(t landingTheme) string {
+	if t.Region != "" {
+		return "Undangan pernikahan digital adat " + t.Region + " — " + t.Name
+	}
+	return "Tema undangan pernikahan " + t.Name
+}
+
+func themeMetaTitle(t landingTheme) string {
+	if t.Region != "" {
+		return "Undangan Pernikahan Digital Adat " + t.Region + " — Tema " + t.Name
+	}
+	return "Tema " + t.Name + " — Undangan Pernikahan Digital"
+}
+
 func siteBase(d landingData) string { return strings.TrimSuffix(d.URL, "/") }
 
 // themeImage: gambar pratinjau tema untuk Open Graph (URL absolut).
@@ -21,7 +37,7 @@ func themeImage(d landingData, t landingTheme) string {
 	return d.OGImage
 }
 
-const themesDesc = "Pilih tema undangan pernikahan digital di Lunovia: Signature, Elegan, Minimalis, Romantis, dan Modern. Lihat contoh undangannya, lalu sesuaikan warna, huruf, dan foto sampul."
+const themesDesc = "Pilih tema undangan pernikahan digital di Lunovia: Signature, Elegan, Minimalis, Romantis, Modern, dan Koleksi Daerah bernuansa adat Jawa, Sunda, Minang, Bali, dan Bugis. Lihat contohnya, lalu sesuaikan warna, huruf, dan foto sampul."
 
 // themeCommon: yang didapat di semua tema.
 var themeCommon = []string{
@@ -83,39 +99,53 @@ templ themesPage(d landingData) {
 				<h1 class="mt-6 font-display text-4xl leading-tight text-lovoria-deep sm:text-5xl">Tema undangan pernikahan digital</h1>
 				<p class="mt-4 max-w-2xl leading-relaxed text-lovoria-muted">Setiap tema Lunovia punya karakter sendiri — dari klasik formal sampai modern yang tegas. Semuanya ramah ponsel, bisa disesuaikan warna, huruf, dan foto sampulnya, dan sudah termasuk RSVP, buku ucapan, serta amplop digital.</p>
 				<ul class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-					for _, t := range d.Themes {
-						<li class="flex flex-col overflow-hidden rounded-2xl border border-lovoria-border bg-white">
-							@themeShotLink(t, "/tema/"+t.ID)
-							<div class="flex flex-1 flex-col p-5">
-								<h2 class="font-display text-2xl text-lovoria-deep">
-									<a href={ templ.SafeURL("/tema/" + t.ID) } class="hover:text-lovoria-primary">Tema { t.Name }</a>
-								</h2>
-								<p class="mt-2 flex-1 text-sm leading-relaxed text-lovoria-muted">{ t.Description }</p>
-								<div class="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm font-medium">
-									<a href={ templ.SafeURL("/tema/" + t.ID) } class="text-lovoria-primary hover:underline">Detail tema</a>
-									if t.DemoURL != "" {
-										<a href={ templ.SafeURL(t.DemoURL) } class="text-lovoria-primary hover:underline">Lihat contoh undangan ↗</a>
-									}
-								</div>
-							</div>
-						</li>
+					for _, t := range themesIn(d, false) {
+						@themeListCard(t)
 					}
 				</ul>
+				if len(themesIn(d, true)) > 0 {
+					<h2 class="mt-16 font-display text-3xl leading-tight text-lovoria-deep sm:text-4xl">Koleksi Daerah: undangan digital bernuansa adat</h2>
+					<p class="mt-4 max-w-2xl leading-relaxed text-lovoria-muted"><em>Your love story, inspired by where you come from.</em> Tema yang terinspirasi budaya Jawa, Sunda, Minangkabau, Bali, dan Bugis — tradisi yang dikemas dengan rasa modern: motif batik, songket, dan ukiran hadir sebagai aksen, bukan memenuhi halaman.</p>
+					<ul class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+						for _, t := range themesIn(d, true) {
+							@themeListCard(t)
+						}
+					</ul>
+				}
 			</div>
 		</section>
 		@themeCTA(d)
 	}
 }
 
+// themeListCard: kartu tema di halaman /tema.
+templ themeListCard(t landingTheme) {
+	<li class="flex flex-col overflow-hidden rounded-2xl border border-lovoria-border bg-white">
+		@themeShotLink(t, "/tema/"+t.ID)
+		<div class="flex flex-1 flex-col p-5">
+			<h3 class="font-display text-2xl text-lovoria-deep">
+				<a href={ templ.SafeURL("/tema/" + t.ID) } class="hover:text-lovoria-primary">Tema { t.Name }</a>
+			</h3>
+			<p class="mt-2 flex-1 text-sm leading-relaxed text-lovoria-muted">{ t.Description }</p>
+			<div class="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm font-medium">
+				<a href={ templ.SafeURL("/tema/" + t.ID) } class="text-lovoria-primary hover:underline">Detail tema</a>
+				if t.DemoURL != "" {
+					<a href={ templ.SafeURL(t.DemoURL) } class="text-lovoria-primary hover:underline">Lihat contoh undangan ↗</a>
+				}
+			</div>
+		</div>
+	</li>
+}
+
 templ themeDetailHead(d landingData, t landingTheme) {
-	@seoHead(siteBase(d)+"/tema/"+t.ID, "Tema "+t.Name+" — Undangan Pernikahan Digital Lunovia", t.Description+" "+themeLead, themeImage(d, t))
+	@seoHead(siteBase(d)+"/tema/"+t.ID, themeMetaTitle(t)+" · Lunovia", t.Description+" "+themeLead, themeImage(d, t))
 	@templ.JSONScript("ld-breadcrumb", breadcrumbLD(siteBase(d), [2]string{"Beranda", "/"}, [2]string{"Tema undangan", "/tema"}, [2]string{"Tema " + t.Name, "/tema/" + t.ID})).WithType("application/ld+json")
 }
 
 const themeLead = "Lihat contoh undangannya dan buat undangan pernikahan digitalmu di Lunovia."
 
 templ themeDetailPage(d landingData, t landingTheme) {
-	@sitePage(d, layouts.Meta{Title: "Tema " + t.Name + " — Undangan Pernikahan Digital", Description: t.Description + " " + themeLead, Cacheable: true}, themeDetailHead(d, t)) {
+	@sitePage(d, layouts.Meta{Title: themeMetaTitle(t), Description: t.Description + " " + themeLead, Cacheable: true}, themeDetailHead(d, t)) {
 		<section class="py-12 sm:py-16">
 			<div class={ container }>
 				@crumbs([2]string{"Beranda", "/"}, [2]string{"Tema undangan", "/tema"}, [2]string{"Tema " + t.Name, "/tema/" + t.ID})
@@ -131,7 +161,10 @@ templ themeDetailPage(d landingData, t landingTheme) {
 						if t.Featured {
 							<p class="inline-block rounded-full bg-lovoria-primary-soft px-3 py-1 text-xs font-medium text-lovoria-primary">Pilihan Lunovia</p>
 						}
-						<h1 class="mt-3 font-display text-4xl leading-tight text-lovoria-deep sm:text-5xl">Tema undangan pernikahan { t.Name }</h1>
+						if t.Region != "" {
+							<p class="inline-block rounded-full bg-lovoria-primary-soft px-3 py-1 text-xs font-medium text-lovoria-primary">Koleksi Daerah · { t.Region }</p>
+						}
+						<h1 class="mt-3 font-display text-4xl leading-tight text-lovoria-deep sm:text-5xl">{ themeH1(t) }</h1>
 						<p class="mt-4 text-lg leading-relaxed text-lovoria-text">{ t.Description }</p>
 						if t.Pitch != "" {
 							<p class="mt-4 leading-relaxed text-lovoria-muted">{ t.Pitch }</p>

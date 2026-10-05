@@ -1,0 +1,191 @@
+package regional
+
+import (
+	"github.com/khamdanngazis/lovaria/src/modules/theme/view"
+	"github.com/khamdanngazis/lovaria/src/templates/themes/base"
+)
+
+// Sampul tiap tema daerah — harus langsung terasa berbeda sejak layar pertama,
+// dan selalu muat satu layar (foto mengisi sisa tinggi, menyusut di layar pendek).
+// Di desktop foto sampul ada di panel kiri, jadi sampul memakai monogram.
+
+// guestBlock: sapaan + nama tamu + tombol buka.
+templ guestBlock(v view.View, greeting, button string) {
+	<p class={ "mt-5 opacity-75", eyebrow }>{ base.GreetingText(v, greeting) }</p>
+	<p class="mt-1 break-words text-xl" style="font-family: var(--lv-font-heading)">{ base.GuestName(v) }</p>
+	@base.OpenButton(v, button, "Buka Undangan", "Lihat Kenangan")
+}
+
+// coverPhoto: foto sampul berbentuk khas yang mengisi sisa tinggi; di desktop /
+// tanpa foto → monogram.
+templ coverPhoto(v view.View, frame, shape string) {
+	if base.CoverOf(v) != "" {
+		<div class={ "relative min-h-28 flex-1 lg:hidden", frame }>
+			<div class={ "absolute inset-1.5 overflow-hidden", shape }>
+				@base.CoverImage(v, "absolute inset-0 h-full w-full object-cover")
+			</div>
+		</div>
+		<div class="my-auto hidden py-6 lg:block">
+			@base.Monogram(v, "h-20 w-20 text-2xl")
+		</div>
+	} else {
+		<div class="my-auto py-6">
+			@base.Monogram(v, "h-20 w-20 text-2xl")
+		</div>
+	}
+}
+
+// JawaHero: tenang dan hangat — pita batik kawung di atas & bawah, foto medali
+// lonjong, nama serif.
+templ JawaHero(v view.View) {
+	{{ groom, bride := base.FirstNames(v) }}
+	<section id="opening" class="relative flex min-h-dvh flex-col text-center">
+		@defs()
+		@kawungBand("h-7 flex-none text-accent/70")
+		<div class="lv-cover-body flex flex-1 flex-col items-center px-8 py-5">
+			<p class={ "text-muted", eyebrow }>The Wedding of</p>
+			<h1 class="mt-3 break-words text-5xl leading-[1.08]">
+				{ groom }
+				<span class="block text-3xl italic text-primary">&amp;</span>
+				{ bride }
+			</h1>
+			@kawungDivider("mt-4")
+			@coverPhoto(v, "mt-4 w-[62%] max-w-56 border border-accent/70 "+shapeOval, shapeOval)
+			<p class="mt-4 text-sm tracking-[0.18em]">{ v.DateText }</p>
+			@guestBlock(v, "Kepada Yth.", "lv-btn mt-4 uppercase tracking-[0.22em]")
+		</div>
+		@kawungBand("h-7 flex-none text-accent/70")
+	</section>
+}
+
+// SundaHero: lembut dan lega — foto bulat berbingkai tipis, nama tulisan tangan,
+// perbukitan Priangan di dasar layar.
+templ SundaHero(v view.View) {
+	{{ groom, bride := base.FirstNames(v) }}
+	<section id="opening" class="relative flex min-h-dvh flex-col overflow-hidden text-center">
+		@defs()
+		@hills("absolute inset-x-0 bottom-0 h-28 text-primary/40")
+		<div class="lv-cover-body relative flex flex-1 flex-col items-center px-8 pb-24 pt-8">
+			if base.CoverOf(v) != "" {
+				<div class="relative my-auto h-[min(12rem,25dvh)] w-[min(12rem,25dvh)] flex-none rounded-full border border-accent p-1.5 lg:hidden">
+					<div class="relative h-full w-full overflow-hidden rounded-full">
+						@base.CoverImage(v, "absolute inset-0 h-full w-full object-cover")
+					</div>
+				</div>
+				<div class="my-auto hidden text-primary lg:block">
+					@base.Monogram(v, "h-24 w-24 text-3xl")
+				</div>
+			} else {
+				<div class="my-auto text-primary">
+					@base.Monogram(v, "h-24 w-24 text-3xl")
+				</div>
+			}
+			<p class={ "mt-6 text-muted", eyebrow }>The Wedding of</p>
+			<h1 class="mt-2 break-words text-6xl leading-[1.1] text-primary">{ groom } &amp; { bride }</h1>
+			@leafDivider("mt-2")
+			<p class="mt-3 text-sm">{ v.DateText }</p>
+			@guestBlock(v, "Kepada Yth. Bapak/Ibu/Saudara/i", "lv-btn mt-4 shadow-lg shadow-primary/20")
+		</div>
+	</section>
+}
+
+// MinangHero: megah — latar marun tua, gonjong emas besar di puncak, nama
+// kapital, pita songket di dasar.
+templ MinangHero(v view.View) {
+	{{ groom, bride := base.FirstNames(v) }}
+	<section id="opening" class="relative flex min-h-dvh flex-col overflow-hidden bg-deep text-center text-white">
+		@defs()
+		if base.CoverOf(v) != "" {
+			@base.CoverImage(v, "absolute inset-0 h-full w-full object-cover opacity-55 lg:hidden")
+			<div class="absolute inset-0 bg-[linear-gradient(180deg,var(--lv-deep)_0%,rgba(0,0,0,0)_38%,var(--lv-deep)_82%)] lg:hidden"></div>
+		}
+		<div class="lv-cover-body relative flex flex-1 flex-col items-center px-8 pb-8 pt-9">
+			@gonjong("h-14 w-56 flex-none text-accent")
+			<p class={ "mt-4 opacity-85", eyebrow }>The Wedding of</p>
+			<div class="my-auto"></div>
+			<h1 class="break-words text-4xl uppercase leading-tight tracking-[0.14em]">
+				{ groom }
+				<span class="my-1 block text-2xl text-accent">&amp;</span>
+				{ bride }
+			</h1>
+			<p class="mt-4 text-sm tracking-[0.18em]">{ v.DateText }</p>
+			@guestBlock(v, "Kepada Yth.", "mt-5 inline-block rounded-[var(--lv-radius-btn)] bg-accent px-8 py-3 text-xs font-bold uppercase tracking-[0.24em] text-deep")
+		</div>
+		@songketBand("relative h-7 flex-none text-accent")
+	</section>
+}
+
+// BaliHero: artistik dan hangat — foto dalam siluet gapura berundak, pita patra,
+// nama serif.
+templ BaliHero(v view.View) {
+	{{ groom, bride := base.FirstNames(v) }}
+	<section id="opening" class="relative flex min-h-dvh flex-col text-center">
+		@defs()
+		<div class="lv-cover-body flex flex-1 flex-col items-center px-8 pb-6 pt-9">
+			<p class={ "text-muted", eyebrow }>The Wedding of</p>
+			if base.CoverOf(v) != "" {
+				<div class={ "relative mt-4 min-h-40 w-[72%] max-w-64 flex-1 bg-accent lg:hidden", shapeGate }>
+					<div class={ "absolute inset-[3px] overflow-hidden", shapeGate }>
+						@base.CoverImage(v, "absolute inset-0 h-full w-full object-cover")
+					</div>
+				</div>
+				<div class="my-auto hidden py-6 lg:block">
+					@base.Monogram(v, "h-20 w-20 text-2xl")
+				</div>
+			} else {
+				<div class="my-auto py-6">
+					@base.Monogram(v, "h-20 w-20 text-2xl")
+				</div>
+			}
+			<h1 class="mt-5 break-words text-5xl leading-[1.08]">
+				{ groom }
+				<span class="text-3xl italic text-primary">&amp;</span>
+				{ bride }
+			</h1>
+			@frangipaniDivider("mt-3")
+			<p class="mt-3 text-sm tracking-wide">{ v.DateText }</p>
+			@guestBlock(v, "Kepada Yth.", "lv-btn mt-4")
+		</div>
+		@patraBand("h-6 flex-none text-accent")
+	</section>
+}
+
+// BugisHero: megah dan tegas — latar merah anggur tua, pita lipa sabbe tegak di
+// kedua sisi, foto segi enam berbingkai emas, nama kapital.
+templ BugisHero(v view.View) {
+	{{ groom, bride := base.FirstNames(v) }}
+	<section id="opening" class="relative flex min-h-dvh flex-col overflow-hidden bg-deep text-center text-white">
+		@defs()
+		<div class="absolute inset-y-0 left-0 w-5 text-accent/60" aria-hidden="true">
+			@sabbeBand("h-full")
+		</div>
+		<div class="absolute inset-y-0 right-0 w-5 text-accent/60" aria-hidden="true">
+			@sabbeBand("h-full")
+		</div>
+		<div class="lv-cover-body relative flex flex-1 flex-col items-center px-11 py-9">
+			<p class={ "opacity-85", eyebrow }>The Wedding of</p>
+			if base.CoverOf(v) != "" {
+				<div class={ "relative mt-5 min-h-40 w-[70%] max-w-60 flex-1 bg-accent lg:hidden", shapeHex }>
+					<div class={ "absolute inset-[3px] overflow-hidden", shapeHex }>
+						@base.CoverImage(v, "absolute inset-0 h-full w-full object-cover")
+					</div>
+				</div>
+				<div class="my-auto hidden py-6 lg:block">
+					@base.Monogram(v, "h-24 w-24 text-3xl")
+				</div>
+			} else {
+				<div class="my-auto py-6">
+					@base.Monogram(v, "h-24 w-24 text-3xl")
+				</div>
+			}
+			<h1 class="mt-5 break-words text-4xl uppercase leading-tight tracking-[0.16em]">
+				{ groom }
+				<span class="mx-1 text-accent">&amp;</span>
+				{ bride }
+			</h1>
+			@sulapaDivider("mt-4")
+			<p class="mt-3 text-sm tracking-[0.18em]">{ v.DateText }</p>
+			@guestBlock(v, "Kepada Yth.", "mt-5 inline-block rounded-[var(--lv-radius-btn)] bg-accent px-8 py-3 text-xs font-bold uppercase tracking-[0.24em] text-deep")
+		</div>
+	</section>
+}

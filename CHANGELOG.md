@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### T28 — Koleksi Daerah: lima tema bernuansa adat
+- Lima tema baru yang terinspirasi budaya daerah dengan rasa modern: **Javanese Heritage** (batik kawung, sogan), **Sundanese Romance** (pucuk daun, perbukitan Priangan, sage), **Minang Heritage** (gonjong, songket, marun & emas), **Balinese Elegance** (gapura berundak, kamboja, terakota), **Bugis Royal** (lipa sabbe, sulapa eppa, merah anggur & emas).
+- Motif hanya sebagai pita, bingkai, dan detail; tiap tema punya sampul, ornamen, bentuk foto, warna, dan huruf sendiri.
+- Landing dan halaman `/tema` menampilkannya sebagai **Koleksi Daerah** ("Your love story, inspired by where you come from."); tiap tema punya halaman sendiri (`/tema/jawa`, `/tema/sunda`, `/tema/minang`, `/tema/bali`, `/tema/bugis`) dengan judul berkata kunci "undangan pernikahan digital adat …".
+- Undangan contoh untuk kelima tema (`lovoria demo seed`) dan thumbnail etalase. Foto contohnya sementara meminjam set foto tema lain.
+
 ### T27 — SEO: lebih mudah ditemukan di mesin pencari & asisten AI
 - **Landing**: judul dan deskripsi berkata kunci ("undangan pernikahan digital", "website pernikahan"), meta Open Graph/Twitter lengkap, dan data terstruktur JSON-LD (organisasi, aplikasi + harga, FAQ).
 - **Etalase tema** yang boleh diindeks: `/tema` dan satu halaman per tema (`/tema/<id>`) berisi uraian, huruf & warna, contoh undangan, dan ajakan mendaftar. Tema yang dinonaktifkan admin tidak tampil.

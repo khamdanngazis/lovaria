@@ -27,10 +27,12 @@ const MAX_BYTES = 60 * 1024;
   for (const id of ids) {
     await page.goto(`${BASE}/w/contoh-${id}`, { waitUntil: 'networkidle' });
     await page.evaluate(() => document.fonts.ready);
-    // Jendela 4:5 digeser supaya nama pasangan (h1) berada di tengahnya.
+    // Jendela 4:5 dimulai dari atas sampul (ornamen khas tema biasanya di
+    // sana) dan hanya digeser turun sejauh yang perlu supaya nama pasangan
+    // (h1) ikut terlihat utuh.
     const y = await page.evaluate(({ clipH, viewH }) => {
       const r = document.querySelector('h1').getBoundingClientRect();
-      return Math.round(Math.max(0, Math.min(viewH - clipH, r.top + r.height / 2 - clipH / 2)));
+      return Math.round(Math.max(0, Math.min(viewH - clipH, r.bottom + 28 - clipH)));
     }, { clipH: CLIP_H, viewH: VIEW.height });
     const png = (await page.screenshot({ clip: { x: 0, y, width: VIEW.width, height: CLIP_H } })).toString('base64');
     // Kecilkan & ubah ke WebP lewat canvas browser (tanpa dependensi tambahan);

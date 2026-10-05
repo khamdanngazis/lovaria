@@ -35,7 +35,7 @@ func (h *Handler) landing(c echo.Context) (landingData, error) {
 			continue // tema dinonaktifkan admin (T16) tidak ditawarkan
 		}
 		lt := landingTheme{ID: t.ID, Name: t.Name, Description: t.Description, Primary: t.Tokens.Primary, Surface: t.Tokens.Surface, Ink: t.Tokens.Ink, Thumb: t.Thumb(), Featured: t.Featured(),
-			Pitch: t.Pitch, Accent: t.Tokens.Accent, FontHeading: t.Tokens.FontHeading, FontBody: t.Tokens.FontBody}
+			Pitch: t.Pitch, Region: t.Region, Accent: t.Tokens.Accent, FontHeading: t.Tokens.FontHeading, FontBody: t.Tokens.FontBody}
 		w, err := h.Views.Weddings.GetWeddingBySlug(ctx, DemoSlug(t.ID))
 		switch {
 		case errors.Is(err, wedding.ErrNotFound):

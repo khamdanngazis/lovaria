@@ -171,3 +171,20 @@ Kartu tema di landing dan pemilih tema dashboard memakai tangkapan layar asli sa
 - Jalankan ulang setiap tampilan sampul tema berubah atau ada tema baru.
 - `ThemeDef.Thumb()` mengembalikan URL-nya, atau `""` bila berkas tidak ada — kartu lalu jatuh ke foto sampul contoh / kartu warna. `ThemeDef.Featured()` (tema bawaan) memberi label **Pilihan Lunovia**.
 - `TestThemeThumbsAndFeatured` memastikan tiap tema terdaftar punya thumbnail dan ukurannya dalam anggaran.
+
+## Koleksi Daerah (T28)
+
+Lima tema bernuansa adat: `jawa` (Javanese Heritage), `sunda` (Sundanese Romance), `minang` (Minang Heritage), `bali` (Balinese Elegance), `bugis` (Bugis Royal). Prinsipnya *identitas budaya + estetika pernikahan modern*: motif hanya sebagai pita, bingkai, atau detail — tidak memenuhi latar — dan tiap tema cukup punya 1–2 penanda budaya.
+
+| Tema | Penanda | Bentuk foto | Huruf |
+|---|---|---|---|
+| `jawa` | pita batik kawung, bunga kawung | medali lonjong | Cormorant Garamond + Lora |
+| `sunda` | pucuk daun, perbukitan Priangan | bulat | Dancing Script + Nunito |
+| `minang` | gonjong Rumah Gadang, pita songket | persegi bermahkota gonjong | Cinzel + Lato |
+| `bali` | gapura berundak, kamboja, pita patra | siluet gapura | Playfair Display + Lora |
+| `bugis` | pita lipa sabbe, sulapa eppa | segi enam | Playfair Display + Montserrat |
+
+- Kode: `src/templates/themes/regional/`. `heroes.templ` = sampul tiap tema (harus terasa berbeda sejak layar pertama), `ornaments.templ` = ornamen & pola SVG (pola didefinisikan sekali di sampul lewat `defs()`, dipakai pita lewat `url(#rg-…)`), `kit.templ` = kerangka bagian bersama (mempelai, cerita, acara, galeri, penutup, judul bagian) yang digayakan lewat `Kit`.
+- **Menambah tema daerah baru**: buat ornamennya, satu `Kit`, satu sampul, lalu satu panggilan `regionalTheme(...)` di `registry.go` (isi `Region`, deskripsi, dan `Pitch`); tambahkan pasangan contoh di `demoCouples` dan set foto (atau alias di `demoMediaAlias`), jalankan `lovoria demo seed` dan `make theme-thumbs`.
+- `ThemeDef.Region` mengelompokkan tema di landing dan `/tema` ("Koleksi Daerah") dan dipakai judul halaman tema ("Undangan pernikahan digital adat …").
+- Foto undangan contoh kelima tema ini masih meminjam set tema lain (`demoMediaAlias`); ganti dengan foto berbusana adat daerah masing-masing bila sudah tersedia.
