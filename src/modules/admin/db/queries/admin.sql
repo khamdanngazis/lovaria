@@ -1,5 +1,5 @@
 -- Modul admin hanya menyentuh tabel miliknya sendiri: packages,
--- wedding_packages, admin_audit_logs. Data modul lain lewat service modul itu.
+-- wedding_packages, admin_audit_logs, app_settings. Data modul lain lewat service modul itu.
 
 -- name: ListPackages :many
 SELECT p.*, (SELECT count(*) FROM wedding_packages wp WHERE wp.package_id = p.id) AS weddings -- tenant:ignore hitung pemakai paket
@@ -49,3 +49,10 @@ WHERE (sqlc.narg(target_id)::text IS NULL OR target_id = sqlc.narg(target_id));
 
 -- name: ListLandingPackages :many
 SELECT * FROM packages WHERE show_on_landing ORDER BY sort_order, storage_mb, name;
+
+-- name: ListSettings :many
+SELECT key, value FROM app_settings;
+
+-- name: UpsertSetting :exec
+INSERT INTO app_settings (key, value, updated_at) VALUES ($1, $2, $3)
+ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = EXCLUDED.updated_at;

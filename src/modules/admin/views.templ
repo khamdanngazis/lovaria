@@ -96,7 +96,7 @@ func pageURL(path string, q url.Values, page int) string {
 
 var tabs = []struct{ Path, Label string }{
 	{"/admin", "Ringkasan"}, {"/admin/users", "Customers"}, {"/admin/weddings", "Weddings"}, {"/admin/themes", "Tema"},
-	{"/admin/packages", "Paket"}, {"/admin/payments", "Pembayaran"}, {"/admin/storage", "Storage"}, {"/admin/domains", "Domain"}, {"/admin/audit", "Audit log"},
+	{"/admin/packages", "Paket"}, {"/admin/payments", "Pembayaran"}, {"/admin/storage", "Storage"}, {"/admin/domains", "Domain"}, {"/admin/support", "Bantuan"}, {"/admin/audit", "Audit log"},
 }
 
 templ shell(title, active string) {
@@ -704,5 +704,34 @@ templ paymentsPage(orders []payment.Order, total, page int) {
 			</div>
 			@pager("/admin/payments", nil, page, total)
 		}
+	}
+}
+
+// supportPage: nomor WhatsApp bantuan pelanggan (T25).
+templ supportPage(sup web.Support, f flash) {
+	@shell("Bantuan", "/admin/support") {
+		@flashMsg(f)
+		<p class="text-sm text-lovoria-muted">Nomor WhatsApp (Business) untuk bantuan pelanggan. Tautan "Bantuan" di landing, halaman masuk & daftar, menu akun dashboard, dan halaman pembayaran membuka chat ke nomor ini. Perubahan langsung berlaku.</p>
+		<div class="ui-card max-w-xl p-5">
+			<form method="post" action="/admin/support" class="space-y-4">
+				@layouts.CSRFField()
+				<div>
+					<label for="support-phone" class="ui-label">Nomor WhatsApp</label>
+					<input id="support-phone" name="phone" type="tel" inputmode="tel" autocomplete="off" value={ displayPhone(sup.Phone) } placeholder="0812-3456-7890" class="ui-input"/>
+					<p class="ui-hint">Kosongkan untuk menyembunyikan tautan bantuan.</p>
+				</div>
+				<div>
+					<label for="support-message" class="ui-label">Pesan pembuka</label>
+					<textarea id="support-message" name="message" rows="3" maxlength="300" class="ui-input">{ sup.Message }</textarea>
+					<p class="ui-hint">Terisi otomatis di WhatsApp saat pelanggan membuka chat.</p>
+				</div>
+				<div class="flex flex-wrap items-center gap-3">
+					<button type="submit" class="ui-btn ui-btn-primary">Simpan</button>
+					if web.SupportURL() != "" {
+						<a href={ templ.SafeURL(web.SupportURL()) } target="_blank" rel="noopener" class="ui-link text-sm">Coba buka chat ↗</a>
+					}
+				</div>
+			</form>
+		</div>
 	}
 }

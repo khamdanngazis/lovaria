@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### T25 — Bantuan pelanggan lewat WhatsApp
+- Tautan **Bantuan (WhatsApp)** membuka chat `wa.me` ke nomor bantuan dengan pesan pembuka terisi: di footer landing, halaman masuk/daftar, menu akun dashboard, dan halaman status pembayaran.
+- Nomor dan pesan pembuka diatur admin di tab **Bantuan** panel admin, bisa diganti kapan saja tanpa deploy, dan tercatat di audit log. Selama nomor belum diisi, tautan tidak ditampilkan.
+- Migration `00025` (tabel `app_settings`).
+
 ### T24 — Nama brand menjadi Lunovia
 - Nama brand di seluruh tampilan (landing, halaman masuk/daftar, dashboard, panel admin, undangan, email, PDF kenang-kenangan, halaman legal), wordmark logo, dan gambar Open Graph berganti dari Lovoria menjadi **Lunovia**. Tema bawaan menjadi "Lunovia Signature", label etalase "Pilihan Lunovia".
 - Warna, huruf, monogram LV, dan desain tidak berubah.

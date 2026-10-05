@@ -22,6 +22,12 @@ type AdminAuditLog struct {
 	CreatedAt   time.Time
 }
 
+type AppSetting struct {
+	Key       string
+	Value     string
+	UpdatedAt time.Time
+}
+
 type Couple struct {
 	ID               uuid.UUID
 	WeddingID        uuid.UUID

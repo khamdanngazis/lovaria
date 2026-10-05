@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -322,6 +323,25 @@ func (h *Handler) SetThemeEnabled(c echo.Context) error {
 		msg = "Tema diaktifkan."
 	}
 	return back(c, "/admin/themes", msg, err)
+}
+
+// ---------- Bantuan (WhatsApp) ----------
+
+func (h *Handler) Support(c echo.Context) error {
+	sup, err := h.svc.Support(c.Request().Context())
+	if err != nil {
+		return err
+	}
+	return web.Render(c, http.StatusOK, supportPage(sup, flashOf(c)))
+}
+
+func (h *Handler) SaveSupport(c echo.Context) error {
+	err := h.svc.SaveSupport(c.Request().Context(), c.FormValue("phone"), c.FormValue("message"))
+	msg := "Kontak bantuan disimpan."
+	if strings.TrimSpace(c.FormValue("phone")) == "" {
+		msg = "Nomor dikosongkan — tautan bantuan disembunyikan."
+	}
+	return back(c, "/admin/support", msg, err)
 }
 
 // ---------- Packages ----------
