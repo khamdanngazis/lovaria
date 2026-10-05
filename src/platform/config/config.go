@@ -24,7 +24,7 @@ type Config struct {
 	Env string
 	// Port tempat HTTP server listen (PORT; Railway mengisi ini otomatis).
 	Port int
-	// BaseURL adalah URL publik utama aplikasi, mis. https://lovoria.com (BASE_URL).
+	// BaseURL adalah URL publik utama aplikasi, mis. https://lunovia.id (BASE_URL).
 	// Bila kosong dan berjalan di Railway, diambil dari RAILWAY_PUBLIC_DOMAIN.
 	BaseURL string
 	// LogLevel: debug | info | warn | error (LOG_LEVEL).
@@ -83,7 +83,7 @@ type DB struct {
 type Mail struct {
 	// Driver: log | smtp | resend (MAIL_DRIVER). "log" hanya menulis email ke log.
 	Driver string
-	// From alamat pengirim, mis. "Lunovia <no-reply@lovoria.com>" (MAIL_FROM).
+	// From alamat pengirim, mis. "Lunovia <no-reply@lunovia.id>" (MAIL_FROM).
 	From string
 	// SMTP (SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD). Port 587 + STARTTLS.
 	SMTPHost     string
@@ -139,7 +139,7 @@ type Domain struct {
 	// zona Lunovia yang mengaktifkan Cloudflare for SaaS. Kosong → fitur nonaktif.
 	CloudflareToken  string
 	CloudflareZoneID string
-	// CNAMETarget tujuan CNAME untuk pasangan, mis. domains.lovoria.com (CUSTOM_DOMAIN_CNAME_TARGET).
+	// CNAMETarget tujuan CNAME untuk pasangan, mis. domains.lunovia.id (CUSTOM_DOMAIN_CNAME_TARGET).
 	CNAMETarget string
 	// HostHeader: header berisi host asli bila proxy (Cloudflare Worker) menulis
 	// ulang Host, mis. X-Forwarded-Host (CUSTOM_DOMAIN_HOST_HEADER). Kosong → Host.
@@ -161,7 +161,7 @@ type Storage struct {
 	R2Bucket          string
 	// R2Endpoint override endpoint S3 (R2_ENDPOINT); kosong → https://<account>.r2.cloudflarestorage.com.
 	R2Endpoint string
-	// PublicURL basis URL publik objek, mis. https://media.lovoria.com (R2_PUBLIC_URL).
+	// PublicURL basis URL publik objek, mis. https://media.lunovia.id (R2_PUBLIC_URL).
 	PublicURL string
 	// QuotaBytes kuota penyimpanan per wedding (STORAGE_QUOTA_MB, default 500).
 	QuotaBytes int64
@@ -179,7 +179,7 @@ func validatePublicURL(raw string) error {
 	}
 	if strings.HasSuffix(strings.ToLower(u.Hostname()), ".r2.cloudflarestorage.com") {
 		return errors.New("R2_PUBLIC_URL: ini endpoint S3 API (butuh tanda tangan, foto tidak bisa dibuka browser); " +
-			"pakai URL Public access bucket (https://pub-xxxx.r2.dev) atau custom domain (mis. https://media.lovoria.com)")
+			"pakai URL Public access bucket (https://pub-xxxx.r2.dev) atau custom domain (mis. https://media.lunovia.id)")
 	}
 	return nil
 }

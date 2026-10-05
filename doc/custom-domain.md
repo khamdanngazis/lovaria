@@ -4,14 +4,14 @@ Pasangan bisa memakai domain sendiri (`www.samuelsarah.com`) untuk undangannya. 
 
 ## 1. Prasyarat
 
-- Domain Lunovia sendiri (mis. `lovoria.com`) sudah memakai DNS Cloudflare (zona aktif).
+- Domain Lunovia sendiri (mis. `lunovia.id`) sudah memakai DNS Cloudflare (zona aktif).
 - Cloudflare for SaaS aktif di zona itu: **SSL/TLS → Custom Hostnames → Enable** (gratis sampai 100 hostname).
 
 ## 2. Fallback origin & target CNAME
 
-1. Buat record DNS **proxied** (awan oranye) untuk fallback origin, mis. `origin.lovoria.com`. Dengan Worker (opsi A di bawah) cukup record *originless* `AAAA origin 100::` — Worker yang meneruskan ke Railway. Tanpa Worker (opsi B): CNAME ke server aplikasi.
-2. **SSL/TLS → Custom Hostnames → Fallback Origin** = `origin.lovoria.com`. Tunggu sampai status *Active*.
-3. Buat target CNAME untuk pasangan, mis. `domains.lovoria.com` → CNAME ke `origin.lovoria.com` (proxied). Inilah nilai `CUSTOM_DOMAIN_CNAME_TARGET`.
+1. Buat record DNS **proxied** (awan oranye) untuk fallback origin, mis. `origin.lunovia.id`. Dengan Worker (opsi A di bawah) cukup record *originless* `AAAA origin 100::` — Worker yang meneruskan ke Railway. Tanpa Worker (opsi B): CNAME ke server aplikasi.
+2. **SSL/TLS → Custom Hostnames → Fallback Origin** = `origin.lunovia.id`. Tunggu sampai status *Active*.
+3. Buat target CNAME untuk pasangan, mis. `domains.lunovia.id` → CNAME ke `origin.lunovia.id` (proxied). Inilah nilai `CUSTOM_DOMAIN_CNAME_TARGET`.
 4. **SSL/TLS → Overview**: mode **Full** (Railway melayani HTTPS). *Edge Certificates → Always Use HTTPS*: on.
 
 ## 3. Host header (penting untuk Railway)
@@ -21,14 +21,14 @@ Cloudflare meneruskan request custom hostname ke origin dengan `Host: www.samuel
 **A. Cloudflare Worker (disarankan untuk Railway).** Worker menulis ulang Host ke domain Railway dan mengirim host asli lewat header yang dibaca aplikasi (`CUSTOM_DOMAIN_HOST_HEADER`):
 
 ```js
-// Worker "lovoria-custom-domains", route: */* di zona lovoria.com — menurut dokumentasi
+// Worker "lovoria-custom-domains", route: */* di zona lunovia.id — menurut dokumentasi
 // Cloudflare, route */* juga menangkap trafik custom hostname.
-// Variabel Worker: ORIGIN_HOST (domain Railway), OWN_ZONE (mis. lovoria.com).
+// Variabel Worker: ORIGIN_HOST (domain Railway), OWN_ZONE (mis. lunovia.id).
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const original = url.hostname;
-    // Domain Lunovia sendiri (lovoria.com, www., …) diteruskan apa adanya.
+    // Domain Lunovia sendiri (lunovia.id, www., …) diteruskan apa adanya.
     if (original === env.OWN_ZONE || original.endsWith('.' + env.OWN_ZONE)) {
       return fetch(request);
     }
@@ -44,6 +44,10 @@ export default {
 
 Lalu isi `CUSTOM_DOMAIN_HOST_HEADER=X-Lovoria-Host`. Trafik domain Lunovia sendiri diteruskan Worker tanpa diubah.
 
+**Produksi (sejak 2026-10-05).** Zona `lunovia.id`: fallback origin `origin.lunovia.id` (AAAA `100::`, proxied), target CNAME `domains.lunovia.id`, Worker `lovoria-custom-domains` di route `*/*` (`OWN_ZONE=lunovia.id`, `ORIGIN_HOST=lovaria-production.up.railway.app`). Record `lunovia.id` sendiri menunjuk langsung ke Railway (DNS only). Zona lama `lovoria.my.id` tidak dipakai lagi.
+
+**Setelah menambah/menghapus domain di Railway, redeploy.** `RAILWAY_PUBLIC_DOMAIN` berubah, tetapi aplikasi yang sedang berjalan masih memegang nilai lama — domain baru menampilkan "Undangan tidak ditemukan" sampai layanan dinyalakan ulang (`railway redeploy --service lovaria -y`).
+
 **Domain lama tetap hidup.** Setelah domain sendiri didaftarkan di Railway, `RAILWAY_PUBLIC_DOMAIN` ikut berganti ke domain itu. Isi `EXTRA_HOSTS=<nama>.up.railway.app` supaya domain Railway lama tetap dikenali sebagai host Lunovia — tanpa ini link undangan yang sudah terkirim lewat domain lama menjadi 404 (aturan "host tak dikenal → 404"). Nilai ini juga dipakai sebagai `ORIGIN_HOST` Worker.
 
 **B. Origin yang menerima Host apa pun** (VPS / reverse proxy sendiri): tidak perlu Worker, biarkan `CUSTOM_DOMAIN_HOST_HEADER` kosong.
@@ -52,13 +56,13 @@ Lalu isi `CUSTOM_DOMAIN_HOST_HEADER=X-Lovoria-Host`. Trafik domain Lunovia sendi
 
 ## 4. API token & environment
 
-Buat API token (**My Profile → API Tokens → Create Token → Custom**): permission **Zone → SSL and Certificates → Edit**, zone resource = `lovoria.com`.
+Buat API token (**My Profile → API Tokens → Create Token → Custom**): permission **Zone → SSL and Certificates → Edit**, zone resource = `lunovia.id`.
 
 | Variable | Contoh |
 |---|---|
 | `CLOUDFLARE_API_TOKEN` | token di atas |
 | `CLOUDFLARE_ZONE_ID` | Zone ID (Overview zona, kolom kanan) |
-| `CUSTOM_DOMAIN_CNAME_TARGET` | `domains.lovoria.com` |
+| `CUSTOM_DOMAIN_CNAME_TARGET` | `domains.lunovia.id` |
 | `CUSTOM_DOMAIN_HOST_HEADER` | `X-Lovoria-Host` (opsi A) atau kosong |
 | `EXTRA_HOSTS` | `lovaria-production.up.railway.app` (domain Railway lama, dipisah koma bila lebih dari satu) |
 
@@ -67,7 +71,7 @@ Ketiga variabel pertama wajib diisi bersamaan; kosong semua → menu Domain mena
 ## 5. Uji end-to-end (staging)
 
 1. Di dashboard wedding → **Domain** → daftarkan `www.<domain-uji>`; status *Menunggu verifikasi*, instruksi CNAME tampil.
-2. Di DNS domain uji: `CNAME www → domains.lovoria.com` (DNS only bila domain uji juga di Cloudflare).
+2. Di DNS domain uji: `CNAME www → domains.lunovia.id` (DNS only bila domain uji juga di Cloudflare).
 3. Tunggu / klik **Cek ulang** sampai *Aktif* (hostname & sertifikat aktif). Cloudflare dashboard → Custom Hostnames menampilkan hostname yang sama.
 4. `https://www.<domain-uji>` menampilkan undangan; `https://www.<domain-uji>/i/<KODE>` menampilkan nama tamu; `BASE_URL/w/<slug>` → 301 ke domain uji; `BASE_URL/i/<KODE>` tetap jalan.
 5. Host asing (mis. `curl -H 'X-Lovoria-Host: asal.example' …`) → 404.

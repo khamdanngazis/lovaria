@@ -23,7 +23,7 @@ Satu binary untuk semua perintah:
 lovoria [serve]              # HTTP server
 lovoria migrate up|down|status|version|redo
 lovoria seed                 # data contoh (ditolak di production)
-lovoria create-admin --email ops@lovoria.com [--name Ops]   # password: prompt tersembunyi / env LOVORIA_ADMIN_PASSWORD
+lovoria create-admin --email ops@lunovia.id [--name Ops]   # password: prompt tersembunyi / env LOVORIA_ADMIN_PASSWORD
 lovoria media rebase-urls --from <url-lama> [--apply]       # ganti basis URL foto tersimpan (lihat bagian R2)
 ```
 
@@ -57,7 +57,7 @@ Semua lewat environment variable (lihat [`.env.example`](.env.example)), dibaca 
 | `STORAGE_LOCAL_DIR` | `$TMPDIR/lovoria-media` | Folder driver `local` (disajikan di `/media/*`) |
 | `STORAGE_QUOTA_MB` | `500` | Kuota foto per wedding |
 | `R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` / `R2_BUCKET` | — | Wajib untuk `STORAGE_DRIVER=r2` |
-| `R2_PUBLIC_URL` | — | URL publik bucket, mis. `https://media.lovoria.com` atau `https://pub-xxx.r2.dev` |
+| `R2_PUBLIC_URL` | — | URL publik bucket, mis. `https://media.lunovia.id` atau `https://pub-xxx.r2.dev` |
 | `R2_ENDPOINT` | `https://<account>.r2.cloudflarestorage.com` | Override endpoint S3 (opsional) |
 | `APP_SECRET` | acak per proses | Kunci HMAC token form RSVP publik (min. 32 karakter). **Isi di production**, mis. `openssl rand -hex 32` |
 | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ZONE_ID`, `CUSTOM_DOMAIN_CNAME_TARGET` | – | Custom domain per wedding (Cloudflare for SaaS). Isi ketiganya atau kosongkan semua. Lihat [doc/custom-domain.md](doc/custom-domain.md) |
@@ -101,13 +101,13 @@ Variabel service `lovaria` (tab **Variables**):
 ### Cloudflare R2 (foto)
 
 1. R2 → **Create bucket** (mis. `lovoria-media`).
-2. Bucket → Settings → **Public access**: sambungkan custom domain (mis. `media.lovoria.com`, di balik CDN Cloudflare) atau aktifkan subdomain `r2.dev` untuk awal. Nilai ini = `R2_PUBLIC_URL`.
+2. Bucket → Settings → **Public access**: sambungkan custom domain (mis. `media.lunovia.id`, di balik CDN Cloudflare) atau aktifkan subdomain `r2.dev` untuk awal. Nilai ini = `R2_PUBLIC_URL`.
 3. R2 → **Manage R2 API Tokens** → Create API token, permission **Object Read & Write**, dibatasi ke bucket tersebut → `R2_ACCESS_KEY_ID` & `R2_SECRET_ACCESS_KEY`.
 4. `R2_ACCOUNT_ID` = ID akun (bagian depan `https://<account>.r2.cloudflarestorage.com`).
 
 ⚠️ `R2_PUBLIC_URL` **bukan** endpoint `https://<account>.r2.cloudflarestorage.com` (itu S3 API yang butuh tanda tangan — browser mendapat `InvalidArgument: Authorization`). Aplikasi menolak start bila nilainya endpoint API.
 
-**Mengganti domain publik foto** (mis. memperbaiki `R2_PUBLIC_URL`, atau pindah dari `r2.dev` ke `media.lovoria.com`): URL foto disimpan lengkap di DB, jadi setelah variabel diganti & ter-deploy jalankan:
+**Mengganti domain publik foto** (mis. memperbaiki `R2_PUBLIC_URL`, atau pindah dari `r2.dev` ke `media.lunovia.id`): URL foto disimpan lengkap di DB, jadi setelah variabel diganti & ter-deploy jalankan:
 
 ```bash
 railway ssh --service lovaria -- lovoria media rebase-urls --from <url-lama>          # simulasi: hitung baris terdampak
