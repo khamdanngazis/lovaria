@@ -481,7 +481,6 @@ templ bottomBar(w Wedding, active string) {
 type overviewState struct {
 	W         Wedding
 	Couple    Couple
-	Welcome   bool
 	Checklist []ChecklistItem
 	History   []StatusChange
 	Notice    string
@@ -519,9 +518,6 @@ var statusBadge = map[string]string{
 templ overviewPage(o overviewState) {
 	@Shell(o.W, "") {
 		<div class="space-y-4">
-			if o.Welcome {
-				@ui.Notice("Website pernikahanmu sudah dibuat sebagai draft. Lengkapi info lalu terbitkan saat siap.")
-			}
 			@ui.Notice(o.Notice)
 			@ui.Alert(o.Error)
 			<div class="rounded-2xl bg-lovoria-deep p-5 text-white shadow-soft">
@@ -540,23 +536,101 @@ templ overviewPage(o overviewState) {
 }
 
 templ statusCard(o overviewState) {
+	if o.W.IsDraft() {
+		@draftCard(o)
+	} else {
+		@liveCard(o)
+	}
+}
+
+// draftCard: beranda undangan draf (T29) — mengajak melihat pratinjau dan
+// melengkapi isi. Harga tidak ditampilkan, dan tombol publikasi baru muncul
+// setelah syarat terbit terpenuhi.
+templ draftCard(o overviewState) {
+	@ui.Card() {
+		<div class="flex flex-wrap items-center gap-2">
+			<span class={ "rounded-full px-3 py-1 text-sm font-medium", statusBadge[o.W.Status] }>{ StatusLabel(o.W.Status) }</span>
+			if o.W.IsPaid() {
+				@ui.Badge(ui.Success, "Lunas ✓")
+			}
+		</div>
+		<h2 class="mt-3 font-display text-2xl leading-tight text-lovoria-deep">Undangan kalian masih draf</h2>
+		<p class="mt-2 text-sm leading-relaxed text-lovoria-muted">
+			Hanya kalian yang bisa melihatnya.
+			if !o.W.IsPaid() {
+				Gratis dibuat dan dipratinjau — bayar hanya saat undangan diterbitkan.
+			}
+		</p>
+		<div class="mt-4 flex flex-wrap gap-2">
+			<a href={ templ.SafeURL(weddingURL(o.W, "/theme/preview")) } target="_blank" rel="noopener" class="ui-btn ui-btn-primary px-4 py-2.5">Lihat pratinjau ↗</a>
+			<a href={ templ.SafeURL(weddingURL(o.W, guide[0].Suffix)) } class="ui-btn ui-btn-secondary px-4 py-2.5">Lanjut lengkapi</a>
+		</div>
+		<div class="mt-5 border-t border-lovoria-border pt-4">
+			<p class="text-xs uppercase tracking-wide text-lovoria-muted">Syarat terbit</p>
+			@publishChecklist(o)
+			if o.ready() {
+				<div class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-lovoria-primary-soft px-4 py-3">
+					<p class="text-sm text-lovoria-text">Undangan sudah bisa diterbitkan kapan pun kalian siap.</p>
+					if o.W.IsPaid() {
+						<form method="post" action={ templ.SafeURL(weddingURL(o.W, "/status")) } data-confirm="Publikasikan undangan? Tamu yang punya link bisa membukanya.">
+							@layouts.CSRFField()
+							<input type="hidden" name="_method" value="PATCH"/>
+							<input type="hidden" name="status" value="published"/>
+							<button type="submit" class="ui-btn ui-btn-primary px-4 py-2.5">Publikasikan undangan</button>
+						</form>
+					} else {
+						// Belum lunas (T23): harga & pembayaran ada di halaman publikasi.
+						<a href={ templ.SafeURL(weddingURL(o.W, "/publish")) } class="ui-btn ui-btn-primary px-4 py-2.5">Publikasikan undangan</a>
+					}
+				</div>
+			} else {
+				<p class="mt-3 text-xs text-lovoria-muted">Tombol publikasi muncul setelah syarat di atas terpenuhi.</p>
+			}
+		</div>
+		@statusHistory(o)
+	}
+}
+
+templ publishChecklist(o overviewState) {
+	<ul class="mt-2 space-y-1 text-sm" aria-label="Syarat publikasi">
+		for _, it := range o.Checklist {
+			<li class={ "flex items-center gap-2", templ.KV("text-lovoria-success", it.Done), templ.KV("text-lovoria-text", !it.Done) }>
+				if it.Done {
+					<span aria-hidden="true">✓</span><span class="sr-only">Sudah:</span>
+				} else {
+					<span aria-hidden="true" class="text-lovoria-danger">✗</span><span class="sr-only">Belum:</span>
+				}
+				{ it.Label }
+				if !it.Done && it.Label == "Minimal 1 acara" {
+					<a href={ templ.SafeURL(weddingURL(o.W, "/events")) } class="text-lovoria-primary hover:underline">Tambah acara</a>
+				}
+			</li>
+		}
+	</ul>
+}
+
+templ statusHistory(o overviewState) {
+	if len(o.History) > 0 {
+		<details class="mt-3 text-sm text-lovoria-muted">
+			<summary class="cursor-pointer">Riwayat status</summary>
+			<ul class="mt-2 space-y-1">
+				for _, h := range o.History {
+					<li>{ h.At.Format("02/01/2006 15:04") } — { StatusLabel(h.From) } → { StatusLabel(h.To) } <span class="text-lovoria-muted">({ actorLabel(h.Actor) })</span></li>
+				}
+			</ul>
+		</details>
+	}
+}
+
+// liveCard: status undangan yang sudah terbit / hari H / kenangan / arsip.
+templ liveCard(o overviewState) {
 	@ui.Card() {
 		<div class="flex flex-wrap items-center justify-between gap-3">
 			<div>
 				<p class="text-xs uppercase tracking-wide text-lovoria-muted">Status undangan</p>
 				<p class="mt-1"><span class={ "rounded-full px-3 py-1 text-sm font-medium", statusBadge[o.W.Status] }>{ StatusLabel(o.W.Status) }</span></p>
 			</div>
-			if o.W.IsDraft() && !o.W.IsPaid() {
-				// Belum lunas (T23): publikasi lewat halaman harga & pembayaran.
-				<a href={ templ.SafeURL(weddingURL(o.W, "/publish")) } class="ui-btn ui-btn-primary px-4 py-2.5">Publikasikan</a>
-			} else if o.W.IsDraft() {
-				<form method="post" action={ templ.SafeURL(weddingURL(o.W, "/status")) } data-confirm="Publikasikan undangan? Tamu yang punya link bisa membukanya.">
-					@layouts.CSRFField()
-					<input type="hidden" name="_method" value="PATCH"/>
-					<input type="hidden" name="status" value="published"/>
-					<button type="submit" disabled?={ !o.ready() } class="ui-btn ui-btn-primary px-4 py-2.5 disabled:cursor-not-allowed disabled:opacity-50">Publikasikan</button>
-				</form>
-			} else if o.W.Status == StatusPublished {
+			if o.W.Status == StatusPublished {
 				<form method="post" action={ templ.SafeURL(weddingURL(o.W, "/status")) } data-confirm="Tarik publikasi? Tamu tidak bisa membuka undangan sampai dipublikasikan lagi.">
 					@layouts.CSRFField()
 					<input type="hidden" name="_method" value="PATCH"/>
@@ -572,39 +646,12 @@ templ statusCard(o overviewState) {
 				@ui.Badge(ui.Success, "Lunas ✓")
 			} else {
 				@ui.Badge(ui.Muted, "Belum dibayar")
-				<a href={ templ.SafeURL(weddingURL(o.W, "/publish")) } class="ui-link">Lihat harga &amp; bayar</a>
 			}
 		</p>
-		if o.W.IsDraft() {
-			<ul class="mt-3 space-y-1 text-sm" aria-label="Syarat publikasi">
-				for _, it := range o.Checklist {
-					<li class={ "flex items-center gap-2", templ.KV("text-lovoria-success", it.Done), templ.KV("text-lovoria-text", !it.Done) }>
-						if it.Done {
-							<span aria-hidden="true">✓</span><span class="sr-only">Sudah:</span>
-						} else {
-							<span aria-hidden="true" class="text-lovoria-danger">✗</span><span class="sr-only">Belum:</span>
-						}
-						{ it.Label }
-						if !it.Done && it.Label == "Minimal 1 acara" {
-							<a href={ templ.SafeURL(weddingURL(o.W, "/events")) } class="text-lovoria-primary hover:underline">Tambah acara</a>
-						}
-					</li>
-				}
-			</ul>
-		}
 		if o.W.ShowsMemoryLayout() {
 			@archiveVisibilityForm(o.W)
 		}
-		if len(o.History) > 0 {
-			<details class="mt-3 text-sm text-lovoria-muted">
-				<summary class="cursor-pointer">Riwayat status</summary>
-				<ul class="mt-2 space-y-1">
-					for _, h := range o.History {
-						<li>{ h.At.Format("02/01/2006 15:04") } — { StatusLabel(h.From) } → { StatusLabel(h.To) } <span class="text-lovoria-muted">({ actorLabel(h.Actor) })</span></li>
-					}
-				</ul>
-			</details>
-		}
+		@statusHistory(o)
 	}
 }
 

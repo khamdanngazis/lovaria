@@ -109,7 +109,7 @@ func (f fixture) overview(t *testing.T, user uuid.UUID, w wedding.Wedding) strin
 // checklist mengembalikan status tiap langkah onboarding di HTML ("Sudah:" / "Belum:").
 func checklist(html string) map[string]bool {
 	out := map[string]bool{}
-	for _, label := range []string{"Profil pasangan", "Acara", "Cerita cinta", "Galeri foto", "Tema", "Daftar tamu", "Publikasikan"} {
+	for _, label := range []string{"Profil pasangan", "Acara", "Cerita cinta", "Galeri foto", "Tampilan", "Daftar tamu", "Publikasikan"} {
 		switch {
 		case strings.Contains(html, "Sudah:</span> "+label) || strings.Contains(html, "Sudah:</span>"+label):
 			out[label] = true

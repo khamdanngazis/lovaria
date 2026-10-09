@@ -254,11 +254,22 @@ func TestPublishUnpublishViaHTTP(t *testing.T) {
 	w, _ := f.svc.CreateWedding(ctx, owner, validInput())
 	base := "/dashboard/weddings/" + w.ID.String()
 
-	// Belum lunas (T23): beranda menautkan ke halaman harga, dan PATCH status
-	// dialihkan ke sana tanpa mengubah status.
+	// Beranda draf (T29): mengajak pratinjau & melengkapi, tanpa status
+	// pembayaran; tombol publikasi tersembunyi sampai syarat terbit terpenuhi.
+	body := req(e, owner, http.MethodGet, base, nil, false).Body.String()
+	for _, want := range []string{"Undangan kalian masih draf", "bayar hanya saat undangan diterbitkan", `href="` + base + `/theme/preview"`, "Lanjut lengkapi", "Tombol publikasi muncul setelah syarat"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("beranda draf tidak memuat %q", want)
+		}
+	}
+	if strings.Contains(body, "Belum dibayar") || strings.Contains(body, "Publikasikan undangan") || strings.Contains(body, `href="`+base+`/publish"`) || strings.Contains(body, "disabled") {
+		t.Error("draf belum siap: tanpa status bayar & tanpa tombol publikasi (juga bukan tombol nonaktif)")
+	}
+	// Syarat terpenuhi, belum lunas (T23): tombol publikasi menuju halaman harga,
+	// dan PATCH status dialihkan ke sana tanpa mengubah status.
 	f.svc.SetEventCounter(countEvents(1))
-	if body := req(e, owner, http.MethodGet, base, nil, false).Body.String(); !strings.Contains(body, "Belum dibayar") || !strings.Contains(body, `href="`+base+`/publish"`) {
-		t.Error("draf belum lunas: status pembayaran & tautan publikasi")
+	if body := req(e, owner, http.MethodGet, base, nil, false).Body.String(); !strings.Contains(body, `href="`+base+`/publish" class="ui-btn ui-btn-primary`) || !strings.Contains(body, "Publikasikan undangan") || strings.Contains(body, "Belum dibayar") {
+		t.Error("draf siap & belum lunas: tombol publikasi ke halaman harga")
 	}
 	rec := req(e, owner, http.MethodPost, base+"/status", url.Values{"_method": {"PATCH"}, "status": {"published"}}, false)
 	if rec.Code != http.StatusSeeOther || rec.Header().Get("Location") != base+"/publish" || f.status(t, w.ID) != StatusDraft {
@@ -269,11 +280,12 @@ func TestPublishUnpublishViaHTTP(t *testing.T) {
 		t.Error("setelah lunas: badge Lunas")
 	}
 
-	// Checklist kurang (belum ada acara) → tombol nonaktif & PATCH ditolak 422.
+	// Checklist kurang (belum ada acara) → tombol publikasi disembunyikan (T29:
+	// bukan dinonaktifkan) & PATCH ditolak 422.
 	f.svc.SetEventCounter(countEvents(0))
 	rec = req(e, owner, http.MethodGet, base, nil, false)
-	if !strings.Contains(rec.Body.String(), "Minimal 1 acara") || !strings.Contains(rec.Body.String(), "disabled") {
-		t.Errorf("checklist tidak tampil")
+	if b := rec.Body.String(); !strings.Contains(b, "Minimal 1 acara") || strings.Contains(b, "Publikasikan undangan") || strings.Contains(b, `name="status" value="published"`) {
+		t.Errorf("checklist kurang: syarat tampil, tombol publikasi tersembunyi")
 	}
 	rec = req(e, owner, http.MethodPost, base+"/status", url.Values{"_method": {"PATCH"}, "status": {"published"}}, false)
 	if rec.Code != http.StatusUnprocessableEntity || !strings.Contains(rec.Body.String(), "belum bisa dipublikasikan: Minimal 1 acara") {

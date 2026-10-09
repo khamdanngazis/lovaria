@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### T29 (bagian 3) — Beranda undangan draf tanpa kesan "bayar dulu"
+- Beranda draf kini dibuka dengan **Lihat pratinjau** dan **Lanjut lengkapi**, serta kalimat "Gratis dibuat dan dipratinjau — bayar hanya saat undangan diterbitkan."
+- Status "Belum dibayar" dan tautan harga tidak lagi tampil di draf. Tombol **Publikasikan undangan** disembunyikan (bukan dinonaktifkan) sampai syarat terbit terpenuhi; harga baru muncul di halaman publikasi.
+- Langkah "Tema" di checklist beranda menjadi "Tampilan" (temanya sudah dipilih di awal); halaman publikasi menautkan pratinjau.
+
 ### T29 (bagian 2) — Langkah terpandu melengkapi undangan
 - Selama undangan masih draf, halaman Mempelai, Acara, Cerita, Galeri, Tampilan, dan Tamu menampilkan pita langkah ("langkah 2 dari 6") dengan tombol **Lihat pratinjau**, serta tombol **Lanjut** ke langkah berikutnya di bawah halaman.
 - Tidak ada langkah yang wajib: semuanya boleh dilewati, dan menu lain tetap bisa dibuka kapan saja. Setelah undangan terbit, panduan hilang.

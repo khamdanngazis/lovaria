@@ -218,7 +218,6 @@ func (h *Handler) Overview(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	o.Welcome = c.QueryParam("welcome") == "1"
 	switch c.QueryParam("status") {
 	case StatusPublished:
 		o.Notice = "Undangan dipublikasikan. Bagikan link ke tamu dari menu Tamu."

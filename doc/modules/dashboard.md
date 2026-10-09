@@ -72,3 +72,7 @@ Tujuan setelah daftar/masuk dibawa parameter `next` (divalidasi `safeNext`, hany
 ### Langkah terpandu (T29 bagian 2)
 
 `wedding.Shell` menampilkan pita langkah (`guideSteps`) dan navigasi bawah (`guideNext`) bila undangan masih draf **dan** halaman aktif termasuk urutan `guide` (Mempelai → Acara → Cerita → Galeri → Tampilan → Tamu). Karena dipasang di Shell, modul lain tidak perlu diubah — cukup tetap memanggil `Shell(w, "<akhiran>")`. Menambah/mengurutkan langkah = mengubah slice `guide` di `wedding/views.templ`. Panduan tidak menyimpan state: "Lanjut" hanyalah tautan ke langkah berikutnya, jadi semua langkah bebas dilewati.
+
+### Beranda draf (T29 bagian 3)
+
+`wedding.statusCard` memilih `draftCard` (draf) atau `liveCard` (terbit dan seterusnya). `draftCard` menonjolkan pratinjau & melengkapi, menampilkan syarat terbit (`Service.Checklist`), dan **baru menampilkan** tombol "Publikasikan undangan" setelah semua syarat terpenuhi (`overviewState.ready`) — belum lunas → tautan ke `/publish` (harga & bayar), sudah lunas → form publikasi. Status pembayaran tidak ditampilkan di draf yang belum lunas. Server tetap menolak publikasi yang belum memenuhi syarat atau belum lunas, terlepas dari tombol.

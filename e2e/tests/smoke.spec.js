@@ -61,8 +61,11 @@ test('alur utama pasangan & tamu', async ({ page, browser }) => {
   // 6. Publikasikan (T23): belum lunas → halaman harga → bayar (gateway
   // simulasi, PAYMENT_GATEWAY=fake) → lunas → publikasikan.
   await page.goto(dash);
-  await expect(page.getByText('Belum dibayar')).toBeVisible();
-  await page.getByRole('link', { name: 'Publikasikan', exact: true }).click();
+  // Beranda draf (T29): tanpa status bayar; tombol publikasi muncul karena
+  // syarat terbit (acara) sudah terpenuhi.
+  await expect(page.getByText('Undangan kalian masih draf')).toBeVisible();
+  await expect(page.getByText('Belum dibayar')).toHaveCount(0);
+  await page.getByRole('link', { name: 'Publikasikan undangan' }).click();
   await expect(page.getByText('Rp149.000')).toBeVisible();
   // Sebelum dibayar undangan belum bisa dibuka publik.
   const slugLink = await page.locator('a[href^="/w/"]').first().getAttribute('href');
