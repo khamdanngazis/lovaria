@@ -134,7 +134,7 @@ func (h *Home) load(ctx context.Context, w wedding.Wedding) (homeData, error) {
 		{"Acara", "Akad, resepsi, dan lokasinya", w.DashboardURL("/events"), events > 0},
 		{"Cerita cinta", "Perjalanan kalian berdua", w.DashboardURL("/stories"), len(stories) > 0},
 		{"Galeri foto", "Foto prewedding & momen favorit", w.DashboardURL("/gallery"), d.Gallery.Count > 0},
-		{"Tema", "Pilih tampilan undangan", w.DashboardURL("/theme"), themed},
+		{"Tampilan", "Sesuaikan warna, huruf, foto sampul, dan musik", w.DashboardURL("/theme"), themed},
 		{"Daftar tamu", "Tambah tamu untuk link undangan pribadi", w.DashboardURL("/guests"), d.Guests.Total > 0},
 		{"Publikasikan", "Terbitkan saat semua siap", w.DashboardURL(""), !w.IsDraft()},
 	}

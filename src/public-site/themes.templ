@@ -1,6 +1,7 @@
 package publicsite
 
 import (
+	"net/url"
 	"strings"
 
 	"github.com/khamdanngazis/lovaria/src/modules/payment"
@@ -25,6 +26,12 @@ func themeMetaTitle(t landingTheme) string {
 		return "Undangan Pernikahan Digital Adat " + t.Region + " — Tema " + t.Name
 	}
 	return "Tema " + t.Name + " — Undangan Pernikahan Digital"
+}
+
+// useThemeURL: daftar (atau langsung ke wizard bila sudah masuk) dengan tema
+// ini sudah terpilih (T29).
+func useThemeURL(t landingTheme) string {
+	return "/register?next=" + url.QueryEscape("/dashboard/weddings/new?tema="+t.ID)
 }
 
 func siteBase(d landingData) string { return strings.TrimSuffix(d.URL, "/") }
@@ -188,7 +195,7 @@ templ themeDetailPage(d landingData, t landingTheme) {
 							</div>
 						</dl>
 						<div class="mt-8 flex flex-wrap gap-3">
-							<a href="/register" class={ btnPrimary }>Pakai tema ini</a>
+							<a href={ templ.SafeURL(useThemeURL(t)) } class={ btnPrimary }>Pakai tema ini</a>
 							if t.DemoURL != "" {
 								<a href={ templ.SafeURL(t.DemoURL) } class={ btnSecondary }>Lihat contoh undangan ↗</a>
 							}

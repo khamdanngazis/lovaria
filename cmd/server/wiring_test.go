@@ -76,9 +76,13 @@ func TestWiring(t *testing.T) {
 	if resp.StatusCode != http.StatusSeeOther || !strings.HasPrefix(loc.Path, "/dashboard/weddings/") {
 		t.Fatalf("create wedding: %d %s", resp.StatusCode, loc)
 	}
-	wpath := loc.Path
+	// Wizard (T29) mendarat di halaman pratinjau pertama: …/<id>/start.
+	if !strings.HasSuffix(loc.Path, "/start") {
+		t.Fatalf("create wedding harus mendarat di /start: %s", loc)
+	}
+	wpath := strings.TrimSuffix(loc.Path, "/start")
 
-	for _, p := range []string{"", "/info", "/couple", "/events", "/stories", "/gallery"} {
+	for _, p := range []string{"", "/start", "/theme/preview", "/info", "/couple", "/events", "/stories", "/gallery"} {
 		if resp := do(http.MethodGet, wpath+p, "", nil, ""); resp.StatusCode != http.StatusOK {
 			t.Errorf("GET %s%s: %d", wpath, p, resp.StatusCode)
 		}

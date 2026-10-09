@@ -15,16 +15,21 @@ test('alur utama pasangan & tamu', async ({ page, browser }) => {
   await page.locator('#register-password_confirmation').fill('password-e2e-123');
   await page.getByRole('button', { name: /daftar/i }).click();
 
-  // 2. Wizard 3 langkah → beranda wedding
+  // 2. Wizard (T29): pilih tema → nama & tanggal → pratinjau pertama
   await expect(page).toHaveURL(/\/dashboard\/weddings\/new/);
+  await expect(page.getByText('Pilih tema undangan')).toBeVisible();
+  await page.locator('label:has(input[value="elegant"])').click();
+  await page.getByRole('button', { name: 'Lanjut' }).click();
   await page.locator('#wedding-groom-name').fill('Budi');
   await page.locator('#wedding-bride-name').fill('Sari');
-  await page.getByRole('button', { name: 'Lanjut' }).click();
-  await page.locator('#wedding-title').fill('Pernikahan Budi & Sari');
   const nextYear = new Date().getFullYear() + 1;
   await page.locator('#wedding-date').fill(`${nextYear}-06-06`);
-  await page.getByRole('button', { name: 'Lanjut' }).click();
-  await page.getByRole('button', { name: /Selesai/ }).click();
+  await page.getByRole('button', { name: /Buat & lihat undangan/ }).click();
+  await expect(page).toHaveURL(/\/dashboard\/weddings\/[0-9a-f-]{36}\/start$/);
+  await expect(page.getByRole('heading', { name: 'Undangan kalian sudah jadi' })).toBeVisible();
+  // Pratinjau memakai tema pilihan dengan nama pasangan.
+  await expect(page.frameLocator('iframe[title="Pratinjau undangan"]').locator('h1')).toContainText('Budi');
+  await page.getByRole('link', { name: 'Ke beranda undangan' }).click();
   await expect(page).toHaveURL(/\/dashboard\/weddings\/[0-9a-f-]{36}(\?.*)?$/);
   const dash = new URL(page.url()).pathname;
 
@@ -56,8 +61,11 @@ test('alur utama pasangan & tamu', async ({ page, browser }) => {
   // 6. Publikasikan (T23): belum lunas → halaman harga → bayar (gateway
   // simulasi, PAYMENT_GATEWAY=fake) → lunas → publikasikan.
   await page.goto(dash);
-  await expect(page.getByText('Belum dibayar')).toBeVisible();
-  await page.getByRole('link', { name: 'Publikasikan', exact: true }).click();
+  // Beranda draf (T29): tanpa status bayar; tombol publikasi muncul karena
+  // syarat terbit (acara) sudah terpenuhi.
+  await expect(page.getByText('Undangan kalian masih draf')).toBeVisible();
+  await expect(page.getByText('Belum dibayar')).toHaveCount(0);
+  await page.getByRole('link', { name: 'Publikasikan undangan' }).click();
   await expect(page.getByText('Rp149.000')).toBeVisible();
   // Sebelum dibayar undangan belum bisa dibuka publik.
   const slugLink = await page.locator('a[href^="/w/"]').first().getAttribute('href');

@@ -107,6 +107,7 @@ templ offerCard(s publishState) {
 		</p>
 		<h2 class="mt-3 font-display text-3xl text-lovoria-deep">Siap dibagikan ke tamu?</h2>
 		<p class="mt-2 text-sm text-lovoria-muted">Membuat, mengubah, dan melihat pratinjau undangan tetap gratis. Pembayaran hanya sekali, saat undangan dipublikasikan.</p>
+		<p class="mt-2 text-sm"><a href={ templ.SafeURL(s.W.DashboardURL("/theme/preview")) } target="_blank" rel="noopener" class="ui-link">Lihat pratinjau sekali lagi ↗</a></p>
 		<div class="mt-6 flex flex-wrap items-end gap-x-3 gap-y-1 border-y border-lovoria-border py-5">
 			<p class="font-display text-5xl leading-none text-lovoria-primary">{ Rupiah(s.Price) }</p>
 			<p class="pb-1 text-sm text-lovoria-muted">sekali bayar per undangan · tanpa langganan</p>

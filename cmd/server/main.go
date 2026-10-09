@@ -392,7 +392,29 @@ func (a *app) routes() *echo.Echo {
 
 	dash := e.Group("/dashboard", server.NoStore, authMW.RequireAuth)
 	dashboard.Register(dash, dashboard.Deps{Weddings: a.weddings})
-	owned := wedding.Register(dash.Group("/weddings"), wedding.Deps{Service: a.weddings, ArchiveDays: cfg.ArchiveAfterDays, Home: home.Widgets})
+	// Wizard (T29): langkah pertama memilih tema — tema aktif beserta undangan
+	// contohnya (bila sudah di-seed dan masih terbit).
+	wizardThemes := func(ctx context.Context) ([]wedding.ThemeChoice, error) {
+		defs, err := themes.Choices(ctx, "")
+		if err != nil {
+			return nil, err
+		}
+		out := make([]wedding.ThemeChoice, 0, len(defs))
+		for _, d := range defs {
+			tc := wedding.ThemeChoice{
+				ID: d.ID, Name: d.Name, Description: d.Description, Region: d.Region, Thumb: d.Thumb(),
+				Primary: d.Tokens.Primary, Surface: d.Tokens.Surface, Featured: d.Featured(),
+			}
+			if demo, err := a.weddings.GetWeddingBySlug(ctx, publicsite.DemoSlug(d.ID)); err == nil && demo.IsPublic() {
+				tc.DemoURL = "/w/" + demo.Slug
+			} else if err != nil && !errors.Is(err, wedding.ErrNotFound) {
+				return nil, err
+			}
+			out = append(out, tc)
+		}
+		return out, nil
+	}
+	owned := wedding.Register(dash.Group("/weddings"), wedding.Deps{Service: a.weddings, ArchiveDays: cfg.ArchiveAfterDays, Home: home.Widgets, Themes: wizardThemes})
 	event.Register(owned, event.Deps{Service: events})
 	story.Register(owned, story.Deps{Service: stories})
 	gallery.Register(owned, gallery.Deps{Service: photos, Weddings: a.weddings})

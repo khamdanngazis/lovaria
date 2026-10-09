@@ -8,6 +8,9 @@ type Deps struct {
 	ArchiveDays int
 	// Home: widget beranda wedding dari paket dashboard (T13); boleh nil.
 	Home HomeWidgets
+	// Themes: pilihan tema untuk langkah pertama wizard (T29), disediakan modul
+	// theme; nil → wizard tanpa langkah tema (tema bawaan).
+	Themes ThemeChoices
 }
 
 // Register memasang route dashboard wedding pada group /dashboard/weddings
@@ -16,6 +19,7 @@ type Deps struct {
 func Register(g *echo.Group, deps Deps) *echo.Group {
 	h := NewHandler(deps.Service)
 	h.home = deps.Home
+	h.themes = deps.Themes
 	if deps.ArchiveDays > 0 {
 		h.archiveDays = deps.ArchiveDays
 	}
@@ -27,6 +31,7 @@ func Register(g *echo.Group, deps Deps) *echo.Group {
 
 	w := OwnerGroup(g, deps.Service)
 	w.GET("", h.Overview)
+	w.GET("/start", h.Start)
 	w.GET("/info", h.InfoPage)
 	w.PATCH("/info", h.UpdateInfo)
 	w.GET("/couple", h.CouplePage)
