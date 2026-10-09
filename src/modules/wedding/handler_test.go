@@ -359,3 +359,37 @@ func TestArchiveVisibilityViaHTTP(t *testing.T) {
 		t.Errorf("setelah percobaan bob: %q", got.ArchiveVisibility)
 	}
 }
+
+// T29: selama draf, halaman isi undangan menampilkan langkah terpandu (bebas
+// dilewati); setelah terbit panduan hilang. Halaman di luar panduan tidak
+// menampilkannya.
+func TestGuidedStepsOnDraft(t *testing.T) {
+	f := newFixture(t)
+	e := newTestServer(t, f)
+	owner := f.user(t, "a@example.com")
+	w, _ := f.svc.CreateWedding(ctx, owner, validInput())
+	base := "/dashboard/weddings/" + w.ID.String()
+
+	body := req(e, owner, http.MethodGet, base+"/couple", nil, false).Body.String()
+	for _, want := range []string{
+		"Lengkapi undangan", "langkah 1 dari 6", `aria-current="step"`, `href="` + base + `/theme/preview"`,
+		`href="` + base + `/events" class="ui-btn ui-btn-primary`, "Lanjut: Acara", "Boleh dilewati", `href="` + base + `/start"`,
+	} {
+		if !strings.Contains(body, want) {
+			t.Errorf("halaman mempelai (draf) tidak memuat %q", want)
+		}
+	}
+	// Halaman di luar panduan (info) tanpa pita langkah.
+	if b := req(e, owner, http.MethodGet, base+"/info", nil, false).Body.String(); strings.Contains(b, "Lengkapi undangan") {
+		t.Error("halaman info bukan langkah panduan")
+	}
+	// Setelah terbit: panduan hilang.
+	f.svc.SetEventCounter(countEvents(1))
+	f.paid(t, w.ID)
+	if _, err := f.svc.Transition(ctx, w.ID, StatusPublished, Actor{Kind: ActorUser, UserID: owner}); err != nil {
+		t.Fatal(err)
+	}
+	if b := req(e, owner, http.MethodGet, base+"/couple", nil, false).Body.String(); strings.Contains(b, "Lengkapi undangan") || strings.Contains(b, "Lanjut: Acara") {
+		t.Error("undangan terbit tidak menampilkan panduan")
+	}
+}

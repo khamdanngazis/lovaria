@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### T29 (bagian 2) — Langkah terpandu melengkapi undangan
+- Selama undangan masih draf, halaman Mempelai, Acara, Cerita, Galeri, Tampilan, dan Tamu menampilkan pita langkah ("langkah 2 dari 6") dengan tombol **Lihat pratinjau**, serta tombol **Lanjut** ke langkah berikutnya di bawah halaman.
+- Tidak ada langkah yang wajib: semuanya boleh dilewati, dan menu lain tetap bisa dibuka kapan saja. Setelah undangan terbit, panduan hilang.
+
 ### T29 (bagian 1) — Buat undangan: pilih tema dulu, langsung lihat hasilnya
 - Wizard baru dua langkah: **pilih tema** (galeri thumbnail, koleksi utama & Koleksi Daerah, tautan "Lihat contoh") lalu **nama mempelai & tanggal**. Judul dan alamat undangan dibuat otomatis dan bisa diubah nanti.
 - Setelah itu pasangan langsung melihat **pratinjau undangannya** dengan tema pilihan dan nama mereka (bagian kosong diisi contoh), dengan ajakan melengkapi — tanpa harga atau tombol terbit.

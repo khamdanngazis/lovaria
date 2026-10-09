@@ -68,3 +68,7 @@ Menu baru ditambahkan di `navGroups` (dan `bottomNav` bila perlu pintasan) di `s
 3. **Pratinjau pertama**: `/dashboard/weddings/:id/start` — iframe `…/theme/preview` (bagian kosong diisi contoh) + ajakan melengkapi. Tidak menampilkan harga atau tombol terbit.
 
 Tujuan setelah daftar/masuk dibawa parameter `next` (divalidasi `safeNext`, hanya path di situs sendiri) di form daftar, form masuk, dan tautan di antara keduanya.
+
+### Langkah terpandu (T29 bagian 2)
+
+`wedding.Shell` menampilkan pita langkah (`guideSteps`) dan navigasi bawah (`guideNext`) bila undangan masih draf **dan** halaman aktif termasuk urutan `guide` (Mempelai → Acara → Cerita → Galeri → Tampilan → Tamu). Karena dipasang di Shell, modul lain tidak perlu diubah — cukup tetap memanggil `Shell(w, "<akhiran>")`. Menambah/mengurutkan langkah = mengubah slice `guide` di `wedding/views.templ`. Panduan tidak menyimpan state: "Lanjut" hanyalah tautan ke langkah berikutnya, jadi semua langkah bebas dilewati.

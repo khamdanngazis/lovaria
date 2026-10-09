@@ -333,13 +333,92 @@ templ Shell(w Wedding, active string) {
 			<div class="min-w-0 pb-24 lg:pb-0">
 				<p class="text-sm text-lovoria-muted"><a href="/dashboard/weddings" class="hover:underline">Wedding saya</a></p>
 				<h1 class="mt-1 break-words font-display text-2xl leading-tight text-lovoria-deep sm:text-3xl">{ w.Title }</h1>
+				if guideIndex(w, active) >= 0 {
+					@guideSteps(w, active)
+				}
 				<div class="mt-6">
 					{ children... }
 				</div>
+				if guideIndex(w, active) >= 0 {
+					@guideNext(w, active)
+				}
 			</div>
 		</div>
 		@bottomBar(w, active)
 	}
+}
+
+// ---------- Langkah terpandu melengkapi undangan (T29) ----------
+
+// guide: urutan melengkapi undangan selama masih draf. Hanya panduan — tiap
+// langkah bebas dilewati dan semua menu tetap bisa dibuka kapan saja.
+var guide = []navItem{
+	{"/couple", "Mempelai", ""}, {"/events", "Acara", ""}, {"/stories", "Cerita", ""},
+	{"/gallery", "Galeri", ""}, {"/theme", "Tampilan", ""}, {"/guests", "Tamu", ""},
+}
+
+// guideIndex: posisi halaman aktif dalam panduan; -1 bila bukan langkah panduan
+// atau undangan sudah bukan draf (panduan hilang setelah terbit).
+func guideIndex(w Wedding, active string) int {
+	if !w.IsDraft() {
+		return -1
+	}
+	for i, g := range guide {
+		if g.Suffix == active {
+			return i
+		}
+	}
+	return -1
+}
+
+// guideSteps: pita langkah di atas halaman + tombol pratinjau.
+templ guideSteps(w Wedding, active string) {
+	<nav aria-label="Langkah melengkapi undangan" class="mt-5 rounded-2xl border border-lovoria-border bg-lovoria-surface p-3 sm:p-4">
+		<div class="flex items-center justify-between gap-3">
+			<p class="text-sm font-medium text-lovoria-deep">
+				Lengkapi undangan
+				<span class="font-normal text-lovoria-muted">· langkah { fmt.Sprint(guideIndex(w, active) + 1) } dari { fmt.Sprint(len(guide)) }</span>
+			</p>
+			<a href={ templ.SafeURL(weddingURL(w, "/theme/preview")) } target="_blank" rel="noopener" class="flex-none text-sm font-medium text-lovoria-primary hover:underline">Lihat pratinjau ↗</a>
+		</div>
+		<ol class="scrollbar-none -mx-1 mt-3 flex gap-1.5 overflow-x-auto px-1 pb-0.5 text-sm">
+			for i, g := range guide {
+				<li class="flex-none">
+					<a
+						href={ templ.SafeURL(weddingURL(w, g.Suffix)) }
+						class={ "flex items-center gap-1.5 rounded-full border px-3 py-1.5", templ.KV("border-lovoria-primary bg-lovoria-primary text-white", g.Suffix == active), templ.KV("border-lovoria-border text-lovoria-muted hover:border-lovoria-primary hover:text-lovoria-primary", g.Suffix != active) }
+						if g.Suffix == active {
+							aria-current="step"
+						}
+					>
+						<span class="text-xs opacity-80">{ fmt.Sprint(i + 1) }</span>
+						{ g.Label }
+					</a>
+				</li>
+			}
+		</ol>
+	</nav>
+}
+
+// guideNext: navigasi di bawah halaman — kembali, dan lanjut ke langkah berikut
+// (atau selesai di langkah terakhir). Lanjut = lewati: tidak ada yang wajib.
+templ guideNext(w Wedding, active string) {
+	{{ i := guideIndex(w, active) }}
+	<div class="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-lovoria-border pt-5">
+		if i > 0 {
+			<a href={ templ.SafeURL(weddingURL(w, guide[i-1].Suffix)) } class="ui-btn ui-btn-ghost px-3 py-2 text-sm">← { guide[i-1].Label }</a>
+		} else {
+			<a href={ templ.SafeURL(weddingURL(w, "/start")) } class="ui-btn ui-btn-ghost px-3 py-2 text-sm">← Pratinjau awal</a>
+		}
+		<div class="flex flex-wrap items-center justify-end gap-3">
+			<p class="text-xs text-lovoria-muted">Boleh dilewati — bisa diisi kapan saja.</p>
+			if i < len(guide)-1 {
+				<a href={ templ.SafeURL(weddingURL(w, guide[i+1].Suffix)) } class="ui-btn ui-btn-primary px-4 py-2.5 text-sm">Lanjut: { guide[i+1].Label } →</a>
+			} else {
+				<a href={ templ.SafeURL(weddingURL(w, "")) } class="ui-btn ui-btn-primary px-4 py-2.5 text-sm">Selesai — lihat ringkasan →</a>
+			}
+		</div>
+	</div>
 }
 
 func inBottomNav(active string) bool {
