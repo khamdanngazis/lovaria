@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Perbaikan — pembayaran DANA tertahan di "Menunggu konfirmasi"
+- Untuk sebagian metode (ditemukan pada DANA), Midtrans hanya mengenali transaksi di API status lewat ID transaksinya; pengecekan ulang dengan nomor order dijawab "transaksi tidak ada", sehingga webhook lunas yang sah ditolak dan order tetap menunggu. Konfirmasi kini mencoba ulang dengan ID transaksi dari webhook, baik saat webhook masuk maupun saat halaman status memeriksa ulang.
+
 ### T28 — Koleksi Daerah: lima tema bernuansa adat
 - Lima tema baru yang terinspirasi budaya daerah dengan rasa modern: **Javanese Heritage** (batik kawung, sogan), **Sundanese Romance** (pucuk daun, perbukitan Priangan, sage), **Minang Heritage** (gonjong, songket, marun & emas), **Balinese Elegance** (gapura berundak, kamboja, terakota), **Bugis Royal** (lipa sabbe, sulapa eppa, merah anggur & emas).
 - Motif hanya sebagai pita, bingkai, dan detail; tiap tema punya sampul, ornamen, bentuk foto, warna, dan huruf sendiri.
