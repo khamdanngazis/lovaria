@@ -23,6 +23,20 @@ type pageState struct {
 
 func pageURL(w wedding.Wedding) string { return w.DashboardURL("/theme") }
 
+// currentTheme: tema yang sedang terpilih di form (ringkasan pemilih tema).
+func currentTheme(s pageState) ThemeDef {
+	for _, d := range s.Themes {
+		if d.ID == s.ThemeID {
+			return d
+		}
+	}
+	d, _ := Get(DefaultID)
+	return d
+}
+
+func currentThemeName(s pageState) string  { return currentTheme(s).Name }
+func currentThemeThumb(s pageState) string { return currentTheme(s).Thumb() }
+
 // headingFonts: font judul default semua tema (untuk contoh di kartu tema).
 func headingFonts() []string {
 	var out []string
@@ -75,37 +89,57 @@ templ page(s pageState) {
 					if len(s.Errors) > 0 {
 						@ui.Alert("Periksa kembali pengaturan yang ditandai.")
 					}
-					<fieldset>
-						<legend class="text-lg font-semibold">Pilih tema</legend>
+					// Pemilih tema diringkas (tema sudah dipilih saat membuat undangan):
+					// satu baris "Tema: … · Ganti tema"; galeri terbuka saat ditekan dan
+					// menutup lagi setelah memilih. Radio di dalam <details> tertutup
+					// tetap ikut terkirim, dan tanpa JS tetap bisa dibuka.
+					<details
+						class="group rounded-2xl border border-lovoria-border bg-lovoria-surface"
+						x-data={ templ.JSFuncCall("themeChoice", currentThemeName(s), currentThemeThumb(s)).CallInline }
 						if s.Errors["theme_id"] != "" {
-							<p role="alert" class="mt-1 text-sm text-lovoria-danger">{ s.Errors["theme_id"] }</p>
+							open
 						}
-						<div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-							for _, d := range s.Themes {
-								<label class="block cursor-pointer">
-									<input type="radio" name="theme_id" value={ d.ID } checked?={ d.ID == s.ThemeID } class="peer sr-only"/>
-									<span class="block overflow-hidden rounded-2xl bg-lovoria-surface ring-1 ring-lovoria-border transition peer-checked:ring-4 peer-checked:ring-lovoria-primary peer-focus-visible:ring-4">
-										if d.Thumb() != "" {
-											<img src={ d.Thumb() } alt="" width="600" height="750" loading="lazy" decoding="async" class="aspect-[4/5] w-full object-cover object-top"/>
-										} else {
-											<span class="flex h-20 items-center justify-center text-2xl" style={ "background:" + d.Tokens.Surface + ";color:" + d.Tokens.Primary + ";font-family:" + d.Tokens.FontHeading }>A &amp; B</span>
-										}
-										<span class="flex h-2">
-											<span class="flex-1" style={ "background:" + d.Tokens.Primary }></span>
-											<span class="flex-1" style={ "background:" + d.Tokens.Ink }></span>
-										</span>
-										<span class="block p-2">
-											if d.Featured() {
-												<span class="mb-1 inline-block whitespace-nowrap rounded-full bg-lovoria-primary-soft px-1.5 py-0.5 text-[10px] font-medium text-lovoria-primary">Pilihan Lunovia</span>
-											}
-											<span class="block text-sm font-semibold">{ d.Name }</span>
-											<span class="block text-xs text-lovoria-muted">{ d.Description }</span>
-										</span>
-									</span>
-								</label>
+					>
+						<summary class="flex cursor-pointer list-none items-center gap-3 p-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lovoria-primary sm:p-4 [&::-webkit-details-marker]:hidden">
+							if currentThemeThumb(s) != "" {
+								<img src={ currentThemeThumb(s) } :src="thumb" alt="" width="48" height="60" class="h-14 w-11 flex-none rounded-lg object-cover object-top ring-1 ring-lovoria-border"/>
 							}
-						</div>
-					</fieldset>
+							<span class="min-w-0 flex-1">
+								<span class="block text-xs uppercase tracking-wide text-lovoria-muted">Tema undangan</span>
+								<span class="block truncate font-semibold text-lovoria-deep" x-text="name">{ currentThemeName(s) }</span>
+							</span>
+							<span class="ui-btn ui-btn-secondary flex-none px-3 py-2 text-sm">
+								<span class="group-open:hidden">Ganti tema</span>
+								<span class="hidden group-open:inline">Tutup</span>
+							</span>
+						</summary>
+						<fieldset class="border-t border-lovoria-border p-3 sm:p-4">
+							<legend class="sr-only">Pilih tema</legend>
+							if s.Errors["theme_id"] != "" {
+								<p role="alert" class="mb-2 text-sm text-lovoria-danger">{ s.Errors["theme_id"] }</p>
+							}
+							<div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+								for _, d := range s.Themes {
+									<label class="block cursor-pointer">
+										<input type="radio" name="theme_id" value={ d.ID } checked?={ d.ID == s.ThemeID } data-name={ d.Name } data-thumb={ d.Thumb() } @change="pick($event.target)" class="peer sr-only"/>
+										<span class="block overflow-hidden rounded-2xl bg-lovoria-surface ring-1 ring-lovoria-border transition peer-checked:ring-4 peer-checked:ring-lovoria-primary peer-focus-visible:ring-4">
+											if d.Thumb() != "" {
+												<img src={ d.Thumb() } alt="" width="600" height="750" loading="lazy" decoding="async" class="aspect-[4/5] w-full object-cover object-top"/>
+											} else {
+												<span class="flex h-20 items-center justify-center text-2xl" style={ "background:" + d.Tokens.Surface + ";color:" + d.Tokens.Primary + ";font-family:" + d.Tokens.FontHeading }>A &amp; B</span>
+											}
+											<span class="block p-2">
+												if d.Featured() {
+													<span class="mb-1 inline-block whitespace-nowrap rounded-full bg-lovoria-primary-soft px-1.5 py-0.5 text-[10px] font-medium text-lovoria-primary">Pilihan Lunovia</span>
+												}
+												<span class="block text-sm font-semibold">{ d.Name }</span>
+											</span>
+										</span>
+									</label>
+								}
+							</div>
+						</fieldset>
+					</details>
 					@ui.Card() {
 						<h2 class="font-semibold">Sesuaikan</h2>
 						<p class="text-sm text-lovoria-muted">Kosongkan untuk memakai bawaan tema.</p>

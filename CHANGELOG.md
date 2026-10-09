@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Halaman Tampilan lebih ringkas
+- Pemilih tema di halaman Tampilan diringkas menjadi satu baris ("Tema undangan: … · Ganti tema"); galeri tema baru terbuka saat ditekan dan menutup lagi setelah memilih. Pengaturan warna, huruf, kutipan, dan musik kini langsung terlihat tanpa menggulir jauh, terutama di ponsel.
+
 ### T29 (bagian 3) — Beranda undangan draf tanpa kesan "bayar dulu"
 - Beranda draf kini dibuka dengan **Lihat pratinjau** dan **Lanjut lengkapi**, serta kalimat "Gratis dibuat dan dipratinjau — bayar hanya saat undangan diterbitkan."
 - Status "Belum dibayar" dan tautan harga tidak lagi tampil di draf. Tombol **Publikasikan undangan** disembunyikan (bukan dinonaktifkan) sampai syarat terbit terpenuhi; harga baru muncul di halaman publikasi.
