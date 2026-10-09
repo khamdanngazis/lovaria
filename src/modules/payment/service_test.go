@@ -513,3 +513,65 @@ func TestFakeCheckoutPages(t *testing.T) {
 		t.Errorf("simulasi dengan gateway sungguhan: %d", rec.Code)
 	}
 }
+
+// txOnlyGateway meniru perilaku Midtrans untuk DANA: API status tidak mengenal
+// nomor order ("Transaction doesn't exist"), hanya ID transaksi — dan jawabannya
+// memuat ID transaksi itu sebagai order_id.
+type txOnlyGateway struct{ *Fake }
+
+func (g txOnlyGateway) FetchStatus(_ context.Context, ref string) (Notification, bool, error) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	for _, n := range g.status {
+		if n.TransactionID != "" && n.TransactionID == ref {
+			n.OrderNumber = ref
+			return n, true, nil
+		}
+	}
+	return Notification{}, false, nil
+}
+
+// Regresi (produksi, 9 Okt 2026): pembayaran DANA lunas di Midtrans tetapi
+// order tertahan "menunggu" karena cek ulang status dengan nomor order dijawab
+// 404. Konfirmasi kini mencoba ulang dengan ID transaksi dari webhook.
+func TestPaidConfirmedByTransactionID(t *testing.T) {
+	f := newFixture(t)
+	f.svc.gw = txOnlyGateway{f.fake}
+	user, w := f.newWedding(t, "dana@example.com")
+	o := f.order(t, w, user)
+
+	// Webhook "pending" menyimpan ID transaksi; lalu pembayaran lunas di gateway
+	// tetapi webhook lunasnya tidak sampai → halaman status (Refresh) tetap
+	// menemukan statusnya lewat ID transaksi.
+	if _, err := f.svc.HandleNotification(ctx, f.fake.Notify(o.Number, StatusPending, price, f.now)); err != nil {
+		t.Fatalf("webhook pending: %v", err)
+	}
+	f.fake.Notify(o.Number, StatusPaid, price, f.now)
+	if err := f.svc.Refresh(ctx, w.ID); err != nil {
+		t.Fatalf("refresh: %v", err)
+	}
+	if !f.wedding(t, w.ID).IsPaid() {
+		t.Fatal("refresh: order lunas di gateway harus menandai wedding lunas")
+	}
+
+	// Webhook lunas langsung: dikonfirmasi lewat ID transaksi, bukan ditolak.
+	user2, w2 := f.newWedding(t, "dana2@example.com")
+	o2 := f.order(t, w2, user2)
+	if _, err := f.svc.HandleNotification(ctx, f.fake.Notify(o2.Number, StatusPaid, price, f.now)); err != nil {
+		t.Fatalf("webhook lunas: %v", err)
+	}
+	if !f.wedding(t, w2.ID).IsPaid() {
+		t.Fatal("webhook lunas harus menandai wedding lunas")
+	}
+	// Nominal di gateway berbeda dari webhook → tetap ditolak.
+	user3, w3 := f.newWedding(t, "dana3@example.com")
+	o3 := f.order(t, w3, user3)
+	body := f.fake.Notify(o3.Number, StatusPaid, price, f.now)
+	f.fake.Notify(o3.Number, StatusPending, price, f.now)
+	if _, err := f.svc.HandleNotification(ctx, body); !errors.Is(err, ErrUnconfirmed) {
+		t.Errorf("gateway belum lunas: %v", err)
+	}
+	if f.wedding(t, w3.ID).IsPaid() {
+		t.Error("order yang belum lunas di gateway tidak boleh ditandai lunas")
+	}
+}

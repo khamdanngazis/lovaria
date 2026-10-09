@@ -79,3 +79,9 @@ Setup Midtrans & uji sandbox: lihat [runbook](../runbook.md).
 - `payment/service_test.go`: nomor order, pemakaian ulang order pending, order baru setelah kedaluwarsa/gagal, webhook lunas idempoten (3× kirim ulang = satu aktivasi), status terlambat diabaikan, penolakan (tanda tangan, nominal, order tak dikenal, tidak terkonfirmasi), lunas setelah kedaluwarsa lokal, isolasi tenant, alur HTTP lengkap (webhook tanpa cookie/CSRF), halaman simulasi.
 - `wedding/lifecycle_test.go`: publikasi ditolak sebelum lunas (user & admin), `MarkPaid` idempoten, terbit ulang tanpa bayar.
 - `e2e/tests/smoke.spec.js`: draf → halaman harga → bayar (simulasi) → lunas → publikasikan; undangan 404 untuk publik sebelum terbit.
+
+## Konfirmasi status lewat ID transaksi
+
+Sebelum menandai lunas, status selalu dicek ulang ke gateway (`Service.fetchStatus`). Untuk sebagian metode — ditemukan pada **DANA** — API status Midtrans menjawab 404 untuk nomor order kita dan hanya mengenali **ID transaksi** (`transaction_id` di webhook); jawabannya pun memuat ID itu sebagai `order_id`. Karena itu bila nomor order tidak ditemukan, pengecekan diulang dengan ID transaksi (dari webhook bertanda tangan sah, tersimpan di `gateway_transaction_id`) dan hasilnya dipetakan kembali ke nomor order kita. Nominal dan status tetap harus cocok.
+
+`MIDTRANS_ENV` hanya mengenal nilai `production`; nilai lain apa pun (termasuk salah ketik) berarti sandbox.

@@ -219,7 +219,7 @@ func (s *Service) HandleNotification(ctx context.Context, body []byte) (outcome 
 	}
 	// Status lunas dikonfirmasi ulang langsung ke gateway sebelum diterapkan.
 	if n.Status == StatusPaid {
-		got, found, ferr := s.gw.FetchStatus(ctx, n.OrderNumber)
+		got, found, ferr := s.fetchStatus(ctx, n.OrderNumber, n.TransactionID)
 		switch {
 		case ferr != nil:
 			s.logEvent(ctx, body, n.OrderNumber, true, "rejected:status-check-error")
@@ -319,6 +319,28 @@ func strPtr(s string) *string {
 	return &s
 }
 
+// fetchStatus menanyakan status sebuah order ke gateway. Untuk sebagian metode
+// (mis. DANA di Midtrans) API status hanya mengenali transaksi lewat ID
+// transaksinya — pencarian dengan nomor order dijawab "tidak ada" walau
+// webhook lunasnya sah. Karena itu bila nomor order tidak ditemukan, dicoba
+// ulang dengan ID transaksi (yang berasal dari webhook bertanda tangan sah),
+// dan hasilnya dipetakan kembali ke nomor order kita.
+func (s *Service) fetchStatus(ctx context.Context, orderNumber, transactionID string) (Notification, bool, error) {
+	n, found, err := s.gw.FetchStatus(ctx, orderNumber)
+	if err != nil || found || transactionID == "" {
+		return n, found, err
+	}
+	n, found, err = s.gw.FetchStatus(ctx, transactionID)
+	if err != nil || !found {
+		return Notification{}, false, err
+	}
+	if n.TransactionID != transactionID {
+		return Notification{}, false, nil // jawaban untuk transaksi lain: abaikan
+	}
+	n.OrderNumber = orderNumber
+	return n, true, nil
+}
+
 // Refresh menanyakan status order terakhir yang masih pending langsung ke
 // gateway (halaman kembali dari pembayaran) supaya pasangan tidak menunggu
 // webhook. Jalur penerapannya sama dengan webhook.
@@ -336,7 +358,11 @@ func (s *Service) Refresh(ctx context.Context, weddingID uuid.UUID) error {
 	if row.Status != StatusPending && row.Status != StatusExpired {
 		return nil
 	}
-	n, found, err := s.gw.FetchStatus(ctx, row.OrderNumber)
+	txID := ""
+	if row.GatewayTransactionID != nil {
+		txID = *row.GatewayTransactionID
+	}
+	n, found, err := s.fetchStatus(ctx, row.OrderNumber, txID)
 	if err != nil || !found {
 		return err
 	}

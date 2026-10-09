@@ -69,5 +69,5 @@ type Gateway interface {
 	ParseNotification(body []byte) (Notification, error)
 	// FetchStatus menanyakan status transaksi langsung ke gateway (panggilan
 	// terautentikasi). found=false bila gateway belum mengenal order itu.
-	FetchStatus(ctx context.Context, orderNumber string) (n Notification, found bool, err error)
+	FetchStatus(ctx context.Context, ref string) (n Notification, found bool, err error)
 }
