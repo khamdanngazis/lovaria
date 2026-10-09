@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -119,6 +120,12 @@ func TestThemePageSaveAndPreview(t *testing.T) {
 		if strings.Contains(rec.Body.String(), sel) {
 			t.Errorf("select font tidak boleh required: %s", sel)
 		}
+	}
+	// Pemilih tema diringkas: baris "Tema undangan: <nama>" + tombol Ganti tema;
+	// galeri ada di dalam <details> yang tertutup (tetap ikut terkirim).
+	if b := rec.Body.String(); !strings.Contains(b, "Tema undangan") || !strings.Contains(b, "Ganti tema") || !strings.Contains(b, `x-text="name">Lunovia Signature<`) ||
+		!strings.Contains(b, "<details") || regexp.MustCompile(`<details[^>]*\sopen[\s>]`).MatchString(b) {
+		t.Error("pemilih tema harus tampil ringkas dan tertutup")
 	}
 	// Kartu tema memakai thumbnail asli (T21) & tema bawaan berlabel; style
 	// inline tetap CSS valid (tanpa kutip yang ter-escape ganda).

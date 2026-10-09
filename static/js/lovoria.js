@@ -212,6 +212,18 @@ document.querySelectorAll('link[data-font-css]').forEach(function (l) {
     }));
 
     // Preview tema: perbarui iframe#theme-preview dari isi form (dengan jeda).
+    // Pemilih tema ringkas: baris "Tema: …" mengikuti pilihan, dan galeri
+    // menutup setelah memilih.
+    window.Alpine.data('themeChoice', (name, thumb) => ({
+      name,
+      thumb,
+      pick(input) {
+        this.name = input.dataset.name || this.name;
+        this.thumb = input.dataset.thumb || this.thumb;
+        this.$root.open = false;
+      },
+    }));
+
     window.Alpine.data('themePreview', (previewURL) => ({
       timer: null,
       refresh() {
