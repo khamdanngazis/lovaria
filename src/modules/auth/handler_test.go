@@ -393,3 +393,40 @@ func TestAuthPagesUseBrandShell(t *testing.T) {
 		t.Errorf("rate limit: %d %s", resp.StatusCode, body)
 	}
 }
+
+// T29: tujuan setelah daftar (mis. wizard dengan tema pilihan dari landing)
+// terbawa lewat form daftar dan tautan antar halaman auth; tujuan ke luar situs
+// diabaikan.
+func TestRegisterHonorsNext(t *testing.T) {
+	srv, _, _ := newTestApp(t, RateLimit{})
+	c := newClient(t, srv)
+	const next = "/dashboard/weddings/new?tema=jawa"
+
+	_, body := c.do(http.MethodGet, "/register?next="+url.QueryEscape(next), nil, nil)
+	if !strings.Contains(body, `name="next" value="/dashboard/weddings/new?tema=jawa"`) || !strings.Contains(body, `href="/login?next=%2Fdashboard%2Fweddings%2Fnew%3Ftema%3Djawa"`) {
+		t.Fatalf("halaman daftar tidak membawa next: %s", body)
+	}
+	if _, body := c.do(http.MethodGet, "/login?next="+url.QueryEscape(next), nil, nil); !strings.Contains(body, `href="/register?next=%2Fdashboard%2Fweddings%2Fnew%3Ftema%3Djawa"`) {
+		t.Error("tautan Daftar di halaman masuk harus membawa next")
+	}
+	form := url.Values{"name": {"Sarah"}, "email": {"next@example.com"}, "password": {"password123"}, "password_confirmation": {"password123"}, "next": {next}}
+	resp, _ := c.post("/register", form, false)
+	if resp.StatusCode != http.StatusSeeOther || resp.Header.Get("Location") != next {
+		t.Fatalf("daftar: %d → %q", resp.StatusCode, resp.Header.Get("Location"))
+	}
+	// Sudah masuk: /register?next=… langsung ke tujuan.
+	resp, _ = c.do(http.MethodGet, "/register?next="+url.QueryEscape(next), nil, nil)
+	if resp.StatusCode != http.StatusSeeOther || resp.Header.Get("Location") != next {
+		t.Errorf("sudah masuk: %d → %q", resp.StatusCode, resp.Header.Get("Location"))
+	}
+	// Tujuan ke luar situs tidak pernah diikuti.
+	other := newClient(t, srv)
+	form.Set("email", "luar@example.com")
+	form.Set("next", "//evil.example/x")
+	if resp, _ := other.post("/register", form, false); resp.Header.Get("Location") != "/dashboard" {
+		t.Errorf("next luar situs: %q", resp.Header.Get("Location"))
+	}
+	if _, body := other.do(http.MethodGet, "/login?next="+url.QueryEscape("https://evil.example"), nil, nil); strings.Contains(body, "evil.example%") || strings.Contains(body, `href="/register?next=`) {
+		t.Error("tautan auth tidak boleh membawa next luar situs")
+	}
+}

@@ -60,3 +60,11 @@ Menu baru ditambahkan di `navGroups` (dan `bottomNav` bila perlu pintasan) di `s
 ## Performa
 
 `TestDashboardLoad500Guests`: beranda dengan 500 tamu ±20 ms per request di lokal (batas 300 ms) — semua angka tamu dari satu query agregat `GuestStats`.
+
+## Alur buat undangan (T29)
+
+1. **Wizard** (`/dashboard/weddings/new`, modul `wedding`): langkah 1 memilih tema, langkah 2 nama mempelai & tanggal. Pilihan tema disuntikkan lewat `wedding.Deps.Themes` (dirakit di `cmd/server/main.go` dari modul theme: tema aktif, thumbnail, undangan contoh) — modul wedding tidak mengimpor modul theme. `?tema=<id>` (dari tombol "Pakai tema ini" di `/tema/<id>`) melewati langkah 1.
+2. **Buat**: `POST /dashboard/weddings` membuat draf dengan `CreateInput.ThemeID`; judul = "Pernikahan <pria> & <wanita>", alamat otomatis. Tema tak dikenal/nonaktif → tema bawaan.
+3. **Pratinjau pertama**: `/dashboard/weddings/:id/start` — iframe `…/theme/preview` (bagian kosong diisi contoh) + ajakan melengkapi. Tidak menampilkan harga atau tombol terbit.
+
+Tujuan setelah daftar/masuk dibawa parameter `next` (divalidasi `safeNext`, hanya path di situs sendiri) di form daftar, form masuk, dan tautan di antara keduanya.

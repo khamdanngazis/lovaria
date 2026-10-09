@@ -186,7 +186,7 @@ func TestSEO(t *testing.T) {
 	// Etalase tema: boleh diindeks, kanonik, satu h1, breadcrumb JSON-LD.
 	for path, wants := range map[string][]string{
 		"/tema":         {`rel="canonical" href="https://lovoria.test/tema"`, "Tema undangan pernikahan digital", `href="/tema/elegant"`, `href="/#fitur"`},
-		"/tema/elegant": {`rel="canonical" href="https://lovoria.test/tema/elegant"`, "Tema undangan pernikahan Elegan", "Cormorant Garamond", "BreadcrumbList", `href="/register"`},
+		"/tema/elegant": {`rel="canonical" href="https://lovoria.test/tema/elegant"`, "Tema undangan pernikahan Elegan", "Cormorant Garamond", "BreadcrumbList", `href="/register?next=%2Fdashboard%2Fweddings%2Fnew%3Ftema%3Delegant"`},
 	} {
 		rec := f.get(path, nil)
 		b := rec.Body.String()

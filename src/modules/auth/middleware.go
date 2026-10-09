@@ -126,3 +126,12 @@ func safeNext(next string) string {
 	}
 	return next
 }
+
+// withNext menambahkan tujuan setelah masuk/daftar ke tautan antar halaman
+// auth, supaya tidak hilang saat berpindah dari Masuk ke Daftar (dan sebaliknya).
+func withNext(path, next string) string {
+	if next == "" || safeNext(next) != next {
+		return path
+	}
+	return path + "?next=" + url.QueryEscape(next)
+}

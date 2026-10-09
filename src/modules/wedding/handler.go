@@ -18,7 +18,21 @@ type Handler struct {
 	svc         *Service
 	archiveDays int
 	home        HomeWidgets
+	themes      ThemeChoices
 }
+
+// ThemeChoice: satu tema yang ditawarkan di langkah pertama wizard (T29).
+type ThemeChoice struct {
+	ID, Name, Description string
+	Region                string // Koleksi Daerah; "" = koleksi utama
+	Thumb                 string // URL thumbnail ("" → kartu warna)
+	Primary, Surface      string
+	Featured              bool
+	DemoURL               string // undangan contoh ("" = belum ada)
+}
+
+// ThemeChoices mengembalikan tema yang boleh dipilih pasangan baru.
+type ThemeChoices func(ctx context.Context) ([]ThemeChoice, error)
 
 // HomeWidgets menyusun bagian beranda wedding dari modul lain (ringkasan tamu,
 // RSVP, ucapan, galeri, checklist — disediakan paket dashboard, T13). Modul
@@ -30,8 +44,9 @@ func NewHandler(svc *Service) *Handler {
 }
 
 var (
-	wizardFields = []string{"groom_name", "bride_name", "title", "wedding_date", "slug", "description"}
-	stepFields   = map[int][]string{1: {"groom_name", "bride_name"}, 2: {"title", "wedding_date", "slug"}, 3: {"description"}}
+	// Wizard (T29): 1 = pilih tema, 2 = nama mempelai & tanggal. Judul dan alamat
+	// undangan dibuat otomatis; semuanya bisa diubah setelahnya.
+	wizardFields = []string{"theme_id", "groom_name", "bride_name", "wedding_date"}
 	infoFields   = []string{"title", "wedding_date", "description", "main_photo_url", "timezone"}
 	coupleFields = []string{"groom_name", "bride_name", "groom_photo_url", "bride_photo_url", "groom_description", "bride_description"}
 )
@@ -88,9 +103,39 @@ func (h *Handler) List(c echo.Context) error {
 	return web.Render(c, http.StatusOK, listPage(ws, h.svc.clock()))
 }
 
-// GET /dashboard/weddings/new → langkah 1 wizard.
+// wizardThemes: pilihan tema wizard (kosong bila modul theme tidak dipasang).
+func (h *Handler) wizardThemes(c echo.Context) ([]ThemeChoice, error) {
+	if h.themes == nil {
+		return nil, nil
+	}
+	return h.themes(c.Request().Context())
+}
+
+func themeIn(list []ThemeChoice, id string) bool {
+	for _, t := range list {
+		if t.ID == id {
+			return true
+		}
+	}
+	return false
+}
+
+// GET /dashboard/weddings/new → langkah 1 wizard (pilih tema). ?tema=<id> dari
+// halaman tema di landing: tema sudah terpilih, langsung ke langkah 2.
 func (h *Handler) New(c echo.Context) error {
-	return web.Render(c, http.StatusOK, newPage(1, form{Values: map[string]string{}, Errors: map[string]string{}}))
+	themes, err := h.wizardThemes(c)
+	if err != nil {
+		return err
+	}
+	f := form{Values: map[string]string{}, Errors: map[string]string{}}
+	step := 1
+	if len(themes) == 0 {
+		step = 2
+	} else if id := c.QueryParam("tema"); themeIn(themes, id) {
+		f.Values["theme_id"] = id
+		step = 2
+	}
+	return web.Render(c, http.StatusOK, newPage(step, f, themes))
 }
 
 // POST /dashboard/weddings/new/steps/:step → validasi langkah, tampilkan langkah berikutnya.
@@ -100,56 +145,54 @@ func (h *Handler) Step(c echo.Context) error {
 	if err != nil || step < 1 || step > wizardSteps {
 		return echo.NewHTTPError(http.StatusNotFound)
 	}
+	themes, err := h.wizardThemes(c)
+	if err != nil {
+		return err
+	}
 	f := formFrom(c, wizardFields)
 
 	if c.FormValue("back") != "" {
 		prev := max(step-1, 1)
-		return render(c, http.StatusOK, wizardStep(prev, f), newPage(prev, f))
+		return render(c, http.StatusOK, wizardStep(prev, f, themes), newPage(prev, f, themes))
 	}
-
-	fields := map[string]string{}
-	for _, k := range stepFields[step] {
-		fields[k] = f.v(k)
+	if step == 1 {
+		if len(themes) > 0 && !themeIn(themes, f.v("theme_id")) {
+			f.Errors["theme_id"] = "Pilih salah satu tema untuk melanjutkan"
+			return render(c, http.StatusUnprocessableEntity, wizardStep(1, f, themes), newPage(1, f, themes))
+		}
+		return render(c, http.StatusOK, wizardStep(2, f, themes), newPage(2, f, themes))
 	}
-	if f.applyErr(ValidateFields(fields)) {
-		return render(c, http.StatusUnprocessableEntity, wizardStep(step, f), newPage(step, f))
-	}
-
-	next := step + 1
-	if next == 2 && f.v("title") == "" {
-		f.Values["title"] = fmt.Sprintf("Pernikahan %s & %s", firstWord(f.v("groom_name")), firstWord(f.v("bride_name")))
-	}
-	return render(c, http.StatusOK, wizardStep(next, f), newPage(next, f))
+	return echo.NewHTTPError(http.StatusNotFound) // langkah terakhir dikirim ke POST /dashboard/weddings
 }
 
-// POST /dashboard/weddings (form: groom_name, bride_name, title, wedding_date, description)
+// POST /dashboard/weddings (form: theme_id, groom_name, bride_name, wedding_date)
+// → wedding draf dengan tema pilihan → halaman pratinjau pertama.
 func (h *Handler) Create(c echo.Context) error {
 	u, err := currentUser(c)
 	if err != nil {
 		return err
 	}
+	themes, err := h.wizardThemes(c)
+	if err != nil {
+		return err
+	}
 	f := formFrom(c, wizardFields)
+	themeID := f.v("theme_id")
+	if !themeIn(themes, themeID) {
+		themeID = "" // tema tak dikenal / nonaktif → tema bawaan
+	}
 	w, err := h.svc.CreateWedding(c.Request().Context(), u.ID, CreateInput{
-		GroomName: f.v("groom_name"), BrideName: f.v("bride_name"),
-		Title: f.v("title"), WeddingDate: f.v("wedding_date"), Description: f.v("description"),
-		Slug: f.v("slug"),
+		GroomName: f.v("groom_name"), BrideName: f.v("bride_name"), WeddingDate: f.v("wedding_date"),
+		Title:   fmt.Sprintf("Pernikahan %s & %s", firstWord(f.v("groom_name")), firstWord(f.v("bride_name"))),
+		ThemeID: themeID,
 	})
 	if f.applyErr(err) {
-		// Kembali ke langkah paling awal yang punya error.
-		step := wizardSteps
-		for s := wizardSteps; s >= 1; s-- {
-			for _, k := range stepFields[s] {
-				if f.e(k) != "" {
-					step = s
-				}
-			}
-		}
-		return render(c, http.StatusUnprocessableEntity, wizardStep(step, f), newPage(step, f))
+		return render(c, http.StatusUnprocessableEntity, wizardStep(2, f, themes), newPage(2, f, themes))
 	}
 	if err != nil {
 		return err
 	}
-	return web.Redirect(c, weddingURL(w, "?welcome=1"))
+	return web.Redirect(c, weddingURL(w, "/start"))
 }
 
 // ---------- Per wedding (sudah lewat RequireWeddingOwner) ----------
@@ -160,6 +203,13 @@ func mustWedding(c echo.Context) Wedding {
 		panic("wedding: handler dipasang tanpa RequireWeddingOwner")
 	}
 	return w
+}
+
+// GET /dashboard/weddings/:weddingID/start — pratinjau pertama setelah wizard
+// (T29): pasangan langsung melihat undangannya dengan tema pilihan; bagian
+// yang masih kosong diisi contoh.
+func (h *Handler) Start(c echo.Context) error {
+	return web.Render(c, http.StatusOK, startPage(mustWedding(c)))
 }
 
 // GET /dashboard/weddings/:weddingID

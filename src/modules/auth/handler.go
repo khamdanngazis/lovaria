@@ -49,7 +49,8 @@ func (f *form) applyErr(err error) bool {
 
 func (h *Handler) redirectIfLoggedIn(c echo.Context) (bool, error) {
 	if _, ok := CurrentUser(c.Request().Context()); ok {
-		return true, web.Redirect(c, "/dashboard")
+		// Sudah masuk: hormati tujuan (mis. wizard dengan tema pilihan, T29).
+		return true, web.Redirect(c, safeNext(c.QueryParam("next")))
 	}
 	return false, nil
 }
@@ -117,16 +118,17 @@ func (h *Handler) RegisterPage(c echo.Context) error {
 	if done, err := h.redirectIfLoggedIn(c); done {
 		return err
 	}
-	return web.Render(c, http.StatusOK, registerPage(form{}))
+	return web.Render(c, http.StatusOK, registerPage(form{Next: c.QueryParam("next")}))
 }
 
 // errPasswordMismatch: pesan kolom konfirmasi password (T23).
 const errPasswordMismatch = "Konfirmasi password tidak sama"
 
-// POST /register (form: name, email, password, password_confirmation) → auto
-// login → /dashboard (pengguna baru diarahkan ke wizard buat wedding).
+// POST /register (form: name, email, password, password_confirmation, next) →
+// auto login → next (bawaan /dashboard; pengguna baru diarahkan ke wizard).
 func (h *Handler) Register(c echo.Context) error {
 	f := formFrom(c, "name", "email")
+	f.Next = c.FormValue("next")
 	in := RegisterInput{Name: f.v("name"), Email: f.v("email"), Password: c.FormValue("password")}
 	// Konfirmasi password adalah urusan form (salah ketik), bukan aturan akun:
 	// diperiksa di sini bersama validasi kolom lain supaya semua pesan tampil sekaligus.
@@ -148,7 +150,7 @@ func (h *Handler) Register(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	return h.startSession(c, u, "/dashboard")
+	return h.startSession(c, u, f.Next)
 }
 
 // POST /register/validate (form: field + nilai field) → fragment pesan error field.

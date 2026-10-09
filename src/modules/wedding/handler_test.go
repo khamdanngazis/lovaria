@@ -1,6 +1,7 @@
 package wedding
 
 import (
+	"context"
 	"io"
 	"log/slog"
 	"net/http"
@@ -38,7 +39,7 @@ func newTestServer(t *testing.T, f fixture) *echo.Echo {
 			return next(c)
 		}
 	})
-	Register(e.Group("/dashboard/weddings"), Deps{Service: f.svc})
+	Register(e.Group("/dashboard/weddings"), Deps{Service: f.svc, Themes: testThemes})
 	return e
 }
 
@@ -62,6 +63,17 @@ func req(e *echo.Echo, user uuid.UUID, method, path string, form url.Values, htm
 	return rec
 }
 
+// testThemes: pilihan tema wizard untuk test (modul theme tidak diimpor di sini).
+func testThemes(context.Context) ([]ThemeChoice, error) {
+	return []ThemeChoice{
+		{ID: "signature", Name: "Lunovia Signature", Featured: true, Thumb: "/static/img/themes/signature.webp", DemoURL: "/w/contoh-signature"},
+		{ID: "elegant", Name: "Elegan"},
+		{ID: "jawa", Name: "Javanese Heritage", Region: "Jawa"},
+	}, nil
+}
+
+// T29: wizard dua langkah — pilih tema dulu, lalu nama & tanggal; wedding
+// dibuat dengan tema pilihan dan mendarat di halaman pratinjau pertama.
 func TestWizardEndToEnd(t *testing.T) {
 	f := newFixture(t)
 	e := newTestServer(t, f)
@@ -71,66 +83,102 @@ func TestWizardEndToEnd(t *testing.T) {
 	if rec := req(e, owner, http.MethodGet, "/dashboard/weddings", nil, false); rec.Code != http.StatusSeeOther || rec.Header().Get("Location") != "/dashboard/weddings/new" {
 		t.Fatalf("list kosong: %d %s", rec.Code, rec.Header().Get("Location"))
 	}
-	if rec := req(e, owner, http.MethodGet, "/dashboard/weddings/new", nil, false); rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Nama mempelai pria") {
+	// Langkah 1: galeri tema (koleksi utama + Koleksi Daerah), tanpa kolom nama.
+	rec := req(e, owner, http.MethodGet, "/dashboard/weddings/new", nil, false)
+	body := rec.Body.String()
+	for _, want := range []string{"Pilih tema undangan", `name="theme_id" value="signature"`, `name="theme_id" value="jawa"`, "Koleksi Daerah", "Pilihan Lunovia", `href="/w/contoh-signature"`, "bayar hanya saat undangan diterbitkan"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("langkah 1 tidak memuat %q", want)
+		}
+	}
+	if rec.Code != http.StatusOK || strings.Contains(body, "Nama mempelai pria") {
 		t.Fatalf("langkah 1: %d", rec.Code)
 	}
 
-	// Langkah 1 dengan nama kosong → 422, tetap di langkah 1.
-	rec := req(e, owner, http.MethodPost, "/dashboard/weddings/new/steps/1", url.Values{"groom_name": {""}, "bride_name": {"Sarah"}}, true)
-	if rec.Code != http.StatusUnprocessableEntity || !strings.Contains(rec.Body.String(), "Nama mempelai pria wajib diisi") {
-		t.Fatalf("langkah 1 invalid: %d", rec.Code)
+	// Tanpa memilih tema / tema tak dikenal → 422, tetap di langkah 1.
+	for _, v := range []url.Values{{}, {"theme_id": {"tidak-ada"}}} {
+		if rec := req(e, owner, http.MethodPost, "/dashboard/weddings/new/steps/1", v, true); rec.Code != http.StatusUnprocessableEntity || !strings.Contains(rec.Body.String(), "Pilih salah satu tema") {
+			t.Fatalf("langkah 1 invalid (%v): %d", v, rec.Code)
+		}
 	}
-
-	// Langkah 1 valid → langkah 2, judul otomatis terisi, nama dibawa sebagai hidden field.
-	rec = req(e, owner, http.MethodPost, "/dashboard/weddings/new/steps/1", url.Values{"groom_name": {"Samuel"}, "bride_name": {"Sarah"}}, true)
-	body := rec.Body.String()
-	if rec.Code != http.StatusOK || !strings.Contains(body, `value="Pernikahan Samuel &amp; Sarah"`) || !strings.Contains(body, `type="hidden" name="groom_name" value="Samuel"`) {
+	// Tema dipilih → langkah 2: nama & tanggal, tema dibawa sebagai hidden field.
+	rec = req(e, owner, http.MethodPost, "/dashboard/weddings/new/steps/1", url.Values{"theme_id": {"jawa"}}, true)
+	body = rec.Body.String()
+	if rec.Code != http.StatusOK || !strings.Contains(body, `type="hidden" name="theme_id" value="jawa"`) || !strings.Contains(body, "Javanese Heritage") ||
+		!strings.Contains(body, "Nama mempelai pria") || !strings.Contains(body, `name="wedding_date"`) || strings.Contains(body, `name="slug"`) || strings.Contains(body, `name="title"`) {
 		t.Fatalf("langkah 2: %d %s", rec.Code, body)
 	}
 	if strings.Contains(body, "<html") {
 		t.Error("htmx harus menerima fragment")
 	}
-
-	// Kembali dari langkah 2 → langkah 1 dengan nilai tetap.
-	rec = req(e, owner, http.MethodPost, "/dashboard/weddings/new/steps/2", url.Values{"groom_name": {"Samuel"}, "bride_name": {"Sarah"}, "back": {"1"}}, true)
-	if !strings.Contains(rec.Body.String(), `id="wedding-groom-name" name="groom_name" type="text" value="Samuel"`) {
-		t.Errorf("kembali ke langkah 1 kehilangan nilai: %s", rec.Body.String())
+	// "Ganti tema" kembali ke langkah 1 dengan pilihan & isian tetap.
+	rec = req(e, owner, http.MethodPost, "/dashboard/weddings/new/steps/2", url.Values{"theme_id": {"jawa"}, "groom_name": {"Samuel"}, "back": {"1"}}, true)
+	if b := rec.Body.String(); !strings.Contains(b, `name="theme_id" value="jawa" checked`) || !strings.Contains(b, `type="hidden" name="groom_name" value="Samuel"`) {
+		t.Errorf("kembali ke langkah 1 kehilangan nilai: %s", b)
 	}
 
-	// Langkah 2 tanggal tidak valid → 422.
-	all := url.Values{"groom_name": {"Samuel"}, "bride_name": {"Sarah"}, "title": {"Pernikahan Kami"}, "wedding_date": {"2026-13-40"}}
-	if rec := req(e, owner, http.MethodPost, "/dashboard/weddings/new/steps/2", all, true); rec.Code != http.StatusUnprocessableEntity {
-		t.Errorf("tanggal invalid: %d", rec.Code)
+	// Data tidak valid → 422 di langkah 2 dengan pesan per kolom.
+	all := url.Values{"theme_id": {"jawa"}, "groom_name": {""}, "bride_name": {"Sarah"}, "wedding_date": {"2026-13-40"}}
+	rec = req(e, owner, http.MethodPost, "/dashboard/weddings", all, true)
+	if rec.Code != http.StatusUnprocessableEntity || !strings.Contains(rec.Body.String(), "Nama mempelai pria wajib diisi") || !strings.Contains(rec.Body.String(), `aria-current="step"`) {
+		t.Fatalf("create invalid: %d", rec.Code)
 	}
+	if ws, _ := f.svc.ListWeddingsByOwner(ctx, owner); len(ws) != 0 {
+		t.Error("wedding tidak boleh dibuat")
+	}
+
+	// Selesai → wedding draf dengan tema pilihan; judul & alamat otomatis.
+	all.Set("groom_name", "Samuel Pratama")
 	all.Set("wedding_date", "2026-12-12")
-	if rec := req(e, owner, http.MethodPost, "/dashboard/weddings/new/steps/2", all, true); rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Deskripsi singkat") {
-		t.Fatalf("langkah 3: %d", rec.Code)
-	}
-
-	// Selesai → wedding dibuat, redirect ke halaman wedding.
-	all.Set("description", "Dengan penuh syukur")
 	rec = req(e, owner, http.MethodPost, "/dashboard/weddings", all, true)
 	loc := rec.Header().Get("HX-Redirect")
-	if rec.Code != http.StatusOK || !strings.HasPrefix(loc, "/dashboard/weddings/") || !strings.HasSuffix(loc, "?welcome=1") {
+	if rec.Code != http.StatusOK || !strings.HasPrefix(loc, "/dashboard/weddings/") || !strings.HasSuffix(loc, "/start") {
 		t.Fatalf("create: %d %q", rec.Code, loc)
 	}
+	ws, _ := f.svc.ListWeddingsByOwner(ctx, owner)
+	if len(ws) != 1 || ws[0].ThemeID != "jawa" || ws[0].Title != "Pernikahan Samuel & Sarah" || ws[0].Slug != "samuel-sarah" || ws[0].Status != StatusDraft || ws[0].IsPaid() {
+		t.Fatalf("wedding: %+v", ws)
+	}
+	// Halaman pratinjau pertama: iframe pratinjau + ajakan melengkapi; tanpa harga / tombol terbit.
 	rec = req(e, owner, http.MethodGet, loc, nil, false)
-	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Samuel &amp; Sarah") || !strings.Contains(rec.Body.String(), "Sabtu, 12 Desember 2026") {
-		t.Errorf("overview: %d", rec.Code)
+	body = rec.Body.String()
+	for _, want := range []string{"Undangan kalian sudah jadi", `<iframe src="` + strings.TrimSuffix(loc, "/start") + `/theme/preview"`, "Lanjut lengkapi undangan", "gratis sampai kalian siap"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("halaman mulai tidak memuat %q", want)
+		}
+	}
+	if rec.Code != http.StatusOK || strings.Contains(body, "Publikasikan") || strings.Contains(body, "Rp") {
+		t.Errorf("halaman mulai: %d (tidak boleh menonjolkan publikasi/harga)", rec.Code)
+	}
+	// Halaman mulai milik wedding orang lain → 404.
+	if rec := req(e, f.user(t, "b@example.com"), http.MethodGet, loc, nil, false); rec.Code != http.StatusNotFound {
+		t.Errorf("start orang lain: %d", rec.Code)
 	}
 }
 
-func TestCreateWithInvalidDataReturnsToFirstBadStep(t *testing.T) {
+// T29: tema dari halaman tema di landing (?tema=<id>) langsung terpilih; tema
+// tak dikenal diabaikan; tema tak sah saat membuat → tema bawaan.
+func TestWizardPreselectedTheme(t *testing.T) {
 	f := newFixture(t)
 	e := newTestServer(t, f)
 	owner := f.user(t, "a@example.com")
-	rec := req(e, owner, http.MethodPost, "/dashboard/weddings", url.Values{"groom_name": {""}, "bride_name": {"S"}, "title": {""}, "wedding_date": {"2026-12-12"}}, true)
-	if rec.Code != http.StatusUnprocessableEntity || !strings.Contains(rec.Body.String(), `aria-current="step"`) || !strings.Contains(rec.Body.String(), "Nama mempelai pria wajib diisi") {
-		t.Errorf("status %d body %s", rec.Code, rec.Body.String())
+
+	rec := req(e, owner, http.MethodGet, "/dashboard/weddings/new?tema=elegant", nil, false)
+	if b := rec.Body.String(); rec.Code != http.StatusOK || !strings.Contains(b, `type="hidden" name="theme_id" value="elegant"`) || !strings.Contains(b, "Nama mempelai pria") || !strings.Contains(b, "Ganti tema") {
+		t.Fatalf("tema terpilih: %d", rec.Code)
+	}
+	if b := req(e, owner, http.MethodGet, "/dashboard/weddings/new?tema=tidak-ada", nil, false).Body.String(); !strings.Contains(b, "Pilih tema undangan") {
+		t.Error("tema tak dikenal harus kembali ke langkah 1")
+	}
+	rec = req(e, owner, http.MethodPost, "/dashboard/weddings", url.Values{"theme_id": {"palsu"}, "groom_name": {"Azis"}, "bride_name": {"Ida"}, "wedding_date": {"2027-03-06"}}, false)
+	if rec.Code != http.StatusSeeOther {
+		t.Fatalf("buat: %d %s", rec.Code, rec.Body.String())
+	}
+	if ws, _ := f.svc.ListWeddingsByOwner(ctx, owner); len(ws) != 1 || ws[0].ThemeID != DefaultThemeID {
+		t.Fatalf("tema tak sah harus jatuh ke bawaan: %+v", ws)
 	}
 }
 
-// User A tidak bisa mengakses/mengubah wedding milik user B → 404.
 func TestOtherUsersWeddingIs404(t *testing.T) {
 	f := newFixture(t)
 	e := newTestServer(t, f)
@@ -309,43 +357,5 @@ func TestArchiveVisibilityViaHTTP(t *testing.T) {
 	}
 	if got, _ := f.svc.GetWedding(ctx, w.ID); got.ArchiveVisibility != ArchivePrivate || got.ArchivePublic() {
 		t.Errorf("setelah percobaan bob: %q", got.ArchiveVisibility)
-	}
-}
-
-// T23: wizard langkah 2 menawarkan alamat undangan; alamat terpakai kembali ke langkah itu.
-func TestWizardCustomSlug(t *testing.T) {
-	f := newFixture(t)
-	e := newTestServer(t, f)
-	owner := f.user(t, "a@example.com")
-	form := url.Values{"groom_name": {"Azis"}, "bride_name": {"Ida"}, "title": {"Pernikahan Azis & Ida"}, "wedding_date": {"2027-03-06"}, "slug": {"azis-ida"}}
-
-	// Langkah 1 → 2: kolom alamat tampil dengan contoh dari nama mempelai.
-	rec := req(e, owner, http.MethodPost, "/dashboard/weddings/new/steps/1", form, true)
-	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), `name="slug"`) || !strings.Contains(rec.Body.String(), `placeholder="azis-ida"`) {
-		t.Fatalf("langkah 2: %d", rec.Code)
-	}
-	// Format salah ditolak di langkah 2 (belum lanjut ke langkah 3).
-	bad := url.Values{}
-	for k, v := range form {
-		bad[k] = v
-	}
-	bad.Set("slug", "Azis & Ida")
-	if rec := req(e, owner, http.MethodPost, "/dashboard/weddings/new/steps/2", bad, true); rec.Code != http.StatusUnprocessableEntity || !strings.Contains(rec.Body.String(), "huruf kecil a-z") {
-		t.Errorf("slug tidak valid: %d", rec.Code)
-	}
-	rec = req(e, owner, http.MethodPost, "/dashboard/weddings", form, false)
-	if rec.Code != http.StatusSeeOther {
-		t.Fatalf("buat: %d %s", rec.Code, rec.Body.String())
-	}
-	if w, err := f.svc.GetWeddingBySlug(ctx, "azis-ida"); err != nil || w.Status != StatusDraft || w.IsPaid() {
-		t.Fatalf("wedding dengan slug pilihan: %+v %v", w.Slug, err)
-	}
-	// Alamat yang sama lagi → kembali ke langkah 2 dengan pesan, tanpa wedding baru.
-	rec = req(e, owner, http.MethodPost, "/dashboard/weddings", form, true)
-	if rec.Code != http.StatusUnprocessableEntity || !strings.Contains(rec.Body.String(), "Alamat ini sudah dipakai undangan lain") || !strings.Contains(rec.Body.String(), `id="wedding-slug"`) {
-		t.Errorf("slug terpakai: %d", rec.Code)
-	}
-	if ws, _ := f.svc.ListWeddingsByOwner(ctx, owner); len(ws) != 1 {
-		t.Errorf("wedding = %d, want 1", len(ws))
 	}
 }

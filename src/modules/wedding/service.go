@@ -129,6 +129,9 @@ type CreateInput struct {
 	// Slug: alamat undangan pilihan pasangan (/w/<slug>), opsional — kosong →
 	// dibuat otomatis dari nama mempelai (T23).
 	Slug string
+	// ThemeID: tema pilihan di wizard (T29); kosong → tema bawaan. Keabsahan ID
+	// diperiksa pemanggil (modul theme).
+	ThemeID string
 }
 
 func (in CreateInput) fields() map[string]string {
@@ -309,13 +312,21 @@ func (s *Service) CreateWedding(ctx context.Context, ownerID uuid.UUID, in Creat
 			if err != nil {
 				return mapErr(err)
 			}
-			_, err = q.CreateCouple(ctx, weddingdb.CreateCoupleParams{
+			if _, err = q.CreateCouple(ctx, weddingdb.CreateCoupleParams{
 				ID:        db.NewID(),
 				WeddingID: w.ID,
 				GroomName: strings.TrimSpace(in.GroomName),
 				BrideName: strings.TrimSpace(in.BrideName),
-			})
-			return err
+			}); err != nil {
+				return err
+			}
+			if in.ThemeID != "" && in.ThemeID != w.ThemeID {
+				if _, err := q.SetThemeID(ctx, weddingdb.SetThemeIDParams{ID: w.ID, ThemeID: in.ThemeID}); err != nil {
+					return err
+				}
+				w.ThemeID = in.ThemeID
+			}
+			return nil
 		})
 		if !errors.Is(err, errSlugTaken) { // bentrok karena race → coba lagi
 			break

@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### T29 (bagian 1) — Buat undangan: pilih tema dulu, langsung lihat hasilnya
+- Wizard baru dua langkah: **pilih tema** (galeri thumbnail, koleksi utama & Koleksi Daerah, tautan "Lihat contoh") lalu **nama mempelai & tanggal**. Judul dan alamat undangan dibuat otomatis dan bisa diubah nanti.
+- Setelah itu pasangan langsung melihat **pratinjau undangannya** dengan tema pilihan dan nama mereka (bagian kosong diisi contoh), dengan ajakan melengkapi — tanpa harga atau tombol terbit.
+- Pesan "gratis dibuat dan dipratinjau, bayar hanya saat diterbitkan" tampil sejak langkah pertama.
+- Tombol "Pakai tema ini" di halaman tema membawa tema itu sampai ke wizard, juga lewat halaman daftar dan masuk.
+
 ### Perbaikan — pembayaran DANA tertahan di "Menunggu konfirmasi"
 - Untuk sebagian metode (ditemukan pada DANA), Midtrans hanya mengenali transaksi di API status lewat ID transaksinya; pengecekan ulang dengan nomor order dijawab "transaksi tidak ada", sehingga webhook lunas yang sah ditolak dan order tetap menunggu. Konfirmasi kini mencoba ulang dengan ID transaksi dari webhook, baik saat webhook masuk maupun saat halaman status memeriksa ulang.
 

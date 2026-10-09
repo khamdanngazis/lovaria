@@ -15,16 +15,21 @@ test('alur utama pasangan & tamu', async ({ page, browser }) => {
   await page.locator('#register-password_confirmation').fill('password-e2e-123');
   await page.getByRole('button', { name: /daftar/i }).click();
 
-  // 2. Wizard 3 langkah → beranda wedding
+  // 2. Wizard (T29): pilih tema → nama & tanggal → pratinjau pertama
   await expect(page).toHaveURL(/\/dashboard\/weddings\/new/);
+  await expect(page.getByText('Pilih tema undangan')).toBeVisible();
+  await page.locator('label:has(input[value="elegant"])').click();
+  await page.getByRole('button', { name: 'Lanjut' }).click();
   await page.locator('#wedding-groom-name').fill('Budi');
   await page.locator('#wedding-bride-name').fill('Sari');
-  await page.getByRole('button', { name: 'Lanjut' }).click();
-  await page.locator('#wedding-title').fill('Pernikahan Budi & Sari');
   const nextYear = new Date().getFullYear() + 1;
   await page.locator('#wedding-date').fill(`${nextYear}-06-06`);
-  await page.getByRole('button', { name: 'Lanjut' }).click();
-  await page.getByRole('button', { name: /Selesai/ }).click();
+  await page.getByRole('button', { name: /Buat & lihat undangan/ }).click();
+  await expect(page).toHaveURL(/\/dashboard\/weddings\/[0-9a-f-]{36}\/start$/);
+  await expect(page.getByRole('heading', { name: 'Undangan kalian sudah jadi' })).toBeVisible();
+  // Pratinjau memakai tema pilihan dengan nama pasangan.
+  await expect(page.frameLocator('iframe[title="Pratinjau undangan"]').locator('h1')).toContainText('Budi');
+  await page.getByRole('link', { name: 'Ke beranda undangan' }).click();
   await expect(page).toHaveURL(/\/dashboard\/weddings\/[0-9a-f-]{36}(\?.*)?$/);
   const dash = new URL(page.url()).pathname;
 

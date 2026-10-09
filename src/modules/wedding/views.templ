@@ -39,19 +39,19 @@ func timezoneOptions() []ui.Option {
 	return out
 }
 
-// ---------- Setup wizard ----------
+// ---------- Setup wizard (T29: pilih tema → nama & tanggal) ----------
 
-const wizardSteps = 3
+const wizardSteps = 2
 
-var stepTitles = [...]string{"", "Nama pasangan", "Judul & tanggal", "Cerita singkat"}
+var stepTitles = [...]string{"", "Pilih tema", "Nama & tanggal"}
 
-templ newPage(step int, f form) {
-	@layouts.Dashboard(layouts.Meta{Title: "Buat website pernikahan"}) {
-		<div class="mx-auto max-w-lg">
-			<h1 class="font-display text-2xl leading-tight text-lovoria-deep sm:text-3xl">Buat website pernikahan</h1>
-			<p class="mt-1 text-lovoria-muted">Tiga langkah singkat — semuanya bisa diubah nanti.</p>
+templ newPage(step int, f form, themes []ThemeChoice) {
+	@layouts.Dashboard(layouts.Meta{Title: "Buat undangan"}) {
+		<div class="mx-auto max-w-3xl">
+			<h1 class="font-display text-2xl leading-tight text-lovoria-deep sm:text-3xl">Buat undangan pernikahan</h1>
+			<p class="mt-1 text-lovoria-muted">Gratis dibuat dan dipratinjau — bayar hanya saat undangan diterbitkan.</p>
 			<div class="mt-6">
-				@wizardStep(step, f)
+				@wizardStep(step, f, themes)
 			</div>
 		</div>
 	}
@@ -77,7 +77,7 @@ templ wizardProgress(step int) {
 
 // hiddenExcept membawa nilai langkah lain di form (wizard stateless).
 templ hiddenExcept(f form, visible ...string) {
-	for _, k := range []string{"groom_name", "bride_name", "title", "wedding_date", "description"} {
+	for _, k := range wizardFields {
 		if !contains(visible, k) {
 			<input type="hidden" name={ k } value={ f.v(k) }/>
 		}
@@ -93,15 +93,33 @@ func contains(list []string, s string) bool {
 	return false
 }
 
-// suggestSlug: contoh alamat undangan dari nama mempelai (placeholder).
-func suggestSlug(f form) string {
-	return baseSlug(f.v("groom_name"), f.v("bride_name"))
+// themesOf: tema koleksi utama (regional=false) atau Koleksi Daerah (true).
+func themesOf(list []ThemeChoice, regional bool) []ThemeChoice {
+	var out []ThemeChoice
+	for _, t := range list {
+		if (t.Region != "") == regional {
+			out = append(out, t)
+		}
+	}
+	return out
 }
 
-templ wizardStep(step int, f form) {
-	<div id="wizard-step">
+// themeName: nama tema terpilih (ringkasan di langkah 2).
+func themeName(list []ThemeChoice, id string) string {
+	for _, t := range list {
+		if t.ID == id {
+			return t.Name
+		}
+	}
+	return ""
+}
+
+templ wizardStep(step int, f form, themes []ThemeChoice) {
+	<div id="wizard-step" class={ templ.KV("mx-auto max-w-lg", step != 1) }>
 		@ui.Card() {
-			@wizardProgress(step)
+			if len(themes) > 0 {
+				@wizardProgress(step)
+			}
 			<form
 				method="post"
 				if step < wizardSteps {
@@ -112,41 +130,120 @@ templ wizardStep(step int, f form) {
 					hx-post="/dashboard/weddings"
 				}
 				hx-target="#wizard-step"
-				hx-swap="outerHTML"
-				hx-disabled-elt="find button"
+				hx-swap="outerHTML show:window:top"
+				hx-disabled-elt="find button[type=submit]"
 				class="space-y-4"
 			>
 				@layouts.CSRFField()
 				@ui.Alert(f.Message)
 				switch step {
 					case 1:
-						@hiddenExcept(f, "groom_name", "bride_name")
+						@hiddenExcept(f, "theme_id")
+						@themePicker(f, themes)
+					default:
+						@hiddenExcept(f, "groom_name", "bride_name", "wedding_date")
+						if themeName(themes, f.v("theme_id")) != "" {
+							<p class="rounded-xl bg-lovoria-primary-soft px-4 py-3 text-sm text-lovoria-text">
+								Tema: <span class="font-medium text-lovoria-primary">{ themeName(themes, f.v("theme_id")) }</span>
+								<span class="text-lovoria-muted">— bisa diganti kapan saja.</span>
+							</p>
+						}
 						@ui.Input(ui.Field{ID: "wedding-groom-name", Name: "groom_name", Label: "Nama mempelai pria", Type: "text", Value: f.v("groom_name"), Error: f.e("groom_name"), Placeholder: "Samuel", Required: true, MaxLength: 100, Autocomplete: "off"})
 						@ui.Input(ui.Field{ID: "wedding-bride-name", Name: "bride_name", Label: "Nama mempelai wanita", Type: "text", Value: f.v("bride_name"), Error: f.e("bride_name"), Placeholder: "Sarah", Required: true, MaxLength: 100, Autocomplete: "off"})
-					case 2:
-						@hiddenExcept(f, "title", "wedding_date", "slug")
-						@ui.Input(ui.Field{ID: "wedding-title", Name: "title", Label: "Judul website", Type: "text", Value: f.v("title"), Error: f.e("title"), Required: true, MaxLength: 150, Hint: "Tampil sebagai judul utama undangan."})
-						@ui.Input(ui.Field{ID: "wedding-date", Name: "wedding_date", Label: "Tanggal pernikahan", Type: "date", Value: f.v("wedding_date"), Error: f.e("wedding_date"), Required: true})
-						@ui.Input(ui.Field{ID: "wedding-slug", Name: "slug", Label: "Alamat undangan", Type: "text", Value: f.v("slug"), Error: f.e("slug"), MaxLength: 60, Autocomplete: "off", Placeholder: suggestSlug(f), Hint: "Menjadi lovoria.my.id/w/alamat-ini. Huruf kecil, angka, dan tanda hubung. Kosongkan untuk dibuat otomatis dari nama mempelai; bisa diubah nanti di menu Bagikan."})
-					default:
-						@hiddenExcept(f, "description")
-						@ui.TextArea(ui.Field{ID: "wedding-description", Name: "description", Label: "Deskripsi singkat", Value: f.v("description"), Error: f.e("description"), MaxLength: 2000, Placeholder: "Dengan penuh syukur, kami mengundang Anda…"}, 4)
+						@ui.Input(ui.Field{ID: "wedding-date", Name: "wedding_date", Label: "Tanggal pernikahan", Type: "date", Value: f.v("wedding_date"), Error: f.e("wedding_date"), Required: true, Hint: "Belum pasti? Isi perkiraan dulu — bisa diubah nanti."})
 				}
-				<div class="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-between">
-					if step > 1 {
-						@ui.SecondaryButton("Kembali", "back", "1")
+				// Langkah tema panjang di ponsel: tombol Lanjut menempel di bawah layar.
+				<div class={ "flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-between", templ.KV("sticky bottom-0 z-10 border-t border-lovoria-border bg-lovoria-surface pb-1 pt-3", step == 1) }>
+					if step > 1 && len(themes) > 0 {
+						@ui.SecondaryButton("Ganti tema", "back", "1")
 					} else {
 						<span></span>
 					}
 					if step < wizardSteps {
 						@ui.PrimaryButton("Lanjut")
 					} else {
-						@ui.PrimaryButton("Selesai & buat website")
+						@ui.PrimaryButton("Buat & lihat undangan")
 					}
 				</div>
 			</form>
 		}
 	</div>
+}
+
+// themePicker: langkah 1 — kartu tema dengan thumbnail asli, dikelompokkan
+// koleksi utama & Koleksi Daerah.
+templ themePicker(f form, themes []ThemeChoice) {
+	<fieldset>
+		<legend class="text-lg font-semibold">Pilih tema undangan</legend>
+		<p class="mt-1 text-sm text-lovoria-muted">Pilih tampilan yang paling kalian. Warna, huruf, dan foto sampulnya bisa disesuaikan setelahnya.</p>
+		if f.e("theme_id") != "" {
+			<p role="alert" class="mt-2 text-sm text-lovoria-danger">{ f.e("theme_id") }</p>
+		}
+		<div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
+			for _, t := range themesOf(themes, false) {
+				@themeOption(t, f.v("theme_id"))
+			}
+		</div>
+		if len(themesOf(themes, true)) > 0 {
+			<p class="mt-7 text-xs font-medium uppercase tracking-[0.22em] text-lovoria-accent-ink">Koleksi Daerah</p>
+			<p class="mt-1 text-sm text-lovoria-muted">Tradisi yang dikemas dengan rasa modern.</p>
+			<div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
+				for _, t := range themesOf(themes, true) {
+					@themeOption(t, f.v("theme_id"))
+				}
+			</div>
+		}
+	</fieldset>
+}
+
+templ themeOption(t ThemeChoice, selected string) {
+	<div>
+		<label class="block cursor-pointer">
+			<input type="radio" name="theme_id" value={ t.ID } checked?={ t.ID == selected } required class="peer sr-only"/>
+			<span class="block overflow-hidden rounded-2xl bg-lovoria-surface ring-1 ring-lovoria-border transition peer-checked:ring-4 peer-checked:ring-lovoria-primary peer-focus-visible:ring-4">
+				if t.Thumb != "" {
+					<img src={ t.Thumb } alt="" width="600" height="750" loading="lazy" decoding="async" class="aspect-[4/5] w-full object-cover object-top"/>
+				} else {
+					<span class="flex aspect-[4/5] items-center justify-center px-2 text-center font-display text-lg" style={ "background:" + t.Surface + ";color:" + t.Primary }>{ t.Name }</span>
+				}
+				<span class="block p-2.5">
+					if t.Featured {
+						<span class="mb-1 inline-block whitespace-nowrap rounded-full bg-lovoria-primary-soft px-1.5 py-0.5 text-[10px] font-medium text-lovoria-primary">Pilihan Lunovia</span>
+					}
+					<span class="block text-sm font-semibold leading-snug">{ t.Name }</span>
+				</span>
+			</span>
+		</label>
+		if t.DemoURL != "" {
+			<a href={ templ.SafeURL(t.DemoURL) } target="_blank" rel="noopener" class="mt-1.5 inline-block text-xs text-lovoria-primary hover:underline">Lihat contoh ↗</a>
+		}
+	</div>
+}
+
+// startPage: pratinjau pertama setelah wizard — undangan dengan tema pilihan
+// dan nama pasangan; bagian yang masih kosong diisi contoh.
+templ startPage(w Wedding) {
+	@layouts.Dashboard(layouts.Meta{Title: "Undangan kalian sudah jadi"}) {
+		<div class="mx-auto grid max-w-4xl gap-8 md:grid-cols-[minmax(0,1fr)_20rem] md:items-center">
+			<div>
+				<p class="text-xs font-medium uppercase tracking-[0.22em] text-lovoria-accent-ink">Langkah pertama selesai</p>
+				<h1 class="mt-2 font-display text-3xl leading-tight text-lovoria-deep sm:text-4xl">Undangan kalian sudah jadi</h1>
+				<p class="mt-3 leading-relaxed text-lovoria-muted">Ini tampilan awalnya. Bagian yang masih kosong diisi contoh — lengkapi dengan cerita, acara, dan foto kalian sendiri. Semuanya gratis sampai kalian siap menerbitkannya.</p>
+				<div class="mt-6 flex flex-wrap gap-3">
+					<a href={ templ.SafeURL(weddingURL(w, "/couple")) } class="ui-btn ui-btn-primary">Lanjut lengkapi undangan</a>
+					<a href={ templ.SafeURL(weddingURL(w, "/theme/preview")) } target="_blank" rel="noopener" class="ui-btn ui-btn-secondary">Buka pratinjau penuh ↗</a>
+				</div>
+				<p class="mt-4 text-sm">
+					<a href={ templ.SafeURL(weddingURL(w, "/theme")) } class="ui-link">Ganti tema</a>
+					<span class="text-lovoria-muted" aria-hidden="true">·</span>
+					<a href={ templ.SafeURL(weddingURL(w, "")) } class="ui-link">Ke beranda undangan</a>
+				</p>
+			</div>
+			<div class="mx-auto w-full max-w-xs overflow-hidden rounded-[2rem] border border-lovoria-border bg-white shadow-soft">
+				<iframe src={ weddingURL(w, "/theme/preview") } title="Pratinjau undangan" loading="lazy" class="block h-[36rem] w-full"></iframe>
+			</div>
+		</div>
+	}
 }
 
 // ---------- Daftar ----------
