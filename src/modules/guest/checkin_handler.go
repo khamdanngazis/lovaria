@@ -19,8 +19,36 @@ func (h *Handler) CheckinPage(c echo.Context) error {
 		notice = "Check-in QR diaktifkan. QR kehadiran tampil di undangan pribadi tiap tamu."
 	case "off":
 		notice = "Check-in QR dimatikan. QR tidak lagi tampil di undangan."
+	case "link":
+		notice = "Link penerima tamu dibuat. Link sebelumnya (bila ada) tidak berlaku lagi."
+	case "revoked":
+		notice = "Link penerima tamu dicabut."
 	}
-	return web.Render(c, http.StatusOK, checkinPage(w, notice))
+	link, _, err := h.svc.ActiveCheckinLink(c.Request().Context(), w.ID)
+	if err != nil {
+		return err
+	}
+	return web.Render(c, http.StatusOK, checkinPage(w, notice, link))
+}
+
+// POST /dashboard/weddings/:weddingID/checkin/link (action=new|revoke) — link
+// halaman pemindai untuk penerima tamu.
+func (h *Handler) SaveCheckinLink(c echo.Context) error {
+	w := ctxWedding(c)
+	ctx := c.Request().Context()
+	if c.FormValue("action") == "revoke" {
+		if err := h.svc.RevokeCheckinLink(ctx, w.ID); err != nil {
+			return err
+		}
+		return web.Redirect(c, w.DashboardURL("/checkin")+"?ok=revoked")
+	}
+	if !w.CheckinEnabled {
+		return echo.NewHTTPError(http.StatusConflict, "aktifkan check-in QR lebih dulu")
+	}
+	if _, err := h.svc.NewCheckinLink(ctx, w.ID); err != nil {
+		return err
+	}
+	return web.Redirect(c, w.DashboardURL("/checkin")+"?ok=link")
 }
 
 // POST /dashboard/weddings/:weddingID/checkin (enabled=1|0)

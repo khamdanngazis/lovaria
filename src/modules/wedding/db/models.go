@@ -28,6 +28,21 @@ type AppSetting struct {
 	UpdatedAt time.Time
 }
 
+type CheckinLink struct {
+	ID        uuid.UUID
+	WeddingID uuid.UUID
+	CreatedAt time.Time
+	RevokedAt *time.Time
+}
+
+type CheckinWalkin struct {
+	ID        uuid.UUID
+	WeddingID uuid.UUID
+	Name      string
+	Pax       int16
+	CreatedAt time.Time
+}
+
 type Couple struct {
 	ID               uuid.UUID
 	WeddingID        uuid.UUID

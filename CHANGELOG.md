@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### T31 (bagian 2) — Pemindai QR untuk penerima tamu
+- **Link penerima tamu** di halaman Tamu → Check-in: buat, salin, kirim lewat WhatsApp, buat ulang, atau cabut. Link dibuka di ponsel penerima tamu tanpa akun.
+- **Halaman pemindai**: kamera membaca QR undangan lalu menampilkan hasil besar — hijau (undangan sah, konfirmasi jumlah orang lalu Check-in), kuning (sudah dipakai, dengan jam check-in pertama), merah (bukan undangan acara ini). Ada **cari manual** berdasarkan nama/kode, pembatalan check-in, dan pencatatan **tamu tanpa undangan**.
+- Bekerja di Chrome Android (pembaca QR bawaan) dan Safari iOS (pustaka jsQR yang disimpan di server sendiri). Satu undangan hanya bisa check-in sekali, juga bila dua penerima tamu memindai bersamaan.
+- Halaman pemindai hanya menampilkan nama, grup, dan jumlah orang. Kamera hanya diizinkan di halaman ini. Migration `00028`. Kebijakan Privasi diperbarui (catatan kehadiran).
+
 ### T31 (bagian 1) — QR kehadiran di undangan tamu
 - Halaman baru **Tamu → Check-in** di dashboard untuk menyalakan check-in QR per wedding (bawaan: mati).
 - Bila aktif dan undangan sedang Terbit / Hari H, undangan pribadi tiap tamu (`/i/KODE`) menampilkan bagian **QR Kehadiran** dengan nama tamu, jumlah orang, dan tombol **Simpan QR**. Link umum tidak memuat QR.
