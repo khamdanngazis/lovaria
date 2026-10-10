@@ -126,6 +126,9 @@ type Guest struct {
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
 	SharedAt         *time.Time
+	CheckedInAt      *time.Time
+	CheckedInPax     *int16
+	CheckedInVia     *string
 }
 
 type GuestbookEntry struct {
@@ -263,6 +266,7 @@ type Wedding struct {
 	ArchiveVisibility string
 	PaidAt            *time.Time
 	PaidSource        *string
+	CheckinEnabled    bool
 }
 
 type WeddingPackage struct {

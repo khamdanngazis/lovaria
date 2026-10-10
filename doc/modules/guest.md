@@ -103,3 +103,12 @@ Nomor dari kontak (`+62 857-1111-2222`, `0857…`) dinormalisasi ke `62…` di s
 - `service_test.go`: CRUD, filter/pencarian, statistik, `GetByCode`, isolasi tenant, import 500 baris < 5 detik, `AddMany` semua-atau-tidak.
 - `handler_test.go`: alur HTTP (tambah cepat, tempel → periksa → simpan, import, export, hapus massal, halaman RSVP) dan 404 untuk user lain di semua route.
 - Alur RSVP publik diuji di `src/public-site/rsvp_test.go`.
+
+## Check-in QR di hari H (T31)
+
+Bagian 1 (QR di undangan):
+- **Sakelar per wedding**: `weddings.checkin_enabled` (bawaan `false`), diubah dari halaman dashboard **Tamu → Check-in** (`guest.CheckinPage` / `SaveCheckin` → `wedding.Service.SetCheckinEnabled`).
+- **Guard** (modul `wedding`): `Wedding.CheckinAvailable()` — gerbang hak pakai fitur (sekarang selalu `true`; tempat menggerbangkan bila kelak jadi fitur berbayar) — dan `Wedding.CheckinOpen()` = tersedia + dinyalakan + status Terbit/Hari H.
+- **QR**: `GET /i/<KODE>/qr.png` (`publicsite.Handler.GuestQR`) → PNG 512 px dari `platform/qr`. Isi QR = alamat undangan pribadi itu sendiri (domain Lunovia atau custom domain). 404 bila bukan link pribadi atau check-in tidak dibuka.
+- **Bagian undangan**: `shared.CheckinSection` (ID bagian `checkin` di registry `theme.Sections`, setelah RSVP). Tampil hanya bila `view.Checkin.QRURL` terisi — diisi public-site untuk link pribadi saat `CheckinOpen()`.
+- Kolom `guests.checked_in_at`, `checked_in_pax`, `checked_in_via` sudah disiapkan migration `00027`; baru diisi oleh pemindai (bagian 2).

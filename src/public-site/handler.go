@@ -20,6 +20,7 @@ import (
 	"github.com/khamdanngazis/lovaria/src/modules/theme"
 	"github.com/khamdanngazis/lovaria/src/modules/theme/view"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding/event"
+	"github.com/khamdanngazis/lovaria/src/platform/qr"
 	"github.com/khamdanngazis/lovaria/src/platform/web"
 )
 
@@ -97,6 +98,10 @@ func (h *Handler) Invitation(c echo.Context) error {
 	}
 	v.OG = h.og(res, v)
 	v.SiteURL = strings.TrimRight(h.BaseURL, "/") + "/"
+	// QR kehadiran (T31): hanya di link pribadi, saat check-in dibuka.
+	if res.Guest != nil && res.Wedding.CheckinOpen() {
+		v.Checkin.QRURL = res.Prefix + "/qr.png"
+	}
 	if !res.Preview {
 		h.setGuestbookForm(&v, res)
 		if c.QueryParam("guestbook") == "ok" { // kembali dari form tanpa JS
@@ -257,6 +262,23 @@ func slugFile(s string) string {
 		return out
 	}
 	return "acara"
+}
+
+// GET /i/:code/qr.png — QR kehadiran tamu (T31). Isinya alamat undangan
+// pribadi itu sendiri; penerima tamu memindainya di halaman check-in.
+func (h *Handler) GuestQR(c echo.Context) error {
+	res, _ := FromContext(c.Request().Context())
+	if res.Guest == nil || !res.Wedding.CheckinOpen() {
+		return notFound(c)
+	}
+	png, err := qr.PNG(res.Origin+res.Prefix, 512)
+	if err != nil {
+		return err
+	}
+	hdr := c.Response().Header()
+	hdr.Set("Cache-Control", "private, max-age=3600")
+	hdr.Set("X-Robots-Tag", "noindex")
+	return c.Blob(http.StatusOK, "image/png", png)
 }
 
 // GET /privacy, /terms — halaman legal (teks final, T26).

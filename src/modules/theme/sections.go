@@ -25,6 +25,8 @@ var Sections = []SectionDef{
 	{ID: "story", Label: "Cerita cinta", Hideable: true},
 	{ID: "gallery", Label: "Galeri", Hideable: true},
 	{ID: "rsvp", Label: "Konfirmasi kehadiran"},
+	// Hanya tampil di link pribadi tamu bila pasangan menyalakan check-in (T31).
+	{ID: "checkin", Label: "QR kehadiran"},
 	{ID: "guestbook", Label: "Ucapan & doa", Hideable: true},
 	{ID: "gift", Label: "Tanda kasih", Hideable: true},
 }

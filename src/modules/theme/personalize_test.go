@@ -74,7 +74,7 @@ func TestOrderedAndMoveSections(t *testing.T) {
 	}
 	// Urutan sebagian: sisanya disisipkan di posisi bawaannya, tanpa duplikat.
 	got := ids(OrderedSections(view.Settings{SectionOrder: []string{"gift", "couple", "gift", "nope"}}))
-	want := []string{"gift", "couple", "countdown", "quote", "events", "story", "gallery", "rsvp", "guestbook"}
+	want := []string{"gift", "couple", "countdown", "quote", "events", "story", "gallery", "rsvp", "checkin", "guestbook"}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("sebagian = %v", got)
 	}

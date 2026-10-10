@@ -137,6 +137,18 @@ func rsvpSummary(g *view.Guest) string {
 	return ""
 }
 
+// checkinPax: jumlah orang yang tertera di QR kehadiran — jawaban RSVP bila
+// tamu sudah konfirmasi hadir, selain itu batas undangan.
+func checkinPax(g *view.Guest) string {
+	if g.RSVPStatus == "attending" && g.RSVPPax > 0 {
+		return strconv.Itoa(g.RSVPPax)
+	}
+	if g.MaxPax > 0 {
+		return strconv.Itoa(g.MaxPax)
+	}
+	return "1"
+}
+
 // rsvpValues: isian form — nilai yang baru dikirim (saat error) atau jawaban tersimpan.
 func rsvpValues(v view.View) (status string, pax int, message string) {
 	f, g := v.RSVP, v.Guest
@@ -184,7 +196,7 @@ func rsvpForm(v view.View) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(v.RSVP.Notice)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 66, Col: 114}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 78, Col: 114}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -202,7 +214,7 @@ func rsvpForm(v view.View) templ.Component {
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(s)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 68, Col: 42}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 80, Col: 42}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -221,7 +233,7 @@ func rsvpForm(v view.View) templ.Component {
 			var templ_7745c5c3_Var7 string
 			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(v.RSVP.Error)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 71, Col: 108}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 83, Col: 108}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {
@@ -244,7 +256,7 @@ func rsvpForm(v view.View) templ.Component {
 			var templ_7745c5c3_Var8 templ.SafeURL
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(v.RSVP.Action))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 76, Col: 41}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 88, Col: 41}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -257,7 +269,7 @@ func rsvpForm(v view.View) templ.Component {
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.ResolveAttributeValue(v.RSVP.Action)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 77, Col: 27}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 89, Col: 27}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var9)
 			if templ_7745c5c3_Err != nil {
@@ -275,7 +287,7 @@ func rsvpForm(v view.View) templ.Component {
 		var templ_7745c5c3_Var10 string
 		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.ResolveAttributeValue(v.RSVP.Token)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 84, Col: 57}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 96, Col: 57}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10)
 		if templ_7745c5c3_Err != nil {
@@ -288,7 +300,7 @@ func rsvpForm(v view.View) templ.Component {
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(v.Guest.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 86, Col: 59}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 98, Col: 59}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
@@ -326,7 +338,7 @@ func rsvpForm(v view.View) templ.Component {
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.ResolveAttributeValue(strconv.Itoa(n))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 97, Col: 37}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 109, Col: 37}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12)
 			if templ_7745c5c3_Err != nil {
@@ -349,7 +361,7 @@ func rsvpForm(v view.View) templ.Component {
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(n))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 97, Col: 80}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 109, Col: 80}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
@@ -375,7 +387,7 @@ func rsvpForm(v view.View) templ.Component {
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(message)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 104, Col: 98}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 116, Col: 98}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
@@ -480,7 +492,7 @@ func rsvpChoice(value, label, current string) templ.Component {
 		var templ_7745c5c3_Var16 string
 		templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.ResolveAttributeValue(value)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 133, Col: 49}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 145, Col: 49}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var16)
 		if templ_7745c5c3_Err != nil {
@@ -503,7 +515,7 @@ func rsvpChoice(value, label, current string) templ.Component {
 		var templ_7745c5c3_Var17 string
 		templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(label)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 134, Col: 9}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 146, Col: 9}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 		if templ_7745c5c3_Err != nil {
@@ -546,7 +558,7 @@ func rsvpError(v view.View, field string) templ.Component {
 			var templ_7745c5c3_Var19 string
 			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(msg)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 140, Col: 44}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 152, Col: 44}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 			if templ_7745c5c3_Err != nil {
@@ -612,7 +624,7 @@ func MemorySection(v view.View) templ.Component {
 					var templ_7745c5c3_Var22 templ.SafeURL
 					templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(p.URL))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 154, Col: 36}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 166, Col: 36}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 					if templ_7745c5c3_Err != nil {
@@ -647,7 +659,7 @@ func MemorySection(v view.View) templ.Component {
 					var templ_7745c5c3_Var25 string
 					templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.ResolveAttributeValue(p.ThumbURL)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 155, Col: 28}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 167, Col: 28}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var25)
 					if templ_7745c5c3_Err != nil {
@@ -660,7 +672,7 @@ func MemorySection(v view.View) templ.Component {
 					var templ_7745c5c3_Var26 string
 					templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.ResolveAttributeValue(memoryAlt(p, i))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 155, Col: 52}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 167, Col: 52}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var26)
 					if templ_7745c5c3_Err != nil {
@@ -702,7 +714,7 @@ func MemorySection(v view.View) templ.Component {
 					var templ_7745c5c3_Var28 string
 					templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(e.Message)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 165, Col: 88}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 177, Col: 88}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 					if templ_7745c5c3_Err != nil {
@@ -715,7 +727,7 @@ func MemorySection(v view.View) templ.Component {
 					var templ_7745c5c3_Var29 string
 					templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(e.Name)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 166, Col: 111}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 178, Col: 111}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 					if templ_7745c5c3_Err != nil {
@@ -728,7 +740,7 @@ func MemorySection(v view.View) templ.Component {
 					var templ_7745c5c3_Var30 string
 					templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(e.DateText)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 166, Col: 136}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 178, Col: 136}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 					if templ_7745c5c3_Err != nil {
@@ -814,7 +826,7 @@ func GuestbookSection(v view.View) templ.Component {
 					var templ_7745c5c3_Var32 string
 					templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(g.Notice)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 200, Col: 112}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 212, Col: 112}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
 					if templ_7745c5c3_Err != nil {
@@ -833,7 +845,7 @@ func GuestbookSection(v view.View) templ.Component {
 					var templ_7745c5c3_Var33 string
 					templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(g.Error)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 203, Col: 106}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 215, Col: 106}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
 					if templ_7745c5c3_Err != nil {
@@ -856,7 +868,7 @@ func GuestbookSection(v view.View) templ.Component {
 					var templ_7745c5c3_Var34 templ.SafeURL
 					templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(g.Action))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 208, Col: 39}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 220, Col: 39}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 					if templ_7745c5c3_Err != nil {
@@ -869,7 +881,7 @@ func GuestbookSection(v view.View) templ.Component {
 					var templ_7745c5c3_Var35 string
 					templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.ResolveAttributeValue(g.Action)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 209, Col: 25}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 221, Col: 25}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var35)
 					if templ_7745c5c3_Err != nil {
@@ -887,7 +899,7 @@ func GuestbookSection(v view.View) templ.Component {
 				var templ_7745c5c3_Var36 string
 				templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.ResolveAttributeValue(g.Token)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 216, Col: 55}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 228, Col: 55}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var36)
 				if templ_7745c5c3_Err != nil {
@@ -900,7 +912,7 @@ func GuestbookSection(v view.View) templ.Component {
 				var templ_7745c5c3_Var37 string
 				templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.ResolveAttributeValue(g.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 224, Col: 65}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 236, Col: 65}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var37)
 				if templ_7745c5c3_Err != nil {
@@ -921,7 +933,7 @@ func GuestbookSection(v view.View) templ.Component {
 				var templ_7745c5c3_Var38 string
 				templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(g.Message)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 229, Col: 110}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 241, Col: 110}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
 				if templ_7745c5c3_Err != nil {
@@ -999,7 +1011,7 @@ func GuestbookEntries(v view.View) templ.Component {
 			var templ_7745c5c3_Var40 string
 			templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.JoinStringErrs(e.Message)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 249, Col: 65}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 261, Col: 65}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var40))
 			if templ_7745c5c3_Err != nil {
@@ -1012,7 +1024,7 @@ func GuestbookEntries(v view.View) templ.Component {
 			var templ_7745c5c3_Var41 string
 			templ_7745c5c3_Var41, templ_7745c5c3_Err = templ.JoinStringErrs(e.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 250, Col: 87}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 262, Col: 87}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var41))
 			if templ_7745c5c3_Err != nil {
@@ -1025,7 +1037,7 @@ func GuestbookEntries(v view.View) templ.Component {
 			var templ_7745c5c3_Var42 string
 			templ_7745c5c3_Var42, templ_7745c5c3_Err = templ.JoinStringErrs(e.DateText)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 250, Col: 112}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 262, Col: 112}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var42))
 			if templ_7745c5c3_Err != nil {
@@ -1045,7 +1057,7 @@ func GuestbookEntries(v view.View) templ.Component {
 			var templ_7745c5c3_Var43 templ.SafeURL
 			templ_7745c5c3_Var43, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(more))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 255, Col: 31}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 267, Col: 31}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var43))
 			if templ_7745c5c3_Err != nil {
@@ -1058,7 +1070,7 @@ func GuestbookEntries(v view.View) templ.Component {
 			var templ_7745c5c3_Var44 string
 			templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.ResolveAttributeValue(more)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 255, Col: 47}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 267, Col: 47}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var44)
 			if templ_7745c5c3_Err != nil {
@@ -1102,7 +1114,7 @@ func fieldError(msg string) templ.Component {
 			var templ_7745c5c3_Var46 string
 			templ_7745c5c3_Var46, templ_7745c5c3_Err = templ.JoinStringErrs(msg)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 261, Col: 44}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 273, Col: 44}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var46))
 			if templ_7745c5c3_Err != nil {
@@ -1171,7 +1183,7 @@ func GiftSection(v view.View) templ.Component {
 						var templ_7745c5c3_Var48 string
 						templ_7745c5c3_Var48, templ_7745c5c3_Err = templ.JoinStringErrs(gf.AccountName)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 277, Col: 54}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 289, Col: 54}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var48))
 						if templ_7745c5c3_Err != nil {
@@ -1189,7 +1201,7 @@ func GiftSection(v view.View) templ.Component {
 					var templ_7745c5c3_Var49 string
 					templ_7745c5c3_Var49, templ_7745c5c3_Err = templ.JoinStringErrs(gf.Address)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 279, Col: 75}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 291, Col: 75}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var49))
 					if templ_7745c5c3_Err != nil {
@@ -1202,7 +1214,7 @@ func GiftSection(v view.View) templ.Component {
 					var templ_7745c5c3_Var50 string
 					templ_7745c5c3_Var50, templ_7745c5c3_Err = templ.ResolveAttributeValue(gf.Address)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 280, Col: 58}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 292, Col: 58}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var50)
 					if templ_7745c5c3_Err != nil {
@@ -1220,7 +1232,7 @@ func GiftSection(v view.View) templ.Component {
 					var templ_7745c5c3_Var51 string
 					templ_7745c5c3_Var51, templ_7745c5c3_Err = templ.JoinStringErrs(gf.Provider)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 282, Col: 88}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 294, Col: 88}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var51))
 					if templ_7745c5c3_Err != nil {
@@ -1233,7 +1245,7 @@ func GiftSection(v view.View) templ.Component {
 					var templ_7745c5c3_Var52 string
 					templ_7745c5c3_Var52, templ_7745c5c3_Err = templ.JoinStringErrs(gf.AccountNumber)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 283, Col: 85}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 295, Col: 85}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var52))
 					if templ_7745c5c3_Err != nil {
@@ -1246,7 +1258,7 @@ func GiftSection(v view.View) templ.Component {
 					var templ_7745c5c3_Var53 string
 					templ_7745c5c3_Var53, templ_7745c5c3_Err = templ.JoinStringErrs(gf.AccountName)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 284, Col: 63}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 296, Col: 63}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var53))
 					if templ_7745c5c3_Err != nil {
@@ -1259,7 +1271,7 @@ func GiftSection(v view.View) templ.Component {
 					var templ_7745c5c3_Var54 string
 					templ_7745c5c3_Var54, templ_7745c5c3_Err = templ.ResolveAttributeValue(gf.AccountNumber)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 285, Col: 64}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 297, Col: 64}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var54)
 					if templ_7745c5c3_Err != nil {
@@ -1276,6 +1288,126 @@ func GiftSection(v view.View) templ.Component {
 				}
 			}
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 111, "</div></section>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		return nil
+	})
+}
+
+// CheckinSection: QR kehadiran tamu (T31) — ditunjukkan di pintu masuk. Hanya
+// di link pribadi dan bila pasangan menyalakan check-in. QR selalu di atas
+// latar putih supaya terbaca di tema gelap; gambar biasa, tanpa script.
+func CheckinSection(v view.View) templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var55 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var55 == nil {
+			templ_7745c5c3_Var55 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		if v.Checkin.QRURL != "" && v.Guest != nil {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 112, "<section id=\"checkin\" class=\"px-6 py-20\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = base.Title(v, "QR Kehadiran", "Tunjukkan QR ini kepada penerima tamu di pintu masuk.").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 113, "<div class=\"lv-card mx-auto max-w-xs p-5 text-center\"><div class=\"mx-auto w-full max-w-[15rem] rounded-xl bg-white p-2\"><img src=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var56 string
+			templ_7745c5c3_Var56, templ_7745c5c3_Err = templ.ResolveAttributeValue(v.Checkin.QRURL)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 315, Col: 31}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var56)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 114, "\" alt=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var57 string
+			templ_7745c5c3_Var57, templ_7745c5c3_Err = templ.ResolveAttributeValue("Kode QR kehadiran untuk " + v.Guest.Name)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 315, Col: 81}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var57)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 115, "\" width=\"512\" height=\"512\" loading=\"lazy\" decoding=\"async\" class=\"block h-auto w-full [image-rendering:pixelated]\"></div><p class=\"mt-4 break-words text-lg font-semibold\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var58 string
+			templ_7745c5c3_Var58, templ_7745c5c3_Err = templ.JoinStringErrs(v.Guest.Name)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 317, Col: 68}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var58))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 116, "</p><p class=\"text-sm text-muted\">Berlaku untuk ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var59 string
+			templ_7745c5c3_Var59, templ_7745c5c3_Err = templ.JoinStringErrs(checkinPax(v.Guest))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 318, Col: 69}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var59))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 117, " orang</p><a href=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var60 templ.SafeURL
+			templ_7745c5c3_Var60, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(v.Checkin.QRURL))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 319, Col: 44}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var60))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 118, "\" download=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var61 string
+			templ_7745c5c3_Var61, templ_7745c5c3_Err = templ.ResolveAttributeValue("qr-kehadiran-" + v.Guest.Code + ".png")
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 319, Col: 97}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var61)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 119, "\" class=\"lv-btn-outline lv-btn-sm mt-5 inline-block\">Simpan QR</a><p class=\"mt-3 text-xs text-muted\">Simpan gambarnya supaya tetap bisa ditunjukkan tanpa sinyal.</p></div></section>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -30,6 +30,17 @@ func (w Wedding) AllowsGuestbook() bool {
 	return w.Status == StatusPublished || w.Status == StatusWeddingDay || w.Status == StatusMemory
 }
 
+// CheckinAvailable: wedding ini berhak memakai check-in QR (T31). Saat ini
+// termasuk dalam harga publikasi untuk semua wedding; bila kelak menjadi fitur
+// tambahan berbayar, gerbangnya cukup di sini.
+func (w Wedding) CheckinAvailable() bool { return true }
+
+// CheckinOpen: QR kehadiran tampil di undangan dan tamu bisa di-check-in —
+// fitur dinyalakan pasangan dan undangan sedang Terbit / Hari H.
+func (w Wedding) CheckinOpen() bool {
+	return w.CheckinAvailable() && w.CheckinEnabled && (w.Status == StatusPublished || w.Status == StatusWeddingDay)
+}
+
 // InMemory: hari H sudah lewat (banner terima kasih di halaman undangan).
 func (w Wedding) InMemory() bool { return w.Status == StatusMemory }
 

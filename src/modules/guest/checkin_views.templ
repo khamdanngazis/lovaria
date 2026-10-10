@@ -1,0 +1,62 @@
+package guest
+
+import (
+	"github.com/khamdanngazis/lovaria/src/modules/wedding"
+	"github.com/khamdanngazis/lovaria/src/templates/layouts"
+	"github.com/khamdanngazis/lovaria/src/templates/ui"
+)
+
+// checkinPage: pengaturan check-in QR di hari H (T31).
+templ checkinPage(w wedding.Wedding, notice string) {
+	@wedding.Shell(w, "/checkin") {
+		<div class="max-w-2xl space-y-4">
+			@ui.Notice(notice)
+			@ui.Card() {
+				<div class="flex flex-wrap items-start justify-between gap-3">
+					<div class="min-w-0">
+						<h2 class="font-display text-2xl leading-tight text-lovoria-deep">Check-in tamu dengan QR</h2>
+						<p class="mt-2 text-sm leading-relaxed text-lovoria-muted">Untuk acara yang hanya menerima tamu berundangan: tiap tamu mendapat QR di undangan pribadinya, dan penerima tamu memindainya di pintu masuk.</p>
+					</div>
+					if w.CheckinEnabled {
+						@ui.Badge(ui.Success, "Aktif")
+					} else {
+						@ui.Badge(ui.Muted, "Tidak aktif")
+					}
+				</div>
+				<ol class="mt-5 space-y-2.5 text-sm leading-relaxed text-lovoria-text">
+					<li class="flex gap-3"><span class="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-lovoria-primary-soft text-xs font-medium text-lovoria-primary">1</span><span>Aktifkan fitur ini. Bagian <strong>QR Kehadiran</strong> muncul di undangan pribadi tiap tamu (link <span class="font-mono text-xs">/i/KODE</span>) — bukan di link umum.</span></li>
+					<li class="flex gap-3"><span class="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-lovoria-primary-soft text-xs font-medium text-lovoria-primary">2</span><span>Tamu menyimpan atau membuka QR-nya saat datang.</span></li>
+					<li class="flex gap-3"><span class="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-lovoria-primary-soft text-xs font-medium text-lovoria-primary">3</span><span>Penerima tamu memindai QR dari ponselnya. Halaman pemindai dan link untuk penerima tamu segera tersedia di sini.</span></li>
+				</ol>
+				if !w.CheckinEnabled && w.IsDraft() {
+					<p class="mt-4 text-xs text-lovoria-muted">Bisa diaktifkan sekarang; QR baru tampil ke tamu setelah undangan diterbitkan.</p>
+				} else if w.CheckinEnabled && !w.CheckinOpen() {
+					<p class={ "mt-4", ui.AlertClass(ui.Warning) }>
+						if w.IsDraft() {
+							QR belum tampil ke tamu karena undangan masih draf.
+						} else {
+							Hari H sudah lewat: QR tidak lagi tampil di undangan. Data kehadiran tetap tersimpan.
+						}
+					</p>
+				}
+				<form
+					method="post"
+					action={ templ.SafeURL(w.DashboardURL("/checkin")) }
+					class="mt-5"
+					if w.CheckinEnabled {
+						data-confirm="Matikan check-in QR? QR tidak lagi tampil di undangan tamu."
+					}
+				>
+					@layouts.CSRFField()
+					if w.CheckinEnabled {
+						<input type="hidden" name="enabled" value="0"/>
+						<button type="submit" class="ui-btn ui-btn-secondary">Matikan check-in QR</button>
+					} else {
+						<input type="hidden" name="enabled" value="1"/>
+						<button type="submit" class="ui-btn ui-btn-primary">Aktifkan check-in QR</button>
+					}
+				</form>
+			}
+		</div>
+	}
+}

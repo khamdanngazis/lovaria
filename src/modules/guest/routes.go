@@ -18,6 +18,8 @@ func Register(w *echo.Group, deps Deps) {
 	h := NewHandler(deps.Service, deps.Weddings)
 	w.GET("/guests", h.List)
 	w.GET("/rsvp", h.RSVP)
+	w.GET("/checkin", h.CheckinPage)
+	w.POST("/checkin", h.SaveCheckin)
 	w.GET("/share", h.SharePage)
 	w.POST("/share/template", h.SaveShareTemplate)
 	w.POST("/share/template/reset", h.ResetShareTemplate)
