@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Tambah cepat tamu: jumlah orang
+- Form tambah cepat di Daftar tamu kini punya pilihan **Maks. … orang** (jumlah orang yang boleh datang dengan undangan itu; 1–10). Bawaannya 4, bukan 1 (tamu sendiri yang mengonfirmasi jumlah yang datang lewat RSVP), dan nilai terakhir diingat untuk tamu berikutnya — sebelumnya tamu dari tambah cepat selalu berbatas 1 sehingga tidak bisa memilih jumlah di RSVP.
+
 ### T31 (bagian 3) — Kehadiran nyata di dashboard
 - Halaman Tamu → Check-in menampilkan **ringkasan kehadiran** yang memperbarui diri tiap 10 detik selama check-in dibuka: undangan yang datang, jumlah orang hadir, tamu tambahan, daftar check-in terbaru (jam, jumlah orang, cara), dan daftar tamu tanpa undangan.
 - Pasangan bisa **menandai datang secara manual**, membatalkan check-in, dan menghapus catatan tamu tambahan.
