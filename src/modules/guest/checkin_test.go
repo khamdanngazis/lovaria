@@ -324,3 +324,105 @@ func TestScannerPageFlow(t *testing.T) {
 	}
 	_ = echo.New
 }
+
+// T31 bagian 3: pasangan melihat kehadiran nyata di dashboard, menandai /
+// membatalkan secara manual, mengelola tamu tambahan, dan mengekspornya.
+func TestOwnerAttendanceDashboard(t *testing.T) {
+	f := newFixture(t)
+	f.svc.SetCheckinSecret([]byte("rahasia-test-rahasia-test-rahasia"))
+	e := newTestServer(t, f)
+	owner, w := f.newWedding(t, "a@example.com")
+	stranger, other := f.newWedding(t, "b@example.com")
+	budi := f.add(t, w.ID, Input{Name: "Bapak Budi", MaxPax: "3"})
+	ani := f.add(t, w.ID, Input{Name: "Ibu Ani", MaxPax: "2"})
+	cici := f.add(t, other.ID, Input{Name: "Cici"})
+	path := w.DashboardURL("/checkin")
+
+	// Fitur mati & belum ada catatan: tanpa kartu kehadiran; menandai ditolak.
+	if b := send(e, owner, get(path), false).Body.String(); strings.Contains(b, `id="attendance"`) {
+		t.Error("fitur mati tanpa catatan: kartu kehadiran tidak tampil")
+	}
+	if rec := send(e, owner, formReq(http.MethodPost, path+"/mark", url.Values{"guest_id": {budi.ID.String()}}), false); rec.Code != http.StatusConflict {
+		t.Errorf("tandai saat fitur mati: %d", rec.Code)
+	}
+
+	w = f.openCheckin(t, owner, w)
+	if _, err := f.svc.CheckIn(ctx, w.ID, budi.ID, 3, ViaScan); err != nil {
+		t.Fatal(err)
+	}
+	wk, err := f.svc.AddWalkin(ctx, w.ID, "Pak RT", 2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	body := send(e, owner, get(path), false).Body.String()
+	for _, want := range []string{`id="attendance"`, `hx-trigger="every 10s"`, "Undangan datang", "dari 2", "Bapak Budi", "3 orang · pindai QR", "Tamu tambahan (tanpa undangan)", "Pak RT", "Tandai datang secara manual"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("halaman check-in tidak memuat %q", want)
+		}
+	}
+	// Fragmen yang dipanggil berkala: hanya kartu, tanpa kerangka halaman.
+	frag := send(e, owner, get(path+"/attendance"), true).Body.String()
+	if !strings.HasPrefix(strings.TrimSpace(frag), `<div id="attendance"`) || strings.Contains(frag, "<html") || !strings.Contains(frag, "Bapak Budi") {
+		t.Errorf("fragmen kehadiran: %.120s", frag)
+	}
+
+	// Cari & tandai manual oleh pasangan; tamu wedding lain tidak pernah muncul.
+	if b := send(e, owner, get(path+"/search?q=ani"), true).Body.String(); !strings.Contains(b, "Ibu Ani") || !strings.Contains(b, "Tandai datang") {
+		t.Errorf("cari pasangan: %s", b)
+	}
+	if b := send(e, owner, get(path+"/search?q=cici"), true).Body.String(); strings.Contains(b, "Cici") && !strings.Contains(b, "Tidak ada tamu") {
+		t.Error("tamu wedding lain tidak boleh muncul")
+	}
+	rec := send(e, owner, formReq(http.MethodPost, path+"/mark", url.Values{"guest_id": {ani.ID.String()}}), false)
+	if rec.Code != http.StatusSeeOther || rec.Header().Get("Location") != path+"?ok=marked" {
+		t.Fatalf("tandai: %d %s", rec.Code, rec.Header().Get("Location"))
+	}
+	if got, _ := f.svc.Get(ctx, w.ID, ani.ID); got.CheckedInAt == nil || got.CheckedInVia != ViaOwner || got.CheckedInPax != 2 {
+		t.Fatalf("ditandai pasangan: %+v", got)
+	}
+	// Menandai tamu wedding lain → 404, tidak tercatat.
+	if rec := send(e, owner, formReq(http.MethodPost, path+"/mark", url.Values{"guest_id": {cici.ID.String()}}), false); rec.Code != http.StatusNotFound {
+		t.Errorf("tandai tamu wedding lain: %d", rec.Code)
+	}
+	if got, _ := f.svc.Get(ctx, other.ID, cici.ID); got.CheckedInAt != nil {
+		t.Fatal("tamu wedding lain ikut tertandai")
+	}
+	// Batalkan.
+	if rec := send(e, owner, formReq(http.MethodPost, path+"/mark", url.Values{"guest_id": {ani.ID.String()}, "undo": {"1"}}), false); rec.Header().Get("Location") != path+"?ok=undone" {
+		t.Errorf("batalkan: %s", rec.Header().Get("Location"))
+	}
+	if got, _ := f.svc.Get(ctx, w.ID, ani.ID); got.CheckedInAt != nil {
+		t.Error("check-in harus batal")
+	}
+	// Pemilik lain tidak bisa melihat / mengubah.
+	for _, r := range []*http.Request{get(path), get(path + "/attendance"), get(path + "/search?q=budi"),
+		formReq(http.MethodPost, path+"/mark", url.Values{"guest_id": {budi.ID.String()}, "undo": {"1"}}),
+		formReq(http.MethodPost, path+"/walkins/"+wk.ID.String()+"/delete", url.Values{})} {
+		if rec := send(e, stranger, r, false); rec.Code != http.StatusNotFound {
+			t.Errorf("%s %s oleh pemilik lain: %d", r.Method, r.URL.Path, rec.Code)
+		}
+	}
+	// Hapus tamu tambahan.
+	if rec := send(e, owner, formReq(http.MethodPost, path+"/walkins/"+wk.ID.String()+"/delete", url.Values{}), false); rec.Header().Get("Location") != path+"?ok=walkin" {
+		t.Errorf("hapus tamu tambahan: %d %s", rec.Code, rec.Header().Get("Location"))
+	}
+	if st, _, _ := f.svc.CheckinSummary(ctx, w.ID, 0); st.Walkins != 0 || st.CheckedIn != 1 {
+		t.Errorf("ringkasan akhir: %+v", st)
+	}
+
+	// Daftar tamu menandai yang sudah datang; ekspor CSV memuat kolom kehadiran.
+	if b := send(e, owner, get(w.DashboardURL("/guests")), false).Body.String(); !strings.Contains(b, "Datang · 3 org") {
+		t.Error("daftar tamu: lencana Datang")
+	}
+	csv := send(e, owner, get(w.DashboardURL("/guests/export")), false).Body.String()
+	if !strings.Contains(csv, "checked_in_at,checked_in_pax,checked_in_via") || !strings.Contains(csv, ",3,scan") {
+		t.Errorf("ekspor CSV tanpa kolom kehadiran: %s", csv)
+	}
+	// Fitur dimatikan tetapi sudah ada catatan: kartu tetap tampil, tanpa polling.
+	if err := f.weddings.SetCheckinEnabled(ctx, w.ID, false); err != nil {
+		t.Fatal(err)
+	}
+	if b := send(e, owner, get(path), false).Body.String(); !strings.Contains(b, `id="attendance"`) || strings.Contains(b, `hx-trigger="every 10s"`) || strings.Contains(b, "Tandai datang secara manual") {
+		t.Error("fitur mati dengan catatan: kartu tampil tanpa polling & tanpa penandaan manual")
+	}
+}

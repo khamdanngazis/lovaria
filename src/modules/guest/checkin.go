@@ -276,3 +276,41 @@ func (s *Service) CheckinSummary(ctx context.Context, weddingID uuid.UUID, recen
 	}
 	return st, gs, nil
 }
+
+// ListWalkins: tamu tambahan terbaru.
+func (s *Service) ListWalkins(ctx context.Context, weddingID uuid.UUID, limit int) ([]Walkin, error) {
+	rows, err := s.repo.q.ListWalkins(ctx, guestdb.ListWalkinsParams{WeddingID: weddingID, Limit: int32(limit)}) //nolint:gosec // G115: kecil
+	if err != nil {
+		return nil, fmt.Errorf("guest: daftar tamu tambahan: %w", err)
+	}
+	out := make([]Walkin, len(rows))
+	for i, r := range rows {
+		out[i] = Walkin{ID: r.ID, Name: r.Name, Pax: int(r.Pax), CreatedAt: r.CreatedAt}
+	}
+	return out, nil
+}
+
+// DeleteWalkin menghapus catatan tamu tambahan (salah catat).
+func (s *Service) DeleteWalkin(ctx context.Context, weddingID, id uuid.UUID) error {
+	n, err := s.repo.q.DeleteWalkin(ctx, guestdb.DeleteWalkinParams{ID: id, WeddingID: weddingID})
+	if err != nil {
+		return fmt.Errorf("guest: hapus tamu tambahan: %w", err)
+	}
+	if n == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
+// ViaLabel: cara check-in untuk ditampilkan ke pasangan.
+func ViaLabel(via string) string {
+	switch via {
+	case ViaScan:
+		return "pindai QR"
+	case ViaManual:
+		return "cari manual"
+	case ViaOwner:
+		return "ditandai pasangan"
+	}
+	return ""
+}

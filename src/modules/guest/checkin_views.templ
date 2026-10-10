@@ -1,13 +1,16 @@
 package guest
 
 import (
+	"strconv"
+	"time"
+
 	"github.com/khamdanngazis/lovaria/src/modules/wedding"
 	"github.com/khamdanngazis/lovaria/src/templates/layouts"
 	"github.com/khamdanngazis/lovaria/src/templates/ui"
 )
 
 // checkinPage: pengaturan check-in QR di hari H (T31).
-templ checkinPage(w wedding.Wedding, notice string, link CheckinLink) {
+templ checkinPage(w wedding.Wedding, notice string, link CheckinLink, att attendanceState) {
 	@wedding.Shell(w, "/checkin") {
 		<div class="max-w-2xl space-y-4">
 			@ui.Notice(notice)
@@ -59,8 +62,148 @@ templ checkinPage(w wedding.Wedding, notice string, link CheckinLink) {
 			}
 			if w.CheckinEnabled {
 				@usherLinkCard(w, link)
+				@attendanceCard(att)
+				@ownerMarkCard(w)
+			} else if att.Stats.CheckedIn > 0 || att.Stats.Walkins > 0 {
+				// Fitur dimatikan tetapi sudah ada catatan: tetap bisa dilihat.
+				@attendanceCard(att)
 			}
 		</div>
+	}
+}
+
+func hhmm(a attendanceState, t time.Time) string { return t.In(a.Loc).Format("15.04") }
+
+// attendanceCard: kehadiran nyata — memperbarui diri tiap 10 detik selama
+// check-in dibuka (tanpa WebSocket).
+templ attendanceCard(a attendanceState) {
+	<div
+		id="attendance"
+		class="ui-card"
+		if a.W.CheckinOpen() {
+			hx-get={ a.W.DashboardURL("/checkin/attendance") }
+			hx-trigger="every 10s"
+			hx-swap="outerHTML"
+		}
+	>
+		<div class="flex flex-wrap items-center justify-between gap-2">
+			<h2 class="font-semibold">Kehadiran</h2>
+			if a.W.CheckinOpen() {
+				<span class="flex items-center gap-1.5 text-xs text-lovoria-muted"><span class="h-2 w-2 rounded-full bg-lovoria-success" aria-hidden="true"></span>memperbarui otomatis</span>
+			}
+		</div>
+		<div class="mt-3 grid grid-cols-3 gap-2">
+			@attendanceStat("Undangan datang", strconv.Itoa(a.Stats.CheckedIn), "dari "+strconv.Itoa(a.Stats.Invited))
+			@attendanceStat("Orang hadir", strconv.Itoa(a.Stats.TotalPax()), "termasuk tamu tambahan")
+			@attendanceStat("Tamu tambahan", strconv.Itoa(a.Stats.Walkins), strconv.Itoa(a.Stats.WalkinPax)+" orang")
+		</div>
+		if len(a.Recent) == 0 && len(a.Walkins) == 0 {
+			<p class="mt-4 text-sm text-lovoria-muted">Belum ada tamu yang check-in.</p>
+		}
+		if len(a.Recent) > 0 {
+			<h3 class="mt-5 text-xs font-medium uppercase tracking-wide text-lovoria-muted">Check-in terbaru</h3>
+			<ul class="mt-1 divide-y divide-lovoria-border text-sm">
+				for _, g := range a.Recent {
+					<li class="flex items-center justify-between gap-3 py-2.5">
+						<div class="min-w-0">
+							<p class="break-words font-medium">{ g.Name }</p>
+							<p class="text-xs text-lovoria-muted">{ hhmm(a, *g.CheckedInAt) } · { strconv.Itoa(g.CheckedInPax) } orang · { ViaLabel(g.CheckedInVia) }</p>
+						</div>
+						<form method="post" action={ templ.SafeURL(a.W.DashboardURL("/checkin/mark")) } data-confirm={ "Batalkan check-in " + g.Name + "?" } class="flex-none">
+							@layouts.CSRFField()
+							<input type="hidden" name="guest_id" value={ g.ID.String() }/>
+							<input type="hidden" name="undo" value="1"/>
+							<button type="submit" class="text-xs text-lovoria-muted hover:text-lovoria-danger hover:underline">Batalkan</button>
+						</form>
+					</li>
+				}
+			</ul>
+		}
+		if len(a.Walkins) > 0 {
+			<h3 class="mt-5 text-xs font-medium uppercase tracking-wide text-lovoria-muted">Tamu tambahan (tanpa undangan)</h3>
+			<ul class="mt-1 divide-y divide-lovoria-border text-sm">
+				for _, wk := range a.Walkins {
+					<li class="flex items-center justify-between gap-3 py-2.5">
+						<div class="min-w-0">
+							<p class="break-words font-medium">{ wk.Name }</p>
+							<p class="text-xs text-lovoria-muted">{ hhmm(a, wk.CreatedAt) } · { strconv.Itoa(wk.Pax) } orang</p>
+						</div>
+						<form method="post" action={ templ.SafeURL(a.W.DashboardURL("/checkin/walkins/" + wk.ID.String() + "/delete")) } data-confirm={ "Hapus catatan " + wk.Name + "?" } class="flex-none">
+							@layouts.CSRFField()
+							<button type="submit" class="text-xs text-lovoria-muted hover:text-lovoria-danger hover:underline">Hapus</button>
+						</form>
+					</li>
+				}
+			</ul>
+		}
+		<p class="mt-4 border-t border-lovoria-border pt-3 text-xs text-lovoria-muted">
+			Rincian per tamu ada di <a href={ templ.SafeURL(a.W.DashboardURL("/guests")) } class="ui-link">Daftar tamu</a> dan ikut di
+			<a href={ templ.SafeURL(a.W.DashboardURL("/guests/export")) } class="ui-link">ekspor CSV</a> (kolom kehadiran).
+		</p>
+	</div>
+}
+
+templ attendanceStat(label, value, sub string) {
+	<div class="rounded-xl bg-lovoria-bg px-3 py-2.5">
+		<p class="text-xs text-lovoria-muted">{ label }</p>
+		<p class="font-display text-2xl leading-tight text-lovoria-deep">{ value }</p>
+		<p class="text-xs text-lovoria-muted">{ sub }</p>
+	</div>
+}
+
+// ownerMarkCard: pasangan menandai kedatangan secara manual (tanpa pemindai).
+templ ownerMarkCard(w wedding.Wedding) {
+	@ui.Card() {
+		<h2 class="font-semibold">Tandai datang secara manual</h2>
+		<p class="mt-1 text-sm text-lovoria-muted">Untuk merapikan catatan: cari tamu, lalu tandai datang.</p>
+		<label for="owner-checkin-q" class="ui-label mt-3">Nama tamu atau kode undangan</label>
+		<input
+			id="owner-checkin-q"
+			name="q"
+			type="search"
+			autocomplete="off"
+			class="ui-input"
+			placeholder="mis. Budi"
+			hx-get={ w.DashboardURL("/checkin/search") }
+			hx-trigger="input changed delay:350ms, search"
+			hx-target="#owner-checkin-results"
+		/>
+		<div id="owner-checkin-results" class="mt-3"></div>
+	}
+}
+
+templ ownerSearchResults(w wedding.Wedding, q string, gs []Guest, loc *time.Location) {
+	if len(gs) == 0 {
+		if len(q) >= 2 {
+			<p class="text-sm text-lovoria-muted">Tidak ada tamu bernama "{ q }".</p>
+		}
+	} else {
+		<ul class="divide-y divide-lovoria-border text-sm">
+			for _, g := range gs {
+				<li class="flex items-center justify-between gap-3 py-2.5">
+					<div class="min-w-0">
+						<p class="break-words font-medium">{ g.Name }</p>
+						<p class="text-xs text-lovoria-muted">
+							if g.CheckedInAt != nil {
+								sudah datang { g.CheckedInAt.In(loc).Format("15.04") } · { strconv.Itoa(g.CheckedInPax) } orang
+							} else {
+								belum datang · { strconv.Itoa(g.SuggestedPax()) } orang
+							}
+						</p>
+					</div>
+					<form method="post" action={ templ.SafeURL(w.DashboardURL("/checkin/mark")) } class="flex-none">
+						@layouts.CSRFField()
+						<input type="hidden" name="guest_id" value={ g.ID.String() }/>
+						if g.CheckedInAt != nil {
+							<input type="hidden" name="undo" value="1"/>
+							<button type="submit" class="ui-btn ui-btn-secondary px-3 py-2 text-sm">Batalkan</button>
+						} else {
+							<button type="submit" class="ui-btn ui-btn-primary px-3 py-2 text-sm">Tandai datang</button>
+						}
+					</form>
+				</li>
+			}
+		</ul>
 	}
 }
 
