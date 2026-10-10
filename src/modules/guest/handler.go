@@ -180,13 +180,13 @@ func (h *Handler) Create(c echo.Context) error {
 		return err
 	}
 	if quick && web.IsHTMX(c) {
-		// Daftar terbaru + baris tambah cepat dikosongkan (grup diingat) & fokus ke Nama.
+		// Daftar terbaru + baris tambah cepat dikosongkan (grup & jumlah orang diingat) & fokus ke Nama.
 		s, err := h.state(c, w, filterFrom(c))
 		if err != nil {
 			return err
 		}
 		s.Notice = g.Name + " ditambahkan."
-		next := form{Values: map[string]string{"group_name": f.v("group_name")}, Errors: map[string]string{}}
+		next := form{Values: map[string]string{"group_name": f.v("group_name"), "max_pax": f.v("max_pax")}, Errors: map[string]string{}}
 		return web.Render(c, http.StatusOK, templ.Join(list(s), quickAdd(w, next, true)))
 	}
 	return h.done(c, w, g.Name+" ditambahkan.")

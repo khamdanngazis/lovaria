@@ -3,6 +3,7 @@ package guest
 import (
 	"fmt"
 	"net/url"
+	"slices"
 	"strconv"
 
 	"github.com/google/uuid"
@@ -534,6 +535,23 @@ templ clearEditor() {
 
 // quickAdd: baris tambah cepat yang selalu terbuka. Enter menyimpan, lalu form
 // dikosongkan (grup terakhir diingat) dan kursor kembali ke Nama.
+// quickPaxDefault: batas jumlah orang bawaan di tambah cepat. Longgar (4) —
+// tamu sendiri yang mengonfirmasi berapa orang yang datang lewat RSVP; batas 1
+// membuat mereka tidak bisa memilih.
+const quickPaxDefault = "4"
+
+// quickPaxOptions: pilihan jumlah orang di tambah cepat.
+var quickPaxOptions = []string{"1", "2", "3", "4", "5", "6", "8", "10"}
+
+// quickPax: nilai kolom jumlah orang — yang terakhir dipakai (diingat antar
+// tamu, seperti grup) atau bawaan.
+func quickPax(f form) string {
+	if v := f.v("max_pax"); slices.Contains(quickPaxOptions, v) {
+		return v
+	}
+	return quickPaxDefault
+}
+
 templ quickAdd(w wedding.Wedding, f form, focus bool) {
 	<form
 		id="guest-quick"
@@ -553,7 +571,7 @@ templ quickAdd(w wedding.Wedding, f form, focus bool) {
 		@layouts.CSRFField()
 		<input type="hidden" name="quick" value="1"/>
 		<p class="mb-2 text-sm font-medium">Tambah cepat <span class="font-normal text-lovoria-muted">— ketik lalu tekan Enter, lanjut ke tamu berikutnya</span></p>
-		<div class="grid grid-cols-2 gap-2 sm:grid-cols-[2fr_1.3fr_1fr_auto]">
+		<div class="grid grid-cols-2 gap-2 sm:grid-cols-[minmax(0,2fr)_minmax(0,1.4fr)_minmax(0,1fr)_9.5rem_auto]">
 			<input
 				name="name"
 				value={ f.v("name") }
@@ -575,13 +593,20 @@ templ quickAdd(w wedding.Wedding, f form, focus bool) {
 				@contactButton()
 			</div>
 			<input name="group_name" value={ f.v("group_name") } list="guest-groups" placeholder="Grup" aria-label="Grup" maxlength="50" autocomplete="off" class="ui-control px-3 py-2 text-base"/>
-			<button type="submit" class="ui-btn ui-btn-primary col-span-2 px-4 py-2 sm:col-span-1">Tambah</button>
+			// Jumlah orang yang boleh datang dengan undangan ini (batas pilihan di
+			// RSVP) — pilihan singkat; angka lain lewat form lengkap.
+			<select name="max_pax" aria-label="Maksimal jumlah orang" class={ "rounded-lg border bg-lovoria-surface px-2 py-2 text-base", templ.KV("border-lovoria-danger", f.e("max_pax") != ""), templ.KV("border-lovoria-control", f.e("max_pax") == "") }>
+				for _, n := range quickPaxOptions {
+					<option value={ n } selected?={ n == quickPax(f) }>Maks. { n } orang</option>
+				}
+			</select>
+			<button type="submit" class="ui-btn ui-btn-primary px-4 py-2">Tambah</button>
 		</div>
-		if f.e("name") != "" || f.e("phone") != "" {
-			<p class="mt-1 text-sm text-lovoria-danger" role="alert">{ f.e("name") } { f.e("phone") }</p>
+		if f.e("name") != "" || f.e("phone") != "" || f.e("max_pax") != "" {
+			<p class="mt-1 text-sm text-lovoria-danger" role="alert">{ f.e("name") } { f.e("phone") } { f.e("max_pax") }</p>
 		}
 		<p class="mt-1 text-xs text-lovoria-muted">
-			Butuh email, jumlah orang, atau catatan?
+			"Maks. orang" = batas jumlah orang untuk undangan ini; tamu memilih jumlah yang datang saat RSVP. Butuh email, catatan, atau jumlah lain?
 			<a href={ templ.SafeURL(base(w) + "/new") } hx-get={ base(w) + "/new" } hx-target="#guest-editor" hx-swap="innerHTML" class="text-lovoria-primary hover:underline">Pakai form lengkap</a>
 		</p>
 	</form>

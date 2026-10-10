@@ -255,6 +255,21 @@ func TestQuickAdd(t *testing.T) {
 	}
 
 	// Error → hanya form tambah cepat yang dirender ulang, nilai dipertahankan.
+	// Jumlah orang di tambah cepat: bawaan 4 (bukan 1), tersimpan ke tamu, dan
+	// nilai terakhir diingat untuk tamu berikutnya.
+	if page := send(e, owner, get(base), false).Body.String(); !strings.Contains(page, `<select name="max_pax"`) || !strings.Contains(page, `<option value="4" selected>Maks. 4 orang</option>`) {
+		t.Error("tambah cepat: pilihan jumlah orang dengan bawaan 4")
+	}
+	rec = send(e, owner, formReq(http.MethodPost, base, url.Values{"quick": {"1"}, "name": {"Ibu Yuyun dan keluarga"}, "max_pax": {"6"}}), true)
+	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), `<option value="6" selected>`) || !strings.Contains(rec.Body.String(), "maks. 6 org") {
+		t.Fatalf("tambah cepat dengan jumlah orang: %d", rec.Code)
+	}
+	if gs, _ := f.svc.All(ctx, w.ID); len(gs) == 0 || gs[len(gs)-1].MaxPax != 6 && gs[0].MaxPax != 6 {
+		t.Errorf("max_pax tidak tersimpan: %+v", gs)
+	}
+	if rec := send(e, owner, formReq(http.MethodPost, base, url.Values{"quick": {"1"}, "name": {"X"}, "max_pax": {"99"}}), true); rec.Code != http.StatusUnprocessableEntity {
+		t.Errorf("jumlah orang di luar batas: %d", rec.Code)
+	}
 	rec = send(e, owner, formReq(http.MethodPost, base, url.Values{"quick": {"1"}, "name": {""}, "phone": {"12"}}), true)
 	if rec.Code != http.StatusUnprocessableEntity || rec.Header().Get("HX-Retarget") != "#guest-quick" || !strings.Contains(rec.Body.String(), "Nama wajib diisi") {
 		t.Errorf("quick invalid: %d %q", rec.Code, rec.Header().Get("HX-Retarget"))
