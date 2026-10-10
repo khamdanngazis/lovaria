@@ -404,3 +404,37 @@ func TestContactPickerButtons(t *testing.T) {
 		t.Error("form lengkap tanpa tombol kontak")
 	}
 }
+
+// T31: halaman Check-in di dashboard menyalakan / mematikan check-in QR; hanya
+// pemilik wedding yang bisa.
+func TestCheckinToggleViaHTTP(t *testing.T) {
+	f := newFixture(t)
+	e := newTestServer(t, f)
+	owner, w := f.newWedding(t, "a@example.com")
+	other, _ := f.newWedding(t, "b@example.com")
+	path := w.DashboardURL("/checkin")
+
+	rec := send(e, owner, get(path), false)
+	if b := rec.Body.String(); rec.Code != http.StatusOK || !strings.Contains(b, "Check-in tamu dengan QR") || !strings.Contains(b, "Tidak aktif") || !strings.Contains(b, "Aktifkan check-in QR") {
+		t.Fatalf("halaman check-in awal: %d", rec.Code)
+	}
+	rec = send(e, owner, formReq(http.MethodPost, path, url.Values{"enabled": {"1"}}), false)
+	if rec.Code != http.StatusSeeOther || rec.Header().Get("Location") != path+"?ok=on" {
+		t.Fatalf("aktifkan: %d %s", rec.Code, rec.Header().Get("Location"))
+	}
+	if got, _ := f.weddings.GetWedding(ctx, w.ID); !got.CheckinEnabled || got.CheckinOpen() {
+		t.Fatalf("aktif tetapi draf: enabled=%v open=%v (QR belum boleh tampil)", got.CheckinEnabled, got.CheckinOpen())
+	}
+	rec = send(e, owner, get(path+"?ok=on"), false)
+	if b := rec.Body.String(); !strings.Contains(b, "Check-in QR diaktifkan") || !strings.Contains(b, "Matikan check-in QR") || !strings.Contains(b, "undangan masih draf") {
+		t.Error("halaman setelah aktif: pemberitahuan, tombol matikan, catatan draf")
+	}
+	// Wedding orang lain → 404, tidak berubah.
+	if rec := send(e, other, formReq(http.MethodPost, path, url.Values{"enabled": {"0"}}), false); rec.Code != http.StatusNotFound {
+		t.Errorf("wedding orang lain: %d", rec.Code)
+	}
+	send(e, owner, formReq(http.MethodPost, path, url.Values{"enabled": {"0"}}), false)
+	if got, _ := f.weddings.GetWedding(ctx, w.ID); got.CheckinEnabled {
+		t.Error("matikan: masih aktif")
+	}
+}

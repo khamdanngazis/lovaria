@@ -51,6 +51,9 @@ WHERE starts_with(main_photo_url, sqlc.arg(old_prefix)::text);
 -- name: SetThemeID :execrows
 UPDATE weddings SET theme_id = $2 WHERE id = $1;
 
+-- name: SetCheckinEnabled :execrows
+UPDATE weddings SET checkin_enabled = $2 WHERE id = $1;
+
 -- name: GetWeddingForUpdate :one
 SELECT * FROM weddings WHERE id = $1 FOR UPDATE;
 

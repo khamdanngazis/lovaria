@@ -43,6 +43,8 @@ type View struct {
 
 	// OG: meta Open Graph / Twitter untuk preview link (WhatsApp dll.), diisi public site.
 	OG OG
+	// Checkin: QR kehadiran tamu (T31); QRURL kosong → bagian tidak tampil.
+	Checkin Checkin
 	// SiteURL: alamat situs Lunovia untuk tautan "Dibuat dengan Lunovia" di
 	// penutup undangan (diisi public site; kosong → teks biasa).
 	SiteURL string
@@ -117,6 +119,12 @@ func first(s string) string {
 		}
 	}
 	return s
+}
+
+// Checkin: QR kehadiran di undangan pribadi (T31).
+type Checkin struct {
+	// QRURL: alamat gambar QR tamu ini ("/i/<KODE>/qr.png").
+	QRURL string
 }
 
 type Guest struct {

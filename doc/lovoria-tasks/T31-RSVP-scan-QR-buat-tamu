@@ -1,0 +1,100 @@
+# T31 — Check-in Tamu dengan QR di Hari H
+
+**Estimasi:** 4–6 hari · **Depends on:** T07 (tamu & kode undangan), T09 (undangan publik), T10 (RSVP), T12 (lifecycle) · **Modul:** `modules/guest` (data & check-in), `public-site` (QR di undangan, halaman pemindai), `dashboard`/`modules/wedding` (pengaturan & ringkasan)
+
+## Konteks
+Untuk kalangan tertentu, atau pernikahan di gedung yang ketat terhadap tamu yang datang, hanya tamu yang punya undangan yang boleh masuk. Saat ini Lunovia berhenti di RSVP: pasangan tahu siapa yang *berencana* hadir, tetapi tidak ada cara memeriksa undangan di pintu masuk maupun mencatat siapa yang *benar-benar* datang.
+
+Yang sudah ada dan bisa dipakai:
+- Tiap tamu punya **kode undangan** unik 7 karakter dan link pribadi `/i/<KODE>` (T07, T09).
+- Kolom `guests.attendance_status` (`present`/`absent`) sudah ada di skema sejak T07 tetapi belum dipakai di mana pun.
+- RSVP mencatat jumlah orang (`rsvp_pax`) dan batasnya (`max_pax`).
+
+## Tujuan
+1. Tamu menunjukkan **QR** dari undangan pribadinya di pintu masuk.
+2. **Penerima tamu** memindai QR itu dengan ponsel dan langsung melihat: undangan sah atau tidak, nama tamu, jumlah orang, dan apakah sudah pernah dipakai.
+3. Pasangan melihat **kehadiran nyata** (siapa datang, berapa orang, jam berapa) selama dan sesudah acara.
+
+## Scope (In)
+
+**1. QR di undangan tamu**
+- Undangan pribadi (`/i/<KODE>`) menampilkan bagian **"QR Kehadiran"**: kode QR, nama tamu, jumlah orang, dan keterangan "Tunjukkan QR ini di pintu masuk".
+- Hanya di link pribadi — link umum (`/w/<slug>`) tidak punya QR.
+- Tombol **Simpan QR** (unduh gambar) supaya bisa ditunjukkan tanpa sinyal.
+- QR berisi alamat undangan pribadi itu sendiri, sehingga tidak ada kode rahasia baru yang perlu dikelola; bila dipindai kamera biasa, yang terbuka adalah undangannya.
+- QR dibuat di server sebagai SVG (tanpa layanan pihak ketiga, tanpa script di halaman undangan).
+
+**2. Halaman pemindai untuk penerima tamu**
+- Pasangan membuat **link penerima tamu** dari dashboard. Link ini berisi token rahasia, bisa dibuka **tanpa akun Lunovia**, dan hanya bisa dipakai untuk check-in wedding itu. Pasangan bisa mencabut dan membuat ulang link kapan saja.
+- Halaman pemindai (ponsel): kamera belakang menyala, QR dipindai, lalu hasil tampil besar dan berwarna:
+  - **Hijau — Selamat datang**: nama tamu, grup, jumlah orang menurut RSVP (bisa disesuaikan sampai batas `max_pax`), tombol **Check-in**.
+  - **Kuning — Sudah check-in**: jam check-in sebelumnya dan jumlah orangnya (mencegah satu QR dipakai dua kali, mis. dari tangkapan layar).
+  - **Merah — Tidak dikenal**: QR bukan milik wedding ini atau tidak sah.
+- **Cari manual**: kotak cari nama / kode untuk tamu yang lupa membawa QR atau kameranya bermasalah.
+- Membatalkan check-in terakhir (salah pindai).
+- **Tamu tambahan** (tanpa undangan): penerima tamu bisa mencatat nama dan jumlah orangnya; tampil terpisah di ringkasan pasangan.
+- Bekerja di Chrome Android dan Safari iOS. Tanpa izin kamera, halaman tetap bisa dipakai lewat cari manual.
+
+**3. Pengaturan & ringkasan di dashboard**
+- Sakelar **Aktifkan check-in QR** per wedding (bawaan: mati). Bila mati, undangan tidak menampilkan QR dan link penerima tamu tidak berfungsi.
+- Kelola link penerima tamu: buat, salin, bagikan ke WhatsApp, cabut.
+- Ringkasan kehadiran yang memperbarui diri: jumlah undangan dan orang yang sudah check-in dibanding yang RSVP hadir, plus daftar check-in terbaru.
+- Daftar tamu menampilkan status kehadiran dan jam check-in; pasangan bisa menandai / membatalkan secara manual.
+- Ekspor CSV tamu memuat kolom kehadiran.
+
+**4. Aturan lifecycle**
+- Check-in hanya bisa dilakukan saat undangan **Terbit** atau **Hari H**. Sesudah itu (Kenangan/Arsip) data kehadiran tetap bisa dilihat dan diekspor, tetapi halaman pemindai ditutup.
+- Pemeriksaan status lewat guard modul `wedding` (aturan `TestStatusGuardsOnly`).
+
+## Out of Scope
+- **Mode offline** (memindai tanpa internet lalu sinkron belakangan).
+- Check-in per orang dalam satu rombongan — satu undangan dicatat sekali dengan jumlah orangnya.
+- Cetak label nama, nomor meja, atau denah tempat duduk.
+- Aplikasi khusus; semuanya lewat browser.
+- QR dengan tanda tangan kriptografis atau masa berlaku (kode undangan + pemeriksaan "sudah dipakai" dianggap cukup).
+
+## Detail Teknis
+- **Skema** (`guests`, migration baru): `checked_in_at timestamptz`, `checked_in_pax smallint`, `checked_in_via text` (`scan`/`manual`/`owner`). Kolom lama `attendance_status` diisi `present` saat check-in supaya konsisten; tidak dihapus.
+- **Pengaturan** (`weddings` atau tabel `wedding_checkin`): `checkin_enabled boolean`, dan token penerima tamu yang disimpan sebagai **hash** (seperti sesi) dengan `created_at`/`revoked_at`. Token mentah hanya ada di link.
+- **QR**: generator QR di Go yang menghasilkan SVG (dependensi Go kecil atau implementasi sendiri), disajikan dari `GET /i/<KODE>/qr.svg` (cacheable, `noindex`). Isi QR = URL kanonik undangan pribadi (domain Lunovia atau custom domain pasangan).
+- **Bagian undangan**: komponen bersama `shared.CheckinSection` yang memakai `base.Title(v, …)` supaya judulnya mengikuti tema; masuk registry bagian (`SectionIDs`) dan tunduk pada pengaturan urutan/visibilitas T20. Tanpa logika per tema (`TestNoThemeLogicOutsideModule`).
+- **Halaman pemindai**: `GET /checkin/<token>` di `public-site`, tanpa sesi, `Cache-Control: no-store`, `noindex`. Aksi: `POST /checkin/<token>/scan` (kode → hasil), `POST …/confirm` (check-in dengan jumlah orang), `POST …/undo`. Semua query tetap difilter `wedding_id` dari token (`make lint-tenant`). Rate limit per token + IP.
+- **Kamera**: `Permissions-Policy` saat ini `camera=()` secara global; halaman pemindai saja yang mendapat `camera=(self)`. CSP tetap `script-src 'self'`.
+- **Pembaca QR di browser**: `BarcodeDetector` bila tersedia (Chrome Android); untuk Safari iOS dipakai pustaka pembaca QR yang di-vendor ke `static/js/` (dimuat hanya di halaman pemindai). Script khusus `static/js/checkin.js`, tanpa Alpine.
+- **Idempoten & balapan**: check-in memakai `UPDATE … WHERE checked_in_at IS NULL RETURNING`, sehingga dua penerima tamu yang memindai QR yang sama bersamaan menghasilkan satu "hijau" dan satu "kuning".
+- **Privasi**: halaman pemindai hanya menampilkan nama, grup, dan jumlah orang — tidak nomor HP, email, atau catatan. Kebijakan Privasi diperbarui (catatan kehadiran).
+- **Dashboard**: ringkasan memakai polling htmx seperti halaman status pembayaran; tanpa WebSocket.
+- **Dok**: `doc/modules/guest.md` (check-in), `doc/runbook.md` (panduan hari H untuk penerima tamu), `CHANGELOG.md`.
+
+## Urutan Pengerjaan (saran pemecahan PR)
+1. **Data & QR di undangan** — migration, sakelar aktifkan, generator QR, bagian "QR Kehadiran" di undangan pribadi, tombol simpan.
+2. **Pemindai penerima tamu** — link bertoken, halaman pemindai (kamera + cari manual), check-in / sudah dipakai / tidak dikenal, batal.
+3. **Dashboard & pelengkap** — kelola link, ringkasan kehadiran langsung, status di daftar tamu, ekspor CSV, dokumentasi, e2e.
+
+## Acceptance Criteria
+- [ ] Check-in mati secara bawaan; undangan tanpa fitur ini tidak berubah sama sekali
+- [ ] QR hanya tampil di link pribadi, bisa disimpan, dan terbaca pemindai dari layar ponsel yang redup
+- [ ] Link penerima tamu bisa dibuka tanpa login, hanya untuk wedding itu; token salah atau dicabut → 404
+- [ ] QR sah → hijau dengan nama & jumlah orang; QR yang sama dipindai lagi → kuning dengan jam check-in pertama; QR wedding lain / acak → merah
+- [ ] Dua pemindaian bersamaan atas QR yang sama menghasilkan tepat satu check-in
+- [ ] Jumlah orang saat check-in tidak bisa melebihi `max_pax`
+- [ ] Cari manual menemukan tamu berdasarkan nama atau kode; check-in manual tercatat sebagai `manual`
+- [ ] Halaman pemindai berfungsi di Chrome Android dan Safari iOS; tanpa izin kamera, cari manual tetap bisa dipakai
+- [ ] Check-in ditolak di luar status Terbit/Hari H; data kehadiran tetap terlihat sesudahnya
+- [ ] Dashboard menampilkan jumlah hadir yang memperbarui diri, dan ekspor CSV memuat kehadiran
+- [ ] Isolasi tenant: token wedding A tidak bisa membaca atau mengubah tamu wedding B (test)
+- [ ] `make lint-tenant`, `TestStatusGuardsOnly`, `TestNoThemeLogicOutsideModule`, dan e2e lolos; tanpa pelanggaran CSP
+
+## Keputusan Pemilik Produk (10 Oktober 2026)
+1. **Siapa yang memindai:** penerima tamu lewat link khusus tanpa akun.
+2. **Siapa yang mendapat QR:** semua tamu yang punya link pribadi, apa pun jawaban RSVP-nya.
+3. **Tamu tanpa undangan:** dicatat — penerima tamu boleh menambah "tamu tambahan" (nama + jumlah orang) dari halaman pemindai; tercatat terpisah dari tamu undangan.
+4. **Harga:** untuk sekarang termasuk dalam harga publikasi. Ke depan mungkin menjadi fitur tambahan berbayar — ketersediaan fitur diperiksa lewat satu fungsi (mis. `wedding.CheckinAvailable`) supaya mudah digerbangkan nanti.
+5. **Jumlah orang:** boleh disesuaikan penerima tamu sampai batas `max_pax`.
+
+## Catatan untuk Agent
+- Halaman pemindai dipakai sambil berdiri di pintu masuk: tombol besar, hasil terbaca dari jarak lengan, dan siap memindai tamu berikutnya tanpa memuat ulang halaman.
+- Jangan menaruh token penerima tamu di log atau di URL yang ikut terkirim sebagai `Referer` ke pihak lain.
+- Sinyal di gedung sering lemah: tampilkan status "menghubungkan…" dan pesan jelas bila permintaan gagal, jangan diam.
+- Jangan menambah Alpine/htmx ke halaman undangan; QR di undangan adalah gambar biasa.
+- Uji QR pada tema berlatar gelap (Minang, Bugis, Modern): QR harus tetap di atas latar putih dengan tepi kosong yang cukup.

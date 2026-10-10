@@ -62,6 +62,8 @@ type Wedding struct {
 	MainPhotoURL *string
 	Status       string
 	ThemeID      string
+	// CheckinEnabled: pasangan menyalakan check-in QR di hari H (T31).
+	CheckinEnabled bool
 	// Timezone zona waktu IANA acara (jam event disimpan sebagai waktu lokal).
 	Timezone string
 	// ArchiveVisibility: public | private — siapa yang bisa melihat undangan
@@ -431,6 +433,18 @@ func (s *Service) StorageUsage(ctx context.Context, weddingID uuid.UUID) (int64,
 // (satu-satunya pemilik registry); modul wedding hanya menyimpan.
 func (s *Service) SetThemeID(ctx context.Context, weddingID uuid.UUID, themeID string) error {
 	n, err := s.repo.q.SetThemeID(ctx, weddingdb.SetThemeIDParams{ID: weddingID, ThemeID: themeID})
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
+// SetCheckinEnabled menyalakan / mematikan check-in QR untuk wedding (T31).
+func (s *Service) SetCheckinEnabled(ctx context.Context, weddingID uuid.UUID, enabled bool) error {
+	n, err := s.repo.q.SetCheckinEnabled(ctx, weddingdb.SetCheckinEnabledParams{ID: weddingID, CheckinEnabled: enabled})
 	if err != nil {
 		return err
 	}

@@ -45,7 +45,7 @@ func Render(v view.View) templ.Component {
 	parts := map[string]templ.Component{
 		"couple": p.Couple(v), "countdown": shared.CountdownSection(v), "quote": shared.QuoteSection(v),
 		"events": p.Events(v), "story": p.LoveStory(v), "gallery": p.Gallery(v),
-		"rsvp": shared.RSVPSection(v), "guestbook": shared.GuestbookSection(v), "gift": shared.GiftSection(v),
+		"rsvp": shared.RSVPSection(v), "checkin": shared.CheckinSection(v), "guestbook": shared.GuestbookSection(v), "gift": shared.GiftSection(v),
 	}
 	sections := []templ.Component{p.Hero(v), shared.MemorySection(v), shared.ContentAnchor()}
 	for _, d := range OrderedSections(v.Settings) {

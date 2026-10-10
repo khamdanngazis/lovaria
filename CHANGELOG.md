@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### T31 (bagian 1) — QR kehadiran di undangan tamu
+- Halaman baru **Tamu → Check-in** di dashboard untuk menyalakan check-in QR per wedding (bawaan: mati).
+- Bila aktif dan undangan sedang Terbit / Hari H, undangan pribadi tiap tamu (`/i/KODE`) menampilkan bagian **QR Kehadiran** dengan nama tamu, jumlah orang, dan tombol **Simpan QR**. Link umum tidak memuat QR.
+- QR dibuat di server sebagai gambar PNG (tanpa layanan pihak ketiga). Migration `00027`.
+- Pemindai untuk penerima tamu menyusul di bagian berikutnya.
+
 ### T30 — Masuk dengan Google
 - Tombol **Lanjutkan dengan Google** di halaman masuk dan daftar (muncul setelah `GOOGLE_CLIENT_ID` dan `GOOGLE_CLIENT_SECRET` diisi). Tujuan setelah masuk (mis. wizard dengan tema pilihan) ikut terbawa.
 - Akun baru dibuat otomatis dari nama dan email Google; akun yang emailnya sama dihubungkan. Demi keamanan, saat akun ber-password yang emailnya belum terverifikasi dihubungkan, password lamanya dimatikan dan perangkat lain dikeluarkan (pengguna diberi tahu).
