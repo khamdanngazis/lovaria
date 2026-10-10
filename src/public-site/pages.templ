@@ -49,7 +49,7 @@ templ guestbookMorePage(v view.View, prefix string) {
 
 // legalEffective: tanggal berlaku teks legal. Perbarui setiap kali isi
 // Kebijakan Privasi atau Syarat & Ketentuan berubah secara berarti.
-const legalEffective = "5 Oktober 2026"
+const legalEffective = "10 Oktober 2026"
 
 // legalPage: kerangka halaman Kebijakan Privasi / Syarat & Ketentuan.
 templ legalPage(title, otherHref, otherLabel string) {
@@ -91,7 +91,7 @@ templ privacyPage() {
 		<p>Dalam kebijakan ini, <strong>pasangan</strong> adalah pemilik akun yang membuat undangan, dan <strong>tamu</strong> adalah orang yang diundang atau membuka undangan.</p>
 		@legalHeading("1. Data yang kami kumpulkan")
 		<ul class="list-disc space-y-1.5 pl-5">
-			<li><strong>Data akun pasangan</strong>: nama, alamat email, dan password. Password disimpan dalam bentuk hash sehingga tidak dapat dibaca oleh siapa pun, termasuk kami.</li>
+			<li><strong>Data akun pasangan</strong>: nama, alamat email, dan password (atau ID akun Google bila Anda masuk dengan Google). Password disimpan dalam bentuk hash sehingga tidak dapat dibaca oleh siapa pun, termasuk kami.</li>
 			<li><strong>Isi undangan</strong>: nama mempelai dan keterangannya, tanggal dan tempat acara, cerita, foto, musik, kutipan, nomor rekening atau dompet digital untuk hadiah, serta pengaturan tampilan.</li>
 			<li><strong>Data tamu yang dimasukkan pasangan</strong>: nama, nomor HP, email, kelompok, dan jumlah orang yang diundang.</li>
 			<li><strong>Data yang dikirim tamu</strong>: jawaban kehadiran (RSVP), jumlah orang, catatan, serta nama dan isi ucapan di buku tamu.</li>
@@ -119,6 +119,7 @@ templ privacyPage() {
 			<li><strong>Cloudflare</strong> — penyimpanan foto dan musik, jaringan pengiriman konten, serta domain kustom.</li>
 			<li><strong>Midtrans</strong> — pemrosesan pembayaran. Data yang Anda masukkan di halaman pembayaran tunduk pada kebijakan privasi Midtrans.</li>
 			<li><strong>Penyedia layanan email</strong> — pengiriman email akun.</li>
+			<li><strong>Google (masuk dengan Google)</strong> — bila Anda memilih masuk atau mendaftar dengan akun Google, kami menerima nama, alamat email, dan ID akun Google Anda dari Google untuk membuat atau mengenali akun Anda. Kami tidak menerima password Google dan tidak mengakses data lain di akun Google Anda.</li>
 			<li><strong>Google Fonts</strong> — huruf pada halaman dimuat dari server Google, sehingga browser Anda mengirimkan alamat IP ke Google saat halaman dibuka.</li>
 		</ul>
 		<p>Kami dapat mengungkapkan data bila diwajibkan oleh hukum atau perintah yang sah dari pihak berwenang.</p>

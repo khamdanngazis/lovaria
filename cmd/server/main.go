@@ -363,13 +363,17 @@ func (a *app) routes() *echo.Echo {
 	e.Use(authMW.LoadSession)
 
 	// --- Modul ---
-	auth.Register(e, auth.Deps{Service: a.auth, Middleware: authMW})
+	secret := appSecret(cfg, log)
+	auth.Register(e, auth.Deps{
+		Service: a.auth, Middleware: authMW, Secret: secret, Log: log,
+		// Sign in with Google (T30): aktif hanya bila kredensial OAuth diisi.
+		Google: auth.NewGoogle(cfg.GoogleClientID, cfg.GoogleClientSecret, cfg.BaseURL),
+	})
 	if cfg.IsDevelopment() {
 		example.Register(e.Group("/_example"), example.Deps{
 			Service: example.NewService(example.NewMemoryRepository()),
 		})
 	}
-	secret := appSecret(cfg, log)
 
 	// Service modul (dibuat dulu: beranda dashboard mengagregasi semuanya).
 	events := event.NewService(event.NewRepository(a.pool))

@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -16,6 +17,11 @@ type Deps struct {
 	Middleware *Middleware
 	// RateLimit mengatur batas percobaan per IP; nol → default.
 	RateLimit RateLimit
+	// Google: Sign in with Google (T30); nil → tombol & route nonaktif (404).
+	Google *Google
+	// Secret: kunci HMAC cookie state OAuth (APP_SECRET).
+	Secret []byte
+	Log    *slog.Logger
 }
 
 // RateLimit: token bucket per IP (in-memory, cukup untuk single instance).
@@ -29,12 +35,16 @@ var defaultRateLimit = RateLimit{PerMinute: 10, Burst: 10}
 // Register memasang route halaman & aksi auth.
 func Register(e *echo.Echo, deps Deps) {
 	h := NewHandler(deps.Service, deps.Middleware)
+	h.google, h.secret = deps.Google, deps.Secret
+	if deps.Log != nil {
+		h.log = deps.Log
+	}
 	rl := deps.RateLimit
 	if rl.PerMinute == 0 {
 		rl = defaultRateLimit
 	}
 	// Store terpisah per aksi supaya percobaan login tidak menghabiskan kuota register.
-	limitLogin, limitRegister, limitReset := limiter(rl), limiter(rl), limiter(rl)
+	limitLogin, limitRegister, limitReset, limitGoogle := limiter(rl), limiter(rl), limiter(rl), limiter(rl)
 
 	e.GET("/login", h.LoginPage)
 	e.POST("/login", h.Login, limitLogin)
@@ -43,6 +53,9 @@ func Register(e *echo.Echo, deps Deps) {
 	e.GET("/register", h.RegisterPage)
 	e.POST("/register", h.Register, limitRegister)
 	e.POST("/register/validate", h.ValidateRegisterField)
+
+	e.GET("/auth/google", h.GoogleStart, limitGoogle)
+	e.GET("/auth/google/callback", h.GoogleCallback, limitGoogle)
 
 	e.GET("/forgot-password", h.ForgotPage)
 	e.POST("/forgot-password", h.Forgot, limitReset)

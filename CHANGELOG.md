@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### T30 — Masuk dengan Google
+- Tombol **Lanjutkan dengan Google** di halaman masuk dan daftar (muncul setelah `GOOGLE_CLIENT_ID` dan `GOOGLE_CLIENT_SECRET` diisi). Tujuan setelah masuk (mis. wizard dengan tema pilihan) ikut terbawa.
+- Akun baru dibuat otomatis dari nama dan email Google; akun yang emailnya sama dihubungkan. Demi keamanan, saat akun ber-password yang emailnya belum terverifikasi dihubungkan, password lamanya dimatikan dan perangkat lain dikeluarkan (pengguna diberi tahu).
+- Alur OAuth sepenuhnya di server (PKCE, state, nonce), tanpa script pihak ketiga. Migration `00026` (`user_identities`).
+- Kebijakan Privasi diperbarui (data yang diterima dari Google).
+
 ### Menu dashboard wedding diringkas
 - Sidebar dari 13 menu menjadi **6 menu**: Beranda · Isi undangan · Tampilan · Tamu · Ucapan · Pengaturan. Halaman di dalam tiap menu tampil sebagai **tab** di atas halaman (Isi undangan: Mempelai, Acara, Cerita, Galeri, Hadiah; Tamu: Daftar tamu, Bagikan, RSVP; Pengaturan: Judul & tanggal, Domain).
 - Istilah diseragamkan: "Mempelai" dan "Tampilan" (sebelumnya "Pasangan" dan "Tema" di menu). Hadiah pindah ke Isi undangan; Info wedding menjadi "Judul & tanggal" di Pengaturan.

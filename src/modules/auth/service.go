@@ -216,6 +216,92 @@ func (s *Service) Authenticate(ctx context.Context, email, password string) (Use
 	return toUser(row), nil
 }
 
+// LoginWithGoogle mengembalikan user untuk identitas Google yang sudah
+// diverifikasi (T30):
+//
+//  1. Identitas sudah terhubung → user itu.
+//  2. Belum, tetapi ada akun dengan email yang sama → dihubungkan. Bila email
+//     akun itu belum pernah terverifikasi (dibuat dengan password), password
+//     lama dimatikan dan semua sesinya dicabut — mencegah orang lain yang lebih
+//     dulu mendaftarkan email ini tetap bisa masuk (resetPassword = true).
+//  3. Belum ada akun → dibuat (tanpa password yang bisa dipakai; bisa diatur
+//     lewat "Lupa password").
+func (s *Service) LoginWithGoogle(ctx context.Context, p GoogleProfile) (u User, resetPassword bool, err error) {
+	if p.Subject == "" || p.Email == "" {
+		return User{}, false, errors.New("auth: profil Google tidak lengkap")
+	}
+	row, err := s.repo.q.GetUserByIdentity(ctx, authdb.GetUserByIdentityParams{Provider: ProviderGoogle, Subject: p.Subject})
+	switch err := mapErr(err); {
+	case err == nil:
+		if row.DisabledAt != nil {
+			return User{}, false, ErrAccountDisabled
+		}
+		return toUser(row), false, nil
+	case !errors.Is(err, errNotFound):
+		return User{}, false, fmt.Errorf("auth: cari identitas: %w", err)
+	}
+
+	// Password acak yang tidak diketahui siapa pun (kolom password_hash wajib isi).
+	unusable := func() (string, error) {
+		t, err := newToken()
+		if err != nil {
+			return "", err
+		}
+		return HashPassword(t)
+	}
+	now := s.now()
+	err = s.repo.inTx(ctx, func(q *authdb.Queries) error {
+		row, err = q.GetUserByEmail(ctx, p.Email)
+		switch err := mapErr(err); {
+		case err == nil:
+			if row.DisabledAt != nil {
+				return ErrAccountDisabled
+			}
+			if row.EmailVerifiedAt == nil {
+				hash, err := unusable()
+				if err != nil {
+					return err
+				}
+				if err := q.UpdateUserPassword(ctx, authdb.UpdateUserPasswordParams{ID: row.ID, PasswordHash: hash}); err != nil {
+					return err
+				}
+				if err := q.DeleteUserSessions(ctx, row.ID); err != nil {
+					return err
+				}
+				if err := q.DeleteUserPasswordResetTokens(ctx, row.ID); err != nil {
+					return err
+				}
+				resetPassword = true
+			}
+		case errors.Is(err, errNotFound):
+			hash, err := unusable()
+			if err != nil {
+				return err
+			}
+			name := p.Name
+			if name == "" {
+				name = strings.SplitN(p.Email, "@", 2)[0]
+			}
+			if row, err = q.CreateUser(ctx, authdb.CreateUserParams{ID: db.NewID(), Email: p.Email, PasswordHash: hash, Name: name, Role: RoleCouple}); err != nil {
+				return err
+			}
+		default:
+			return err
+		}
+		if err := q.MarkEmailVerified(ctx, authdb.MarkEmailVerifiedParams{ID: row.ID, EmailVerifiedAt: &now}); err != nil {
+			return err
+		}
+		return q.CreateIdentity(ctx, authdb.CreateIdentityParams{Provider: ProviderGoogle, Subject: p.Subject, UserID: row.ID, Email: p.Email})
+	})
+	if errors.Is(err, ErrAccountDisabled) {
+		return User{}, false, err
+	}
+	if err != nil {
+		return User{}, false, fmt.Errorf("auth: masuk dengan Google: %w", err)
+	}
+	return toUser(row), resetPassword, nil
+}
+
 // ---------- Session ----------
 
 // CreateSession membuat session baru dan mengembalikan token untuk cookie.
