@@ -50,6 +50,12 @@ type Config struct {
 	Backup Backup
 	// Payment berisi setelan pembayaran publikasi (T23).
 	Payment Payment
+	// GoogleClientID & GoogleClientSecret: kredensial OAuth "Sign in with Google"
+	// (GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET; T30). Isi keduanya atau kosongkan
+	// keduanya — kosong → tombol Google tidak ditampilkan. Redirect URI yang
+	// didaftarkan di Google Cloud Console: BASE_URL + /auth/google/callback.
+	GoogleClientID     string
+	GoogleClientSecret string
 	// GoogleSiteVerification & BingSiteVerification: kode verifikasi kepemilikan
 	// situs untuk Google Search Console / Bing Webmaster Tools (T27) — hanya
 	// nilai atribut content dari meta tag (GOOGLE_SITE_VERIFICATION,
@@ -357,6 +363,10 @@ func LoadFrom(getenv func(string) string) (Config, error) {
 	}
 	cfg.SentryDSN = get("SENTRY_DSN", "")
 	cfg.GoogleSiteVerification = get("GOOGLE_SITE_VERIFICATION", "")
+	cfg.GoogleClientID, cfg.GoogleClientSecret = get("GOOGLE_CLIENT_ID", ""), get("GOOGLE_CLIENT_SECRET", "")
+	if (cfg.GoogleClientID == "") != (cfg.GoogleClientSecret == "") {
+		errs = append(errs, errors.New("GOOGLE_CLIENT_ID dan GOOGLE_CLIENT_SECRET harus diisi keduanya atau dikosongkan keduanya"))
+	}
 	cfg.BingSiteVerification = get("BING_SITE_VERIFICATION", "")
 	cfg.Backup = Backup{
 		Bucket: get("BACKUP_BUCKET", ""), Dir: get("BACKUP_DIR", ""),

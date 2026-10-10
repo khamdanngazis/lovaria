@@ -2,6 +2,8 @@ package auth
 
 import (
 	"errors"
+	"io"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -14,10 +16,15 @@ import (
 type Handler struct {
 	svc *Service
 	mw  *Middleware
+	// google: Sign in with Google (T30); nil = nonaktif. secret menandatangani
+	// cookie state OAuth.
+	google *Google
+	secret []byte
+	log    *slog.Logger
 }
 
 func NewHandler(svc *Service, mw *Middleware) *Handler {
-	return &Handler{svc: svc, mw: mw}
+	return &Handler{svc: svc, mw: mw, log: slog.New(slog.NewTextHandler(io.Discard, nil))}
 }
 
 // render: request htmx mendapat fragment form, selain itu halaman penuh.
@@ -75,7 +82,8 @@ func (h *Handler) LoginPage(c echo.Context) error {
 	if c.QueryParam("reset") == "1" {
 		notice = "Password berhasil diganti. Silakan masuk dengan password baru."
 	}
-	f := form{Next: c.QueryParam("next")}
+	f := form{Next: c.QueryParam("next"), Google: h.google != nil}
+	f.Message = googleNotice(c.QueryParam("google"))
 	return web.Render(c, http.StatusOK, loginPage(f, notice))
 }
 
@@ -83,6 +91,7 @@ func (h *Handler) LoginPage(c echo.Context) error {
 func (h *Handler) Login(c echo.Context) error {
 	f := formFrom(c, "email")
 	f.Next = c.FormValue("next")
+	f.Google = h.google != nil
 	password := c.FormValue("password")
 
 	if strings.TrimSpace(f.v("email")) == "" || password == "" {
@@ -118,7 +127,7 @@ func (h *Handler) RegisterPage(c echo.Context) error {
 	if done, err := h.redirectIfLoggedIn(c); done {
 		return err
 	}
-	return web.Render(c, http.StatusOK, registerPage(form{Next: c.QueryParam("next")}))
+	return web.Render(c, http.StatusOK, registerPage(form{Next: c.QueryParam("next"), Google: h.google != nil}))
 }
 
 // errPasswordMismatch: pesan kolom konfirmasi password (T23).
@@ -129,6 +138,7 @@ const errPasswordMismatch = "Konfirmasi password tidak sama"
 func (h *Handler) Register(c echo.Context) error {
 	f := formFrom(c, "name", "email")
 	f.Next = c.FormValue("next")
+	f.Google = h.google != nil
 	in := RegisterInput{Name: f.v("name"), Email: f.v("email"), Password: c.FormValue("password")}
 	// Konfirmasi password adalah urusan form (salah ketik), bukan aturan akun:
 	// diperiksa di sini bersama validasi kolom lain supaya semua pesan tampil sekaligus.

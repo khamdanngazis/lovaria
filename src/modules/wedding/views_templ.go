@@ -1056,7 +1056,7 @@ func listPage(weddings []Wedding, now time.Time) templ.Component {
 }
 
 // ---------- Halaman wedding ----------
-// navItem / navGroups: navigasi dashboard satu wedding (sidebar desktop,
+// navItem / navSections: navigasi dashboard satu wedding (sidebar desktop,
 // bottom nav + menu di ponsel). Suffix = akhiran URL wedding.
 type navItem struct{ Suffix, Label, Icon string }
 

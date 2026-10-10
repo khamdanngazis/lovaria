@@ -122,3 +122,18 @@ BASE_URL=https://<staging> DATA=/tmp/lovoria-load.json make loadtest
 - [ ] `APP_SECRET` ≥ 32 karakter terpasang; token/secret disimpan di password manager
 - [ ] Load test ulang di Railway (di luar jam sibuk) — opsional, biaya/izin
 - [ ] Postgres dev/CI disamakan ke 18 (saat ini 16) — lihat catatan §3
+
+## Sign in with Google (T30)
+
+**Setup satu kali**
+1. Google Cloud Console → buat/pilih project → **APIs & Services → OAuth consent screen**: tipe *External*, nama aplikasi "Lunovia", email dukungan, domain `lunovia.id`, tautan Kebijakan Privasi (`https://lunovia.id/privacy`) dan Syarat (`https://lunovia.id/terms`). Scope cukup `openid`, `email`, `profile` (tidak perlu verifikasi tambahan). Publikasikan aplikasinya (*In production*) supaya semua akun Google bisa masuk.
+2. **Credentials → Create credentials → OAuth client ID** → *Web application*. **Authorized redirect URIs**: `https://lunovia.id/auth/google/callback` (harus persis sama dengan `BASE_URL` + `/auth/google/callback`).
+3. Isi `GOOGLE_CLIENT_ID` dan `GOOGLE_CLIENT_SECRET` di Railway, lalu deploy. Tombol "Lanjutkan dengan Google" muncul di halaman masuk dan daftar.
+
+**Cara kerja** (`src/modules/auth/google.go`, `google_handler.go`)
+- Alur authorization code + PKCE + nonce di sisi server; tidak ada script Google di halaman. State disimpan di cookie `lovoria_oauth` bertanda tangan HMAC (10 menit, `Path=/auth/google`).
+- Identitas disimpan di `user_identities` (provider `google` + ID akun Google). Email Google harus terverifikasi.
+- Akun yang emailnya sama dihubungkan otomatis. Bila akun itu dibuat dengan password dan emailnya belum pernah terverifikasi, **password lamanya dimatikan dan semua sesinya dicabut** saat dihubungkan (mencegah orang yang lebih dulu mendaftarkan email itu tetap bisa masuk); pengguna diberi tahu dan bisa membuat password baru lewat "Lupa password".
+- Akun yang dinonaktifkan admin tidak bisa masuk lewat Google.
+
+**Bila gagal**: pengguna kembali ke halaman masuk dengan pesan umum; penyebabnya ada di log ("auth: masuk dengan Google gagal"). Yang paling sering: redirect URI di Google Cloud Console tidak sama persis, atau client secret salah.

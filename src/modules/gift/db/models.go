@@ -237,6 +237,14 @@ type User struct {
 	DisabledAt      *time.Time
 }
 
+type UserIdentity struct {
+	Provider  string
+	Subject   string
+	UserID    uuid.UUID
+	Email     string
+	CreatedAt time.Time
+}
+
 type Wedding struct {
 	ID                uuid.UUID
 	OwnerUserID       uuid.UUID
