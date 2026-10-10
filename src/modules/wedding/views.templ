@@ -271,22 +271,81 @@ templ listPage(weddings []Wedding, now time.Time) {
 }
 
 // ---------- Halaman wedding ----------
-// navItem / navGroups: navigasi dashboard satu wedding (sidebar desktop,
+// navItem / navSections: navigasi dashboard satu wedding (sidebar desktop,
 // bottom nav + menu di ponsel). Suffix = akhiran URL wedding.
 type navItem struct{ Suffix, Label, Icon string }
 
-var navGroups = []struct {
-	Title string
-	Items []navItem
-}{
-	{"", []navItem{{"", "Beranda", "home"}}},
-	{"Konten undangan", []navItem{{"/info", "Info wedding", ""}, {"/couple", "Pasangan", ""}, {"/events", "Acara", "calendar"}, {"/stories", "Cerita", ""}, {"/gallery", "Galeri", ""}, {"/theme", "Tema", ""}}},
-	{"Tamu", []navItem{{"/guests", "Daftar tamu", "users"}, {"/share", "Bagikan", ""}, {"/rsvp", "RSVP", "check"}, {"/guestbook", "Ucapan", ""}, {"/gifts", "Hadiah", ""}}},
-	{"Pengaturan", []navItem{{"/domain", "Domain", ""}}},
+// navSection: satu menu utama dashboard wedding. Halaman-halaman di dalamnya
+// tampil sebagai tab di atas halaman (bukan menu terpisah), supaya sidebar
+// tetap pendek: Beranda · Isi undangan · Tampilan · Tamu · Ucapan · Pengaturan.
+type navSection struct {
+	Label, Icon string
+	// Tabs: halaman di dalam menu ini; yang pertama adalah tujuan menu.
+	Tabs []navItem
+	// AfterPublish: baru berguna setelah undangan terbit — disembunyikan
+	// selama draf (per menu, atau per tab lewat afterPublishTabs).
+	AfterPublish bool
 }
 
-// bottomNav: pintasan di bar bawah ponsel (sisanya lewat "Menu").
-var bottomNav = []navItem{{"", "Beranda", "home"}, {"/events", "Acara", "calendar"}, {"/guests", "Tamu", "users"}, {"/rsvp", "RSVP", "check"}}
+var navSections = []navSection{
+	{Label: "Beranda", Icon: "home", Tabs: []navItem{{"", "Beranda", ""}}},
+	{Label: "Isi undangan", Icon: "edit", Tabs: []navItem{{"/couple", "Mempelai", ""}, {"/events", "Acara", ""}, {"/stories", "Cerita", ""}, {"/gallery", "Galeri", ""}, {"/gifts", "Hadiah", ""}}},
+	{Label: "Tampilan", Icon: "palette", Tabs: []navItem{{"/theme", "Tampilan", ""}}},
+	{Label: "Tamu", Icon: "users", Tabs: []navItem{{"/guests", "Daftar tamu", ""}, {"/share", "Bagikan", ""}, {"/rsvp", "RSVP", ""}}},
+	{Label: "Ucapan", Icon: "chat", Tabs: []navItem{{"/guestbook", "Ucapan", ""}}, AfterPublish: true},
+	{Label: "Pengaturan", Icon: "settings", Tabs: []navItem{{"/info", "Judul & tanggal", ""}, {"/domain", "Domain", ""}}},
+}
+
+// afterPublishTabs: tab yang baru berguna setelah undangan terbit.
+var afterPublishTabs = map[string]bool{"/share": true, "/rsvp": true}
+
+// visibleTabs: tab sebuah menu untuk wedding ini. Selama draf, tab yang belum
+// berguna disembunyikan — kecuali halaman yang sedang dibuka (tautan langsung
+// dari beranda tetap punya konteks).
+func visibleTabs(w Wedding, sec navSection, active string) []navItem {
+	var out []navItem
+	for _, t := range sec.Tabs {
+		if w.IsDraft() && afterPublishTabs[t.Suffix] && t.Suffix != active {
+			continue
+		}
+		out = append(out, t)
+	}
+	return out
+}
+
+// visibleSections: menu utama untuk wedding ini (lihat AfterPublish).
+func visibleSections(w Wedding, active string) []navSection {
+	var out []navSection
+	for _, sec := range navSections {
+		if w.IsDraft() && sec.AfterPublish && !sec.has(active) {
+			continue
+		}
+		out = append(out, sec)
+	}
+	return out
+}
+
+func (sec navSection) has(active string) bool {
+	for _, t := range sec.Tabs {
+		if t.Suffix == active {
+			return true
+		}
+	}
+	return false
+}
+
+// sectionOf: menu utama tempat halaman aktif berada.
+func sectionOf(active string) navSection {
+	for _, sec := range navSections {
+		if sec.has(active) {
+			return sec
+		}
+	}
+	return navSections[0]
+}
+
+// bottomNav: menu di bar bawah ponsel (sisanya lewat "Menu").
+var bottomNav = []string{"Beranda", "Isi undangan", "Tampilan", "Tamu"}
 
 var navIcons = map[string]string{
 	"home":     "M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z",
@@ -294,6 +353,10 @@ var navIcons = map[string]string{
 	"users":    "M16 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1m17 0v-1a4 4 0 0 0-3-3.9M13 4.1a4 4 0 0 1 0 7.8M9.5 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z",
 	"check":    "M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z",
 	"menu":     "M4 6h16M4 12h16M4 18h16",
+	"edit":     "M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4",
+	"palette":  "M12 3a9 9 0 1 0 0 18c1.2 0 2-.9 2-2 0-.6-.2-1-.5-1.4-.3-.4-.5-.8-.5-1.3 0-1 .8-1.8 1.8-1.800H17a4 4 0 0 0 4-4c0-4.1-4-7.5-9-7.500zM7.5 12h.01M9.5 8h.01M14.5 8h.01",
+	"chat":     "M5 5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-7l-4.5 3.500V16H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z",
+	"settings": "M4 7h10M18 7h2M4 17h2M10 17h10M16 5v4M8 15v4",
 }
 
 templ navIcon(name string) {
@@ -306,35 +369,35 @@ templ Shell(w Wedding, active string) {
 	@layouts.Dashboard(layouts.Meta{Title: w.Title}) {
 		<div class="lg:grid lg:grid-cols-[12rem_minmax(0,1fr)] lg:gap-8">
 			<aside class="hidden lg:block" aria-label="Menu wedding">
-				<nav class="sticky top-6 space-y-5 text-sm">
-					for _, g := range navGroups {
-						<div>
-							if g.Title != "" {
-								<p class="mb-1 px-3 text-xs font-medium uppercase tracking-wide text-lovoria-muted">{ g.Title }</p>
-							}
-							<ul class="space-y-0.5">
-								for _, it := range g.Items {
-									<li>
-										<a
-											href={ templ.SafeURL(weddingURL(w, it.Suffix)) }
-											class={ "block rounded-lg px-3 py-2", templ.KV("bg-lovoria-primary-soft font-medium text-lovoria-primary", active == it.Suffix), templ.KV("text-lovoria-muted hover:bg-lovoria-subtle hover:text-lovoria-text", active != it.Suffix) }
-											if active == it.Suffix {
-												aria-current="page"
-											}
-										>{ it.Label }</a>
-									</li>
-								}
-							</ul>
-						</div>
-					}
-					<a href={ templ.SafeURL("/w/" + w.Slug) } target="_blank" rel="noopener" class="block px-3 text-lovoria-primary hover:underline">Lihat undangan ↗</a>
+				<nav class="sticky top-6 text-sm">
+					<ul class="space-y-1">
+						for _, sec := range visibleSections(w, active) {
+							<li>
+								<a
+									href={ templ.SafeURL(weddingURL(w, sec.Tabs[0].Suffix)) }
+									class={ "flex items-center gap-2.5 rounded-lg px-3 py-2.5", templ.KV("bg-lovoria-primary-soft font-medium text-lovoria-primary", sec.has(active)), templ.KV("text-lovoria-muted hover:bg-lovoria-subtle hover:text-lovoria-text", !sec.has(active)) }
+									if sec.has(active) {
+										aria-current="page"
+									}
+								>
+									@navIcon(sec.Icon)
+									{ sec.Label }
+								</a>
+							</li>
+						}
+					</ul>
+					<a href={ templ.SafeURL("/w/" + w.Slug) } target="_blank" rel="noopener" class="mt-5 block px-3 text-lovoria-primary hover:underline">Lihat undangan ↗</a>
 				</nav>
 			</aside>
 			<div class="min-w-0 pb-24 lg:pb-0">
 				<p class="text-sm text-lovoria-muted"><a href="/dashboard/weddings" class="hover:underline">Wedding saya</a></p>
 				<h1 class="mt-1 break-words font-display text-2xl leading-tight text-lovoria-deep sm:text-3xl">{ w.Title }</h1>
+				// Navigasi kedua hanya satu: pita langkah (draf, halaman panduan)
+				// atau tab menu (selain itu) — tidak pernah dua-duanya.
 				if guideIndex(w, active) >= 0 {
 					@guideSteps(w, active)
+				} else if len(visibleTabs(w, sectionOf(active), active)) > 1 {
+					@sectionTabs(w, active)
 				}
 				<div class="mt-6">
 					{ children... }
@@ -354,7 +417,22 @@ templ Shell(w Wedding, active string) {
 // langkah bebas dilewati dan semua menu tetap bisa dibuka kapan saja.
 var guide = []navItem{
 	{"/couple", "Mempelai", ""}, {"/events", "Acara", ""}, {"/stories", "Cerita", ""},
-	{"/gallery", "Galeri", ""}, {"/theme", "Tampilan", ""}, {"/guests", "Tamu", ""},
+	{"/gallery", "Galeri", ""}, {"/gifts", "Hadiah", ""}, {"/theme", "Tampilan", ""}, {"/guests", "Tamu", ""},
+}
+
+// sectionTabs: tab halaman-halaman di dalam menu aktif.
+templ sectionTabs(w Wedding, active string) {
+	<nav class="ui-tabs scrollbar-none mt-5" aria-label={ "Bagian " + sectionOf(active).Label }>
+		for _, t := range visibleTabs(w, sectionOf(active), active) {
+			<a
+				href={ templ.SafeURL(weddingURL(w, t.Suffix)) }
+				class="ui-tab"
+				if t.Suffix == active {
+					aria-current="page"
+				}
+			>{ t.Label }</a>
+		}
+	</nav>
 }
 
 // guideIndex: posisi halaman aktif dalam panduan; -1 bila bukan langkah panduan
@@ -422,32 +500,43 @@ templ guideNext(w Wedding, active string) {
 }
 
 func inBottomNav(active string) bool {
-	for _, it := range bottomNav {
-		if it.Suffix == active {
+	for _, label := range bottomNav {
+		if sectionOf(active).Label == label {
 			return true
 		}
 	}
 	return false
 }
 
-// bottomBar: navigasi bawah di ponsel. "Menu" memakai <details> sehingga
-// tetap berfungsi tanpa JS.
+func isBottom(sec navSection) bool {
+	for _, label := range bottomNav {
+		if sec.Label == label {
+			return true
+		}
+	}
+	return false
+}
+
+// bottomBar: navigasi bawah di ponsel — empat menu utama + "Menu" untuk
+// sisanya (memakai <details> sehingga tetap berfungsi tanpa JS).
 templ bottomBar(w Wedding, active string) {
 	<nav class="fixed inset-x-0 bottom-0 z-40 border-t border-lovoria-border bg-lovoria-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden" aria-label="Menu wedding (ponsel)">
 		<ul class="mx-auto grid max-w-md grid-cols-5 text-[11px]">
-			for _, it := range bottomNav {
-				<li>
-					<a
-						href={ templ.SafeURL(weddingURL(w, it.Suffix)) }
-						class={ "flex flex-col items-center gap-0.5 py-2", templ.KV("text-lovoria-primary font-medium", active == it.Suffix), templ.KV("text-lovoria-muted", active != it.Suffix) }
-						if active == it.Suffix {
-							aria-current="page"
-						}
-					>
-						@navIcon(it.Icon)
-						{ it.Label }
-					</a>
-				</li>
+			for _, sec := range navSections {
+				if isBottom(sec) {
+					<li>
+						<a
+							href={ templ.SafeURL(weddingURL(w, sec.Tabs[0].Suffix)) }
+							class={ "flex flex-col items-center gap-0.5 py-2", templ.KV("text-lovoria-primary font-medium", sec.has(active)), templ.KV("text-lovoria-muted", !sec.has(active)) }
+							if sec.has(active) {
+								aria-current="page"
+							}
+						>
+							@navIcon(sec.Icon)
+							{ sec.Label }
+						</a>
+					</li>
+				}
 			}
 			<li>
 				<details>
@@ -456,20 +545,22 @@ templ bottomBar(w Wedding, active string) {
 						Menu
 					</summary>
 					<div class="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] max-h-[70dvh] overflow-y-auto border-t border-lovoria-border bg-lovoria-surface px-4 py-4 shadow-2xl">
-						for _, g := range navGroups[1:] {
-							<p class="mt-3 text-xs font-medium uppercase tracking-wide text-lovoria-muted first:mt-0">{ g.Title }</p>
-							<ul class="mt-1 grid grid-cols-2 gap-1 text-sm">
-								for _, it := range g.Items {
+						<ul class="space-y-1 text-sm">
+							for _, sec := range visibleSections(w, active) {
+								if !isBottom(sec) {
 									<li>
 										<a
-											href={ templ.SafeURL(weddingURL(w, it.Suffix)) }
-											class={ "block rounded-lg px-3 py-2.5", templ.KV("bg-lovoria-primary-soft font-medium text-lovoria-primary", active == it.Suffix), templ.KV("text-lovoria-text hover:bg-lovoria-subtle", active != it.Suffix) }
-										>{ it.Label }</a>
+											href={ templ.SafeURL(weddingURL(w, sec.Tabs[0].Suffix)) }
+											class={ "flex items-center gap-3 rounded-lg px-3 py-3", templ.KV("bg-lovoria-primary-soft font-medium text-lovoria-primary", sec.has(active)), templ.KV("text-lovoria-text hover:bg-lovoria-subtle", !sec.has(active)) }
+										>
+											@navIcon(sec.Icon)
+											{ sec.Label }
+										</a>
 									</li>
 								}
-							</ul>
-						}
-						<a href={ templ.SafeURL("/w/" + w.Slug) } target="_blank" rel="noopener" class="mt-3 block px-3 py-2 text-sm text-lovoria-primary">Lihat undangan ↗</a>
+							}
+						</ul>
+						<a href={ templ.SafeURL("/w/" + w.Slug) } target="_blank" rel="noopener" class="mt-2 block px-3 py-2 text-sm text-lovoria-primary">Lihat undangan ↗</a>
 					</div>
 				</details>
 			</li>

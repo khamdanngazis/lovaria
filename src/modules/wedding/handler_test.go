@@ -384,7 +384,7 @@ func TestGuidedStepsOnDraft(t *testing.T) {
 
 	body := req(e, owner, http.MethodGet, base+"/couple", nil, false).Body.String()
 	for _, want := range []string{
-		"Lengkapi undangan", "langkah 1 dari 6", `aria-current="step"`, `href="` + base + `/theme/preview"`,
+		"Lengkapi undangan", "langkah 1 dari 7", `aria-current="step"`, `href="` + base + `/theme/preview"`,
 		`href="` + base + `/events" class="ui-btn ui-btn-primary`, "Lanjut: Acara", "Boleh dilewati", `href="` + base + `/start"`,
 	} {
 		if !strings.Contains(body, want) {
@@ -403,5 +403,64 @@ func TestGuidedStepsOnDraft(t *testing.T) {
 	}
 	if b := req(e, owner, http.MethodGet, base+"/couple", nil, false).Body.String(); strings.Contains(b, "Lengkapi undangan") || strings.Contains(b, "Lanjut: Acara") {
 		t.Error("undangan terbit tidak menampilkan panduan")
+	}
+}
+
+// Navigasi ringkas: enam menu utama; halaman di dalam menu tampil sebagai tab.
+// Selama draf, menu/tab yang baru berguna setelah terbit disembunyikan, dan
+// pita langkah menggantikan tab di halaman panduan.
+func TestSimplerNavigation(t *testing.T) {
+	f := newFixture(t)
+	e := newTestServer(t, f)
+	owner := f.user(t, "a@example.com")
+	w, _ := f.svc.CreateWedding(ctx, owner, validInput())
+	base := "/dashboard/weddings/" + w.ID.String()
+	aside := func(body string) string {
+		i := strings.Index(body, `aria-label="Menu wedding"`)
+		return body[i : i+strings.Index(body[i:], "</aside>")]
+	}
+
+	// Draf: lima menu (tanpa Ucapan); istilah lama tidak dipakai lagi.
+	body := req(e, owner, http.MethodGet, base+"/info", nil, false).Body.String()
+	side := aside(body)
+	for _, want := range []string{"Beranda", "Isi undangan", "Tampilan", "Tamu", "Pengaturan", `href="` + base + `/couple"`, `href="` + base + `/info"`} {
+		if !strings.Contains(side, want) {
+			t.Errorf("sidebar draf tidak memuat %q", want)
+		}
+	}
+	for _, gone := range []string{"Ucapan", "Info wedding", "Pasangan", "Konten undangan", "RSVP", "Bagikan", "Hadiah"} {
+		if strings.Contains(side, gone) {
+			t.Errorf("sidebar draf masih memuat %q", gone)
+		}
+	}
+	if n := strings.Count(side, "<li>"); n != 5 {
+		t.Errorf("menu sidebar draf = %d, want 5", n)
+	}
+	// Pengaturan: tab Judul & tanggal · Domain, tab aktif ditandai.
+	if !strings.Contains(body, `aria-label="Bagian Pengaturan"`) || !strings.Contains(body, `href="`+base+`/domain"`) || !strings.Contains(body, `aria-current="page"`) {
+		t.Error("halaman info: tab Pengaturan")
+	}
+	// Halaman panduan (draf): pita langkah, bukan tab.
+	if b := req(e, owner, http.MethodGet, base+"/couple", nil, false).Body.String(); !strings.Contains(b, "Lengkapi undangan") || strings.Contains(b, `aria-label="Bagian Isi undangan"`) {
+		t.Error("draf: halaman mempelai memakai pita langkah, bukan tab")
+	}
+
+	// Terbit: enam menu; Isi undangan & Tamu bertab lengkap.
+	f.svc.SetEventCounter(countEvents(1))
+	f.paid(t, w.ID)
+	if _, err := f.svc.Transition(ctx, w.ID, StatusPublished, Actor{Kind: ActorUser, UserID: owner}); err != nil {
+		t.Fatal(err)
+	}
+	body = req(e, owner, http.MethodGet, base+"/couple", nil, false).Body.String()
+	if side := aside(body); strings.Count(side, "<li>") != 6 || !strings.Contains(side, "Ucapan") {
+		t.Errorf("sidebar terbit harus 6 menu termasuk Ucapan")
+	}
+	for _, want := range []string{`aria-label="Bagian Isi undangan"`, ">Mempelai</a>", ">Acara</a>", ">Cerita</a>", ">Galeri</a>", ">Hadiah</a>"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("tab Isi undangan tidak memuat %q", want)
+		}
+	}
+	if strings.Contains(body, "Lengkapi undangan") {
+		t.Error("terbit: tanpa pita langkah")
 	}
 }

@@ -76,3 +76,12 @@ Tujuan setelah daftar/masuk dibawa parameter `next` (divalidasi `safeNext`, hany
 ### Beranda draf (T29 bagian 3)
 
 `wedding.statusCard` memilih `draftCard` (draf) atau `liveCard` (terbit dan seterusnya). `draftCard` menonjolkan pratinjau & melengkapi, menampilkan syarat terbit (`Service.Checklist`), dan **baru menampilkan** tombol "Publikasikan undangan" setelah semua syarat terpenuhi (`overviewState.ready`) — belum lunas → tautan ke `/publish` (harga & bayar), sudah lunas → form publikasi. Status pembayaran tidak ditampilkan di draf yang belum lunas. Server tetap menolak publikasi yang belum memenuhi syarat atau belum lunas, terlepas dari tombol.
+
+### Navigasi dashboard wedding
+
+`wedding/views.templ` — `navSections`: enam menu utama, masing-masing dengan daftar `Tabs` (halaman di dalamnya; tab pertama = tujuan menu). `Shell(w, active)` menandai menu aktif lewat `sectionOf(active)` dan, bila menunya punya lebih dari satu tab yang terlihat, merender `sectionTabs` di atas halaman. Aturan:
+
+- **Satu navigasi kedua saja**: draf + halaman panduan → pita langkah (`guideSteps`); selain itu → tab menu.
+- **Draf**: menu ber-`AfterPublish` (Ucapan) dan tab di `afterPublishTabs` (Bagikan, RSVP) disembunyikan, kecuali halaman yang sedang dibuka.
+- **Ponsel**: `bottomNav` berisi nama menu yang tampil di bilah bawah; sisanya di lembar "Menu".
+- Menambah halaman baru: cukup tambahkan `navItem` ke `Tabs` menu yang sesuai dan panggil `Shell(w, "<akhiran>")` — URL tidak ikut berubah.

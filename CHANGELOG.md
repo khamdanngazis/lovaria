@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Menu dashboard wedding diringkas
+- Sidebar dari 13 menu menjadi **6 menu**: Beranda · Isi undangan · Tampilan · Tamu · Ucapan · Pengaturan. Halaman di dalam tiap menu tampil sebagai **tab** di atas halaman (Isi undangan: Mempelai, Acara, Cerita, Galeri, Hadiah; Tamu: Daftar tamu, Bagikan, RSVP; Pengaturan: Judul & tanggal, Domain).
+- Istilah diseragamkan: "Mempelai" dan "Tampilan" (sebelumnya "Pasangan" dan "Tema" di menu). Hadiah pindah ke Isi undangan; Info wedding menjadi "Judul & tanggal" di Pengaturan.
+- Selama draf, yang baru berguna setelah terbit disembunyikan: menu Ucapan serta tab Bagikan dan RSVP. Halamannya tetap bisa dibuka lewat tautan di beranda.
+- Selama draf, halaman panduan menampilkan pita langkah (kini 7 langkah, termasuk Hadiah) sebagai pengganti tab.
+- Bilah bawah di ponsel: Beranda, Isi undangan, Tampilan, Tamu, Menu.
+- Alamat halaman (URL) tidak berubah.
+
 ### Halaman Tampilan lebih ringkas
 - Pemilih tema di halaman Tampilan diringkas menjadi satu baris ("Tema undangan: … · Ganti tema"); galeri tema baru terbuka saat ditekan dan menutup lagi setelah memilih. Pengaturan warna, huruf, kutipan, dan musik kini langsung terlihat tanpa menggulir jauh, terutama di ponsel.
 
