@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### T31 (bagian 3) — Kehadiran nyata di dashboard
+- Halaman Tamu → Check-in menampilkan **ringkasan kehadiran** yang memperbarui diri tiap 10 detik selama check-in dibuka: undangan yang datang, jumlah orang hadir, tamu tambahan, daftar check-in terbaru (jam, jumlah orang, cara), dan daftar tamu tanpa undangan.
+- Pasangan bisa **menandai datang secara manual**, membatalkan check-in, dan menghapus catatan tamu tambahan.
+- Daftar tamu menandai tamu yang sudah datang; **ekspor CSV** memuat kolom `checked_in_at`, `checked_in_pax`, `checked_in_via`.
+- Catatan kehadiran tetap bisa dilihat setelah hari H atau setelah fitur dimatikan.
+
 ### T31 (bagian 2) — Pemindai QR untuk penerima tamu
 - **Link penerima tamu** di halaman Tamu → Check-in: buat, salin, kirim lewat WhatsApp, buat ulang, atau cabut. Link dibuka di ponsel penerima tamu tanpa akun.
 - **Halaman pemindai**: kamera membaca QR undangan lalu menampilkan hasil besar — hijau (undangan sah, konfirmasi jumlah orang lalu Check-in), kuning (sudah dipakai, dengan jam check-in pertama), merah (bukan undangan acara ini). Ada **cari manual** berdasarkan nama/kode, pembatalan check-in, dan pencatatan **tamu tanpa undangan**.

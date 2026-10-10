@@ -235,6 +235,9 @@ templ row(s listState, g Guest) {
 						· { strconv.Itoa(g.RSVPPax) } org
 					}
 				</span>
+				if g.CheckedInAt != nil {
+					<span class="rounded-full bg-lovoria-success px-2 py-0.5 text-xs text-white">Datang · { strconv.Itoa(g.CheckedInPax) } org</span>
+				}
 			</div>
 			<p class="mt-0.5 text-sm text-lovoria-muted">
 				if g.GroupName != "" {

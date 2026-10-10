@@ -120,4 +120,36 @@ test('alur utama pasangan & tamu', async ({ page, browser }) => {
   // RSVP tercermin di dashboard pasangan.
   await page.goto(dash + '/rsvp');
   await expect(page.locator('#rsvp-list').getByText('Tamu E2E')).toBeVisible();
+
+  // 10. Check-in QR (T31): aktifkan → QR di undangan tamu → penerima tamu
+  // (tanpa akun) mencari tamu secara manual dan mencatat kedatangannya.
+  await page.goto(dash + '/checkin');
+  await page.getByRole('button', { name: 'Aktifkan check-in QR' }).click();
+  await expect(page.getByText('Check-in QR diaktifkan')).toBeVisible();
+  await page.getByRole('button', { name: 'Buat link penerima tamu' }).click();
+  const usherURL = await page.getByLabel('Link penerima tamu').inputValue();
+  expect(new URL(usherURL).pathname).toMatch(/^\/checkin\/[\w.-]+$/);
+
+  const doorCtx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const door = await doorCtx.newPage();
+  await door.goto(`/i/${code}`);
+  expect((await door.request.get(`/i/${code}/qr.png`)).headers()['content-type']).toBe('image/png');
+  await door.goto(new URL(usherURL).pathname);
+  await expect(door.getByRole('button', { name: 'Nyalakan kamera' })).toBeVisible();
+  await door.getByText('Cari manual (tanpa QR)').click();
+  await door.getByLabel('Nama tamu atau kode undangan').fill('Tamu E2E');
+  await door.getByRole('button', { name: 'Pilih' }).click();
+  await expect(door.getByText('Undangan sah')).toBeVisible();
+  await door.getByRole('button', { name: 'Check-in', exact: true }).click();
+  await expect(door.getByText('Selamat datang')).toBeVisible();
+  // Dipilih lagi → sudah check-in.
+  await door.getByRole('button', { name: 'Pindai berikutnya' }).click();
+  await door.getByLabel('Nama tamu atau kode undangan').fill('Tamu E2');
+  await door.getByRole('button', { name: 'Pilih' }).click();
+  await expect(door.getByText('Sudah check-in')).toBeVisible();
+  await doorCtx.close();
+
+  // Kehadiran tercermin di dashboard pasangan.
+  await page.goto(dash + '/checkin');
+  await expect(page.locator('#attendance').getByText('Tamu E2E')).toBeVisible();
 });

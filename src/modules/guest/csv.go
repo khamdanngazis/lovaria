@@ -252,7 +252,9 @@ func (s *Service) ExportCSV(ctx context.Context, weddingID uuid.UUID, w io.Write
 	}
 	cw := csv.NewWriter(w)
 	_ = cw.Write([]string{"name", "phone", "email", "group", "max_pax", "invitation_code", "invitation_link",
-		"rsvp_status", "rsvp_pax", "rsvp_message", "rsvp_at", "last_opened_at", "notes"})
+		"rsvp_status", "rsvp_pax", "rsvp_message", "rsvp_at", "last_opened_at", "notes",
+		// Kehadiran nyata di hari H (T31); kosong bila belum / tidak check-in.
+		"checked_in_at", "checked_in_pax", "checked_in_via"})
 	ts := func(t *time.Time) string {
 		if t == nil {
 			return ""
@@ -264,10 +266,18 @@ func (s *Service) ExportCSV(ctx context.Context, weddingID uuid.UUID, w io.Write
 			csvSafe(g.Name), g.Phone, g.Email, csvSafe(g.GroupName), fmt.Sprint(g.MaxPax), g.InvitationCode,
 			Link(origin, g.InvitationCode), g.RSVPStatus, fmt.Sprint(g.RSVPPax), csvSafe(g.RSVPMessage),
 			ts(g.RSVPAt), ts(g.LastOpenedAt), csvSafe(g.Notes),
+			ts(g.CheckedInAt), paxOrEmpty(g), g.CheckedInVia,
 		})
 	}
 	cw.Flush()
 	return cw.Error()
+}
+
+func paxOrEmpty(g Guest) string {
+	if g.CheckedInAt == nil {
+		return ""
+	}
+	return fmt.Sprint(g.CheckedInPax)
 }
 
 // csvSafe mencegah formula injection saat CSV dibuka di spreadsheet

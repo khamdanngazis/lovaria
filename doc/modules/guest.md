@@ -120,3 +120,9 @@ Bagian 2 (pemindai penerima tamu):
 - **Tamu tambahan** (tanpa undangan): tabel `checkin_walkins`, dihitung terpisah di `CheckinStats`.
 - **Skrip**: `static/js/checkin.js` (tanpa Alpine). `BarcodeDetector` bila ada; selain itu memuat `static/js/vendor/jsqr.js` (jsQR 1.4.0, Apache-2.0). Hasil dirender server sebagai fragmen htmx; pemindai berhenti selama kartu hasil tampil (`data-scan-pause`) dan lanjut saat "Pindai berikutnya" ditekan, supaya QR yang masih di depan kamera tidak terbaca ulang.
 - **Uji manual tanpa ponsel**: Chrome dengan `--use-fake-ui-for-media-stream --use-fake-device-for-media-stream --use-file-for-fake-video-capture=<qr.y4m>` (video dibuat dari `qr.png` dengan ffmpeg).
+
+Bagian 3 (dashboard pasangan):
+- `attendanceCard` (fragmen `GET …/checkin/attendance`) memakai polling htmx `every 10s` hanya saat `CheckinOpen()`; isinya `CheckinSummary` (statistik + 15 check-in terbaru) dan `ListWalkins`.
+- Pasangan menandai / membatalkan lewat `POST …/checkin/mark` (`via = owner`; butuh `checkin_enabled`, boleh setelah hari H untuk merapikan catatan) dan menghapus tamu tambahan lewat `POST …/checkin/walkins/:id/delete`.
+- Daftar tamu menampilkan lencana "Datang · N org"; `ExportCSV` menambah kolom `checked_in_at`, `checked_in_pax`, `checked_in_via`. Tamu tambahan tidak ikut di CSV (hanya di halaman Check-in).
+- E2E (`e2e/tests/smoke.spec.js` langkah 10): aktifkan → link penerima tamu → cari manual → check-in → tampil di dashboard.

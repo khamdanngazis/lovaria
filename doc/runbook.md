@@ -137,3 +137,20 @@ BASE_URL=https://<staging> DATA=/tmp/lovoria-load.json make loadtest
 - Akun yang dinonaktifkan admin tidak bisa masuk lewat Google.
 
 **Bila gagal**: pengguna kembali ke halaman masuk dengan pesan umum; penyebabnya ada di log ("auth: masuk dengan Google gagal"). Yang paling sering: redirect URI di Google Cloud Console tidak sama persis, atau client secret salah.
+
+## Check-in QR di hari H (T31) — panduan singkat
+
+**Sebelum acara (pasangan)**
+1. Dashboard → Tamu → Check-in → **Aktifkan check-in QR**. Pastikan undangan sudah terbit; QR muncul di undangan pribadi tiap tamu.
+2. **Buat link penerima tamu** dan kirim ke petugas pintu masuk (WhatsApp). Minta mereka membukanya sekali sebelum acara untuk memberi izin kamera.
+
+**Di pintu masuk (penerima tamu)**
+1. Buka link → **Nyalakan kamera** → arahkan ke QR tamu.
+2. Hijau: periksa nama, sesuaikan jumlah orang, tekan **Check-in**, lalu **Pindai berikutnya**. Kuning: undangan sudah dipakai. Merah: bukan undangan acara ini.
+3. Tamu tanpa QR: **Cari manual**. Tamu tanpa undangan: **Tamu tanpa undangan** (dicatat terpisah).
+4. Sinyal lemah: halaman menampilkan "Koneksi bermasalah" — ulangi pemindaian. Belum ada mode offline.
+
+**Bila ada masalah**
+- Link bocor / petugas berganti: **Buat link baru** (link lama langsung mati) atau **Cabut link**.
+- Salah pindai: "Batalkan check-in ini" di halaman pemindai, atau **Batalkan** di dashboard.
+- Kamera tidak mau menyala: periksa izin kamera browser untuk situs ini; cari manual tetap bisa dipakai.
