@@ -20,6 +20,7 @@ func Register(w *echo.Group, deps Deps) {
 	w.GET("/rsvp", h.RSVP)
 	w.GET("/checkin", h.CheckinPage)
 	w.POST("/checkin", h.SaveCheckin)
+	w.POST("/checkin/link", h.SaveCheckinLink)
 	w.GET("/share", h.SharePage)
 	w.POST("/share/template", h.SaveShareTemplate)
 	w.POST("/share/template/reset", h.ResetShareTemplate)

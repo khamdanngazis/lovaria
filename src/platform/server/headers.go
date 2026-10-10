@@ -48,6 +48,15 @@ func StrictCSP(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
+// AllowCamera: izinkan kamera untuk halaman ini saja (pemindai QR check-in,
+// T31). Halaman lain tetap camera=().
+func AllowCamera(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		c.Response().Header().Set("Permissions-Policy", "camera=(self), microphone=(), geolocation=(), payment=(), usb=()")
+		return next(c)
+	}
+}
+
 // NoStore: halaman pribadi (dashboard, admin) tidak boleh disimpan cache
 // browser bersama maupun CDN.
 func NoStore(next echo.HandlerFunc) echo.HandlerFunc {

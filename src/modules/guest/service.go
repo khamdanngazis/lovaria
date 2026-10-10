@@ -77,6 +77,10 @@ type Guest struct {
 	Notes          string
 	LastOpenedAt   *time.Time
 	CreatedAt      time.Time
+	// Check-in di hari H (T31): nil = belum datang.
+	CheckedInAt  *time.Time
+	CheckedInPax int
+	CheckedInVia string // scan | manual | owner
 }
 
 // Input adalah nilai mentah form/CSV.
@@ -119,6 +123,8 @@ type Service struct {
 	baseURL string
 	now     func() time.Time
 	origins func(ctx context.Context, weddingID uuid.UUID) (string, error) // custom domain (T14/T15)
+	// checkinSecret: kunci HMAC token link penerima tamu (T31).
+	checkinSecret []byte
 }
 
 func NewService(repo *Repository, baseURL string) *Service {

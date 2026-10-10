@@ -7,7 +7,7 @@ import (
 )
 
 // checkinPage: pengaturan check-in QR di hari H (T31).
-templ checkinPage(w wedding.Wedding, notice string) {
+templ checkinPage(w wedding.Wedding, notice string, link CheckinLink) {
 	@wedding.Shell(w, "/checkin") {
 		<div class="max-w-2xl space-y-4">
 			@ui.Notice(notice)
@@ -26,7 +26,7 @@ templ checkinPage(w wedding.Wedding, notice string) {
 				<ol class="mt-5 space-y-2.5 text-sm leading-relaxed text-lovoria-text">
 					<li class="flex gap-3"><span class="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-lovoria-primary-soft text-xs font-medium text-lovoria-primary">1</span><span>Aktifkan fitur ini. Bagian <strong>QR Kehadiran</strong> muncul di undangan pribadi tiap tamu (link <span class="font-mono text-xs">/i/KODE</span>) — bukan di link umum.</span></li>
 					<li class="flex gap-3"><span class="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-lovoria-primary-soft text-xs font-medium text-lovoria-primary">2</span><span>Tamu menyimpan atau membuka QR-nya saat datang.</span></li>
-					<li class="flex gap-3"><span class="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-lovoria-primary-soft text-xs font-medium text-lovoria-primary">3</span><span>Penerima tamu memindai QR dari ponselnya. Halaman pemindai dan link untuk penerima tamu segera tersedia di sini.</span></li>
+					<li class="flex gap-3"><span class="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-lovoria-primary-soft text-xs font-medium text-lovoria-primary">3</span><span>Penerima tamu membuka <strong>link penerima tamu</strong> di ponselnya dan memindai QR tiap tamu yang datang.</span></li>
 				</ol>
 				if !w.CheckinEnabled && w.IsDraft() {
 					<p class="mt-4 text-xs text-lovoria-muted">Bisa diaktifkan sekarang; QR baru tampil ke tamu setelah undangan diterbitkan.</p>
@@ -57,6 +57,45 @@ templ checkinPage(w wedding.Wedding, notice string) {
 					}
 				</form>
 			}
+			if w.CheckinEnabled {
+				@usherLinkCard(w, link)
+			}
 		</div>
+	}
+}
+
+// usherLinkCard: link halaman pemindai untuk penerima tamu (tanpa akun).
+templ usherLinkCard(w wedding.Wedding, link CheckinLink) {
+	@ui.Card() {
+		<h2 class="font-semibold">Link penerima tamu</h2>
+		<p class="mt-1 text-sm leading-relaxed text-lovoria-muted">Bagikan link ini ke orang yang bertugas di pintu masuk. Mereka bisa memindai QR tanpa akun Lunovia dan hanya melihat nama, grup, dan jumlah orang tiap tamu. Siapa pun yang memegang link ini bisa mencatat check-in, jadi bagikan seperlunya.</p>
+		if link.URL != "" {
+			<div class="mt-4 flex items-center gap-2" x-data={ templ.JSFuncCall("copyText", link.URL).CallInline }>
+				<input type="text" readonly value={ link.URL } aria-label="Link penerima tamu" class="ui-control min-w-0 flex-1 bg-lovoria-bg px-3 py-2 text-sm text-lovoria-text" data-select-on-focus/>
+				<button type="button" x-cloak @click="copy()" class="ui-btn ui-btn-secondary flex-none px-3 py-2 text-sm" x-text="copied ? 'Tersalin ✓' : 'Salin'">Salin</button>
+			</div>
+			<div class="mt-3 flex flex-wrap gap-2">
+				<a href={ templ.SafeURL(link.URL) } target="_blank" rel="noopener" class="ui-btn ui-btn-primary px-4 py-2.5 text-sm">Buka pemindai ↗</a>
+				<a href={ templ.SafeURL(WhatsAppURL("", "Link check-in tamu "+w.Title+": "+link.URL)) } target="_blank" rel="noopener" class="ui-btn ui-btn-secondary px-4 py-2.5 text-sm">Kirim lewat WhatsApp</a>
+			</div>
+			<div class="mt-4 flex flex-wrap gap-x-5 gap-y-2 border-t border-lovoria-border pt-4 text-sm">
+				<form method="post" action={ templ.SafeURL(w.DashboardURL("/checkin/link")) } data-confirm="Buat link baru? Link yang sekarang langsung tidak berlaku.">
+					@layouts.CSRFField()
+					<input type="hidden" name="action" value="new"/>
+					<button type="submit" class="text-lovoria-primary hover:underline">Buat link baru</button>
+				</form>
+				<form method="post" action={ templ.SafeURL(w.DashboardURL("/checkin/link")) } data-confirm="Cabut link penerima tamu? Halaman pemindai tidak bisa dibuka lagi.">
+					@layouts.CSRFField()
+					<input type="hidden" name="action" value="revoke"/>
+					<button type="submit" class="text-lovoria-danger hover:underline">Cabut link</button>
+				</form>
+			</div>
+		} else {
+			<form method="post" action={ templ.SafeURL(w.DashboardURL("/checkin/link")) } class="mt-4">
+				@layouts.CSRFField()
+				<input type="hidden" name="action" value="new"/>
+				<button type="submit" class="ui-btn ui-btn-primary">Buat link penerima tamu</button>
+			</form>
+		}
 	}
 }

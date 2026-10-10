@@ -35,5 +35,12 @@ func toGuest(r guestdb.Guest) Guest {
 	if r.Email != nil {
 		g.Email = *r.Email
 	}
+	g.CheckedInAt = r.CheckedInAt
+	if r.CheckedInPax != nil {
+		g.CheckedInPax = int(*r.CheckedInPax)
+	}
+	if r.CheckedInVia != nil {
+		g.CheckedInVia = *r.CheckedInVia
+	}
 	return g
 }

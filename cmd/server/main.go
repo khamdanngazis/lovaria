@@ -425,6 +425,10 @@ func (a *app) routes() *echo.Echo {
 	theme.Register(owned, theme.Deps{Service: themes, Previewer: views})
 	guests.SetOrigins(a.weddings.CanonicalOrigin) // link tamu memakai custom domain bila aktif
 	guest.Register(owned, guest.Deps{Service: guests, Weddings: a.weddings})
+	// Check-in QR (T31): halaman pemindai penerima tamu, dibuka lewat link
+	// bertoken tanpa akun — CSP ketat, kamera hanya diizinkan di halaman ini.
+	guests.SetCheckinSecret(secret)
+	guest.RegisterCheckin(e, guest.Deps{Service: guests, Weddings: a.weddings}, server.StrictCSP, server.AllowCamera)
 	guestbook.Register(owned, guestbook.Deps{Service: guestbooks})
 	gift.Register(owned, gift.Deps{Service: gifts})
 	keepsake := &dashboard.Keepsake{Weddings: a.weddings, Stories: stories, Guests: guests, Guestbook: guestbooks, Photo: dashboard.HTTPPhoto(cfg.BaseURL)}
