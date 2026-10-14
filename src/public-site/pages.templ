@@ -83,6 +83,19 @@ templ legalContact() {
 	} else {
 		<span>kontak bantuan yang tercantum di situs lunovia.id</span>
 	}
+	if c := web.Contact(); c.Email != "" || c.Tel != "" || c.Address != "" {
+		<span class="mt-3 block space-y-1">
+			if c.Email != "" {
+				<span class="block">Email: <a href={ templ.SafeURL("mailto:" + c.Email) } class="ui-link">{ c.Email }</a></span>
+			}
+			if c.Tel != "" {
+				<span class="block">Telepon: <a href={ templ.SafeURL("tel:+" + c.Tel) } class="ui-link">{ c.TelDisplay() }</a></span>
+			}
+			if c.Address != "" {
+				<span class="block whitespace-pre-line">Alamat: { c.Address }</span>
+			}
+		</span>
+	}
 }
 
 templ privacyPage() {

@@ -59,3 +59,6 @@ Tab **Bantuan** (`/admin/support`) menyimpan nomor WhatsApp (Business) dan pesan
 - Tautan `https://wa.me/<nomor>?text=…` dibuat oleh `web.SupportURL()` dari salinan di memori (`web.SetSupport`), dimuat saat start (`Service.LoadSupport`) dan diperbarui setiap kali admin menyimpan.
 - Tampil di: footer landing, footer halaman masuk/daftar/error (`layouts.LegalLinks`), menu akun dashboard, dan halaman status pembayaran (`layouts.SupportHint`).
 - Salinan di memori berlaku per instance; bila kelak ada lebih dari satu instance, instance lain baru memuat nilai baru saat restart.
+
+### Kontak usaha
+Halaman `/admin/support` (tab **Kontak**) juga menyimpan `contact_email`, `contact_phone`, dan `business_address` di `app_settings` (validasi email/telepon, alamat ≤ 300 karakter). Dimuat ke `web.Support` bersama WhatsApp bantuan; `web.Contact()` dipakai footer landing ("Hubungi kami"), `legalContact` di halaman legal, dan `contactPoint` JSON-LD. Payment gateway mensyaratkan email, telepon, dan alamat usaha tercantum di halaman utama.

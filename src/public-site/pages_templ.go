@@ -406,12 +406,105 @@ func legalContact() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\" target=\"_blank\" rel=\"noopener\" class=\"ui-link\">WhatsApp Bantuan Lunovia</a>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\" target=\"_blank\" rel=\"noopener\" class=\"ui-link\">WhatsApp Bantuan Lunovia</a> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<span>kontak bantuan yang tercantum di situs lunovia.id</span>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<span>kontak bantuan yang tercantum di situs lunovia.id</span> ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		if c := web.Contact(); c.Email != "" || c.Tel != "" || c.Address != "" {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<span class=\"mt-3 block space-y-1\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if c.Email != "" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<span class=\"block\">Email: <a href=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var20 templ.SafeURL
+				templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL("mailto:" + c.Email))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/public-site/pages.templ`, Line: 89, Col: 75}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\" class=\"ui-link\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var21 string
+				templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(c.Email)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/public-site/pages.templ`, Line: 89, Col: 103}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</a></span> ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			if c.Tel != "" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<span class=\"block\">Telepon: <a href=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var22 templ.SafeURL
+				templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL("tel:+" + c.Tel))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/public-site/pages.templ`, Line: 92, Col: 73}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "\" class=\"ui-link\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var23 string
+				templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(c.TelDisplay())
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/public-site/pages.templ`, Line: 92, Col: 108}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</a></span> ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			if c.Address != "" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<span class=\"block whitespace-pre-line\">Alamat: ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var24 string
+				templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(c.Address)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/public-site/pages.templ`, Line: 95, Col: 63}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</span>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "</span>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -436,12 +529,12 @@ func privacyPage() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var20 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var20 == nil {
-			templ_7745c5c3_Var20 = templ.NopComponent
+		templ_7745c5c3_Var25 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var25 == nil {
+			templ_7745c5c3_Var25 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Var21 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_Var26 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 			if !templ_7745c5c3_IsBuffer {
@@ -453,7 +546,7 @@ func privacyPage() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<p>Lunovia adalah layanan untuk membuat website dan undangan pernikahan digital. Kebijakan ini menjelaskan data pribadi apa yang kami kumpulkan, untuk apa kami memakainya, kepada siapa kami membagikannya, dan hak Anda atas data tersebut. Kebijakan ini disusun dengan mengacu pada Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi.</p><p>Dalam kebijakan ini, <strong>pasangan</strong> adalah pemilik akun yang membuat undangan, dan <strong>tamu</strong> adalah orang yang diundang atau membuka undangan.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<p>Lunovia adalah layanan untuk membuat website dan undangan pernikahan digital. Kebijakan ini menjelaskan data pribadi apa yang kami kumpulkan, untuk apa kami memakainya, kepada siapa kami membagikannya, dan hak Anda atas data tersebut. Kebijakan ini disusun dengan mengacu pada Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi.</p><p>Dalam kebijakan ini, <strong>pasangan</strong> adalah pemilik akun yang membuat undangan, dan <strong>tamu</strong> adalah orang yang diundang atau membuka undangan.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -461,7 +554,7 @@ func privacyPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, " <ul class=\"list-disc space-y-1.5 pl-5\"><li><strong>Data akun pasangan</strong>: nama, alamat email, dan password (atau ID akun Google bila Anda masuk dengan Google). Password disimpan dalam bentuk hash sehingga tidak dapat dibaca oleh siapa pun, termasuk kami.</li><li><strong>Isi undangan</strong>: nama mempelai dan keterangannya, tanggal dan tempat acara, cerita, foto, musik, kutipan, nomor rekening atau dompet digital untuk hadiah, serta pengaturan tampilan.</li><li><strong>Data tamu yang dimasukkan pasangan</strong>: nama, nomor HP, email, kelompok, dan jumlah orang yang diundang.</li><li><strong>Catatan kehadiran</strong> (bila pasangan mengaktifkan check-in QR): waktu kedatangan dan jumlah orang tiap undangan, serta nama tamu tambahan yang dicatat penerima tamu di pintu masuk.</li><li><strong>Data yang dikirim tamu</strong>: jawaban kehadiran (RSVP), jumlah orang, catatan, serta nama dan isi ucapan di buku tamu.</li><li><strong>Data pembayaran</strong>: nomor order, jumlah, status, metode, dan waktu pembayaran. Kami <strong>tidak</strong> menerima atau menyimpan nomor kartu, PIN, maupun kredensial rekening Anda — data itu hanya diproses oleh penyedia pembayaran.</li><li><strong>Data teknis</strong>: alamat IP, jenis browser, halaman yang dibuka, dan waktu akses di log server; serta catatan apakah tautan undangan pribadi seorang tamu sudah dibuka.</li></ul>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, " <ul class=\"list-disc space-y-1.5 pl-5\"><li><strong>Data akun pasangan</strong>: nama, alamat email, dan password (atau ID akun Google bila Anda masuk dengan Google). Password disimpan dalam bentuk hash sehingga tidak dapat dibaca oleh siapa pun, termasuk kami.</li><li><strong>Isi undangan</strong>: nama mempelai dan keterangannya, tanggal dan tempat acara, cerita, foto, musik, kutipan, nomor rekening atau dompet digital untuk hadiah, serta pengaturan tampilan.</li><li><strong>Data tamu yang dimasukkan pasangan</strong>: nama, nomor HP, email, kelompok, dan jumlah orang yang diundang.</li><li><strong>Catatan kehadiran</strong> (bila pasangan mengaktifkan check-in QR): waktu kedatangan dan jumlah orang tiap undangan, serta nama tamu tambahan yang dicatat penerima tamu di pintu masuk.</li><li><strong>Data yang dikirim tamu</strong>: jawaban kehadiran (RSVP), jumlah orang, catatan, serta nama dan isi ucapan di buku tamu.</li><li><strong>Data pembayaran</strong>: nomor order, jumlah, status, metode, dan waktu pembayaran. Kami <strong>tidak</strong> menerima atau menyimpan nomor kartu, PIN, maupun kredensial rekening Anda — data itu hanya diproses oleh penyedia pembayaran.</li><li><strong>Data teknis</strong>: alamat IP, jenis browser, halaman yang dibuka, dan waktu akses di log server; serta catatan apakah tautan undangan pribadi seorang tamu sudah dibuka.</li></ul>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -469,7 +562,7 @@ func privacyPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, " <ul class=\"list-disc space-y-1.5 pl-5\"><li>Menyediakan layanan: menampilkan undangan, menerima RSVP dan ucapan, serta membantu pasangan mengelola daftar tamu.</li><li>Memproses pembayaran publikasi dan mencatat statusnya.</li><li>Mengirim email yang berkaitan dengan akun, misalnya tautan reset password.</li><li>Menjaga keamanan layanan: mencegah spam, penyalahgunaan, dan akses tidak sah.</li><li>Menangani permintaan bantuan dan memenuhi kewajiban hukum.</li></ul><p>Kami tidak menjual data pribadi, tidak memakainya untuk iklan, dan tidak memasang pelacak iklan atau analitik pihak ketiga.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, " <ul class=\"list-disc space-y-1.5 pl-5\"><li>Menyediakan layanan: menampilkan undangan, menerima RSVP dan ucapan, serta membantu pasangan mengelola daftar tamu.</li><li>Memproses pembayaran publikasi dan mencatat statusnya.</li><li>Mengirim email yang berkaitan dengan akun, misalnya tautan reset password.</li><li>Menjaga keamanan layanan: mencegah spam, penyalahgunaan, dan akses tidak sah.</li><li>Menangani permintaan bantuan dan memenuhi kewajiban hukum.</li></ul><p>Kami tidak menjual data pribadi, tidak memakainya untuk iklan, dan tidak memasang pelacak iklan atau analitik pihak ketiga.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -477,7 +570,7 @@ func privacyPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, " <p>Pasangan menentukan data tamu apa yang dimasukkan dan bertanggung jawab memastikan mereka berhak membagikannya. Lunovia memproses data tamu atas nama pasangan dan hanya untuk keperluan undangan tersebut. Tamu yang ingin datanya diperbaiki atau dihapus dapat menghubungi pasangan yang mengundang, atau menghubungi kami.</p><p>Ucapan yang dikirim tamu ke buku tamu tampil di halaman undangan dan dapat dibaca oleh siapa pun yang membuka undangan itu. Pasangan dapat menyembunyikan atau menghapusnya.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, " <p>Pasangan menentukan data tamu apa yang dimasukkan dan bertanggung jawab memastikan mereka berhak membagikannya. Lunovia memproses data tamu atas nama pasangan dan hanya untuk keperluan undangan tersebut. Tamu yang ingin datanya diperbaiki atau dihapus dapat menghubungi pasangan yang mengundang, atau menghubungi kami.</p><p>Ucapan yang dikirim tamu ke buku tamu tampil di halaman undangan dan dapat dibaca oleh siapa pun yang membuka undangan itu. Pasangan dapat menyembunyikan atau menghapusnya.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -485,7 +578,7 @@ func privacyPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, " <p>Undangan yang sudah dipublikasikan dapat dibuka oleh siapa pun yang memiliki tautannya. Kami meminta mesin pencari untuk tidak mengindeks halaman undangan, tetapi tautan yang dibagikan tetap dapat diteruskan oleh penerimanya. Undangan yang belum dipublikasikan hanya dapat dilihat pemilik akun.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, " <p>Undangan yang sudah dipublikasikan dapat dibuka oleh siapa pun yang memiliki tautannya. Kami meminta mesin pencari untuk tidak mengindeks halaman undangan, tetapi tautan yang dibagikan tetap dapat diteruskan oleh penerimanya. Undangan yang belum dipublikasikan hanya dapat dilihat pemilik akun.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -493,7 +586,7 @@ func privacyPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, " <p>Kami memakai penyedia layanan berikut, yang hanya menerima data sejauh diperlukan untuk tugasnya. Sebagian menyimpan atau memproses data di server di luar Indonesia.</p><ul class=\"list-disc space-y-1.5 pl-5\"><li><strong>Penyedia hosting dan database</strong> — menjalankan aplikasi dan menyimpan data.</li><li><strong>Cloudflare</strong> — penyimpanan foto dan musik, jaringan pengiriman konten, serta domain kustom.</li><li><strong>Penyedia pembayaran (Midtrans atau Duitku)</strong> — pemrosesan pembayaran. Data yang Anda masukkan di halaman pembayaran tunduk pada kebijakan privasi penyedia tersebut.</li><li><strong>Penyedia layanan email</strong> — pengiriman email akun.</li><li><strong>Google (masuk dengan Google)</strong> — bila Anda memilih masuk atau mendaftar dengan akun Google, kami menerima nama, alamat email, dan ID akun Google Anda dari Google untuk membuat atau mengenali akun Anda. Kami tidak menerima password Google dan tidak mengakses data lain di akun Google Anda.</li><li><strong>Google Fonts</strong> — huruf pada halaman dimuat dari server Google, sehingga browser Anda mengirimkan alamat IP ke Google saat halaman dibuka.</li></ul><p>Kami dapat mengungkapkan data bila diwajibkan oleh hukum atau perintah yang sah dari pihak berwenang.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, " <p>Kami memakai penyedia layanan berikut, yang hanya menerima data sejauh diperlukan untuk tugasnya. Sebagian menyimpan atau memproses data di server di luar Indonesia.</p><ul class=\"list-disc space-y-1.5 pl-5\"><li><strong>Penyedia hosting dan database</strong> — menjalankan aplikasi dan menyimpan data.</li><li><strong>Cloudflare</strong> — penyimpanan foto dan musik, jaringan pengiriman konten, serta domain kustom.</li><li><strong>Penyedia pembayaran (Midtrans atau Duitku)</strong> — pemrosesan pembayaran. Data yang Anda masukkan di halaman pembayaran tunduk pada kebijakan privasi penyedia tersebut.</li><li><strong>Penyedia layanan email</strong> — pengiriman email akun.</li><li><strong>Google (masuk dengan Google)</strong> — bila Anda memilih masuk atau mendaftar dengan akun Google, kami menerima nama, alamat email, dan ID akun Google Anda dari Google untuk membuat atau mengenali akun Anda. Kami tidak menerima password Google dan tidak mengakses data lain di akun Google Anda.</li><li><strong>Google Fonts</strong> — huruf pada halaman dimuat dari server Google, sehingga browser Anda mengirimkan alamat IP ke Google saat halaman dibuka.</li></ul><p>Kami dapat mengungkapkan data bila diwajibkan oleh hukum atau perintah yang sah dari pihak berwenang.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -501,7 +594,7 @@ func privacyPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, " <p>Kami hanya memakai cookie yang diperlukan agar layanan berfungsi: cookie sesi supaya Anda tetap masuk (berlaku hingga 30 hari sejak terakhir aktif) dan cookie keamanan. Halaman undangan menyimpan sedikit status di browser tamu (misalnya bahwa sampul sudah dibuka) yang hilang saat tab ditutup. Tidak ada cookie iklan atau pelacakan.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, " <p>Kami hanya memakai cookie yang diperlukan agar layanan berfungsi: cookie sesi supaya Anda tetap masuk (berlaku hingga 30 hari sejak terakhir aktif) dan cookie keamanan. Halaman undangan menyimpan sedikit status di browser tamu (misalnya bahwa sampul sudah dibuka) yang hilang saat tab ditutup. Tidak ada cookie iklan atau pelacakan.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -509,7 +602,7 @@ func privacyPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, " <ul class=\"list-disc space-y-1.5 pl-5\"><li>Data akun dan undangan disimpan selama akun Anda aktif.</li><li>Pasangan dapat menghapus tamu, ucapan, foto, musik, dan data hadiah kapan saja dari dashboard; data yang dihapus langsung hilang dari layanan.</li><li>Bila Anda meminta penghapusan akun, kami menghapus akun beserta undangan dan data tamunya paling lambat 30 hari sejak permintaan diverifikasi.</li><li>Cadangan database dibuat setiap hari dan dihapus otomatis setelah 14 hari, sehingga data yang sudah dihapus dapat masih berada di cadangan paling lama selama itu.</li><li>Catatan pembayaran disimpan selama diwajibkan oleh ketentuan perpajakan dan pembukuan yang berlaku.</li><li>Log server disimpan untuk jangka waktu terbatas demi keamanan dan penelusuran gangguan.</li></ul>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, " <ul class=\"list-disc space-y-1.5 pl-5\"><li>Data akun dan undangan disimpan selama akun Anda aktif.</li><li>Pasangan dapat menghapus tamu, ucapan, foto, musik, dan data hadiah kapan saja dari dashboard; data yang dihapus langsung hilang dari layanan.</li><li>Bila Anda meminta penghapusan akun, kami menghapus akun beserta undangan dan data tamunya paling lambat 30 hari sejak permintaan diverifikasi.</li><li>Cadangan database dibuat setiap hari dan dihapus otomatis setelah 14 hari, sehingga data yang sudah dihapus dapat masih berada di cadangan paling lama selama itu.</li><li>Catatan pembayaran disimpan selama diwajibkan oleh ketentuan perpajakan dan pembukuan yang berlaku.</li><li>Log server disimpan untuk jangka waktu terbatas demi keamanan dan penelusuran gangguan.</li></ul>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -517,7 +610,7 @@ func privacyPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, " <p>Seluruh koneksi ke Lunovia memakai HTTPS. Password disimpan sebagai hash, akses ke data dibatasi per akun, dan cadangan disimpan di penyimpanan privat. Tidak ada sistem yang sepenuhnya bebas risiko; bila terjadi kegagalan pelindungan data pribadi yang berdampak pada Anda, kami akan memberi tahu Anda sesuai ketentuan yang berlaku.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, " <p>Seluruh koneksi ke Lunovia memakai HTTPS. Password disimpan sebagai hash, akses ke data dibatasi per akun, dan cadangan disimpan di penyimpanan privat. Tidak ada sistem yang sepenuhnya bebas risiko; bila terjadi kegagalan pelindungan data pribadi yang berdampak pada Anda, kami akan memberi tahu Anda sesuai ketentuan yang berlaku.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -525,7 +618,7 @@ func privacyPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, " <p>Anda berhak meminta salinan data pribadi Anda, memperbaiki data yang keliru, meminta penghapusan, menarik persetujuan, dan mengajukan keberatan atas pemrosesan tertentu. Sebagian besar data dapat Anda ubah atau hapus sendiri dari dashboard. Untuk permintaan lain, hubungi kami; kami menanggapi paling lambat 3 × 24 jam sejak permintaan diterima dan dapat meminta verifikasi identitas terlebih dahulu.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, " <p>Anda berhak meminta salinan data pribadi Anda, memperbaiki data yang keliru, meminta penghapusan, menarik persetujuan, dan mengajukan keberatan atas pemrosesan tertentu. Sebagian besar data dapat Anda ubah atau hapus sendiri dari dashboard. Untuk permintaan lain, hubungi kami; kami menanggapi paling lambat 3 × 24 jam sejak permintaan diterima dan dapat meminta verifikasi identitas terlebih dahulu.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -533,7 +626,7 @@ func privacyPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, " <p>Layanan ini ditujukan bagi orang dewasa. Kami tidak dengan sengaja mengumpulkan data dari anak di bawah 18 tahun sebagai pemilik akun.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, " <p>Layanan ini ditujukan bagi orang dewasa. Kami tidak dengan sengaja mengumpulkan data dari anak di bawah 18 tahun sebagai pemilik akun.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -541,7 +634,7 @@ func privacyPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, " <p>Kami dapat memperbarui kebijakan ini. Tanggal berlaku di bagian atas halaman menunjukkan versi terbaru, dan perubahan yang penting akan kami beritahukan melalui email akun atau pengumuman di situs.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, " <p>Kami dapat memperbarui kebijakan ini. Tanggal berlaku di bagian atas halaman menunjukkan versi terbaru, dan perubahan yang penting akan kami beritahukan melalui email akun atau pengumuman di situs.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -549,7 +642,7 @@ func privacyPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, " <p>Pertanyaan atau permintaan terkait data pribadi dapat disampaikan melalui")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, " <p>Pertanyaan atau permintaan terkait data pribadi dapat disampaikan melalui")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -557,13 +650,13 @@ func privacyPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, ".</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, ".</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = legalPage("Kebijakan Privasi", "/terms", "Syarat & Ketentuan").Render(templ.WithChildren(ctx, templ_7745c5c3_Var21), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = legalPage("Kebijakan Privasi", "/terms", "Syarat & Ketentuan").Render(templ.WithChildren(ctx, templ_7745c5c3_Var26), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -587,12 +680,12 @@ func termsPage() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var22 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var22 == nil {
-			templ_7745c5c3_Var22 = templ.NopComponent
+		templ_7745c5c3_Var27 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var27 == nil {
+			templ_7745c5c3_Var27 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Var23 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_Var28 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 			if !templ_7745c5c3_IsBuffer {
@@ -604,7 +697,7 @@ func termsPage() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "<p>Syarat & Ketentuan ini mengatur penggunaan Lunovia, layanan untuk membuat website dan undangan pernikahan digital. Dengan membuat akun atau memakai layanan, Anda menyatakan telah membaca dan menyetujui ketentuan ini beserta <a href=\"/privacy\" class=\"ui-link\">Kebijakan Privasi</a>.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "<p>Syarat & Ketentuan ini mengatur penggunaan Lunovia, layanan untuk membuat website dan undangan pernikahan digital. Dengan membuat akun atau memakai layanan, Anda menyatakan telah membaca dan menyetujui ketentuan ini beserta <a href=\"/privacy\" class=\"ui-link\">Kebijakan Privasi</a>.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -612,7 +705,7 @@ func termsPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, " <ul class=\"list-disc space-y-1.5 pl-5\"><li>Anda harus berusia minimal 18 tahun atau cakap menurut hukum untuk membuat akun.</li><li>Isi data akun dengan benar dan jaga kerahasiaan password Anda. Aktivitas yang dilakukan melalui akun Anda menjadi tanggung jawab Anda.</li><li>Segera hubungi kami bila Anda menduga akun Anda dipakai orang lain.</li></ul>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, " <ul class=\"list-disc space-y-1.5 pl-5\"><li>Anda harus berusia minimal 18 tahun atau cakap menurut hukum untuk membuat akun.</li><li>Isi data akun dengan benar dan jaga kerahasiaan password Anda. Aktivitas yang dilakukan melalui akun Anda menjadi tanggung jawab Anda.</li><li>Segera hubungi kami bila Anda menduga akun Anda dipakai orang lain.</li></ul>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -620,7 +713,7 @@ func termsPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, " <p>Lunovia menyediakan pembuatan undangan dengan pilihan tema, pengelolaan acara, cerita, galeri, daftar tamu, tautan undangan pribadi, RSVP, buku ucapan, amplop digital, dan domain kustom. Kami dapat menambah, mengubah, atau menghentikan fitur; perubahan yang mengurangi fungsi undangan yang sudah dibayar akan kami beritahukan terlebih dahulu.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, " <p>Lunovia menyediakan pembuatan undangan dengan pilihan tema, pengelolaan acara, cerita, galeri, daftar tamu, tautan undangan pribadi, RSVP, buku ucapan, amplop digital, dan domain kustom. Kami dapat menambah, mengubah, atau menghentikan fitur; perubahan yang mengurangi fungsi undangan yang sudah dibayar akan kami beritahukan terlebih dahulu.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -628,7 +721,7 @@ func termsPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, " <ul class=\"list-disc space-y-1.5 pl-5\"><li>Membuat akun, menyusun undangan, dan melihat pratinjau tidak dipungut biaya.</li><li>Mempublikasikan undangan dikenai pembayaran <strong>satu kali per undangan</strong> sebesar harga yang tertera di halaman publikasi saat Anda membayar. Tidak ada langganan dan tidak ada tagihan berulang.</li><li>Pembayaran diproses oleh penyedia pembayaran pihak ketiga (Midtrans atau Duitku). Lunovia tidak menerima atau menyimpan data kartu maupun kredensial rekening Anda.</li><li>Undangan dapat dipublikasikan setelah pembayaran dikonfirmasi oleh penyedia pembayaran. Tagihan yang tidak dibayar sampai batas waktunya akan kedaluwarsa dan dapat dibuat ulang tanpa biaya tambahan.</li><li>Undangan yang sudah dibayar dapat ditarik dari publikasi dan dipublikasikan kembali tanpa membayar lagi.</li></ul>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, " <ul class=\"list-disc space-y-1.5 pl-5\"><li>Membuat akun, menyusun undangan, dan melihat pratinjau tidak dipungut biaya.</li><li>Mempublikasikan undangan dikenai pembayaran <strong>satu kali per undangan</strong> sebesar harga yang tertera di halaman publikasi saat Anda membayar. Tidak ada langganan dan tidak ada tagihan berulang.</li><li>Pembayaran diproses oleh penyedia pembayaran pihak ketiga (Midtrans atau Duitku). Lunovia tidak menerima atau menyimpan data kartu maupun kredensial rekening Anda.</li><li>Undangan dapat dipublikasikan setelah pembayaran dikonfirmasi oleh penyedia pembayaran. Tagihan yang tidak dibayar sampai batas waktunya akan kedaluwarsa dan dapat dibuat ulang tanpa biaya tambahan.</li><li>Undangan yang sudah dibayar dapat ditarik dari publikasi dan dipublikasikan kembali tanpa membayar lagi.</li></ul>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -636,7 +729,7 @@ func termsPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, " <ul class=\"list-disc space-y-1.5 pl-5\"><li>Karena layanan langsung dapat dipakai setelah pembayaran, pembayaran untuk undangan yang sudah berhasil dipublikasikan bersifat final dan tidak dapat dikembalikan.</li><li>Kami mengembalikan dana sepenuhnya bila Anda tertagih lebih dari satu kali untuk undangan yang sama, atau bila pembayaran berhasil tetapi undangan tidak dapat dipublikasikan karena gangguan di pihak kami yang tidak teratasi dalam 3 hari kerja sejak Anda melaporkannya.</li><li>Ajukan permintaan paling lambat 7 hari sejak tanggal pembayaran dengan menyertakan nomor order. Dana dikembalikan ke metode pembayaran semula; waktu masuknya mengikuti proses penyedia pembayaran dan bank Anda, umumnya hingga 14 hari kerja.</li></ul>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, " <ul class=\"list-disc space-y-1.5 pl-5\"><li>Karena layanan langsung dapat dipakai setelah pembayaran, pembayaran untuk undangan yang sudah berhasil dipublikasikan bersifat final dan tidak dapat dikembalikan.</li><li>Kami mengembalikan dana sepenuhnya bila Anda tertagih lebih dari satu kali untuk undangan yang sama, atau bila pembayaran berhasil tetapi undangan tidak dapat dipublikasikan karena gangguan di pihak kami yang tidak teratasi dalam 3 hari kerja sejak Anda melaporkannya.</li><li>Ajukan permintaan paling lambat 7 hari sejak tanggal pembayaran dengan menyertakan nomor order. Dana dikembalikan ke metode pembayaran semula; waktu masuknya mengikuti proses penyedia pembayaran dan bank Anda, umumnya hingga 14 hari kerja.</li></ul>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -644,7 +737,7 @@ func termsPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, " <p>Undangan yang dipublikasikan tetap dapat dibuka tamu hingga hari acara, lalu beralih menjadi halaman kenangan. Setelah masa kenangan berakhir — 12 bulan setelah tanggal acara, kecuali disebutkan lain untuk undangan Anda — undangan diarsipkan: RSVP dan ucapan ditutup, dan Anda dapat memilih apakah arsip tetap dapat dibuka publik atau hanya oleh Anda. Kapasitas penyimpanan foto dan musik per undangan dibatasi sesuai kuota yang tampil di dashboard.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, " <p>Undangan yang dipublikasikan tetap dapat dibuka tamu hingga hari acara, lalu beralih menjadi halaman kenangan. Setelah masa kenangan berakhir — 12 bulan setelah tanggal acara, kecuali disebutkan lain untuk undangan Anda — undangan diarsipkan: RSVP dan ucapan ditutup, dan Anda dapat memilih apakah arsip tetap dapat dibuka publik atau hanya oleh Anda. Kapasitas penyimpanan foto dan musik per undangan dibatasi sesuai kuota yang tampil di dashboard.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -652,7 +745,7 @@ func termsPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, " <ul class=\"list-disc space-y-1.5 pl-5\"><li>Teks, foto, dan musik yang Anda unggah tetap milik Anda. Anda memberi kami izin untuk menyimpan, memproses, dan menampilkannya sebatas yang diperlukan untuk menjalankan layanan.</li><li>Anda menjamin memiliki hak atau izin atas konten yang diunggah, termasuk foto orang lain dan musik. Lagu bawaan Lunovia berlisensi bebas royalti.</li><li>Anda bertanggung jawab atas data tamu yang dimasukkan, termasuk memastikan Anda berhak memakai nama dan nomor kontak mereka untuk mengirim undangan.</li><li>Kami dapat menghapus konten yang dilaporkan melanggar hak cipta atau ketentuan ini.</li></ul>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, " <ul class=\"list-disc space-y-1.5 pl-5\"><li>Teks, foto, dan musik yang Anda unggah tetap milik Anda. Anda memberi kami izin untuk menyimpan, memproses, dan menampilkannya sebatas yang diperlukan untuk menjalankan layanan.</li><li>Anda menjamin memiliki hak atau izin atas konten yang diunggah, termasuk foto orang lain dan musik. Lagu bawaan Lunovia berlisensi bebas royalti.</li><li>Anda bertanggung jawab atas data tamu yang dimasukkan, termasuk memastikan Anda berhak memakai nama dan nomor kontak mereka untuk mengirim undangan.</li><li>Kami dapat menghapus konten yang dilaporkan melanggar hak cipta atau ketentuan ini.</li></ul>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -660,7 +753,7 @@ func termsPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, " <p>Anda tidak boleh memakai Lunovia untuk:</p><ul class=\"list-disc space-y-1.5 pl-5\"><li>konten yang melanggar hukum, menipu, menyesatkan, mengandung kebencian, pornografi, atau melanggar hak pihak lain;</li><li>mengirim spam atau pesan massal yang tidak berkaitan dengan acara pernikahan;</li><li>mengumpulkan data tamu untuk tujuan selain undangan;</li><li>mengganggu, membebani secara tidak wajar, atau mencoba menembus keamanan layanan.</li></ul><p>Akun yang melanggar dapat kami batasi atau nonaktifkan, dan undangannya dapat ditarik dari publikasi, tanpa pengembalian dana.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, " <p>Anda tidak boleh memakai Lunovia untuk:</p><ul class=\"list-disc space-y-1.5 pl-5\"><li>konten yang melanggar hukum, menipu, menyesatkan, mengandung kebencian, pornografi, atau melanggar hak pihak lain;</li><li>mengirim spam atau pesan massal yang tidak berkaitan dengan acara pernikahan;</li><li>mengumpulkan data tamu untuk tujuan selain undangan;</li><li>mengganggu, membebani secara tidak wajar, atau mencoba menembus keamanan layanan.</li></ul><p>Akun yang melanggar dapat kami batasi atau nonaktifkan, dan undangannya dapat ditarik dari publikasi, tanpa pengembalian dana.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -668,7 +761,7 @@ func termsPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, " <p>Bila Anda memakai domain sendiri, Anda bertanggung jawab atas kepemilikan, perpanjangan, dan pengaturan DNS domain tersebut. Bila domain Anda tidak lagi aktif, hapus domain itu dari dashboard agar undangan kembali memakai alamat Lunovia.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, " <p>Bila Anda memakai domain sendiri, Anda bertanggung jawab atas kepemilikan, perpanjangan, dan pengaturan DNS domain tersebut. Bila domain Anda tidak lagi aktif, hapus domain itu dari dashboard agar undangan kembali memakai alamat Lunovia.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -676,7 +769,7 @@ func termsPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, " <p>Kami berupaya menjaga layanan tetap tersedia dan membuat cadangan data setiap hari, tetapi tidak menjamin layanan bebas gangguan. Pemeliharaan, gangguan pada penyedia pihak ketiga, atau keadaan di luar kendali kami dapat menyebabkan layanan tidak tersedia untuk sementara.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, " <p>Kami berupaya menjaga layanan tetap tersedia dan membuat cadangan data setiap hari, tetapi tidak menjamin layanan bebas gangguan. Pemeliharaan, gangguan pada penyedia pihak ketiga, atau keadaan di luar kendali kami dapat menyebabkan layanan tidak tersedia untuk sementara.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -684,7 +777,7 @@ func termsPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, " <p>Layanan disediakan sebagaimana adanya. Sejauh diizinkan hukum, Lunovia tidak bertanggung jawab atas kerugian tidak langsung, termasuk kerugian akibat tamu tidak menerima atau tidak membuka undangan, kesalahan isi yang Anda masukkan, atau gangguan pada layanan pihak ketiga seperti aplikasi pesan dan penyedia pembayaran. Tanggung jawab kami atas kerugian langsung dibatasi sebesar jumlah yang Anda bayarkan untuk undangan yang bersangkutan.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, " <p>Layanan disediakan sebagaimana adanya. Sejauh diizinkan hukum, Lunovia tidak bertanggung jawab atas kerugian tidak langsung, termasuk kerugian akibat tamu tidak menerima atau tidak membuka undangan, kesalahan isi yang Anda masukkan, atau gangguan pada layanan pihak ketiga seperti aplikasi pesan dan penyedia pembayaran. Tanggung jawab kami atas kerugian langsung dibatasi sebesar jumlah yang Anda bayarkan untuk undangan yang bersangkutan.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -692,7 +785,7 @@ func termsPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, " <p>Anda dapat berhenti memakai Lunovia kapan saja dan meminta penghapusan akun. Kami dapat menghentikan atau membatasi akses bila ketentuan ini dilanggar. Bila layanan dihentikan seluruhnya, kami akan memberi tahu pemilik akun sekurang-kurangnya 30 hari sebelumnya.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, " <p>Anda dapat berhenti memakai Lunovia kapan saja dan meminta penghapusan akun. Kami dapat menghentikan atau membatasi akses bila ketentuan ini dilanggar. Bila layanan dihentikan seluruhnya, kami akan memberi tahu pemilik akun sekurang-kurangnya 30 hari sebelumnya.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -700,7 +793,7 @@ func termsPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, " <p>Kami dapat memperbarui ketentuan ini. Tanggal berlaku di bagian atas halaman menunjukkan versi terbaru, dan perubahan yang penting akan kami beritahukan melalui email akun atau pengumuman di situs. Tetap memakai layanan setelah perubahan berlaku berarti Anda menyetujui ketentuan yang baru.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, " <p>Kami dapat memperbarui ketentuan ini. Tanggal berlaku di bagian atas halaman menunjukkan versi terbaru, dan perubahan yang penting akan kami beritahukan melalui email akun atau pengumuman di situs. Tetap memakai layanan setelah perubahan berlaku berarti Anda menyetujui ketentuan yang baru.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -708,7 +801,7 @@ func termsPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, " <p>Ketentuan ini tunduk pada hukum Republik Indonesia. Perselisihan diselesaikan terlebih dahulu secara musyawarah; bila tidak tercapai kesepakatan, diselesaikan melalui pengadilan yang berwenang di Indonesia.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, " <p>Ketentuan ini tunduk pada hukum Republik Indonesia. Perselisihan diselesaikan terlebih dahulu secara musyawarah; bila tidak tercapai kesepakatan, diselesaikan melalui pengadilan yang berwenang di Indonesia.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -716,7 +809,7 @@ func termsPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, " <p>Pertanyaan, laporan pelanggaran, atau permintaan pengembalian dana dapat disampaikan melalui")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 58, " <p>Pertanyaan, laporan pelanggaran, atau permintaan pengembalian dana dapat disampaikan melalui")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -724,13 +817,13 @@ func termsPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, ".</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, ".</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = legalPage("Syarat & Ketentuan", "/privacy", "Kebijakan Privasi").Render(templ.WithChildren(ctx, templ_7745c5c3_Var23), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = legalPage("Syarat & Ketentuan", "/privacy", "Kebijakan Privasi").Render(templ.WithChildren(ctx, templ_7745c5c3_Var28), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

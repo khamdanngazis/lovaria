@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -336,12 +335,11 @@ func (h *Handler) Support(c echo.Context) error {
 }
 
 func (h *Handler) SaveSupport(c echo.Context) error {
-	err := h.svc.SaveSupport(c.Request().Context(), c.FormValue("phone"), c.FormValue("message"))
-	msg := "Kontak bantuan disimpan."
-	if strings.TrimSpace(c.FormValue("phone")) == "" {
-		msg = "Nomor dikosongkan — tautan bantuan disembunyikan."
-	}
-	return back(c, "/admin/support", msg, err)
+	err := h.svc.SaveSupport(c.Request().Context(), SupportInput{
+		WhatsApp: c.FormValue("phone"), Message: c.FormValue("message"),
+		Email: c.FormValue("email"), Tel: c.FormValue("tel"), Address: c.FormValue("address"),
+	})
+	return back(c, "/admin/support", "Kontak & bantuan disimpan.", err)
 }
 
 // ---------- Packages ----------

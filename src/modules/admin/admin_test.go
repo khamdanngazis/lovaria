@@ -616,3 +616,38 @@ func TestSupportWhatsApp(t *testing.T) {
 		t.Error("nomor kosong harus menyembunyikan tautan bantuan")
 	}
 }
+
+// Kontak usaha (syarat verifikasi payment gateway): email, telepon, alamat
+// disimpan dari halaman Kontak dan langsung berlaku; isian salah ditolak.
+func TestBusinessContact(t *testing.T) {
+	f := newFixture(t)
+	t.Cleanup(func() { web.SetSupport(web.Support{}) })
+	_, admin := f.user(t, "admin@example.com", true)
+	form := url.Values{"email": {"Halo@Lunovia.id"}, "tel": {"0812-3456-7890"}, "address": {"Jl. Melati No. 1\nBandung 40111"}, "phone": {""}}
+	rec := f.do(http.MethodPost, "/admin/support", admin, reqOpt{form: form})
+	if rec.Code != http.StatusSeeOther || strings.Contains(rec.Header().Get("Location"), "err=") {
+		t.Fatalf("simpan: %d %s", rec.Code, rec.Header().Get("Location"))
+	}
+	c := web.Contact()
+	if c.Email != "halo@lunovia.id" || c.Tel != "6281234567890" || c.Address != "Jl. Melati No. 1\nBandung 40111" || !c.HasContact() {
+		t.Fatalf("kontak: %+v", c)
+	}
+	web.SetSupport(web.Support{})
+	if err := f.svc.LoadSupport(ctx); err != nil || web.Contact().Email != "halo@lunovia.id" {
+		t.Fatalf("tersimpan di DB: %v %+v", err, web.Contact())
+	}
+	if b := f.do(http.MethodGet, "/admin/support", admin, reqOpt{}).Body.String(); !strings.Contains(b, `value="halo@lunovia.id"`) || !strings.Contains(b, `value="+6281234567890"`) || !strings.Contains(b, "Bandung 40111") {
+		t.Error("halaman Kontak harus menampilkan isian tersimpan")
+	}
+	for name, bad := range map[string]url.Values{
+		"email": {"email": {"bukan-email"}}, "tel": {"tel": {"abc"}}, "address": {"address": {strings.Repeat("x", 301)}},
+	} {
+		rec := f.do(http.MethodPost, "/admin/support", admin, reqOpt{form: bad})
+		if !strings.Contains(rec.Header().Get("Location"), "err=") {
+			t.Errorf("%s tidak valid harus ditolak: %s", name, rec.Header().Get("Location"))
+		}
+	}
+	if web.Contact().Email != "halo@lunovia.id" {
+		t.Error("isian salah tidak boleh menimpa kontak tersimpan")
+	}
+}
