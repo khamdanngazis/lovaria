@@ -85,3 +85,22 @@ Setup Midtrans & uji sandbox: lihat [runbook](../runbook.md).
 Sebelum menandai lunas, status selalu dicek ulang ke gateway (`Service.fetchStatus`). Untuk sebagian metode — ditemukan pada **DANA** — API status Midtrans menjawab 404 untuk nomor order kita dan hanya mengenali **ID transaksi** (`transaction_id` di webhook); jawabannya pun memuat ID itu sebagai `order_id`. Karena itu bila nomor order tidak ditemukan, pengecekan diulang dengan ID transaksi (dari webhook bertanda tangan sah, tersimpan di `gateway_transaction_id`) dan hasilnya dipetakan kembali ke nomor order kita. Nominal dan status tetap harus cocok.
 
 `MIDTRANS_ENV` hanya mengenal nilai `production`; nilai lain apa pun (termasuk salah ketik) berarti sandbox.
+
+## Duitku (alternatif Midtrans)
+
+`PAYMENT_GATEWAY=duitku` memakai `payment.Duitku` (`duitku.go`) — mode **POP**: pembayar diarahkan ke halaman bayar Duitku dan memilih metode di sana (QRIS, e-wallet, virtual account), sama seperti Snap Midtrans; tanpa script pihak ketiga di halaman Lunovia.
+
+| Langkah | Endpoint | Tanda tangan |
+|---|---|---|
+| Buat tagihan | `POST https://api-sandbox.duitku.com/api/merchant/createInvoice` (produksi `api-prod.duitku.com`) — header `x-duitku-merchantcode`, `x-duitku-timestamp` (Unix ms), `x-duitku-signature` | `HMAC_SHA256(merchantCode + timestamp, apiKey)` |
+| Callback | `POST /webhooks/duitku`, form-urlencoded; `resultCode` `00` = lunas, lainnya = gagal | `HMAC_SHA256(merchantCode + amount + merchantOrderId, apiKey)`; merchant lain ditolak |
+| Cek status | `POST https://sandbox.duitku.com/webapi/api/merchant/transactionStatus` (produksi `passport.duitku.com`); `statusCode` `00` lunas, `01` diproses, `02` gagal/kedaluwarsa | `HMAC_SHA256(merchantCode + merchantOrderId, apiKey)` |
+
+Semua tanda tangan HMAC-SHA256 hex huruf kecil; skema MD5/SHA256 lama sudah tidak berlaku menurut dokumentasi Duitku (docs.duitku.com/pop/en, docs.duitku.com/api/en).
+
+- Seperti Midtrans, callback "lunas" baru diterapkan setelah dikonfirmasi lewat Check Transaction dan nominalnya cocok.
+- **Batas cek status**: Duitku memblokir sementara (±1 jam) pemanggil yang terlalu sering. Halaman status pembayaran memeriksa tiap 4 detik, jadi `Service.Refresh` hanya menanyakan order yang sama paling sering sekali per `statusCheckEvery` (20 detik); callback tetap jalur utama.
+- `expiryPeriod` dikirim dalam menit dari `PAYMENT_EXPIRY_HOURS`.
+- CSP `form-action` mengizinkan `https://*.duitku.com` (redirect dari tombol Bayar ke halaman Duitku).
+
+**Setup di dashboard Duitku**: buat Proyek dengan URL situs `https://lunovia.id`; kode merchant dan API key ada di halaman proyek. URL callback dan return dikirim per transaksi oleh aplikasi, jadi tidak wajib diisi di dashboard — bila diminta, isi callback `https://lunovia.id/webhooks/duitku`. Isi `PAYMENT_GATEWAY=duitku`, `DUITKU_MERCHANT_CODE`, `DUITKU_API_KEY`, dan (setelah lolos uji) `DUITKU_ENV=production` di Railway.

@@ -124,13 +124,18 @@ func (b Backup) Enabled() bool { return b.Bucket != "" || b.Dir != "" }
 // Payment adalah setelan pembayaran sekali per wedding saat publikasi
 // (lihat doc/modules/payment.md).
 type Payment struct {
-	// Gateway (PAYMENT_GATEWAY): "midtrans", "fake" (simulasi — dev/test saja),
+	// Gateway (PAYMENT_GATEWAY): "midtrans", "duitku", "fake" (simulasi — dev/test saja),
 	// atau kosong (pembayaran belum tersedia: wedding baru belum bisa terbit).
 	Gateway string
 	// MidtransServerKey (MIDTRANS_SERVER_KEY) & MidtransProduction
 	// (MIDTRANS_ENV=production; selain itu sandbox).
 	MidtransServerKey  string
 	MidtransProduction bool
+	// DuitkuMerchantCode & DuitkuAPIKey (DUITKU_MERCHANT_CODE, DUITKU_API_KEY) &
+	// DuitkuProduction (DUITKU_ENV=production; selain itu sandbox).
+	DuitkuMerchantCode string
+	DuitkuAPIKey       string
+	DuitkuProduction   bool
 	// PriceIDR harga publikasi per wedding (PUBLISH_PRICE_IDR, default 149000).
 	PriceIDR int64
 	// ExpiryHours masa berlaku satu percobaan bayar (PAYMENT_EXPIRY_HOURS, default 24).
@@ -140,6 +145,7 @@ type Payment struct {
 // Gateway pembayaran yang didukung.
 const (
 	GatewayMidtrans = "midtrans"
+	GatewayDuitku   = "duitku"
 	GatewayFake     = "fake"
 )
 
@@ -338,6 +344,9 @@ func LoadFrom(getenv func(string) string) (Config, error) {
 		MidtransServerKey: getenv("MIDTRANS_SERVER_KEY"),
 		// Tebakan aman: hanya "production" yang memakai endpoint produksi.
 		MidtransProduction: strings.EqualFold(strings.TrimSpace(getenv("MIDTRANS_ENV")), "production"),
+		DuitkuMerchantCode: strings.TrimSpace(getenv("DUITKU_MERCHANT_CODE")),
+		DuitkuAPIKey:       getenv("DUITKU_API_KEY"),
+		DuitkuProduction:   strings.EqualFold(strings.TrimSpace(getenv("DUITKU_ENV")), "production"),
 	}
 	cfg.Payment.PriceIDR, err = strconv.ParseInt(get("PUBLISH_PRICE_IDR", "149000"), 10, 64)
 	if err != nil || cfg.Payment.PriceIDR < 1 {
@@ -353,13 +362,17 @@ func LoadFrom(getenv func(string) string) (Config, error) {
 		if cfg.Payment.MidtransServerKey == "" {
 			errs = append(errs, errors.New("PAYMENT_GATEWAY=midtrans butuh MIDTRANS_SERVER_KEY"))
 		}
+	case GatewayDuitku:
+		if cfg.Payment.DuitkuMerchantCode == "" || cfg.Payment.DuitkuAPIKey == "" {
+			errs = append(errs, errors.New("PAYMENT_GATEWAY=duitku butuh DUITKU_MERCHANT_CODE dan DUITKU_API_KEY"))
+		}
 	case GatewayFake:
 		// Gateway simulasi menandai lunas tanpa uang sungguhan.
 		if cfg.Env == EnvProduction {
 			errs = append(errs, errors.New("PAYMENT_GATEWAY=fake tidak boleh dipakai di production"))
 		}
 	default:
-		errs = append(errs, fmt.Errorf("PAYMENT_GATEWAY: nilai tidak valid %q (midtrans | fake)", cfg.Payment.Gateway))
+		errs = append(errs, fmt.Errorf("PAYMENT_GATEWAY: nilai tidak valid %q (midtrans | duitku | fake)", cfg.Payment.Gateway))
 	}
 	cfg.SentryDSN = get("SENTRY_DSN", "")
 	cfg.GoogleSiteVerification = get("GOOGLE_SITE_VERIFICATION", "")

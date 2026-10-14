@@ -469,6 +469,8 @@ func paymentGateway(cfg config.Config, secret []byte) payment.Gateway {
 	switch cfg.Payment.Gateway {
 	case config.GatewayMidtrans:
 		return payment.NewMidtrans(cfg.Payment.MidtransServerKey, cfg.Payment.MidtransProduction)
+	case config.GatewayDuitku:
+		return payment.NewDuitku(cfg.Payment.DuitkuMerchantCode, cfg.Payment.DuitkuAPIKey, cfg.BaseURL, cfg.Payment.DuitkuProduction)
 	case config.GatewayFake:
 		return payment.NewFake(secret, cfg.BaseURL)
 	}

@@ -575,3 +575,36 @@ func TestPaidConfirmedByTransactionID(t *testing.T) {
 		t.Error("order yang belum lunas di gateway tidak boleh ditandai lunas")
 	}
 }
+
+// Halaman status memeriksa tiap beberapa detik; cek status ke gateway untuk
+// order yang sama dibatasi (Duitku memblokir pemanggil yang terlalu sering).
+func TestRefreshThrottlesStatusChecks(t *testing.T) {
+	f := newFixture(t)
+	calls := 0
+	f.svc.gw = countingGateway{Fake: f.fake, calls: &calls}
+	user, w := f.newWedding(t, "throttle@example.com")
+	f.order(t, w, user)
+	for i := 0; i < 5; i++ {
+		if err := f.svc.Refresh(ctx, w.ID); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if calls != 1 {
+		t.Fatalf("cek status = %d dalam satu jendela, want 1", calls)
+	}
+	f.now = f.now.Add(statusCheckEvery + time.Second)
+	_ = f.svc.Refresh(ctx, w.ID)
+	if calls != 2 {
+		t.Errorf("setelah jeda: %d, want 2", calls)
+	}
+}
+
+type countingGateway struct {
+	*Fake
+	calls *int
+}
+
+func (g countingGateway) FetchStatus(c context.Context, ref string) (Notification, bool, error) {
+	*g.calls++
+	return g.Fake.FetchStatus(c, ref)
+}

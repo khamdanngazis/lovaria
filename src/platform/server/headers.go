@@ -19,7 +19,7 @@ import (
 // ke seluruh rantai redirect, jadi tanpa ini redirect diblokir diam-diam dan
 // tombol terasa "tidak ke mana-mana". Hanya tujuan navigasi; script, frame, dan
 // koneksi ke domain ini tetap tidak diizinkan.
-const checkoutOrigins = "https://app.midtrans.com https://app.sandbox.midtrans.com"
+const checkoutOrigins = "https://app.midtrans.com https://app.sandbox.midtrans.com https://*.duitku.com"
 
 const (
 	cspBase = "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
