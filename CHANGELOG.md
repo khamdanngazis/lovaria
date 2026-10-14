@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Pembayaran lewat Duitku
+- Gateway pembayaran baru **Duitku** sebagai alternatif Midtrans (`PAYMENT_GATEWAY=duitku`, `DUITKU_MERCHANT_CODE`, `DUITKU_API_KEY`, `DUITKU_ENV`). Pembayar diarahkan ke halaman bayar Duitku dan memilih QRIS, e-wallet, atau virtual account di sana; alur di Lunovia tidak berubah.
+- Callback bertanda tangan HMAC-SHA256 diverifikasi, nominal dicocokkan, dan status lunas dikonfirmasi ulang ke Duitku sebelum diterapkan.
+- Cek status dari halaman pembayaran dibatasi sekali per 20 detik per order (berlaku untuk semua gateway), karena Duitku memblokir pemanggil yang terlalu sering.
+- Kebijakan Privasi dan Syarat & Ketentuan menyebut kedua penyedia pembayaran.
+
 ### Tambah cepat tamu: jumlah orang
 - Form tambah cepat di Daftar tamu kini punya pilihan **Maks. … orang** (jumlah orang yang boleh datang dengan undangan itu; 1–10). Bawaannya 4, bukan 1 (tamu sendiri yang mengonfirmasi jumlah yang datang lewat RSVP), dan nilai terakhir diingat untuk tamu berikutnya — sebelumnya tamu dari tambah cepat selalu berbatas 1 sehingga tidak bisa memilih jumlah di RSVP.
 

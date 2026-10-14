@@ -208,7 +208,7 @@ func guestbookMorePage(v view.View, prefix string) templ.Component {
 
 // legalEffective: tanggal berlaku teks legal. Perbarui setiap kali isi
 // Kebijakan Privasi atau Syarat & Ketentuan berubah secara berarti.
-const legalEffective = "10 Oktober 2026"
+const legalEffective = "14 Oktober 2026"
 
 // legalPage: kerangka halaman Kebijakan Privasi / Syarat & Ketentuan.
 func legalPage(title, otherHref, otherLabel string) templ.Component {
@@ -493,7 +493,7 @@ func privacyPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, " <p>Kami memakai penyedia layanan berikut, yang hanya menerima data sejauh diperlukan untuk tugasnya. Sebagian menyimpan atau memproses data di server di luar Indonesia.</p><ul class=\"list-disc space-y-1.5 pl-5\"><li><strong>Penyedia hosting dan database</strong> — menjalankan aplikasi dan menyimpan data.</li><li><strong>Cloudflare</strong> — penyimpanan foto dan musik, jaringan pengiriman konten, serta domain kustom.</li><li><strong>Midtrans</strong> — pemrosesan pembayaran. Data yang Anda masukkan di halaman pembayaran tunduk pada kebijakan privasi Midtrans.</li><li><strong>Penyedia layanan email</strong> — pengiriman email akun.</li><li><strong>Google (masuk dengan Google)</strong> — bila Anda memilih masuk atau mendaftar dengan akun Google, kami menerima nama, alamat email, dan ID akun Google Anda dari Google untuk membuat atau mengenali akun Anda. Kami tidak menerima password Google dan tidak mengakses data lain di akun Google Anda.</li><li><strong>Google Fonts</strong> — huruf pada halaman dimuat dari server Google, sehingga browser Anda mengirimkan alamat IP ke Google saat halaman dibuka.</li></ul><p>Kami dapat mengungkapkan data bila diwajibkan oleh hukum atau perintah yang sah dari pihak berwenang.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, " <p>Kami memakai penyedia layanan berikut, yang hanya menerima data sejauh diperlukan untuk tugasnya. Sebagian menyimpan atau memproses data di server di luar Indonesia.</p><ul class=\"list-disc space-y-1.5 pl-5\"><li><strong>Penyedia hosting dan database</strong> — menjalankan aplikasi dan menyimpan data.</li><li><strong>Cloudflare</strong> — penyimpanan foto dan musik, jaringan pengiriman konten, serta domain kustom.</li><li><strong>Penyedia pembayaran (Midtrans atau Duitku)</strong> — pemrosesan pembayaran. Data yang Anda masukkan di halaman pembayaran tunduk pada kebijakan privasi penyedia tersebut.</li><li><strong>Penyedia layanan email</strong> — pengiriman email akun.</li><li><strong>Google (masuk dengan Google)</strong> — bila Anda memilih masuk atau mendaftar dengan akun Google, kami menerima nama, alamat email, dan ID akun Google Anda dari Google untuk membuat atau mengenali akun Anda. Kami tidak menerima password Google dan tidak mengakses data lain di akun Google Anda.</li><li><strong>Google Fonts</strong> — huruf pada halaman dimuat dari server Google, sehingga browser Anda mengirimkan alamat IP ke Google saat halaman dibuka.</li></ul><p>Kami dapat mengungkapkan data bila diwajibkan oleh hukum atau perintah yang sah dari pihak berwenang.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -628,7 +628,7 @@ func termsPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, " <ul class=\"list-disc space-y-1.5 pl-5\"><li>Membuat akun, menyusun undangan, dan melihat pratinjau tidak dipungut biaya.</li><li>Mempublikasikan undangan dikenai pembayaran <strong>satu kali per undangan</strong> sebesar harga yang tertera di halaman publikasi saat Anda membayar. Tidak ada langganan dan tidak ada tagihan berulang.</li><li>Pembayaran diproses oleh Midtrans sebagai penyedia pembayaran. Lunovia tidak menerima atau menyimpan data kartu maupun kredensial rekening Anda.</li><li>Undangan dapat dipublikasikan setelah pembayaran dikonfirmasi oleh penyedia pembayaran. Tagihan yang tidak dibayar sampai batas waktunya akan kedaluwarsa dan dapat dibuat ulang tanpa biaya tambahan.</li><li>Undangan yang sudah dibayar dapat ditarik dari publikasi dan dipublikasikan kembali tanpa membayar lagi.</li></ul>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, " <ul class=\"list-disc space-y-1.5 pl-5\"><li>Membuat akun, menyusun undangan, dan melihat pratinjau tidak dipungut biaya.</li><li>Mempublikasikan undangan dikenai pembayaran <strong>satu kali per undangan</strong> sebesar harga yang tertera di halaman publikasi saat Anda membayar. Tidak ada langganan dan tidak ada tagihan berulang.</li><li>Pembayaran diproses oleh penyedia pembayaran pihak ketiga (Midtrans atau Duitku). Lunovia tidak menerima atau menyimpan data kartu maupun kredensial rekening Anda.</li><li>Undangan dapat dipublikasikan setelah pembayaran dikonfirmasi oleh penyedia pembayaran. Tagihan yang tidak dibayar sampai batas waktunya akan kedaluwarsa dan dapat dibuat ulang tanpa biaya tambahan.</li><li>Undangan yang sudah dibayar dapat ditarik dari publikasi dan dipublikasikan kembali tanpa membayar lagi.</li></ul>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

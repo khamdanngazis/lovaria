@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -89,6 +90,35 @@ type Service struct {
 	baseURL  string
 	now      func() time.Time
 	log      *slog.Logger
+	// lastCheck: kapan status sebuah order terakhir ditanyakan ke gateway lewat
+	// Refresh (halaman status memeriksa tiap beberapa detik). Duitku memblokir
+	// sementara pemanggil yang terlalu sering, jadi dibatasi statusCheckEvery.
+	checkMu   sync.Mutex
+	lastCheck map[string]time.Time
+}
+
+// statusCheckEvery: jeda minimum antar-cek status order yang sama dari halaman
+// status. Webhook tetap jalur utama; cek ini hanya cadangan.
+const statusCheckEvery = 20 * time.Second
+
+// checkDue: boleh menanyakan status order ini ke gateway sekarang?
+func (s *Service) checkDue(order string) bool {
+	s.checkMu.Lock()
+	defer s.checkMu.Unlock()
+	now := s.now()
+	if t, ok := s.lastCheck[order]; ok && now.Sub(t) < statusCheckEvery {
+		return false
+	}
+	if s.lastCheck == nil {
+		s.lastCheck = map[string]time.Time{}
+	}
+	for k, t := range s.lastCheck { // buang catatan lama
+		if now.Sub(t) > time.Hour {
+			delete(s.lastCheck, k)
+		}
+	}
+	s.lastCheck[order] = now
+	return true
 }
 
 // Config: setelan Service.
@@ -356,6 +386,9 @@ func (s *Service) Refresh(ctx context.Context, weddingID uuid.UUID) error {
 		return err
 	}
 	if row.Status != StatusPending && row.Status != StatusExpired {
+		return nil
+	}
+	if !s.checkDue(row.OrderNumber) {
 		return nil
 	}
 	txID := ""
