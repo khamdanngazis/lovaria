@@ -575,6 +575,23 @@ templ landingFooter() {
 				}
 			</nav>
 		</div>
+		if web.Contact().HasContact() {
+			<address class={ container, "grid gap-1.5 border-t border-white/10 py-6 text-sm not-italic sm:grid-cols-[auto_1fr] sm:gap-x-8" }>
+				<p class="text-xs font-medium uppercase tracking-[0.2em] text-white/50 sm:row-span-4">Hubungi kami</p>
+				if c := web.Contact(); c.Email != "" {
+					<p>Email: <a href={ templ.SafeURL("mailto:" + c.Email) } class="text-white hover:underline">{ c.Email }</a></p>
+				}
+				if c := web.Contact(); c.Tel != "" {
+					<p>Telepon: <a href={ templ.SafeURL("tel:+" + c.Tel) } class="text-white hover:underline">{ c.TelDisplay() }</a></p>
+				}
+				if web.SupportURL() != "" {
+					<p>WhatsApp: <a href={ templ.SafeURL(web.SupportURL()) } target="_blank" rel="noopener" class="text-white hover:underline">chat dengan tim Lunovia ↗</a></p>
+				}
+				if c := web.Contact(); c.Address != "" {
+					<p class="whitespace-pre-line">Alamat: { c.Address }</p>
+				}
+			</address>
+		}
 		<p class={ container, "pb-10 text-xs text-white/50" }>© { fmt.Sprint(time.Now().Year()) } Lunovia. Semua hak dilindungi.</p>
 	</footer>
 }

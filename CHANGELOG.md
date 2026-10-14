@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Kontak usaha di halaman utama
+- Halaman admin **Kontak** (sebelumnya "Bantuan") kini juga menyimpan **email support, nomor telepon, dan alamat usaha**, selain WhatsApp bantuan. Langsung berlaku tanpa deploy.
+- Kontak tampil di bagian **Hubungi kami** di bawah halaman utama, di bagian Kontak Kebijakan Privasi & Syarat, dan di data terstruktur (`contactPoint`). Syarat verifikasi payment gateway (Duitku/Midtrans).
+
 ### Pembayaran lewat Duitku
 - Gateway pembayaran baru **Duitku** sebagai alternatif Midtrans (`PAYMENT_GATEWAY=duitku`, `DUITKU_MERCHANT_CODE`, `DUITKU_API_KEY`, `DUITKU_ENV`). Pembayar diarahkan ke halaman bayar Duitku dan memilih QRIS, e-wallet, atau virtual account di sana; alur di Lunovia tidak berubah.
 - Callback bertanda tangan HMAC-SHA256 diverifikasi, nominal dicocokkan, dan status lunas dikonfirmasi ulang ke Duitku sebelum diterapkan.

@@ -237,3 +237,25 @@ func TestSEO(t *testing.T) {
 		t.Error("undangan: tautan Dibuat dengan Lunovia / noindex")
 	}
 }
+
+// Kontak usaha tampil di halaman utama, halaman legal, dan data terstruktur.
+func TestBusinessContactShown(t *testing.T) {
+	f := newFixture(t)
+	t.Cleanup(func() { web.SetSupport(web.Support{}) })
+	web.SetSupport(web.Support{})
+	if b := f.get("/", nil).Body.String(); strings.Contains(b, "Hubungi kami") {
+		t.Error("tanpa kontak: bagian Hubungi kami tidak tampil")
+	}
+	web.SetSupport(web.Support{Email: "halo@lunovia.id", Tel: "6281234567890", Address: "Jl. Melati No. 1, Bandung", Phone: "6281234567890"})
+	body := f.get("/", nil).Body.String()
+	for _, want := range []string{"Hubungi kami", `href="mailto:halo@lunovia.id"`, `href="tel:+6281234567890"`, "+6281234567890", "Jl. Melati No. 1, Bandung", `"contactPoint"`, `"email":"halo@lunovia.id"`} {
+		if !strings.Contains(body, want) {
+			t.Errorf("halaman utama tidak memuat %q", want)
+		}
+	}
+	for _, p := range []string{"/privacy", "/terms"} {
+		if b := f.get(p, nil).Body.String(); !strings.Contains(b, `href="mailto:halo@lunovia.id"`) || !strings.Contains(b, "Jl. Melati No. 1, Bandung") {
+			t.Errorf("%s: kontak usaha", p)
+		}
+	}
+}

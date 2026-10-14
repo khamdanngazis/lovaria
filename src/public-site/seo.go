@@ -7,6 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/khamdanngazis/lovaria/src/modules/payment"
+	"github.com/khamdanngazis/lovaria/src/platform/web"
 	"github.com/khamdanngazis/lovaria/static"
 )
 
@@ -106,6 +107,19 @@ type ld map[string]any
 func landingLD(d landingData) ld {
 	base := strings.TrimSuffix(d.URL, "/")
 	org := ld{"@type": "Organization", "@id": base + "/#organization", "name": "Lunovia", "url": d.URL, "logo": base + static.URL("img/brand/apple-touch-icon.png")}
+	if c := web.Contact(); c.Email != "" || c.Tel != "" {
+		cp := ld{"@type": "ContactPoint", "contactType": "customer support", "availableLanguage": "id"}
+		if c.Email != "" {
+			cp["email"] = c.Email
+		}
+		if c.Tel != "" {
+			cp["telephone"] = c.TelDisplay()
+		}
+		org["contactPoint"] = cp
+		if c.Address != "" {
+			org["address"] = c.Address
+		}
+	}
 	site := ld{"@type": "WebSite", "@id": base + "/#website", "url": d.URL, "name": "Lunovia", "description": seoDesc, "inLanguage": "id-ID", "publisher": ld{"@id": base + "/#organization"}}
 	app := ld{
 		"@type": "SoftwareApplication", "name": "Lunovia", "url": d.URL, "description": seoDesc, "image": d.OGImage,
