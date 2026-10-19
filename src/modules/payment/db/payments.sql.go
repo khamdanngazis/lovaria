@@ -112,7 +112,7 @@ SET status = $1,
     gateway_transaction_id = COALESCE($3, gateway_transaction_id),
     paid_at = $4
 WHERE id = $5 AND wedding_id = $6
-  AND (status = 'pending' OR (status = 'expired' AND $1 = 'paid'))
+  AND (status = 'pending' OR (status IN ('expired', 'cancelled') AND $1 = 'paid'))
 RETURNING id, wedding_id, user_id, order_number, amount, currency, status, payment_method, gateway, gateway_transaction_id, checkout_url, expired_at, paid_at, created_at, updated_at
 `
 
@@ -126,8 +126,9 @@ type ApplyStatusParams struct {
 }
 
 // Transisi dari pending saja: order yang sudah final (paid/expired/…) tidak
-// berubah. Pengecualian: expired → paid (pembayaran masuk di detik terakhir —
-// uang yang sudah diterima gateway tetap dihormati).
+// berubah. Pengecualian: expired/cancelled → paid (pembayaran masuk di detik
+// terakhir, atau kode bayar lama tetap dibayar setelah ganti metode — uang yang
+// sudah diterima gateway tetap dihormati).
 func (q *Queries) ApplyStatus(ctx context.Context, arg ApplyStatusParams) (PaymentOrder, error) {
 	row := q.db.QueryRow(ctx, applyStatus,
 		arg.Status,

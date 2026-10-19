@@ -134,6 +134,7 @@ templ offerCard(s publishState) {
 				// bergantung pada redirect setelah POST. Dibuka di tab baru; tab ini
 				// pindah ke halaman status (data-then, lovoria.js).
 				<a href={ templ.SafeURL(s.Summary.Latest.CheckoutURL) } target="_blank" rel="noopener" data-then={ s.W.DashboardURL("/payment/return") } class="ui-btn ui-btn-primary mt-3 w-full px-6 py-3 sm:w-auto">Lanjutkan pembayaran ↗</a>
+				@changeMethodForm(s, "mt-4")
 			} else {
 				// Halaman bayar gateway dibuka di TAB BARU (target=_blank) supaya
 				// dashboard tidak tertutup; tab ini pindah ke halaman status yang
@@ -217,6 +218,25 @@ templ orderHistory(s publishState) {
 	}
 }
 
+// changeMethodForm: ganti metode bayar tanpa menunggu order pending kedaluwarsa
+// (Service.ChangeMethod). Seperti tombol Bayar, halaman bayar baru dibuka di
+// tab baru dan tab ini pindah ke halaman status (data-then).
+templ changeMethodForm(s publishState, class string) {
+	<form
+		method="post"
+		action={ templ.SafeURL(s.W.DashboardURL("/payment/change")) }
+		target="_blank"
+		rel="noopener"
+		data-then={ s.W.DashboardURL("/payment/return") }
+		data-confirm="Ganti metode pembayaran? Kode bayar / nomor VA sebelumnya tidak perlu dibayar lagi."
+		class={ class }
+	>
+		@layouts.CSRFField()
+		<button type="submit" class="ui-link text-sm">Ganti metode pembayaran</button>
+		<p class="mt-1 text-xs text-lovoria-muted">Sudah memilih metode tapi ingin memakai yang lain? Kami buatkan halaman pembayaran baru — tidak perlu menunggu yang lama kedaluwarsa.</p>
+	</form>
+}
+
 // returnPage: kembali dari gateway — menampilkan status dan memeriksa ulang
 // selagi pembayaran masih diproses.
 templ returnPage(s publishState) {
@@ -255,6 +275,7 @@ templ paymentStatus(s publishState) {
 					}
 					<a href={ templ.SafeURL(s.W.DashboardURL("/payment/return")) } class="ui-btn ui-btn-secondary">Periksa lagi</a>
 				</div>
+				@changeMethodForm(s, "mt-5")
 				@layouts.SupportHint("mt-5")
 			default:
 				if s.Summary.Latest != nil {

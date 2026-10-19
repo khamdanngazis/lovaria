@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Ganti metode pembayaran
+- Pasangan yang sudah memilih metode bayar (mis. VA bank) kini bisa **ganti metode tanpa menunggu pembayaran pertama kedaluwarsa**: tombol "Ganti metode pembayaran" di halaman publikasi dan halaman status membuat halaman bayar baru.
+- Midtrans: transaksi lama ditutup lewat Expire API sehingga nomor VA lama tidak bisa dibayar lagi. Duitku tidak menyediakan pembatalan; kode bayar lama tetap diterima bila dibayar, dan pembayaran ganda dicatat di log untuk dicek admin.
+- Sebelum ditutup, status dicek ulang ke gateway — pembayaran yang ternyata sudah masuk langsung diterapkan lunas.
+
 ### Kontak usaha di halaman utama
 - Halaman admin **Kontak** (sebelumnya "Bantuan") kini juga menyimpan **email support, nomor telepon, dan alamat usaha**, selain WhatsApp bantuan. Langsung berlaku tanpa deploy.
 - Kontak tampil di bagian **Hubungi kami** di bawah halaman utama, di bagian Kontak Kebijakan Privasi & Syarat, dan di data terstruktur (`contactPoint`). Syarat verifikasi payment gateway (Duitku/Midtrans).

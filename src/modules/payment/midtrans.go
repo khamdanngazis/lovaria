@@ -104,6 +104,27 @@ func (m *Midtrans) CreateCheckout(ctx context.Context, req CheckoutRequest) (str
 	return out.RedirectURL, nil
 }
 
+// Cancel: POST /v2/{order}/expire — menutup transaksi pending (mis. VA yang
+// sudah terbit) supaya tidak bisa dibayar lagi. status_code 407 = berhasil
+// dikedaluwarsakan; 404 = belum ada transaksi (pembayar belum memilih metode);
+// 412 = status tidak bisa diubah (sudah lunas/final) — Service memeriksa status
+// sesudahnya, jadi ketiganya bukan galat.
+func (m *Midtrans) Cancel(ctx context.Context, orderNumber string) error {
+	var s struct {
+		StatusCode    string `json:"status_code"`
+		StatusMessage string `json:"status_message"`
+	}
+	code, err := m.do(ctx, http.MethodPost, m.APIURL+"/v2/"+orderNumber+"/expire", nil, &s)
+	if err != nil {
+		return err
+	}
+	switch s.StatusCode {
+	case "200", "407", "404", "412":
+		return nil
+	}
+	return fmt.Errorf("midtrans: tutup transaksi gagal (HTTP %d, status_code %q): %s", code, s.StatusCode, s.StatusMessage)
+}
+
 // midtransStatus: bentuk notifikasi HTTP & respons Get Status.
 type midtransStatus struct {
 	OrderID           string `json:"order_id"`

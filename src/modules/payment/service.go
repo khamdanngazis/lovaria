@@ -210,6 +210,70 @@ func (s *Service) CreateOrder(ctx context.Context, w wedding.Wedding, buyer uuid
 	return toOrder(row), nil
 }
 
+// ChangeMethod: pembayar ingin ganti metode bayar. Di halaman bayar gateway,
+// begitu metode dipilih (mis. VA BCA) transaksinya terkunci ke metode itu
+// sampai kedaluwarsa. Order pending ditutup dulu — di gateway bila didukung
+// (Canceller), lalu dicek ulang supaya yang ternyata sudah lunas tidak
+// dibatalkan — kemudian dibuat order baru dengan halaman bayar baru.
+//
+// Gateway tanpa API pembatalan (Duitku): kode bayar lama masih bisa dibayar
+// sampai kedaluwarsa; pembayaran itu tetap dihormati (cancelled → paid).
+func (s *Service) ChangeMethod(ctx context.Context, w wedding.Wedding, buyer uuid.UUID, c Customer) (Order, error) {
+	if s.gw == nil {
+		return Order{}, ErrUnavailable
+	}
+	if w.IsPaid() {
+		return Order{}, ErrAlreadyPaid
+	}
+	if err := s.cancelPending(ctx, w.ID); err != nil {
+		return Order{}, err
+	}
+	return s.CreateOrder(ctx, w, buyer, c)
+}
+
+// cancelPending menutup order pending terakhir wedding (bila ada).
+func (s *Service) cancelPending(ctx context.Context, weddingID uuid.UUID) error {
+	cur, err := s.q.LatestOrder(ctx, weddingID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	if cur.Status != StatusPending {
+		return nil
+	}
+	if cn, ok := s.gw.(Canceller); ok {
+		if err := cn.Cancel(ctx, cur.OrderNumber); err != nil {
+			return fmt.Errorf("payment: tutup transaksi %s: %w", cur.OrderNumber, err)
+		}
+	}
+	// Mungkin sudah dibayar sebelum ditutup: terapkan, jangan dibatalkan.
+	txID := ""
+	if cur.GatewayTransactionID != nil {
+		txID = *cur.GatewayTransactionID
+	}
+	n, found, err := s.fetchStatus(ctx, cur.OrderNumber, txID)
+	if err != nil {
+		return fmt.Errorf("payment: cek status %s: %w", cur.OrderNumber, err)
+	}
+	if found && n.Status == StatusPaid {
+		if _, err := s.apply(ctx, n); err != nil {
+			return err
+		}
+		return ErrAlreadyPaid
+	}
+	// Hanya dari pending (ApplyStatus): webhook lunas yang masuk bersamaan menang.
+	_, err = s.q.ApplyStatus(ctx, paymentdb.ApplyStatusParams{ID: cur.ID, WeddingID: weddingID, Status: StatusCancelled, PaymentMethod: cur.PaymentMethod})
+	if errors.Is(err, pgx.ErrNoRows) {
+		if now, gerr := s.q.GetOrder(ctx, paymentdb.GetOrderParams{ID: cur.ID, WeddingID: weddingID}); gerr == nil && now.Status == StatusPaid {
+			return ErrAlreadyPaid
+		}
+		return nil
+	}
+	return err
+}
+
 func (s *Service) logEvent(ctx context.Context, body []byte, orderNumber string, sigOK bool, outcome string) {
 	payload := body
 	if !json.Valid(payload) {
@@ -335,8 +399,15 @@ func (s *Service) apply(ctx context.Context, n Notification) (string, error) {
 	// kegagalan sebelumnya (order sudah paid, wedding belum ditandai) pulih
 	// saat gateway mengirim ulang.
 	if order.Status == StatusPaid {
-		if _, err := s.weddings.MarkPaid(ctx, order.WeddingID, wedding.PaidGateway); err != nil {
+		changed, err := s.weddings.MarkPaid(ctx, order.WeddingID, wedding.PaidGateway)
+		if err != nil {
 			return "", fmt.Errorf("payment: buka publikasi wedding %s: %w", order.WeddingID, err)
+		}
+		if !changed && outcome == OutcomeApplied {
+			// Wedding sudah lunas lewat order lain (mis. kode bayar lama tetap
+			// dibayar setelah ganti metode): perlu dicek admin untuk refund.
+			s.log.WarnContext(ctx, "payment: order lunas untuk wedding yang sudah lunas (pembayaran ganda?)",
+				slog.String("order", order.OrderNumber), slog.String("wedding_id", order.WeddingID.String()))
 		}
 	}
 	return outcome, nil
