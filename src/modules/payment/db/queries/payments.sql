@@ -32,15 +32,16 @@ SELECT * FROM payment_orders WHERE wedding_id = $1 ORDER BY created_at DESC, id 
 
 -- name: ApplyStatus :one
 -- Transisi dari pending saja: order yang sudah final (paid/expired/…) tidak
--- berubah. Pengecualian: expired → paid (pembayaran masuk di detik terakhir —
--- uang yang sudah diterima gateway tetap dihormati).
+-- berubah. Pengecualian: expired/cancelled → paid (pembayaran masuk di detik
+-- terakhir, atau kode bayar lama tetap dibayar setelah ganti metode — uang yang
+-- sudah diterima gateway tetap dihormati).
 UPDATE payment_orders
 SET status = sqlc.arg(status),
     payment_method = sqlc.arg(payment_method),
     gateway_transaction_id = COALESCE(sqlc.narg(gateway_transaction_id), gateway_transaction_id),
     paid_at = sqlc.narg(paid_at)
 WHERE id = sqlc.arg(id) AND wedding_id = sqlc.arg(wedding_id)
-  AND (status = 'pending' OR (status = 'expired' AND sqlc.arg(status) = 'paid'))
+  AND (status = 'pending' OR (status IN ('expired', 'cancelled') AND sqlc.arg(status) = 'paid'))
 RETURNING *;
 
 -- name: SetPendingDetails :exec

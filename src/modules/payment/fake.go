@@ -84,3 +84,14 @@ func (f *Fake) FetchStatus(_ context.Context, orderNumber string) (Notification,
 	n, ok := f.status[orderNumber]
 	return n, ok, nil
 }
+
+// Cancel menutup order simulasi yang belum dibayar (seperti Expire API Midtrans).
+func (f *Fake) Cancel(_ context.Context, orderNumber string) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if n, ok := f.status[orderNumber]; ok && n.Status == StatusPending {
+		n.Status = StatusExpired
+		f.status[orderNumber] = n
+	}
+	return nil
+}

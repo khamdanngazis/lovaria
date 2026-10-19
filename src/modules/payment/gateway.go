@@ -71,3 +71,12 @@ type Gateway interface {
 	// terautentikasi). found=false bila gateway belum mengenal order itu.
 	FetchStatus(ctx context.Context, ref string) (n Notification, found bool, err error)
 }
+
+// Canceller: gateway yang bisa menutup transaksi yang belum dibayar (mis. nomor
+// VA yang sudah terbit) supaya tidak bisa dibayar lagi — dipakai saat pembayar
+// ganti metode. Opsional: Duitku tidak menyediakan API pembatalan.
+type Canceller interface {
+	// Cancel menutup transaksi order yang belum dibayar. Transaksi yang belum
+	// ada atau sudah final bukan galat: Service memeriksa status sesudahnya.
+	Cancel(ctx context.Context, orderNumber string) error
+}

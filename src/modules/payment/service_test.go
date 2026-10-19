@@ -295,6 +295,73 @@ func TestPaidAfterLocalExpiry(t *testing.T) {
 	}
 }
 
+// noCancel: gateway tanpa API pembatalan (seperti Duitku).
+type noCancel struct{ Gateway }
+
+// Ganti metode bayar tanpa menunggu order pending kedaluwarsa.
+func TestChangeMethod(t *testing.T) {
+	f := newFixture(t)
+	user, w := f.newWedding(t, "a@example.com")
+	c := Customer{Name: "Sarah", Email: "s@example.com"}
+
+	// Belum ada order → sama dengan Bayar.
+	o1, err := f.svc.ChangeMethod(ctx, w, user, c)
+	if err != nil || o1.Status != StatusPending {
+		t.Fatalf("tanpa order: %+v %v", o1, err)
+	}
+	// Order pending → ditutup (di gateway & lokal), order baru dibuat.
+	o2, err := f.svc.ChangeMethod(ctx, w, user, c)
+	if err != nil || o2.ID == o1.ID || o2.Number == o1.Number || o2.Status != StatusPending || o2.CheckoutURL == o1.CheckoutURL {
+		t.Fatalf("ganti metode: %+v %v", o2, err)
+	}
+	if old, _ := f.svc.OrderByNumber(ctx, o1.Number); old.Status != StatusCancelled {
+		t.Errorf("order lama = %s, want cancelled", old.Status)
+	}
+	if n, _, _ := f.fake.FetchStatus(ctx, o1.Number); n.Status != StatusExpired {
+		t.Errorf("transaksi lama di gateway = %s, want ditutup", n.Status)
+	}
+	// Bayar biasa sesudahnya memakai order baru, bukan membuat lagi.
+	if again := f.order(t, w, user); again.ID != o2.ID {
+		t.Error("order baru harus dipakai ulang oleh Bayar")
+	}
+
+	// Gateway tanpa pembatalan (Duitku): kode bayar lama tetap bisa dibayar dan
+	// tetap dihormati (cancelled → paid), walau order baru sudah ada.
+	f.svc.gw = noCancel{f.fake}
+	o3, err := f.svc.ChangeMethod(ctx, w, user, c)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if out, err := f.svc.HandleNotification(ctx, f.fake.Notify(o2.Number, StatusPaid, price, f.now)); err != nil || out != OutcomeApplied {
+		t.Fatalf("bayar kode lama: %q %v", out, err)
+	}
+	if !f.wedding(t, w.ID).IsPaid() {
+		t.Error("pembayaran order yang dibatalkan tetap membuka publikasi")
+	}
+	// Order baru ikut dibayar (pembayaran ganda): tetap dicatat lunas.
+	if out, err := f.svc.HandleNotification(ctx, f.fake.Notify(o3.Number, StatusPaid, price, f.now)); err != nil || out != OutcomeApplied {
+		t.Fatalf("bayar ganda: %q %v", out, err)
+	}
+	if _, err := f.svc.ChangeMethod(ctx, f.wedding(t, w.ID), user, c); !errors.Is(err, ErrAlreadyPaid) {
+		t.Errorf("sudah lunas: %v", err)
+	}
+
+	// Sudah dibayar di gateway tetapi webhook belum masuk: tidak dibatalkan,
+	// langsung diterapkan lunas, dan tidak ada order baru.
+	_, w2 := f.newWedding(t, "b@example.com")
+	p := f.order(t, w2, user)
+	f.fake.Notify(p.Number, StatusPaid, price, f.now) // status gateway saja, webhook belum
+	if _, err := f.svc.ChangeMethod(ctx, w2, user, c); !errors.Is(err, ErrAlreadyPaid) {
+		t.Fatalf("sudah dibayar di gateway: %v", err)
+	}
+	if got, _ := f.svc.OrderByNumber(ctx, p.Number); got.Status != StatusPaid || !f.wedding(t, w2.ID).IsPaid() {
+		t.Errorf("order = %s, wedding lunas = %v", got.Status, f.wedding(t, w2.ID).IsPaid())
+	}
+	if orders, _ := f.svc.ListOrders(ctx, w2.ID); len(orders) != 1 {
+		t.Errorf("order = %d, want 1", len(orders))
+	}
+}
+
 // Isolasi tenant: order satu wedding tidak terlihat dari wedding lain.
 func TestOrdersAreTenantScoped(t *testing.T) {
 	f := newFixture(t)
@@ -411,6 +478,19 @@ func TestPublishAndPaymentFlowViaHTTP(t *testing.T) {
 	if !strings.Contains(ret, "Menunggu konfirmasi") || !strings.Contains(ret, `hx-trigger="every 4s"`) || f.wedding(t, w.ID).IsPaid() {
 		t.Error("halaman kembali sebelum webhook harus menunggu, bukan lunas")
 	}
+	// Ganti metode bayar: tersedia di halaman publikasi & status; order lama
+	// ditutup dan pembayar diarahkan ke halaman bayar order baru.
+	for _, page := range []string{do(e, owner, http.MethodGet, base+"/publish", nil, nil).Body.String(), ret} {
+		if !strings.Contains(page, `action="`+base+`/payment/change"`) || !strings.Contains(page, "Ganti metode pembayaran") {
+			t.Error("tombol ganti metode pembayaran tidak tampil")
+		}
+	}
+	rec = do(e, owner, http.MethodPost, base+"/payment/change", url.Values{}, nil)
+	orders, _ = f.svc.ListOrders(ctx, w.ID)
+	if rec.Code != http.StatusSeeOther || len(orders) != 2 || rec.Header().Get("Location") != orders[0].CheckoutURL || orders[1].Status != StatusCancelled {
+		t.Fatalf("ganti metode: %d %s", rec.Code, rec.Header().Get("Location"))
+	}
+	o = orders[0]
 
 	// Webhook: gateway salah / tanda tangan palsu / nominal salah ditolak.
 	if rec := webhook(e, "lain", f.fake.Notify(o.Number, StatusPending, price, f.now)); rec.Code != http.StatusNotFound {
@@ -453,8 +533,8 @@ func TestPublishAndPaymentFlowViaHTTP(t *testing.T) {
 	if rec := do(e, owner, http.MethodPost, base+"/payment", url.Values{}, nil); rec.Code != http.StatusSeeOther || rec.Header().Get("Location") != base+"/publish" {
 		t.Errorf("bayar setelah lunas: %d", rec.Code)
 	}
-	if orders, _ := f.svc.ListOrders(ctx, w.ID); len(orders) != 1 {
-		t.Errorf("order = %d, want 1", len(orders))
+	if orders, _ := f.svc.ListOrders(ctx, w.ID); len(orders) != 2 {
+		t.Errorf("order = %d, want 2", len(orders))
 	}
 	// Publikasikan → terbit.
 	rec = do(e, owner, http.MethodPost, base+"/status", url.Values{"_method": {"PATCH"}, "status": {"published"}}, nil)
@@ -464,7 +544,7 @@ func TestPublishAndPaymentFlowViaHTTP(t *testing.T) {
 
 	// User lain tidak bisa melihat / membayar wedding ini.
 	for _, r := range []struct{ method, path string }{
-		{http.MethodGet, base + "/publish"}, {http.MethodPost, base + "/payment"}, {http.MethodGet, base + "/payment/return"},
+		{http.MethodGet, base + "/publish"}, {http.MethodPost, base + "/payment"}, {http.MethodPost, base + "/payment/change"}, {http.MethodGet, base + "/payment/return"},
 	} {
 		if rec := do(e, bob, r.method, r.path, url.Values{}, nil); rec.Code != http.StatusNotFound {
 			t.Errorf("bob %s %s: %d", r.method, r.path, rec.Code)

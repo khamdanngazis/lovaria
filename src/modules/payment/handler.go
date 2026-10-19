@@ -61,13 +61,19 @@ func (h *Handler) PublishPage(c echo.Context) error {
 }
 
 // POST …/payment — buat (atau pakai ulang) order lalu arahkan ke halaman bayar gateway.
-func (h *Handler) Pay(c echo.Context) error {
+func (h *Handler) Pay(c echo.Context) error { return h.startPayment(c, h.svc.CreateOrder) }
+
+// POST …/payment/change — ganti metode bayar: tutup order pending, buat order
+// baru, lalu arahkan ke halaman bayar gateway yang baru.
+func (h *Handler) ChangeMethod(c echo.Context) error { return h.startPayment(c, h.svc.ChangeMethod) }
+
+func (h *Handler) startPayment(c echo.Context, create func(context.Context, wedding.Wedding, uuid.UUID, Customer) (Order, error)) error {
 	w := ctxWedding(c)
 	u, ok := web.CurrentUser(c.Request().Context())
 	if !ok {
 		return echo.NewHTTPError(http.StatusUnauthorized)
 	}
-	o, err := h.svc.CreateOrder(c.Request().Context(), w, u.ID, Customer{Name: u.Name, Email: u.Email})
+	o, err := create(c.Request().Context(), w, u.ID, Customer{Name: u.Name, Email: u.Email})
 	switch {
 	case errors.Is(err, ErrAlreadyPaid):
 		return c.Redirect(http.StatusSeeOther, w.DashboardURL("/publish"))

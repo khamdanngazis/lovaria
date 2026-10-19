@@ -133,3 +133,45 @@ func TestMidtransCheckoutAndStatus(t *testing.T) {
 		t.Errorf("endpoint produksi: %s %s", p.SnapURL, p.APIURL)
 	}
 }
+
+// Ganti metode bayar: transaksi pending ditutup lewat Expire API. Belum ada
+// transaksi (404) dan tidak bisa diubah (412) bukan error — Service memeriksa
+// status sesudahnya.
+func TestMidtransCancel(t *testing.T) {
+	var calls []string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls = append(calls, r.Method+" "+r.URL.Path)
+		switch r.URL.Path {
+		case "/v2/LVR-VA/expire":
+			_, _ = w.Write([]byte(`{"status_code":"407","status_message":"Success, transaction has expired","transaction_status":"expire"}`))
+		case "/v2/LVR-BARU/expire":
+			w.WriteHeader(http.StatusNotFound)
+			_, _ = w.Write([]byte(`{"status_code":"404","status_message":"Transaction doesn't exist."}`))
+		case "/v2/LVR-LUNAS/expire":
+			_, _ = w.Write([]byte(`{"status_code":"412","status_message":"Merchant cannot modify the status of the transaction"}`))
+		case "/v2/LVR-KUNCI/expire":
+			w.WriteHeader(http.StatusUnauthorized)
+			_, _ = w.Write([]byte(`{"status_code":"401","status_message":"Unknown Merchant server_key/id"}`))
+		default:
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	}))
+	defer srv.Close()
+	m := NewMidtrans("server-key", false)
+	m.APIURL = srv.URL
+	ctx := context.Background()
+	for _, order := range []string{"LVR-VA", "LVR-BARU", "LVR-LUNAS"} {
+		if err := m.Cancel(ctx, order); err != nil {
+			t.Errorf("cancel %s: %v", order, err)
+		}
+	}
+	for _, order := range []string{"LVR-KUNCI", "LVR-ERROR"} {
+		if err := m.Cancel(ctx, order); err == nil {
+			t.Errorf("cancel %s harus error", order)
+		}
+	}
+	if calls[0] != "POST /v2/LVR-VA/expire" {
+		t.Errorf("panggilan = %v", calls)
+	}
+	var _ Canceller = m
+}

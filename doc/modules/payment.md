@@ -41,6 +41,12 @@ Beranda (Draft · Belum dibayar)
 - **CSP**: tombol "Bayar" adalah form POST yang dibalas redirect ke halaman bayar gateway. Browser menerapkan `form-action` ke seluruh rantai redirect, jadi domain halaman bayar harus terdaftar di `checkoutOrigins` (`src/platform/server/headers.go`) — tanpa itu redirect diblokir diam-diam dan tombol terasa tidak berfungsi (`TestCSPAllowsCheckoutRedirect`). Gateway baru = tambah domainnya di sana. "Lanjutkan pembayaran" memakai tautan langsung, tidak bergantung pada redirect.
 - **Redirect browser tidak pernah menandai lunas.** Halaman kembali hanya membaca status; `Service.Refresh` menanyakan status langsung ke gateway supaya pasangan tidak menunggu webhook, lewat jalur penerapan yang sama.
 - Order `pending` yang masih berlaku dipakai ulang (klik "Bayar" dua kali ≠ dua order). Setelah `expired`/`failed`/`cancelled`, percobaan berikutnya membuat order baru untuk wedding yang sama.
+- **Ganti metode pembayaran** (`POST …/payment/change`, `Service.ChangeMethod`): di halaman bayar gateway, begitu metode dipilih (mis. VA BCA) transaksinya terkunci ke metode itu sampai kedaluwarsa. Tombol "Ganti metode pembayaran" (halaman publikasi & halaman status, selagi ada order pending) menutup order pending lalu membuat order baru dengan halaman bayar baru — tanpa menunggu kedaluwarsa:
+  1. Transaksi ditutup di gateway bila gateway mendukung (`payment.Canceller`): **Midtrans** lewat Expire API (`POST /v2/{order}/expire`; 407 berhasil, 404 belum ada transaksi, 412 sudah final — ketiganya bukan galat). **Duitku tidak punya API pembatalan**: nomor VA/kode bayar lama tetap bisa dibayar sampai kedaluwarsa.
+  2. Status dicek ulang ke gateway: bila ternyata sudah lunas, diterapkan lunas dan tidak ada order baru.
+  3. Order lama → `cancelled` (hanya dari `pending`, jadi webhook lunas yang masuk bersamaan menang), lalu order baru dibuat seperti tombol Bayar.
+  
+  Order `cancelled` yang kemudian tetap dibayar (kode bayar lama Duitku) **tetap dihormati** (`cancelled → paid`, sama seperti `expired → paid`). Bila wedding sudah lunas lewat order lain, log `WARN "pembayaran ganda?"` dicatat — cek riwayat order di admin untuk refund.
 - Nomor order: `LVR-YYYYMMDD-000001` (tanggal WIB + sequence `payment_order_seq`).
 
 ## Webhook (`Service.HandleNotification`)
@@ -49,14 +55,14 @@ Beranda (Draft · Belum dibayar)
 2. Untuk status lunas: **konfirmasi ulang** ke gateway (`FetchStatus`); tidak terkonfirmasi → 422 `rejected:unconfirmed`.
 3. Order dicari dari nomornya dan **dikunci** (`SELECT … FOR UPDATE`). Order tak dikenal dengan tanda tangan sah (mis. tombol "Test notification" di dashboard Midtrans, yang memakai `order_id` `payment_notif_test_…`) → dicatat `rejected:unknown-order` dan dibalas **200** supaya gateway tidak mengirim ulang; tidak ada yang berubah.
 4. **Nominal & mata uang** harus sama dengan order; beda → 422 `rejected:amount`.
-5. Status diterapkan sekali. `paid` final: notifikasi ulang → `duplicate` (200), `expire`/`deny` yang terlambat → `ignored`. Pengecualian: `expired → paid` (pembayaran masuk di detik terakhir tetap dihormati).
+5. Status diterapkan sekali. `paid` final: notifikasi ulang → `duplicate` (200), `expire`/`deny` yang terlambat → `ignored`. Pengecualian: `expired → paid` (pembayaran masuk di detik terakhir tetap dihormati) dan `cancelled → paid` (kode bayar lama tetap dibayar setelah ganti metode).
 6. Order `paid` → `wedding.MarkPaid(…, "gateway")` (idempoten; diulang pada notifikasi duplikat supaya pulih bila langkah ini sebelumnya gagal).
 
 Disimpan: `gateway_transaction_id` (unik per gateway), `payment_method`, `paid_at`. **Setiap webhook dicatat di `payment_events`** (payload, tanda tangan sah/tidak, hasil) — termasuk yang ditolak. Route `/webhooks/*` dikecualikan dari CSRF (`server.WebhookPrefix`): tidak ada sesi; keasliannya dari tanda tangan. Error 5xx membuat gateway mengirim ulang.
 
 ## Gateway
 
-Interface `payment.Gateway` (`CreateCheckout`, `ParseNotification`, `FetchStatus`):
+Interface `payment.Gateway` (`CreateCheckout`, `ParseNotification`, `FetchStatus`), plus opsional `payment.Canceller` (`Cancel`) untuk ganti metode bayar — Midtrans & Fake:
 
 - **Midtrans** (`midtrans.go`, `net/http` tanpa SDK): Snap mode **redirect** (`POST /snap/v1/transactions` → `redirect_url`) — halaman bayar di domain Midtrans, tanpa script pihak ketiga di Lunovia (CSP tetap ketat). Tanda tangan `SHA512(order_id + status_code + gross_amount + server_key)`. Pemetaan: `settlement` / `capture`+`accept` → paid; `pending` → pending; `expire` → expired; `cancel` → cancelled; `deny`/`failure` → failed. Status lain (refund, chargeback) ditolak dan hanya tercatat di log event.
 - **Fake** (`fake.go`): simulasi untuk development, test, dan e2e. Halaman bayar `/payment/simulasi/<order>` (wajib login, hanya pemilik order) mengirim "webhook" bertanda tangan HMAC lewat jalur yang sama. **Config menolak `PAYMENT_GATEWAY=fake` di production.**
@@ -76,7 +82,7 @@ Setup Midtrans & uji sandbox: lihat [runbook](../runbook.md).
 ## Test
 
 - `payment/midtrans_test.go`: tanda tangan (kunci lain, isi diubah), pemetaan status, nominal pecahan, Snap & Get Status terhadap server tiruan.
-- `payment/service_test.go`: nomor order, pemakaian ulang order pending, order baru setelah kedaluwarsa/gagal, webhook lunas idempoten (3× kirim ulang = satu aktivasi), status terlambat diabaikan, penolakan (tanda tangan, nominal, order tak dikenal, tidak terkonfirmasi), lunas setelah kedaluwarsa lokal, isolasi tenant, alur HTTP lengkap (webhook tanpa cookie/CSRF), halaman simulasi.
+- `payment/service_test.go`: nomor order, pemakaian ulang order pending, order baru setelah kedaluwarsa/gagal, webhook lunas idempoten (3× kirim ulang = satu aktivasi), status terlambat diabaikan, penolakan (tanda tangan, nominal, order tak dikenal, tidak terkonfirmasi), lunas setelah kedaluwarsa lokal, ganti metode bayar (order lama ditutup, gateway tanpa pembatalan, sudah lunas sebelum ditutup), isolasi tenant, alur HTTP lengkap (webhook tanpa cookie/CSRF), halaman simulasi.
 - `wedding/lifecycle_test.go`: publikasi ditolak sebelum lunas (user & admin), `MarkPaid` idempoten, terbit ulang tanpa bayar.
 - `e2e/tests/smoke.spec.js`: draf → halaman harga → bayar (simulasi) → lunas → publikasikan; undangan 404 untuk publik sebelum terbit.
 

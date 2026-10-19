@@ -21,6 +21,7 @@ func Register(owned *echo.Group, deps Deps) *Handler {
 	h := &Handler{svc: deps.Service, weddings: deps.Weddings, log: deps.Log}
 	owned.GET("/publish", h.PublishPage)
 	owned.POST("/payment", h.Pay)
+	owned.POST("/payment/change", h.ChangeMethod)
 	owned.GET("/payment/return", h.Return)
 	return h
 }
