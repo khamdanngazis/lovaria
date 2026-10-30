@@ -342,6 +342,21 @@ func (h *Handler) SaveSupport(c echo.Context) error {
 	return back(c, "/admin/support", "Kontak & bantuan disimpan.", err)
 }
 
+// ---------- Testimoni (landing page) ----------
+
+func (h *Handler) Testimonials(c echo.Context) error {
+	raw, err := h.svc.TestimonialsText(c.Request().Context())
+	if err != nil {
+		return err
+	}
+	return web.Render(c, http.StatusOK, testimonialsPage(raw, flashOf(c)))
+}
+
+func (h *Handler) SaveTestimonials(c echo.Context) error {
+	err := h.svc.SaveTestimonials(c.Request().Context(), c.FormValue("testimonials"))
+	return back(c, "/admin/testimonials", "Testimoni disimpan.", err)
+}
+
 // ---------- Packages ----------
 
 func (h *Handler) Packages(c echo.Context) error {

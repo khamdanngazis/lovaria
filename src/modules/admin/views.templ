@@ -96,7 +96,7 @@ func pageURL(path string, q url.Values, page int) string {
 
 var tabs = []struct{ Path, Label string }{
 	{"/admin", "Ringkasan"}, {"/admin/users", "Customers"}, {"/admin/weddings", "Weddings"}, {"/admin/themes", "Tema"},
-	{"/admin/packages", "Paket"}, {"/admin/payments", "Pembayaran"}, {"/admin/storage", "Storage"}, {"/admin/domains", "Domain"}, {"/admin/support", "Kontak"}, {"/admin/audit", "Audit log"},
+	{"/admin/packages", "Paket"}, {"/admin/payments", "Pembayaran"}, {"/admin/storage", "Storage"}, {"/admin/domains", "Domain"}, {"/admin/support", "Kontak"}, {"/admin/testimonials", "Testimoni"}, {"/admin/audit", "Audit log"},
 }
 
 templ shell(title, active string) {
@@ -745,6 +745,25 @@ templ supportPage(sup web.Support, f flash) {
 						<a href={ templ.SafeURL(web.SupportURL()) } target="_blank" rel="noopener" class="ui-link text-sm">Coba buka chat ↗</a>
 					}
 				</div>
+			</form>
+		</div>
+	}
+}
+
+// testimonialsPage: testimoni asli untuk landing page.
+templ testimonialsPage(raw string, f flash) {
+	@shell("Testimoni", "/admin/testimonials") {
+		@flashMsg(f)
+		<p class="text-sm text-lovoria-muted">Tampil di halaman utama. Hanya isi testimoni asli yang sudah mendapat izin dari pasangannya. Bila kosong, bagian testimoni tidak ditampilkan. Perubahan langsung berlaku.</p>
+		<div class="ui-card max-w-xl p-5">
+			<form method="post" action="/admin/testimonials" class="space-y-4">
+				@layouts.CSRFField()
+				<div>
+					<label for="testimonials" class="ui-label">Testimoni</label>
+					<textarea id="testimonials" name="testimonials" rows="8" class="ui-input" placeholder="Nama pasangan | Kutipan testimoni">{ raw }</textarea>
+					<p class="ui-hint">Satu baris per testimoni, format: Nama pasangan | kutipan. Maksimal 6 testimoni.</p>
+				</div>
+				<button type="submit" class="ui-btn ui-btn-primary">Simpan</button>
 			</form>
 		</div>
 	}

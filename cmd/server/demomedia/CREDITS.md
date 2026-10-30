@@ -34,3 +34,8 @@ Berkas `<tema>-groom.jpg` / `<tema>-bride.jpg` adalah potongan dari foto pasanga
 | 4rtHl_X5GNo.jpg | Budi Firdaus | https://unsplash.com/photos/a-man-and-woman-posing-for-a-picture-4rtHl_X5GNo |
 | rMO7SR9Z6RQ.jpg | Budi Firdaus | https://unsplash.com/photos/a-man-and-woman-in-traditional-dress-rMO7SR9Z6RQ |
 | minimal-groom.jpg, minimal-bride.jpg | Budi Firdaus | https://unsplash.com/photos/a-man-and-woman-posing-for-a-picture-4rtHl_X5GNo |
+
+## Foto landing page
+
+`static/img/landing/` (selain `qr-sample.svg`) adalah potongan foto di atas yang warnanya dihangatkan:
+`hero-*` dari Lr834aonJ70, `venue` dari qG2yK_iNspE, `bouquet` dari UQl_-yabQiA, `story` dari UjLfNJa-KY8, `g1` dari RHfYB_USSEc, `g2` dari M2T1j-6Fn8w, `g3` dari IfjHaIoAoqE, `g4` dari BFqxGLypaRo.

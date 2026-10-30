@@ -62,3 +62,6 @@ Tab **Bantuan** (`/admin/support`) menyimpan nomor WhatsApp (Business) dan pesan
 
 ### Kontak usaha
 Halaman `/admin/support` (tab **Kontak**) juga menyimpan `contact_email`, `contact_phone`, dan `business_address` di `app_settings` (validasi email/telepon, alamat ≤ 300 karakter). Dimuat ke `web.Support` bersama WhatsApp bantuan; `web.Contact()` dipakai footer landing ("Hubungi kami"), `legalContact` di halaman legal, dan `contactPoint` JSON-LD. Payment gateway mensyaratkan email, telepon, dan alamat usaha tercantum di halaman utama.
+
+### Testimoni
+Halaman `/admin/testimonials` menyimpan testimoni asli untuk landing page di `app_settings` (kunci `landing_testimonials`), satu baris per testimoni dengan format `Nama | kutipan` (maksimal 6). Dimuat ke `web.Testimonials()` saat start dan setiap kali disimpan (audit `testimonials.update`). Kosong = bagian testimoni tidak tampil; jangan mengisi data contoh.

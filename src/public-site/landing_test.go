@@ -15,8 +15,10 @@ func TestLandingPage(t *testing.T) {
 	f := newFixture(t)
 	body := f.get("/", nil).Body.String()
 	for _, want := range []string{
-		"Your Love.", "THE DIGITAL WEDDING EXPERIENCE", `href="/register"`, `href="/login"`,
-		`id="cara-kerja"`, `id="fitur"`, `id="tema"`, `id="faq"`,
+		"Your Love Story, Beautifully Invited.", "Explore Invitations", "See How It Works",
+		"Timeless Designs for Your Special Day", "A Seamless Welcome for Every Guest", "A Complete Experience for Your Wedding Day", "Your Special Day Starts Here.",
+		`href="/register"`, `href="/login"`, `href="/faq"`,
+		`id="cara-kerja"`, `id="fitur"`, `id="tema"`,
 		`property="og:image" content="https://lovoria.test/static/img/brand/og-lovoria.png`,
 		`rel="canonical" href="https://lovoria.test/"`,
 	} {
@@ -30,8 +32,21 @@ func TestLandingPage(t *testing.T) {
 	}
 	free := newFixture(t)
 	free.handler.PublishPrice = 0
-	if b := free.get("/", nil).Body.String(); strings.Contains(b, `id="harga"`) || strings.Contains(b, `href="#harga"`) || strings.Contains(b, "Berapa biayanya?") {
-		t.Error("tanpa harga: bagian, menu, dan FAQ harga disembunyikan")
+	if b := free.get("/", nil).Body.String(); strings.Contains(b, `id="harga"`) || strings.Contains(b, `href="#harga"`) || strings.Contains(b, `href="/#harga"`) {
+		t.Error("tanpa harga: bagian dan menu harga disembunyikan")
+	}
+	if b := free.get("/faq", nil).Body.String(); strings.Contains(b, "Berapa biayanya?") {
+		t.Error("tanpa harga: FAQ harga disembunyikan")
+	}
+	// Testimoni hanya dari data asli: tanpa data, bagiannya tidak tampil.
+	t.Cleanup(func() { web.SetTestimonials(nil) })
+	web.SetTestimonials(nil)
+	if strings.Contains(f.get("/", nil).Body.String(), "Loved by Couples") {
+		t.Error("tanpa testimoni: bagian testimoni disembunyikan")
+	}
+	web.SetTestimonials([]web.Testimonial{{Name: "Dita & Bayu", Quote: "Tamu kami terkesan."}})
+	if b := f.get("/", nil).Body.String(); !strings.Contains(b, "Loved by Couples") || !strings.Contains(b, "Dita &amp; Bayu") || !strings.Contains(b, "Tamu kami terkesan.") {
+		t.Error("testimoni dari admin harus tampil")
 	}
 	// Belum ada undangan contoh: tidak ada link "Lihat contoh" yang mati.
 	if strings.Contains(body, "/w/contoh-") {
@@ -66,10 +81,14 @@ func TestLandingThemesPackagesAndLogin(t *testing.T) {
 		t.Error("etalase tema: thumbnail / label Pilihan Lunovia")
 	}
 	// Harga tunggal (T23): sekali bayar saat publikasi, semua fitur termasuk.
-	for _, want := range []string{`id="harga"`, "Rp149.000", "sekali bayar per undangan", "tanpa langganan", "Custom domain", "Berapa biayanya?", `href="#harga"`} {
+	for _, want := range []string{`id="harga"`, "Rp149.000", "sekali bayar per undangan", "tanpa langganan", "Custom domain", "Check-in tamu dengan QR", `href="#harga"`} {
 		if !strings.Contains(body, want) {
 			t.Errorf("harga tidak memuat %q", want)
 		}
+	}
+	// Beranda hanya memuat tema terbaik; sisanya di /tema.
+	if strings.Contains(body, "img/themes/minimal.webp") {
+		t.Error("beranda hanya menampilkan tema pilihan")
 	}
 	// Undangan contoh yang ditarik ke draft tidak ditautkan.
 	f.setStatus(w.ID, wedding.StatusDraft)
@@ -159,7 +178,7 @@ func TestSEO(t *testing.T) {
 			t.Errorf("landing tidak memuat %q", want)
 		}
 	}
-	// JSON-LD: JSON valid, memuat organisasi, aplikasi + harga, dan FAQ.
+	// JSON-LD: JSON valid, memuat organisasi dan aplikasi + harga.
 	m := regexp.MustCompile(`(?s)<script id="ld-site" type="application/ld\+json">(.*?)</script>`).FindStringSubmatch(body)
 	if m == nil {
 		t.Fatal("landing tanpa JSON-LD")
@@ -174,7 +193,7 @@ func TestSEO(t *testing.T) {
 	for _, n := range doc.Graph {
 		types[n["@type"].(string)] = n
 	}
-	for _, typ := range []string{"Organization", "WebSite", "SoftwareApplication", "FAQPage"} {
+	for _, typ := range []string{"Organization", "WebSite", "SoftwareApplication"} {
 		if types[typ] == nil {
 			t.Errorf("JSON-LD tanpa %s", typ)
 		}
@@ -183,9 +202,26 @@ func TestSEO(t *testing.T) {
 		t.Errorf("JSON-LD harga: %v", types["SoftwareApplication"]["offers"])
 	}
 
+	// FAQ: halaman sendiri dengan JSON-LD FAQPage, jangkar QR check-in, dan
+	// jawaban yang sama dengan yang tampil.
+	faq := f.get("/faq", nil).Body.String()
+	for _, want := range []string{`rel="canonical" href="https://lovoria.test/faq"`, `id="faq"`, `id="qr-checkin"`, "Berapa biayanya?", faqCheckinQ} {
+		if !strings.Contains(faq, want) {
+			t.Errorf("/faq tidak memuat %q", want)
+		}
+	}
+	fm := regexp.MustCompile(`(?s)<script id="ld-faq" type="application/ld\+json">(.*?)</script>`).FindStringSubmatch(faq)
+	if fm == nil {
+		t.Fatal("/faq tanpa JSON-LD")
+	}
+	var fdoc map[string]any
+	if err := json.Unmarshal([]byte(fm[1]), &fdoc); err != nil || fdoc["@type"] != "FAQPage" {
+		t.Fatalf("JSON-LD FAQ: %v %v", err, fdoc)
+	}
+
 	// Etalase tema: boleh diindeks, kanonik, satu h1, breadcrumb JSON-LD.
 	for path, wants := range map[string][]string{
-		"/tema":         {`rel="canonical" href="https://lovoria.test/tema"`, "Tema undangan pernikahan digital", `href="/tema/elegant"`, `href="/#fitur"`},
+		"/tema":         {`rel="canonical" href="https://lovoria.test/tema"`, "Tema undangan pernikahan digital", `href="/tema/elegant"`, `href="/#tema"`},
 		"/tema/elegant": {`rel="canonical" href="https://lovoria.test/tema/elegant"`, "Tema undangan pernikahan Elegan", "Cormorant Garamond", "BreadcrumbList", `href="/register?next=%2Fdashboard%2Fweddings%2Fnew%3Ftema%3Delegant"`},
 	} {
 		rec := f.get(path, nil)
@@ -210,7 +246,7 @@ func TestSEO(t *testing.T) {
 		t.Errorf("tema nonaktif: %d", rec.Code)
 	}
 	sm := f.get("/sitemap.xml", nil).Body.String()
-	if !strings.Contains(sm, "<loc>https://lovoria.test/tema</loc>") || !strings.Contains(sm, "<loc>https://lovoria.test/tema/elegant</loc>") || strings.Contains(sm, "/tema/modern") {
+	if !strings.Contains(sm, "<loc>https://lovoria.test/tema</loc>") || !strings.Contains(sm, "<loc>https://lovoria.test/tema/elegant</loc>") || !strings.Contains(sm, "<loc>https://lovoria.test/faq</loc>") || strings.Contains(sm, "/tema/modern") {
 		t.Errorf("sitemap: %s", sm)
 	}
 	rec := f.get("/llms.txt", nil)
@@ -226,7 +262,7 @@ func TestSEO(t *testing.T) {
 	f.publish(w.ID)
 	f.domains["www.samuelsarah.com"] = w.ID
 	custom := map[string]string{"Host": "www.samuelsarah.com"}
-	for _, p := range []string{"/tema", "/tema/elegant", "/llms.txt", "/sitemap.xml"} {
+	for _, p := range []string{"/tema", "/tema/elegant", "/faq", "/llms.txt", "/sitemap.xml"} {
 		if rec := f.get(p, custom); rec.Code != http.StatusNotFound {
 			t.Errorf("custom domain %s: %d", p, rec.Code)
 		}

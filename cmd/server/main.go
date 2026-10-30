@@ -456,6 +456,9 @@ func (a *app) routes() *echo.Echo {
 	if err := admins.LoadSupport(context.Background()); err != nil {
 		log.Warn("kontak bantuan belum termuat — tautan bantuan disembunyikan", slog.Any("error", err))
 	}
+	if err := admins.LoadTestimonials(context.Background()); err != nil {
+		log.Warn("kontak bantuan belum termuat — tautan bantuan disembunyikan", slog.Any("error", err))
+	}
 	publicsite.Register(e, publicsite.Deps{
 		Resolver: &publicsite.Resolver{Weddings: a.weddings, Guests: guests, Domains: a.domains, BaseURL: cfg.BaseURL, ExtraHosts: cfg.ExtraHosts, HostHeader: cfg.Domain.HostHeader, Log: log},
 		Handler:  &publicsite.Handler{BaseURL: cfg.BaseURL, PublishPrice: cfg.Payment.PriceIDR, GoogleVerification: cfg.GoogleSiteVerification, BingVerification: cfg.BingSiteVerification, Views: views, Guests: guests, Guestbook: guestbooks, Events: events, Log: log, Secret: secret},

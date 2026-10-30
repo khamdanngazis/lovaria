@@ -255,7 +255,7 @@ func TestNotFoundAndLanding(t *testing.T) {
 			t.Errorf("%s: %d", p, rec.Code)
 		}
 	}
-	if rec := f.get("/", nil); rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Your Forever.") {
+	if rec := f.get("/", nil); rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Your Love Story") {
 		t.Errorf("landing: %d", rec.Code)
 	}
 }
@@ -494,7 +494,7 @@ func TestCustomDomainRedirectAndHostHeader(t *testing.T) {
 		t.Errorf("host header: %d", rec.Code)
 	}
 	// Domain Railway sendiri tetap host Lunovia (landing, bukan 404).
-	if rec := f.get("/", map[string]string{"Host": "lovaria.up.railway.app"}); rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Your Forever.") {
+	if rec := f.get("/", map[string]string{"Host": "lovaria.up.railway.app"}); rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Your Love Story") {
 		t.Errorf("extra host: %d", rec.Code)
 	}
 	// Header berisi host tak dikenal → 404.

@@ -28,5 +28,7 @@ func Register(g *echo.Group, svc *Service) {
 	g.GET("/domains", h.Domains)
 	g.GET("/support", h.Support)
 	g.POST("/support", h.SaveSupport)
+	g.GET("/testimonials", h.Testimonials)
+	g.POST("/testimonials", h.SaveTestimonials)
 	g.GET("/audit", h.Audit)
 }
