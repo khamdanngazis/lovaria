@@ -37,5 +37,6 @@ Berkas `<tema>-groom.jpg` / `<tema>-bride.jpg` adalah potongan dari foto pasanga
 
 ## Foto landing page
 
-`static/img/landing/` (selain `qr-sample.svg`) adalah potongan foto di atas yang warnanya dihangatkan:
-`hero-*` dari Lr834aonJ70, `venue` dari qG2yK_iNspE, `bouquet` dari UQl_-yabQiA, `story` dari UjLfNJa-KY8, `g1` dari RHfYB_USSEc, `g2` dari M2T1j-6Fn8w, `g3` dari IfjHaIoAoqE, `g4` dari BFqxGLypaRo.
+`static/img/landing/` (selain `qr-sample.svg` dan `hero-*`) adalah potongan foto di atas yang warnanya dihangatkan:
+`venue` dari qG2yK_iNspE, `bouquet` dari UQl_-yabQiA, `story` dari UjLfNJa-KY8, `g1` dari RHfYB_USSEc, `g2` dari M2T1j-6Fn8w, `g3` dari IfjHaIoAoqE, `g4` dari BFqxGLypaRo.
+`hero-*` dibuat dari `doc/lovoria-tasks/Elegant Lavender Wedding Invitation Flat Lay.png` (materi dari pemilik produk, bukan Unsplash).
