@@ -59,3 +59,22 @@ func SupportURL() string {
 	}
 	return u
 }
+
+// Testimonial: testimoni asli pasangan untuk landing page. Diatur admin;
+// tidak pernah diisi data contoh.
+type Testimonial struct {
+	Name, Quote string
+}
+
+var testimonials atomic.Pointer[[]Testimonial]
+
+// Testimonials mengembalikan testimoni yang sedang berlaku (bisa kosong).
+func Testimonials() []Testimonial {
+	if t := testimonials.Load(); t != nil {
+		return *t
+	}
+	return nil
+}
+
+// SetTestimonials mengganti testimoni yang dipakai landing page.
+func SetTestimonials(t []Testimonial) { testimonials.Store(&t) }

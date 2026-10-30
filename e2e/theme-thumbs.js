@@ -4,7 +4,7 @@
 //   make theme-thumbs            (server harus jalan & `lovoria demo seed` sudah dibuat)
 //
 // Target: E2E_BASE_URL (default http://localhost:8080). Daftar tema diambil
-// dari kartu "Lihat contoh" di landing, jadi tema baru otomatis ikut.
+// dari kartu "Lihat contoh" di /tema, jadi tema baru otomatis ikut.
 const { chromium } = require('@playwright/test');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -19,9 +19,9 @@ const MAX_BYTES = 60 * 1024;
 (async () => {
   const browser = await chromium.launch({ channel: process.env.PW_CHANNEL || undefined });
   const page = await browser.newPage({ viewport: VIEW, deviceScaleFactor: 2, reducedMotion: 'reduce' });
-  await page.goto(BASE + '/', { waitUntil: 'networkidle' });
+  await page.goto(BASE + '/tema', { waitUntil: 'networkidle' });
   const ids = await page.$$eval('a[href^="/w/contoh-"]', (as) => [...new Set(as.map((a) => a.getAttribute('href').replace('/w/contoh-', '')))]);
-  if (!ids.length) throw new Error('Tidak ada undangan contoh di landing — jalankan `lovoria demo seed` dulu.');
+  if (!ids.length) throw new Error('Tidak ada undangan contoh di /tema — jalankan `lovoria demo seed` dulu.');
   fs.mkdirSync(OUT, { recursive: true });
 
   for (const id of ids) {

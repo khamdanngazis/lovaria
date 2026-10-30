@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Redesign landing page premium
+- Beranda disusun ulang: Hero, Koleksi (4 tema terbaik dalam bingkai ponsel), Guest Experience (QR check-in), Complete Experience, Testimoni, Paket, CTA, dan footer terang. Warna brand tidak berubah.
+- FAQ pindah ke halaman sendiri **`/faq`** (masuk sitemap, JSON-LD FAQPage), ditambah pertanyaan tentang QR check-in.
+- Halaman admin baru **Testimoni** (`/admin/testimonials`): hanya testimoni asli; bila kosong, bagian testimoni tidak tampil.
+- Paket menampilkan harga publikasi yang berlaku, dan daftar fiturnya kini menyebut check-in tamu dengan QR.
+
 ### Ganti metode pembayaran
 - Pasangan yang sudah memilih metode bayar (mis. VA bank) kini bisa **ganti metode tanpa menunggu pembayaran pertama kedaluwarsa**: tombol "Ganti metode pembayaran" di halaman publikasi dan halaman status membuat halaman bayar baru.
 - Midtrans: transaksi lama ditutup lewat Expire API sehingga nomor VA lama tidak bisa dibayar lagi. Duitku tidak menyediakan pembatalan; kode bayar lama tetap diterima bila dibayar, dan pembayaran ganda dicatat di log untuk dicek admin.

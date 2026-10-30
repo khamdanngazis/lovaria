@@ -58,6 +58,7 @@ func (h *Handler) landing(c echo.Context) (landingData, error) {
 		d.Themes = append(d.Themes, lt)
 	}
 	d.PriceIDR = h.PublishPrice
+	d.Testimonials = web.Testimonials()
 	return d, nil
 }
 
@@ -92,4 +93,18 @@ func (h *Handler) ThemeDetail(c echo.Context) error {
 		}
 	}
 	return notFound(c)
+}
+
+// GET /faq — pertanyaan umum (boleh diindeks; hanya di domain Lunovia).
+func (h *Handler) FAQ(c echo.Context) error {
+	if !h.ownHost(c.Request()) {
+		return notFound(c)
+	}
+	d, err := h.landing(c)
+	if err != nil {
+		return err
+	}
+	c.Response().Header().Set("Cache-Control", "public, max-age=300")
+	d.NavPrefix = "/"
+	return web.Render(c, http.StatusOK, faqPage(d))
 }

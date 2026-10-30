@@ -651,3 +651,44 @@ func TestBusinessContact(t *testing.T) {
 		t.Error("isian salah tidak boleh menimpa kontak tersimpan")
 	}
 }
+
+// Testimoni landing page: format "Nama | kutipan", langsung berlaku, tersimpan
+// di DB, dan isian salah ditolak tanpa mengubah yang berlaku.
+func TestTestimonials(t *testing.T) {
+	f := newFixture(t)
+	t.Cleanup(func() { web.SetTestimonials(nil) })
+	_, admin := f.user(t, "admin@example.com", true)
+	rec := f.do(http.MethodPost, "/admin/testimonials", admin, reqOpt{form: url.Values{"testimonials": {"Dita & Bayu | Tamu kami terkesan.\r\n\r\nRani | Mudah sekali."}}})
+	if rec.Code != http.StatusSeeOther || strings.Contains(rec.Header().Get("Location"), "err=") {
+		t.Fatalf("simpan: %d %s", rec.Code, rec.Header().Get("Location"))
+	}
+	if got := web.Testimonials(); len(got) != 2 || got[0].Name != "Dita & Bayu" || got[1].Quote != "Mudah sekali." {
+		t.Fatalf("testimoni: %+v", got)
+	}
+	web.SetTestimonials(nil)
+	if err := f.svc.LoadTestimonials(ctx); err != nil || len(web.Testimonials()) != 2 {
+		t.Fatalf("tersimpan di DB: %v %+v", err, web.Testimonials())
+	}
+	if b := f.do(http.MethodGet, "/admin/testimonials", admin, reqOpt{}).Body.String(); !strings.Contains(b, "Mudah sekali.") {
+		t.Error("halaman Testimoni harus menampilkan isian tersimpan")
+	}
+	for name, bad := range map[string]string{
+		"tanpa pemisah":   "tanpa pemisah",
+		"tanpa nama":      " | kutipan",
+		"terlalu panjang": "Nama | " + strings.Repeat("x", 301),
+		"terlalu banyak":  strings.Repeat("Nama | kutipan\n", 7),
+	} {
+		rec := f.do(http.MethodPost, "/admin/testimonials", admin, reqOpt{form: url.Values{"testimonials": {bad}}})
+		if !strings.Contains(rec.Header().Get("Location"), "err=") {
+			t.Errorf("%s harus ditolak: %s", name, rec.Header().Get("Location"))
+		}
+	}
+	if len(web.Testimonials()) != 2 {
+		t.Errorf("isian salah tidak boleh mengubah testimoni: %+v", web.Testimonials())
+	}
+	// Dikosongkan → bagian testimoni hilang.
+	f.do(http.MethodPost, "/admin/testimonials", admin, reqOpt{form: url.Values{"testimonials": {""}}})
+	if len(web.Testimonials()) != 0 {
+		t.Errorf("dikosongkan: %+v", web.Testimonials())
+	}
+}

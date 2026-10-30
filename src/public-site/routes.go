@@ -36,6 +36,7 @@ func Register(e *echo.Echo, d Deps) {
 	// Etalase tema (T27): halaman yang boleh diindeks, hanya di domain Lunovia.
 	e.GET("/tema", h.Themes)
 	e.GET("/tema/:id", h.ThemeDetail)
+	e.GET("/faq", h.FAQ)
 	e.GET("/privacy", h.Privacy)
 	e.GET("/terms", h.Terms)
 
