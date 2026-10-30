@@ -154,7 +154,7 @@ templ landingHeader(d landingData) {
 			<a href="/" aria-label="Lunovia — beranda" class="text-lovoria-primary">
 				@layouts.BrandLogo("")
 			</a>
-			<nav aria-label="Navigasi utama" class="hidden items-center gap-7 text-sm font-medium text-lovoria-text md:flex">
+			<nav aria-label="Navigasi utama" class="hidden items-center gap-7 whitespace-nowrap text-sm font-medium text-lovoria-text lg:flex">
 				@landingNavLinks(d)
 			</nav>
 			<div class="flex items-center gap-2">
@@ -164,7 +164,7 @@ templ landingHeader(d landingData) {
 					<a href="/login" class="hidden px-3 py-2 text-sm font-medium text-lovoria-text hover:text-lovoria-primary sm:inline">Login</a>
 					<a href="/register" class={ btnPrimary, "whitespace-nowrap !px-4 !py-2.5" }>Get Started</a>
 				}
-				<details class="relative md:hidden">
+				<details class="relative lg:hidden">
 					<summary class="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-lg text-lovoria-deep [&::-webkit-details-marker]:hidden" aria-label="Menu">
 						@icon("menu", "h-6 w-6")
 					</summary>
@@ -182,30 +182,34 @@ templ landingHeader(d landingData) {
 
 // ---------- Hero ----------
 
-// heroSrcset: foto hero 2 ukuran (sumber: cmd/server/demomedia/CREDITS.md).
-func heroSrcset() string {
-	return static.URL("img/landing/hero-720.webp") + " 720w, " + static.URL("img/landing/hero-1200.webp") + " 1200w"
+// heroWideSrcset: komposisi utuh 16:9 untuk tablet & desktop (ponsel memakai
+// potongan potret hero-portrait yang fokus ke kartu undangan).
+func heroWideSrcset() string {
+	return static.URL("img/landing/hero-1024.webp") + " 1024w, " + static.URL("img/landing/hero-1672.webp") + " 1672w"
 }
 
 templ landingHero() {
 	<section class="relative overflow-hidden bg-lovoria-bg">
-		<div class="relative h-[52svh] min-h-72 w-full lg:absolute lg:inset-y-0 lg:right-0 lg:h-auto lg:w-[60%]">
-			<img src={ static.URL("img/landing/hero-720.webp") } srcset={ heroSrcset() } sizes="(min-width: 1024px) 60vw, 100vw" alt="Sepasang pengantin berbusana adat putih saling mendekat" width="1200" height="1300" fetchpriority="high" decoding="async" class="h-full w-full object-cover object-[50%_25%]"/>
-			<div aria-hidden="true" class="absolute inset-0 bg-[linear-gradient(180deg,transparent_65%,#faf7f5)] lg:bg-[linear-gradient(90deg,#faf7f5,rgba(250,247,245,0.55)_22%,transparent_50%)]"></div>
+		<div class="relative h-[52svh] min-h-72 w-full sm:aspect-[16/9] sm:h-auto sm:max-h-[60svh] sm:min-h-0 lg:absolute lg:inset-0 lg:aspect-auto lg:max-h-none">
+			<picture>
+				<source media="(min-width: 640px)" srcset={ heroWideSrcset() } sizes="100vw" width="1672" height="940"/>
+				<img src={ static.URL("img/landing/hero-portrait.webp") } alt="Kartu undangan Lunovia dengan segel lilin, pita ungu, dan rangkaian bunga putih" width="800" height="862" fetchpriority="high" decoding="async" class="h-full w-full object-cover object-right"/>
+			</picture>
+			<div aria-hidden="true" class="absolute inset-0 bg-[linear-gradient(180deg,transparent_78%,#faf7f5)] lg:bg-[linear-gradient(90deg,rgba(250,247,245,0.82),rgba(250,247,245,0.55)_35%,transparent_58%)]"></div>
 		</div>
-		<div class={ container, "relative pb-14 pt-4 lg:flex lg:min-h-[38rem] lg:items-center lg:py-20" }>
+		<div class={ container, "relative pb-14 pt-4 lg:flex lg:min-h-[max(38rem,min(50vw,calc(100svh-4rem)))] lg:items-center lg:py-16" }>
 			<div class="lg:max-w-lg">
-				<p class={ eyebrowClass }>Lunovia</p>
-				<h1 class="mt-4 font-display text-[2.6rem] leading-[1.12] text-lovoria-deep sm:text-5xl lg:text-6xl">Your Love Story, Beautifully Invited.</h1>
-				<p class="mt-5 max-w-md text-base leading-relaxed text-lovoria-muted sm:text-lg">{ landingLead }</p>
+				<p class={ eyebrowClass, "lg:text-lovoria-deep" }>Lunovia</p>
+				<h1 class="mt-4 font-display text-[2.6rem] leading-[1.12] text-lovoria-deep sm:max-w-xl sm:text-5xl lg:text-[3.25rem] xl:text-6xl">Your Love Story, Beautifully Invited.</h1>
+				<p class="mt-5 max-w-md text-base leading-relaxed text-lovoria-muted sm:text-lg lg:text-lovoria-text">{ landingLead }</p>
 				<div class="mt-8 flex flex-col gap-3 sm:flex-row">
 					<a href="#tema" class={ btnPrimary }>
 						Explore Invitations
 						@icon("arrow", "h-4 w-4")
 					</a>
-					<a href="#cara-kerja" class={ btnSecondary }>See How It Works</a>
+					<a href="#cara-kerja" class={ btnSecondary, "lg:bg-white/50" }>See How It Works</a>
 				</div>
-				<p class="mt-8 text-[11px] uppercase tracking-[0.2em] text-lovoria-muted">Designed with care · Made for your moment</p>
+				<p class="mt-8 text-[11px] uppercase tracking-[0.2em] text-lovoria-muted lg:text-lovoria-text">Designed with care · Made for your moment</p>
 			</div>
 		</div>
 	</section>
