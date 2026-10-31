@@ -163,8 +163,12 @@ func TestSignatureCheckinStates(t *testing.T) {
 	// Tamu dengan QR: QR fungsional dalam kartu tamu.
 	v := base()
 	v.Checkin.QRURL = "/i/ABC/qr.png"
-	if html := render(t, v); !strings.Contains(html, "Guest Pass") || !strings.Contains(html, `src="/i/ABC/qr.png"`) {
-		t.Error("kartu tamu harus memuat QR")
+	v.Guest.Code = "ABC1234"
+	html := render(t, v)
+	for _, want := range []string{"Wedding Guest Pass", "Samuel &amp; Sarah", `src="/i/ABC/qr.png"`, "ABC1234", "Tunjukkan QR ini kepada penerima tamu", "Simpan QR", "floral/signature-lavender/rose.webp"} {
+		if !strings.Contains(html, want) {
+			t.Errorf("kartu tamu tidak memuat %q", want)
+		}
 	}
 	// Link umum: info saja.
 	v = base()
