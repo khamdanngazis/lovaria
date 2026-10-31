@@ -3,7 +3,7 @@
 ## [Unreleased]
 
 ### Lunovia Signature: desain baru & lima tema warna
-- Tema **Lunovia Signature** didesain ulang (T33): kanvas ivory, nama mempelai dalam Cormorant Garamond, judul Playfair Display, isi Lato, dan bunga watercolor di sudut halaman.
+- Tema **Lunovia Signature** didesain ulang (T33): kertas ivory bercahaya dalam bingkai tipis, nama mempelai & judul Playfair Display, aksen miring Cormorant Garamond, isi Lato, serta bunga, pita satin, dan kelopak watercolor.
 - Pasangan memilih satu dari **lima tema warna**: Signature Lavender (bawaan), Sage Garden, Blush Romance, Midnight Elegance, dan Terracotta Bloom. Warna bunga ikut berganti; layout tidak berubah.
 - Susunan undangan kini tetap: sampul → Wedding Hero → pesan pembuka → cerita → acara → galeri → RSVP → kartu tamu QR → hadiah → ucapan → penutup. Bagian opsional tetap bisa disembunyikan.
 - Di Signature, warna bebas, font, latar, dan urutan bagian tidak lagi bisa diatur. Sembilan tema lain tidak berubah; pengaturan tersimpan tetap berlaku bila pasangan pindah ke tema lain.

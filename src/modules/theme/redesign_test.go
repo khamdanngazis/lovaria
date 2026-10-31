@@ -214,7 +214,7 @@ func TestSignatureThemeAndSharedTitles(t *testing.T) {
 			t.Errorf("bagian %s belum memakai judul tema Signature", id)
 		}
 	}
-	for _, want := range []string{"Samuel &amp; Sarah", ">S<", "THE WEDDING OF", "With love,", "12", `class="lv-btn`, "lv-card", "lv-input", "lv-signature"} {
+	for _, want := range []string{"Samuel &amp; Sarah", ">S<", "The Wedding of", "With love,", "12", `class="lv-btn`, "lv-card", "lv-input", "lv-signature"} {
 		if !strings.Contains(html, want) {
 			t.Errorf("Signature: tidak ada %q", want)
 		}

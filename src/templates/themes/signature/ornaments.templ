@@ -7,7 +7,7 @@ import (
 )
 
 // Ornamen tema Signature: SVG inline dekoratif (aria-hidden) yang mengikuti
-// warna teks (currentColor), dan bunga watercolor per preset warna.
+// warna teks (currentColor), serta bunga & pita watercolor per preset warna.
 
 // sparkle: bintang empat sudut (motif brand Lunovia).
 templ sparkle(class string) {
@@ -19,9 +19,9 @@ templ sparkle(class string) {
 // divider: garis tipis – bintang – garis tipis.
 templ divider(class string) {
 	<div class={ "flex items-center justify-center gap-3 text-secondary", class } aria-hidden="true">
-		<span class="h-px w-10 bg-current opacity-70"></span>
-		@sparkle("h-2.5 w-2.5")
-		<span class="h-px w-10 bg-current opacity-70"></span>
+		<span class="h-px w-14 bg-current opacity-70"></span>
+		@sparkle("h-3 w-3")
+		<span class="h-px w-14 bg-current opacity-70"></span>
 	</div>
 }
 
@@ -39,54 +39,110 @@ templ monogram(v view.View, class string) {
 	}
 }
 
-// Ukuran bunga: besar untuk sampul, sedang untuk penutup, kecil untuk aksen.
-// Padding bagian harus lebih tinggi dari bunganya supaya teks tidak tertutup.
-const (
-	floralLarge  = "w-[58%] max-w-[420px]"
-	floralMedium = "w-[42%] max-w-[300px]"
-	floralSmall  = "w-[36%] max-w-[240px]"
-)
-
-// floralCorner: posisi bunga. Satu gambar (buket kiri atas) dibalik ke tiap
-// sudut lewat properti scale/rotate, supaya tidak bentrok dengan transform
-// animasi reveal.
-func floralCorner(corner string) string {
-	switch corner {
-	case "tr":
-		return "right-0 top-0 -scale-x-100"
-	case "bl":
-		return "bottom-0 left-0 -scale-y-100"
-	case "br":
-		return "bottom-0 right-0 rotate-180"
+// artSize: ukuran asli potongan aset (e2e/floral-tints.js).
+func artSize(name string) (w, h string) {
+	switch name {
+	case "cluster":
+		return "416", "332"
+	case "corner":
+		return "411", "488"
+	case "ribbon-left":
+		return "416", "168"
+	case "ribbon":
+		return "843", "308"
 	}
-	return "left-0 top-0"
+	return "68", "44"
 }
 
-func floralURL(v view.View) string {
-	return static.URL("img/themes/signature/floral/" + v.Tokens.Preset + ".webp")
+func artURL(v view.View, name string) string {
+	return static.URL("img/themes/signature/floral/" + v.Tokens.Preset + "/" + name + ".webp")
 }
 
-// floral: bunga pembingkai di sudut bagian (induk harus relative + overflow-hidden).
-templ floral(v view.View, corner, size string, eager bool) {
+// art: potongan aset floral dekoratif. Induk mengatur posisi lewat class; teks
+// harus berada di atasnya (relative) dan padding bagian menjaga tidak tertutup.
+templ art(v view.View, name, class string, eager bool) {
+	{{ w, h := artSize(name) }}
 	<img
-		src={ floralURL(v) }
+		src={ artURL(v, name) }
 		alt=""
 		aria-hidden="true"
-		width="840"
-		height="840"
+		width={ w }
+		height={ h }
 		if eager {
 			fetchpriority="high"
 		} else {
 			loading="lazy"
 		}
 		decoding="async"
-		class={ "pointer-events-none absolute select-none", size, floralCorner(corner) }
+		class={ "pointer-events-none select-none", class }
 	/>
+}
+
+// ribbonBand: pita satin melintang selebar halaman sebagai pemisah bagian.
+templ ribbonBand(v view.View) {
+	@art(v, "ribbon", "block h-auto w-full", false)
+}
+
+// frameLines: bingkai garis tipis bersudut takik ala kartu cetak. Dibuat dari
+// empat garis + empat busur supaya sudutnya tidak melar di ukuran apa pun.
+templ frameLines(class string) {
+	<div class={ "pointer-events-none absolute text-secondary", class } aria-hidden="true">
+		<span class="absolute inset-x-4 top-0 h-px bg-current opacity-60"></span>
+		<span class="absolute inset-x-4 bottom-0 h-px bg-current opacity-60"></span>
+		<span class="absolute inset-y-4 left-0 w-px bg-current opacity-60"></span>
+		<span class="absolute inset-y-4 right-0 w-px bg-current opacity-60"></span>
+		@frameCorner("left-0 top-0")
+		@frameCorner("right-0 top-0 -scale-x-100")
+		@frameCorner("bottom-0 left-0 -scale-y-100")
+		@frameCorner("bottom-0 right-0 rotate-180")
+	</div>
+}
+
+templ frameCorner(class string) {
+	<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-opacity="0.6" class={ "absolute h-4 w-4", class }>
+		<path d="M0 16a16 16 0 0 0 16-16" vector-effect="non-scaling-stroke"></path>
+	</svg>
+}
+
+// label: teks kecil renggang diapit garis tipis.
+templ label(text string) {
+	<div class="flex items-center justify-center gap-3 text-muted">
+		<span class="h-px w-8 flex-none bg-secondary opacity-60 sm:w-14" aria-hidden="true"></span>
+		<p class="text-xs uppercase tracking-[0.3em]">{ text }</p>
+		<span class="h-px w-8 flex-none bg-secondary opacity-60 sm:w-14" aria-hidden="true"></span>
+	</div>
+}
+
+// names: nama mempelai serif besar dengan "&" lembut yang menyelip di antaranya.
+templ namesStack(groom, bride string) {
+	<span class="block break-words">{ groom }</span>
+	<span class="relative z-0 -my-3 block text-[0.86em] font-normal italic leading-none text-secondary opacity-75" aria-hidden="true">&amp;</span>
+	<span class="sr-only">dan</span>
+	<span class="relative block break-words">{ bride }</span>
+}
+
+// infoRow: tanggal | jam | tempat tiga kolom dengan garis pemisah.
+templ infoRow(date, timeText, venue string) {
+	<dl class="mx-auto grid max-w-xl grid-cols-3 divide-x divide-secondary/40 text-center text-sm leading-snug text-deep">
+		@infoCell(iconCalendar, "Tanggal", date)
+		@infoCell(iconClock, "Waktu", timeText)
+		@infoCell(iconPin, "Tempat", venue)
+	</dl>
+}
+
+templ infoCell(path, term, value string) {
+	<div class="min-w-0 px-2">
+		<div class="flex justify-center text-primary">
+			@icon(path)
+		</div>
+		<dt class="sr-only">{ term }</dt>
+		<dd class="mt-2 break-words">{ value }</dd>
+	</div>
 }
 
 // icon: ikon garis tipis untuk info acara & hadiah.
 templ icon(path string) {
-	<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="mt-0.5 h-5 w-5 flex-none text-secondary">
+	<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="h-6 w-6 flex-none text-primary">
 		<path d={ path }></path>
 	</svg>
 }
