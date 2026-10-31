@@ -157,13 +157,6 @@
 .lv-signature .lv-card {
   background: var(--lv-paper);
 }
-/* Layar lebar: undangan menjadi panel di atas latar lembut, jadi pita & bunga
-   yang terpotong di tepi tetap terbaca sebagai tepi halaman. */
-@media (min-width: 1024px) {
-  .lv-signature {
-    background: color-mix(in srgb, var(--lv-soft) 55%, var(--lv-surface));
-  }
-}
 /* Kertas bercahaya: pantulan jendela diagonal yang sangat halus di atas ivory. */
 .lv-paper {
   background-color: var(--lv-surface);
@@ -180,11 +173,6 @@
   align-items: center;
   justify-content: center;
   letter-spacing: 0.04em;
-}
-/* Bagian bersama tetap selebar kolom baca di layar lebar. */
-.lv-signature :is(#countdown, #quote, #rsvp, #guestbook, #memories) > * {
-  margin-inline: auto;
-  max-width: 36rem;
 }
 /* Status kirim form htmx tanpa mengubah markup bersama. */
 .lv-signature form.htmx-request button[type="submit"] {
