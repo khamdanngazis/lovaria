@@ -6,6 +6,7 @@ import (
 	"embed"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 
@@ -37,54 +38,74 @@ type demoSet struct {
 	Stories []string
 }
 
-// Per tema: pasangan yang sama untuk sampul, potret mempelai
-// (demomedia/<tema>-groom.jpg, -bride.jpg), dan galeri + foto detail.
+// Set foto per karakter tema. Semua foto tanpa wajah yang bisa dikenali (aturan
+// di doc/runbook.md); urutan Stories: bertemu, memulai perjalanan, lamaran.
 var demoMedia = map[string]demoSet{
-	"signature": {Cover: "VPFnktO9TA8.jpg", Gallery: []demoPhoto{
-		{"bwo_dSnXuvU.jpg", gallery.CategoryPrewedding, ""},
-		{"4LRIIA-24SI.jpg", gallery.CategoryPrewedding, ""},
-		{"l0iyOIhrZVw.jpg", gallery.CategoryPrewedding, "Busana adat Karo"},
-		{"l4EofTUIANg.jpg", gallery.CategoryPrewedding, ""},
-		{"ZYet8yoepik.jpg", gallery.CategoryWedding, ""},
+	"signature": {Cover: "XiiexZ2jjrI.jpg", Gallery: []demoPhoto{
+		{"464ps_nOflw.jpg", gallery.CategoryPrewedding, ""},
+		{"BeHFdxxL6E8.jpg", gallery.CategoryPrewedding, ""},
 		{"UQl_-yabQiA.jpg", gallery.CategoryWedding, ""},
-	}, Stories: []string{"4LRIIA-24SI.jpg", "bwo_dSnXuvU.jpg", "l0iyOIhrZVw.jpg"}},
-	"elegant": {Cover: "Lr834aonJ70.jpg", Gallery: []demoPhoto{
-		{"Lr834aonJ70.jpg", gallery.CategoryPrewedding, ""},
-		{"BFqxGLypaRo.jpg", gallery.CategoryPrewedding, "Busana adat Sunda"},
-		{"qVtjqnWYka8.jpg", gallery.CategoryWedding, ""},
+		{"XRzUf1SGWEI.jpg", gallery.CategoryPrewedding, ""},
+		{"ZYet8yoepik.jpg", gallery.CategoryWedding, ""},
+		{"qG2yK_iNspE.jpg", gallery.CategoryWedding, ""},
+	}, Stories: []string{"qHjwSGv2p8c.jpg", "IfjHaIoAoqE.jpg", "M2T1j-6Fn8w.jpg"}},
+	"elegant": {Cover: "UQl_-yabQiA.jpg", Gallery: []demoPhoto{
+		{"wki4KKlMGvc.jpg", gallery.CategoryPrewedding, ""},
+		{"qG2yK_iNspE.jpg", gallery.CategoryWedding, "Pelaminan"},
 		{"RHfYB_USSEc.jpg", gallery.CategoryWedding, "Tukar cincin"},
 		{"ZYet8yoepik.jpg", gallery.CategoryWedding, ""},
-		{"qG2yK_iNspE.jpg", gallery.CategoryWedding, "Pelaminan"},
-	}, Stories: []string{"BFqxGLypaRo.jpg", "Lr834aonJ70.jpg", "RHfYB_USSEc.jpg"}},
-	"romantic": {Cover: "0cMP8HuJ6zk.jpg", Gallery: []demoPhoto{
-		{"0cMP8HuJ6zk.jpg", gallery.CategoryPrewedding, ""},
-		{"M2T1j-6Fn8w.jpg", gallery.CategoryWedding, ""},
+		{"BeHFdxxL6E8.jpg", gallery.CategoryPrewedding, ""},
 		{"Ko6XKSsO4w8.jpg", gallery.CategoryWedding, ""},
+	}, Stories: []string{"XRzUf1SGWEI.jpg", "XiiexZ2jjrI.jpg", "RHfYB_USSEc.jpg"}},
+	"romantic": {Cover: "Ko6XKSsO4w8.jpg", Gallery: []demoPhoto{
+		{"M2T1j-6Fn8w.jpg", gallery.CategoryWedding, ""},
 		{"UQl_-yabQiA.jpg", gallery.CategoryWedding, "Buket bunga"},
 		{"B_R3rmJPeSE.jpg", gallery.CategoryWedding, ""},
 		{"4FGhD_iGuqg.jpg", gallery.CategoryWedding, "Dekorasi resepsi"},
-	}, Stories: []string{"0cMP8HuJ6zk.jpg", "Ko6XKSsO4w8.jpg", "M2T1j-6Fn8w.jpg"}},
-	"modern": {Cover: "1cyUquII5Zg.jpg", Gallery: []demoPhoto{
-		{"1cyUquII5Zg.jpg", gallery.CategoryPrewedding, ""},
-		{"UjLfNJa-KY8.jpg", gallery.CategoryPrewedding, ""},
-		{"duNBz_LBaEc.jpg", gallery.CategoryWedding, ""},
-		{"5BB_atDT4oA.jpg", gallery.CategoryWedding, ""},
+		{"qHjwSGv2p8c.jpg", gallery.CategoryPrewedding, ""},
+		{"464ps_nOflw.jpg", gallery.CategoryPrewedding, ""},
+	}, Stories: []string{"XRzUf1SGWEI.jpg", "IfjHaIoAoqE.jpg", "M2T1j-6Fn8w.jpg"}},
+	"modern": {Cover: "l_ecNnA4xp0.jpg", Gallery: []demoPhoto{
+		{"5BB_atDT4oA.jpg", gallery.CategoryPrewedding, ""},
+		{"duNBz_LBaEc.jpg", gallery.CategoryPrewedding, ""},
+		{"SUwPo4ErQCc.jpg", gallery.CategoryWedding, ""},
+		{"B_R3rmJPeSE.jpg", gallery.CategoryWedding, ""},
+		{"OJ6LOiMcQ5k.jpg", gallery.CategoryWedding, ""},
+		{"fCwagrCDsXE.jpg", gallery.CategoryWedding, ""},
+	}, Stories: []string{"duNBz_LBaEc.jpg", "5BB_atDT4oA.jpg", "ZYet8yoepik.jpg"}},
+	"minimal": {Cover: "IfjHaIoAoqE.jpg", Gallery: []demoPhoto{
+		{"XiiexZ2jjrI.jpg", gallery.CategoryPrewedding, ""},
+		{"nHjB5F1CMLE.jpg", gallery.CategoryPrewedding, ""},
+		{"qHjwSGv2p8c.jpg", gallery.CategoryWedding, ""},
 		{"ZYet8yoepik.jpg", gallery.CategoryWedding, ""},
-		{"4FGhD_iGuqg.jpg", gallery.CategoryWedding, ""},
-	}, Stories: []string{"UjLfNJa-KY8.jpg", "1cyUquII5Zg.jpg", "5BB_atDT4oA.jpg"}},
-	"minimal": {Cover: "4rtHl_X5GNo.jpg", Gallery: []demoPhoto{
-		{"4rtHl_X5GNo.jpg", gallery.CategoryPrewedding, ""},
-		{"IfjHaIoAoqE.jpg", gallery.CategoryPrewedding, ""},
-		{"5BB_atDT4oA.jpg", gallery.CategoryWedding, ""},
-		{"UQl_-yabQiA.jpg", gallery.CategoryWedding, ""},
-		{"rMO7SR9Z6RQ.jpg", gallery.CategoryPrewedding, ""},
 		{"qG2yK_iNspE.jpg", gallery.CategoryWedding, ""},
-	}, Stories: []string{"rMO7SR9Z6RQ.jpg", "IfjHaIoAoqE.jpg", "4rtHl_X5GNo.jpg"}},
+		{"UQl_-yabQiA.jpg", gallery.CategoryWedding, ""},
+	}, Stories: []string{"wki4KKlMGvc.jpg", "464ps_nOflw.jpg", "RHfYB_USSEc.jpg"}},
+	// Koleksi Daerah (T28): detail busana, inai, dan kain.
+	"adat": {Cover: "RHfYB_USSEc.jpg", Gallery: []demoPhoto{
+		{"nHjB5F1CMLE.jpg", gallery.CategoryPrewedding, ""},
+		{"BeHFdxxL6E8.jpg", gallery.CategoryPrewedding, ""},
+		{"lKwp3-FQomY.jpg", gallery.CategoryWedding, ""},
+		{"IpORRK_X_gU.jpg", gallery.CategoryPrewedding, ""},
+		{"SgY_iQkAe4w.jpg", gallery.CategoryPrewedding, ""},
+		{"4FGhD_iGuqg.jpg", gallery.CategoryWedding, "Dekorasi resepsi"},
+	}, Stories: []string{"lKwp3-FQomY.jpg", "wki4KKlMGvc.jpg", "ZYet8yoepik.jpg"}},
+	"adat-gelap": {Cover: "SUwPo4ErQCc.jpg", Gallery: []demoPhoto{
+		{"OJ6LOiMcQ5k.jpg", gallery.CategoryWedding, ""},
+		{"fCwagrCDsXE.jpg", gallery.CategoryPrewedding, ""},
+		{"lKwp3-FQomY.jpg", gallery.CategoryWedding, ""},
+		{"B_R3rmJPeSE.jpg", gallery.CategoryWedding, ""},
+		{"SgY_iQkAe4w.jpg", gallery.CategoryPrewedding, ""},
+		{"4FGhD_iGuqg.jpg", gallery.CategoryWedding, ""},
+	}, Stories: []string{"lKwp3-FQomY.jpg", "duNBz_LBaEc.jpg", "M2T1j-6Fn8w.jpg"}},
 }
 
-// demoMediaAlias: tema yang belum punya set foto sendiri meminjam set tema lain
-// (Koleksi Daerah, T28 — foto berbusana adat daerah masing-masing menyusul).
-var demoMediaAlias = map[string]string{"jawa": "minimal", "sunda": "elegant", "minang": "signature", "bali": "romantic", "bugis": "modern"}
+// demoMediaAlias: tema yang tidak punya set foto sendiri meminjam set lain.
+var demoMediaAlias = map[string]string{"jawa": "adat", "sunda": "adat", "bali": "adat", "minang": "adat-gelap", "bugis": "adat-gelap"}
+
+// demoCoverOverride: tema yang berbagi set tetap punya sampul sendiri, supaya
+// etalase tema tidak terlihat sama.
+var demoCoverOverride = map[string]string{"jawa": "BeHFdxxL6E8.jpg", "sunda": "lKwp3-FQomY.jpg", "minang": "B_R3rmJPeSE.jpg"}
 
 // demoMediaSource: nama set foto untuk sebuah tema (cadangan: elegant).
 func demoMediaSource(themeID string) string {
@@ -103,12 +124,11 @@ func demoSettings() view.Settings {
 	return view.Settings{QuoteText: q.Text, QuoteSource: q.Source}
 }
 
-// ensureDemoMedia melengkapi foto undangan contoh: sampul, potret mempelai, dan
-// galeri. Dilewati bila galeri sudah berisi (idempoten; demo lama tanpa foto
-// ikut dilengkapi saat seed dijalankan ulang). added = foto baru diunggah.
-func (a *app) ensureDemoMedia(ctx context.Context, photos *gallery.Service, w wedding.Wedding, themeID string) (added bool, err error) {
-	src := demoMediaSource(themeID)
-	set := demoMedia[src]
+// ensureDemoMedia melengkapi foto undangan contoh: sampul dan galeri. Mempelai
+// contoh tidak berfoto. Dilewati bila galeri sudah berisi (idempoten; demo lama
+// tanpa foto ikut dilengkapi saat seed dijalankan ulang). added = foto baru diunggah.
+func ensureDemoMedia(ctx context.Context, photos *gallery.Service, w wedding.Wedding, themeID string) (added bool, err error) {
+	set := demoMedia[demoMediaSource(themeID)]
 	items, err := photos.ListGallery(ctx, w.ID)
 	if err != nil || len(items) > 0 {
 		return false, err
@@ -129,29 +149,15 @@ func (a *app) ensureDemoMedia(ctx context.Context, photos *gallery.Service, w we
 		return it, nil
 	}
 
-	cover, err := upload(set.Cover, gallery.CategoryCover, "")
+	coverFile := set.Cover
+	if f, ok := demoCoverOverride[themeID]; ok {
+		coverFile = f
+	}
+	cover, err := upload(coverFile, gallery.CategoryCover, "")
 	if err != nil {
 		return false, err
 	}
 	if err := photos.SetCover(ctx, w.ID, cover.ID); err != nil {
-		return false, err
-	}
-	groom, err := a.putDemoPhoto(ctx, w.ID, "couple", src+"-groom.jpg")
-	if err != nil {
-		return false, err
-	}
-	bride, err := a.putDemoPhoto(ctx, w.ID, "couple", src+"-bride.jpg")
-	if err != nil {
-		return false, err
-	}
-	c, err := a.weddings.GetCouple(ctx, w.ID)
-	if err != nil {
-		return false, err
-	}
-	if _, err := a.weddings.UpdateCouple(ctx, w.ID, wedding.CoupleInput{
-		GroomName: c.GroomName, BrideName: c.BrideName, GroomDescription: c.GroomDescription, BrideDescription: c.BrideDescription,
-		GroomPhotoURL: groom, BridePhotoURL: bride,
-	}); err != nil {
 		return false, err
 	}
 	for _, p := range set.Gallery {
@@ -177,6 +183,68 @@ func clearDemoMedia(ctx context.Context, photos *gallery.Service, weddingID uuid
 	return nil
 }
 
+// clearDemoPhotos (--refresh) menghapus potret mempelai dan foto cerita demo dari
+// storage lalu mengosongkan URL-nya. Hanya untuk wedding demo, supaya foto
+// pelanggan tidak mungkin terhapus.
+func (a *app) clearDemoPhotos(ctx context.Context, stories *story.Service, w wedding.Wedding) error {
+	if !w.IsDemo {
+		return fmt.Errorf("wedding %s bukan demo", w.ID)
+	}
+	c, err := a.weddings.GetCouple(ctx, w.ID)
+	if err != nil {
+		return err
+	}
+	for _, u := range []*string{c.GroomPhotoURL, c.BridePhotoURL} {
+		if u != nil {
+			if err := a.deleteDemoObject(ctx, w.ID, *u); err != nil {
+				return err
+			}
+		}
+	}
+	if _, err := a.weddings.UpdateCouple(ctx, w.ID, wedding.CoupleInput{
+		GroomName: c.GroomName, BrideName: c.BrideName, GroomDescription: c.GroomDescription, BrideDescription: c.BrideDescription,
+	}); err != nil {
+		return err
+	}
+	list, err := stories.ListStories(ctx, w.ID)
+	if err != nil {
+		return err
+	}
+	for _, s := range list {
+		if s.PhotoURL == "" {
+			continue
+		}
+		if err := a.deleteDemoObject(ctx, w.ID, s.PhotoURL); err != nil {
+			return err
+		}
+		if _, err := stories.UpdateStory(ctx, w.ID, s.ID, demoStoryInput(s, "")); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// deleteDemoObject menghapus objek storage di balik URL publik. URL di luar
+// awalan wedding ini dibiarkan: bukan objek milik demo tersebut.
+func (a *app) deleteDemoObject(ctx context.Context, weddingID uuid.UUID, url string) error {
+	key, ok := demoObjectKey(weddingID, url)
+	if !ok {
+		return nil
+	}
+	return a.store.Delete(ctx, key)
+}
+
+// demoObjectKey: kunci objek dari URL publik (weddings/<id>/...), diambil dari
+// awalannya supaya tetap benar bila domain R2 pernah berganti.
+func demoObjectKey(weddingID uuid.UUID, url string) (string, bool) {
+	i := strings.Index(url, fmt.Sprintf("weddings/%s/", weddingID))
+	if i < 0 {
+		return "", false
+	}
+	key, _, _ := strings.Cut(url[i:], "?")
+	return key, true
+}
+
 // ensureDemoStoryPhotos: foto bab cerita contoh yang belum punya foto (idempoten;
 // demo lama ikut dilengkapi). added = ada foto baru.
 func (a *app) ensureDemoStoryPhotos(ctx context.Context, stories *story.Service, weddingID uuid.UUID, themeID string) (added bool, err error) {
@@ -193,14 +261,7 @@ func (a *app) ensureDemoStoryPhotos(ctx context.Context, stories *story.Service,
 		if err != nil {
 			return added, err
 		}
-		in := story.Input{Year: strconv.Itoa(s.Date.Year), Title: s.Title, Description: s.Description, PhotoURL: photo}
-		if s.Date.Month > 0 {
-			in.Month = strconv.Itoa(s.Date.Month)
-		}
-		if s.Date.Day > 0 {
-			in.Day = strconv.Itoa(s.Date.Day)
-		}
-		if _, err := stories.UpdateStory(ctx, weddingID, s.ID, in); err != nil {
+		if _, err := stories.UpdateStory(ctx, weddingID, s.ID, demoStoryInput(s, photo)); err != nil {
 			return added, err
 		}
 		added = true
@@ -208,7 +269,19 @@ func (a *app) ensureDemoStoryPhotos(ctx context.Context, stories *story.Service,
 	return added, nil
 }
 
-// putDemoPhoto menyimpan foto mempelai / cerita langsung ke storage (R2 di
+// demoStoryInput: isi bab cerita yang sama dengan foto yang diganti.
+func demoStoryInput(s story.Story, photo string) story.Input {
+	in := story.Input{Year: strconv.Itoa(s.Date.Year), Title: s.Title, Description: s.Description, PhotoURL: photo}
+	if s.Date.Month > 0 {
+		in.Month = strconv.Itoa(s.Date.Month)
+	}
+	if s.Date.Day > 0 {
+		in.Day = strconv.Itoa(s.Date.Day)
+	}
+	return in
+}
+
+// putDemoPhoto menyimpan foto cerita langsung ke storage (R2 di
 // produksi), bukan sebagai item galeri — supaya galeri contoh hanya berisi foto
 // pilihan, tidak mengulang foto yang sama. Demo tidak memakai kuota paket.
 func (a *app) putDemoPhoto(ctx context.Context, weddingID uuid.UUID, folder, file string) (string, error) {
