@@ -4,6 +4,8 @@
 package signature
 
 import (
+	"strings"
+
 	"github.com/khamdanngazis/lovaria/src/modules/theme/view"
 	"github.com/khamdanngazis/lovaria/src/templates/layouts"
 	"github.com/khamdanngazis/lovaria/src/templates/shared"
@@ -33,13 +35,13 @@ templ Hero(v view.View) {
 	{{ groom, bride := base.FirstNames(v) }}
 	<section id="opening" class="lv-paper relative flex min-h-dvh flex-col overflow-hidden text-ink">
 		@frameLines("inset-3")
-		@art(v, "cluster", "absolute left-[-4%] top-[-2%] w-[62%] max-w-[460px] -rotate-12 [@media(max-height:700px)]:w-[50%]", true)
+		@art(v, "bouquet", "absolute left-0 top-[-56px] w-[44%] max-w-[380px] md:top-[-90px] [@media(max-height:700px)]:top-[-70px] [@media(max-height:700px)]:w-[38%]", true)
 		@art(v, "cluster", "absolute bottom-[12%] left-[-14%] w-[52%] max-w-[380px] opacity-30 blur-[6px]", false)
 		@art(v, "ribbon-left", "absolute bottom-0 left-0 w-[56%] max-w-[480px]", true)
 		@art(v, "corner", "absolute bottom-0 right-0 w-[50%] max-w-[420px]", true)
-		@art(v, "petal", "absolute left-[8%] top-[33%] w-9 rotate-12", false)
-		@art(v, "petal", "absolute right-[9%] top-[46%] w-8 -rotate-[28deg]", false)
-		<div class="lv-cover-body relative my-auto px-8 pb-52 pt-36 text-center md:pb-40 md:pt-24 [@media(max-height:700px)]:pb-36 [@media(max-height:700px)]:pt-28">
+		@art(v, "petal-a", "absolute left-[7%] top-[46%] w-5 rotate-[35deg]", false)
+		@art(v, "petal-b", "absolute right-[8%] top-[44%] w-7 -rotate-[28deg]", false)
+		<div class="lv-cover-body relative my-auto px-8 pb-52 pt-40 text-center md:pb-40 md:pt-24 [@media(max-height:700px)]:pb-36 [@media(max-height:700px)]:pt-28">
 			@monogram(v, "h-14 w-14 text-lg")
 			<div class="mt-5">
 				@label("The Wedding of")
@@ -60,8 +62,8 @@ templ Hero(v view.View) {
 // Intro: 02 Wedding Hero — nama, tagline, dan baris info acara pertama.
 templ Intro(v view.View) {
 	<section id="wedding-hero" class="lv-paper relative overflow-hidden text-center">
-		@art(v, "petal", "absolute left-[10%] top-16 w-8 rotate-12", false)
-		@art(v, "petal", "absolute right-[12%] top-40 w-7 -rotate-[28deg]", false)
+		@art(v, "petal-c", "absolute left-[8%] top-8 w-7 rotate-12", false)
+		@art(v, "petal-a", "absolute right-[10%] top-6 w-5 -rotate-[40deg]", false)
 		<div class={ "relative px-6 pt-20 md:px-12", templ.KV("md:grid md:grid-cols-2 md:items-center md:gap-12", base.CoverOf(v) != "") }>
 			<div>
 				@label("The Wedding of")
@@ -85,7 +87,7 @@ templ Intro(v view.View) {
 			}
 		</div>
 		<div class="mt-10">
-			@ribbonBand(v)
+			@ribbonBand(v, "ribbon")
 		</div>
 	</section>
 }
@@ -108,8 +110,8 @@ templ SectionTitle(title, subtitle string) {
 // Couple: 03 Opening Message — salam dan kalimat undangan, lalu potret mempelai.
 // Potret di sini, bukan di cerita, supaya tetap tampil bila cerita disembunyikan.
 templ Couple(v view.View) {
-	<section id="couple" class="relative overflow-hidden px-6 pb-20 pt-40 md:px-12 md:pt-24">
-		@art(v, "cluster", "absolute right-[-14%] top-[-8px] w-[46%] max-w-[300px] rotate-12", false)
+	<section id="couple" class="relative overflow-hidden px-6 pb-20 pt-16 md:px-12">
+		@art(v, "sprig", "mx-auto mb-6 w-[78%] max-w-[420px]", false)
 		<div class="relative">
 			// Kalimat undangan milik pasangan menggantikan kalimat bawaan.
 			if v.Description != "" {
@@ -151,29 +153,66 @@ templ person(name, photo, desc string, right bool) {
 	}
 }
 
-// LoveStory: 04 Couple Story — foto dan teks berselang, tanpa kartu berulang.
+// storyDate memisahkan tahun dari tanggal cerita: "12 Maret 2019" → "2019",
+// "12 Maret"; "2019" → "2019", "".
+func storyDate(text string) (year, rest string) {
+	text = strings.TrimSpace(text)
+	i := strings.LastIndex(text, " ")
+	if i < 0 {
+		return text, ""
+	}
+	return text[i+1:], text[:i]
+}
+
+// LoveStory: 04 Couple Story — bab bergaya buku cerita pada satu garis waktu;
+// foto bercetak berselang kiri-kanan di desktop. Tanpa foto tetap utuh karena
+// tahun besar & garis waktu yang menjadi tulang punggungnya.
 templ LoveStory(v view.View) {
 	if len(v.Stories) > 0 {
-		<section id="story" class="px-6 py-20 md:px-12">
-			@base.Title(v, "Cerita Kami", "")
-			<ol class="space-y-14">
-				for i, s := range v.Stories {
-					<li class={ templ.KV("md:grid md:grid-cols-2 md:items-center md:gap-12", s.PhotoURL != "") }>
-						if s.PhotoURL != "" {
-							<img src={ s.PhotoURL } alt="" loading="lazy" decoding="async" class={ "lv-photo mb-5 aspect-[4/3] w-full object-cover md:mb-0", templ.KV("md:order-2", i%2 == 1) }/>
-						}
-						<div class={ templ.KV("mx-auto max-w-md text-center", s.PhotoURL == "") }>
-							<p class={ "text-muted", eyebrow }>{ s.DateText }</p>
-							<h3 class="mt-2 break-words text-2xl leading-snug text-deep">{ s.Title }</h3>
-							if s.Description != "" {
-								<p class="mt-3 whitespace-pre-line text-sm leading-relaxed">{ s.Description }</p>
-							}
-						</div>
-					</li>
-				}
-			</ol>
+		<section id="story" class="lv-paper relative overflow-hidden pt-40 md:pt-24">
+			@art(v, "cluster", "absolute left-[-14%] top-[-8px] w-[46%] max-w-[300px] -rotate-12", false)
+			<div class="relative px-6 pb-20 md:px-12">
+				@base.Title(v, "Cerita Kami", "Setiap bab membawa kami semakin dekat ke hari ini.")
+				<ol class="relative mx-auto max-w-4xl">
+					<span class="absolute inset-y-0 left-1/2 hidden w-px -translate-x-1/2 bg-secondary/50 md:block" aria-hidden="true"></span>
+					for i, s := range v.Stories {
+						@storyChapter(s, i)
+					}
+				</ol>
+				<p class="lv-display mx-auto mt-14 max-w-xs text-center text-2xl italic leading-snug text-primary">…and this is only the beginning.</p>
+			</div>
 		</section>
 	}
+}
+
+// storyChapter: satu bab — ponsel satu kolom dengan penyambung garis antarbab;
+// desktop dua kolom di kiri-kanan garis waktu.
+templ storyChapter(s view.Story, i int) {
+	{{ year, rest := storyDate(s.DateText) }}
+	<li class="relative md:grid md:grid-cols-2 md:items-center md:gap-20 md:py-10">
+		<span class="absolute left-1/2 top-1/2 z-10 hidden -translate-x-1/2 -translate-y-1/2 text-secondary md:block" aria-hidden="true">
+			@sparkle("h-3.5 w-3.5")
+		</span>
+		if i > 0 {
+			<span class="mx-auto mb-3 block h-12 w-px bg-secondary/50 md:hidden" aria-hidden="true"></span>
+		}
+		@sparkle("mx-auto mb-3 h-3.5 w-3.5 text-secondary md:hidden")
+		<div class={ "text-center", templ.KV("md:order-2 md:text-left", i%2 == 0), templ.KV("md:text-right", i%2 == 1) }>
+			<p class="lv-display text-6xl italic leading-none text-primary">{ year }</p>
+			if rest != "" {
+				<p class={ "mt-2 text-muted", eyebrow }>{ rest }</p>
+			}
+			<h3 class="mt-3 break-words text-2xl leading-snug text-deep">{ s.Title }</h3>
+			if s.Description != "" {
+				<p class="mt-3 whitespace-pre-line text-left text-sm leading-relaxed first-letter:float-left first-letter:mr-1.5 first-letter:font-[family-name:var(--lv-font-heading)] first-letter:text-5xl first-letter:leading-[0.85] first-letter:text-primary">{ s.Description }</p>
+			}
+		</div>
+		if s.PhotoURL != "" {
+			<div class={ "mx-auto mt-6 w-[88%] border border-secondary/50 bg-paper p-1.5 shadow-sm md:mt-0 md:w-full", templ.KV("-rotate-[1.5deg] md:order-1", i%2 == 0), templ.KV("rotate-[1.5deg]", i%2 == 1) }>
+				<img src={ s.PhotoURL } alt={ s.Title } loading="lazy" decoding="async" class="lv-photo aspect-[4/3] w-full object-cover"/>
+			</div>
+		}
+	</li>
 }
 
 // Events: 05 Wedding Event — satu kartu cetak berbingkai tipis per acara, baris
@@ -308,7 +347,7 @@ templ Checkin(v view.View) {
 templ guestPass(v view.View) {
 	<div class="lv-paper relative mx-auto max-w-sm overflow-hidden">
 		@frameLines("inset-2")
-		@art(v, "cluster", "absolute right-[-16%] top-[-6%] w-[52%] rotate-12", false)
+		@art(v, "rose", "absolute right-[-7%] top-[-5%] w-[36%] rotate-[18deg]", false)
 		<div class="relative px-6 py-10 text-center">
 			@monogram(v, "h-14 w-14 text-lg")
 			<div class="mt-4">
@@ -329,7 +368,7 @@ templ guestPass(v view.View) {
 templ Gift(v view.View) {
 	if len(v.Gifts) > 0 {
 		<section id="gift" class="bg-soft pb-20 [&_h2+div+p]:text-ink">
-			@ribbonBand(v)
+			@ribbonBand(v, "ribbon2")
 			<div class="px-6 pt-10">
 				@base.Title(v, "Tanda Kasih", "Doa restu Anda sudah lebih dari cukup. Namun bila ingin memberi tanda kasih, dapat melalui:")
 				<div class="mx-auto grid max-w-3xl gap-4 md:grid-cols-2">
@@ -366,7 +405,7 @@ templ Closing(v view.View) {
 		@frameLines("inset-3")
 		@art(v, "ribbon-left", "absolute bottom-0 left-0 w-[56%] max-w-[480px]", false)
 		@art(v, "corner", "absolute bottom-0 right-0 w-[50%] max-w-[420px]", false)
-		@art(v, "petal", "absolute left-[10%] top-14 w-8 rotate-12", false)
+		@art(v, "petal-b", "absolute left-[10%] top-14 w-7 rotate-12", false)
 		<div class="relative">
 			<p class="mx-auto max-w-xs whitespace-pre-line text-sm leading-relaxed">{ base.ClosingText(v, "Merupakan suatu kehormatan dan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir dan memberikan doa restu.", "Terima kasih atas doa dan restu yang telah Bapak/Ibu/Saudara/i berikan untuk kami.") }</p>
 			<p class="lv-display mt-10 text-2xl italic text-primary">With love,</p>

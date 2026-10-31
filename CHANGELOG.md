@@ -7,6 +7,7 @@
 - Undangan contoh di semua tema menampilkan QR yang berfungsi dari satu tamu contoh. Di server yang sudah berjalan, jalankan `lovoria demo seed` sekali setelah deploy.
 
 ### Lunovia Signature: desain baru & lima tema warna
+- "Cerita Kami" di Signature menjadi garis waktu bergaya buku cerita: tahun besar, foto bercetak, dan huruf awal besar. Undangan contoh di semua tema kini punya foto cerita (jalankan `lovoria demo seed` sekali setelah deploy).
 - Tema **Lunovia Signature** didesain ulang (T33): kertas ivory bercahaya dalam bingkai tipis, nama mempelai & judul Playfair Display, aksen miring Cormorant Garamond, isi Lato, serta bunga, pita satin, dan kelopak watercolor.
 - Pasangan memilih satu dari **lima tema warna**: Signature Lavender (bawaan), Sage Garden, Blush Romance, Midnight Elegance, dan Terracotta Bloom. Warna bunga ikut berganti; layout tidak berubah.
 - Susunan undangan kini tetap: sampul → Wedding Hero → pesan pembuka → cerita → acara → galeri → RSVP → kartu tamu QR → hadiah → ucapan → penutup. Bagian opsional tetap bisa disembunyikan.

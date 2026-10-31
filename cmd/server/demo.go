@@ -85,11 +85,16 @@ func (a *app) seedDemo(ctx context.Context, out io.Writer, refresh bool) error {
 			if err == nil {
 				err = a.ensureDemoCheckin(ctx, guests, existing.ID)
 			}
+			if err == nil {
+				var storyAdded bool
+				storyAdded, err = a.ensureDemoStoryPhotos(ctx, stories, existing.ID, d.ID)
+				added = added || storyAdded
+			}
 			if err != nil {
 				return fmt.Errorf("demo %s: %w", d.ID, err)
 			}
 			if added {
-				fmt.Fprintf(out, "dilengkapi: /w/%s (foto & kutipan)\n", slug)
+				fmt.Fprintf(out, "dilengkapi: /w/%s (foto)\n", slug)
 			} else {
 				fmt.Fprintf(out, "lewati: /w/%s sudah lengkap\n", slug)
 			}
@@ -141,6 +146,7 @@ func (a *app) seedDemo(ctx context.Context, out io.Writer, refresh bool) error {
 				}
 				return nil
 			},
+			func() error { _, err := a.ensureDemoStoryPhotos(ctx, stories, w.ID, d.ID); return err },
 			func() error {
 				_, err := gifts.Create(ctx, w.ID, gift.Input{Type: gift.TypeBank, Provider: "BCA", AccountNumber: "123 456 7890", AccountName: c.Groom})
 				return err

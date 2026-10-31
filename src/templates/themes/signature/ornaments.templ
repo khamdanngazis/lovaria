@@ -42,6 +42,8 @@ templ monogram(v view.View, class string) {
 // artSize: ukuran asli potongan aset (e2e/floral-tints.js).
 func artSize(name string) (w, h string) {
 	switch name {
+	case "bouquet":
+		return "600", "799"
 	case "cluster":
 		return "416", "332"
 	case "corner":
@@ -50,8 +52,18 @@ func artSize(name string) (w, h string) {
 		return "416", "168"
 	case "ribbon":
 		return "843", "308"
+	case "ribbon2":
+		return "843", "340"
+	case "sprig":
+		return "824", "286"
+	case "rose":
+		return "444", "530"
+	case "petal-a":
+		return "90", "158"
+	case "petal-b":
+		return "110", "149"
 	}
-	return "68", "44"
+	return "110", "111"
 }
 
 func artURL(v view.View, name string) string {
@@ -79,8 +91,8 @@ templ art(v view.View, name, class string, eager bool) {
 }
 
 // ribbonBand: pita satin melintang selebar halaman sebagai pemisah bagian.
-templ ribbonBand(v view.View) {
-	@art(v, "ribbon", "block h-auto w-full", false)
+templ ribbonBand(v view.View, name string) {
+	@art(v, name, "block h-auto w-full", false)
 }
 
 // frameLines: bingkai garis tipis bersudut takik ala kartu cetak. Dibuat dari

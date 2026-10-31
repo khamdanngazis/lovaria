@@ -5,6 +5,7 @@ import (
 	"context"
 	"embed"
 	"fmt"
+	"strconv"
 
 	"github.com/google/uuid"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/khamdanngazis/lovaria/src/modules/theme"
 	"github.com/khamdanngazis/lovaria/src/modules/theme/view"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding"
+	"github.com/khamdanngazis/lovaria/src/modules/wedding/story"
 	"github.com/khamdanngazis/lovaria/src/platform/db"
 	"github.com/khamdanngazis/lovaria/src/platform/imageproc"
 )
@@ -30,6 +32,9 @@ type demoPhoto struct {
 type demoSet struct {
 	Cover   string // foto sampul pembuka (juga foto utama wedding / OG)
 	Gallery []demoPhoto
+	// Stories: foto tiap bab cerita contoh, sesuai urutan bab (bertemu, memulai
+	// perjalanan, lamaran).
+	Stories []string
 }
 
 // Per tema: pasangan yang sama untuk sampul, potret mempelai
@@ -42,7 +47,7 @@ var demoMedia = map[string]demoSet{
 		{"VPFnktO9TA8.jpg", gallery.CategoryPrewedding, ""},
 		{"ZYet8yoepik.jpg", gallery.CategoryWedding, ""},
 		{"UQl_-yabQiA.jpg", gallery.CategoryWedding, ""},
-	}},
+	}, Stories: []string{"4LRIIA-24SI.jpg", "bwo_dSnXuvU.jpg", "l0iyOIhrZVw.jpg"}},
 	"elegant": {Cover: "Lr834aonJ70.jpg", Gallery: []demoPhoto{
 		{"Lr834aonJ70.jpg", gallery.CategoryPrewedding, ""},
 		{"BFqxGLypaRo.jpg", gallery.CategoryPrewedding, "Busana adat Sunda"},
@@ -50,7 +55,7 @@ var demoMedia = map[string]demoSet{
 		{"RHfYB_USSEc.jpg", gallery.CategoryWedding, "Tukar cincin"},
 		{"ZYet8yoepik.jpg", gallery.CategoryWedding, ""},
 		{"qG2yK_iNspE.jpg", gallery.CategoryWedding, "Pelaminan"},
-	}},
+	}, Stories: []string{"BFqxGLypaRo.jpg", "Lr834aonJ70.jpg", "RHfYB_USSEc.jpg"}},
 	"romantic": {Cover: "0cMP8HuJ6zk.jpg", Gallery: []demoPhoto{
 		{"0cMP8HuJ6zk.jpg", gallery.CategoryPrewedding, ""},
 		{"M2T1j-6Fn8w.jpg", gallery.CategoryWedding, ""},
@@ -58,7 +63,7 @@ var demoMedia = map[string]demoSet{
 		{"UQl_-yabQiA.jpg", gallery.CategoryWedding, "Buket bunga"},
 		{"B_R3rmJPeSE.jpg", gallery.CategoryWedding, ""},
 		{"4FGhD_iGuqg.jpg", gallery.CategoryWedding, "Dekorasi resepsi"},
-	}},
+	}, Stories: []string{"0cMP8HuJ6zk.jpg", "Ko6XKSsO4w8.jpg", "M2T1j-6Fn8w.jpg"}},
 	"modern": {Cover: "1cyUquII5Zg.jpg", Gallery: []demoPhoto{
 		{"1cyUquII5Zg.jpg", gallery.CategoryPrewedding, ""},
 		{"UjLfNJa-KY8.jpg", gallery.CategoryPrewedding, ""},
@@ -66,7 +71,7 @@ var demoMedia = map[string]demoSet{
 		{"5BB_atDT4oA.jpg", gallery.CategoryWedding, ""},
 		{"ZYet8yoepik.jpg", gallery.CategoryWedding, ""},
 		{"4FGhD_iGuqg.jpg", gallery.CategoryWedding, ""},
-	}},
+	}, Stories: []string{"UjLfNJa-KY8.jpg", "1cyUquII5Zg.jpg", "5BB_atDT4oA.jpg"}},
 	"minimal": {Cover: "4rtHl_X5GNo.jpg", Gallery: []demoPhoto{
 		{"4rtHl_X5GNo.jpg", gallery.CategoryPrewedding, ""},
 		{"IfjHaIoAoqE.jpg", gallery.CategoryPrewedding, ""},
@@ -74,7 +79,7 @@ var demoMedia = map[string]demoSet{
 		{"UQl_-yabQiA.jpg", gallery.CategoryWedding, ""},
 		{"rMO7SR9Z6RQ.jpg", gallery.CategoryPrewedding, ""},
 		{"qG2yK_iNspE.jpg", gallery.CategoryWedding, ""},
-	}},
+	}, Stories: []string{"rMO7SR9Z6RQ.jpg", "IfjHaIoAoqE.jpg", "4rtHl_X5GNo.jpg"}},
 }
 
 // demoMediaAlias: tema yang belum punya set foto sendiri meminjam set tema lain
@@ -131,11 +136,11 @@ func (a *app) ensureDemoMedia(ctx context.Context, photos *gallery.Service, w we
 	if err := photos.SetCover(ctx, w.ID, cover.ID); err != nil {
 		return false, err
 	}
-	groom, err := a.putDemoPortrait(ctx, w.ID, src+"-groom.jpg")
+	groom, err := a.putDemoPhoto(ctx, w.ID, "couple", src+"-groom.jpg")
 	if err != nil {
 		return false, err
 	}
-	bride, err := a.putDemoPortrait(ctx, w.ID, src+"-bride.jpg")
+	bride, err := a.putDemoPhoto(ctx, w.ID, "couple", src+"-bride.jpg")
 	if err != nil {
 		return false, err
 	}
@@ -172,10 +177,41 @@ func clearDemoMedia(ctx context.Context, photos *gallery.Service, weddingID uuid
 	return nil
 }
 
-// putDemoPortrait menyimpan potret mempelai langsung ke storage (R2 di
+// ensureDemoStoryPhotos: foto bab cerita contoh yang belum punya foto (idempoten;
+// demo lama ikut dilengkapi). added = ada foto baru.
+func (a *app) ensureDemoStoryPhotos(ctx context.Context, stories *story.Service, weddingID uuid.UUID, themeID string) (added bool, err error) {
+	files := demoMedia[demoMediaSource(themeID)].Stories
+	list, err := stories.ListStories(ctx, weddingID)
+	if err != nil {
+		return false, err
+	}
+	for i, s := range list {
+		if s.PhotoURL != "" || i >= len(files) {
+			continue
+		}
+		photo, err := a.putDemoPhoto(ctx, weddingID, "stories", files[i])
+		if err != nil {
+			return added, err
+		}
+		in := story.Input{Year: strconv.Itoa(s.Date.Year), Title: s.Title, Description: s.Description, PhotoURL: photo}
+		if s.Date.Month > 0 {
+			in.Month = strconv.Itoa(s.Date.Month)
+		}
+		if s.Date.Day > 0 {
+			in.Day = strconv.Itoa(s.Date.Day)
+		}
+		if _, err := stories.UpdateStory(ctx, weddingID, s.ID, in); err != nil {
+			return added, err
+		}
+		added = true
+	}
+	return added, nil
+}
+
+// putDemoPhoto menyimpan foto mempelai / cerita langsung ke storage (R2 di
 // produksi), bukan sebagai item galeri — supaya galeri contoh hanya berisi foto
-// pilihan, tidak mengulang potongan potret. Demo tidak memakai kuota paket.
-func (a *app) putDemoPortrait(ctx context.Context, weddingID uuid.UUID, file string) (string, error) {
+// pilihan, tidak mengulang foto yang sama. Demo tidak memakai kuota paket.
+func (a *app) putDemoPhoto(ctx context.Context, weddingID uuid.UUID, folder, file string) (string, error) {
 	f, err := demoMediaFS.Open("demomedia/" + file)
 	if err != nil {
 		return "", err
@@ -185,7 +221,7 @@ func (a *app) putDemoPortrait(ctx context.Context, weddingID uuid.UUID, file str
 	if err != nil {
 		return "", fmt.Errorf("foto %s: %w", file, err)
 	}
-	key := fmt.Sprintf("weddings/%s/couple/%s.jpg", weddingID, db.NewID())
+	key := fmt.Sprintf("weddings/%s/%s/%s.jpg", weddingID, folder, db.NewID())
 	if err := a.store.Put(ctx, key, bytes.NewReader(res.Main), int64(len(res.Main)), imageproc.ContentType); err != nil {
 		return "", err
 	}
