@@ -29,9 +29,9 @@ func Prepare(v view.View) view.View {
 func Render(v view.View) templ.Component {
 	v = Prepare(v)
 	def, _ := Get(v.ThemeID)
-	v.Tokens = resolve(def.Tokens, v.Settings)
+	v.Tokens = resolve(def, v.Settings)
 	v.CSS = TokensCSS(def.ID, v.Tokens)
-	v.FontsURL = GoogleFontsURL(v.Tokens.FontHeading, v.Tokens.FontBody)
+	v.FontsURL = GoogleFontsURL(v.Tokens.FontDisplay, v.Tokens.FontHeading, v.Tokens.FontBody)
 
 	v.Quote = view.Quote{Text: v.Settings.QuoteText, Source: v.Settings.QuoteSource}
 	v.Greeting, v.Closing = v.Settings.Greeting, v.Settings.Closing
@@ -45,10 +45,10 @@ func Render(v view.View) templ.Component {
 	parts := map[string]templ.Component{
 		"couple": p.Couple(v), "countdown": shared.CountdownSection(v), "quote": shared.QuoteSection(v),
 		"events": p.Events(v), "story": p.LoveStory(v), "gallery": p.Gallery(v),
-		"rsvp": shared.RSVPSection(v), "checkin": shared.CheckinSection(v), "guestbook": shared.GuestbookSection(v), "gift": shared.GiftSection(v),
+		"rsvp": shared.RSVPSection(v), "checkin": p.Checkin(v), "guestbook": shared.GuestbookSection(v), "gift": p.Gift(v),
 	}
-	sections := []templ.Component{p.Hero(v), shared.MemorySection(v), shared.ContentAnchor()}
-	for _, d := range OrderedSections(v.Settings) {
+	sections := []templ.Component{p.Hero(v), shared.MemorySection(v), shared.ContentAnchor(), p.Intro(v)}
+	for _, d := range OrderedSectionsFor(def, v.Settings) {
 		if !SectionHidden(v.Settings, d.ID) {
 			sections = append(sections, parts[d.ID])
 		}

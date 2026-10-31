@@ -85,7 +85,7 @@ func (s *Service) Settings(ctx context.Context, weddingID uuid.UUID) (view.Setti
 func toSettings(r themedb.WeddingThemeSetting) view.Settings {
 	return view.Settings{
 		PrimaryColor: deref(r.PrimaryColor), FontHeading: deref(r.FontHeading), FontBody: deref(r.FontBody),
-		Background: deref(r.BackgroundValue), CoverImage: deref(r.CoverImageUrl),
+		Background: deref(r.BackgroundValue), CoverImage: deref(r.CoverImageUrl), ColorPreset: deref(r.ColorPreset),
 		MusicURL: deref(r.MusicUrl), MusicEnabled: r.MusicEnabled,
 		QuoteText: deref(r.QuoteText), QuoteSource: deref(r.QuoteSource),
 		Greeting: deref(r.GreetingText), Closing: deref(r.ClosingText),
@@ -109,6 +109,21 @@ func (s *Service) Save(ctx context.Context, weddingID uuid.UUID, themeID string,
 	if err != nil {
 		return view.Settings{}, err
 	}
+	def, _ := Get(themeID)
+	if len(def.Presets) == 0 {
+		st.ColorPreset = ""
+	} else if _, ok := def.Preset(st.ColorPreset); st.ColorPreset != "" && !ok {
+		return view.Settings{}, SettingsError{"color_preset": "Pilih salah satu warna tema"}
+	}
+	if def.Fixed {
+		// Form tema Fixed mengirim urutan tema; urutan milik pasangan tetap
+		// tersimpan untuk bila nanti pindah ke tema lain.
+		prev, err := s.Settings(ctx, weddingID)
+		if err != nil {
+			return view.Settings{}, err
+		}
+		st.SectionOrder = prev.SectionOrder
+	}
 	music, err := s.Music(ctx, weddingID)
 	if err != nil {
 		return view.Settings{}, err
@@ -128,7 +143,7 @@ func (s *Service) Save(ctx context.Context, weddingID uuid.UUID, themeID string,
 		MusicUrl: ptr(st.MusicURL), MusicEnabled: st.MusicEnabled,
 		QuoteText: ptr(st.QuoteText), QuoteSource: ptr(st.QuoteSource),
 		GreetingText: ptr(st.Greeting), ClosingText: ptr(st.Closing),
-		HiddenSections: nonNil(st.HiddenSections), SectionOrder: nonNil(st.SectionOrder),
+		HiddenSections: nonNil(st.HiddenSections), SectionOrder: nonNil(st.SectionOrder), ColorPreset: ptr(st.ColorPreset),
 	})
 	if err == nil {
 		s.changed(weddingID)

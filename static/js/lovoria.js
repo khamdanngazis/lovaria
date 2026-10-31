@@ -220,11 +220,15 @@ document.querySelectorAll('link[data-font-css]').forEach(function (l) {
       pick(input) {
         this.name = input.dataset.name || this.name;
         this.thumb = input.dataset.thumb || this.thumb;
+        this.fixed = input.dataset.fixed === '1';
         this.$root.open = false;
       },
     }));
 
-    window.Alpine.data('themePreview', (previewURL) => ({
+    // fixed: tema terpilih berdesain terkunci (T33) — hanya preset warna & foto
+    // sampul yang bisa diganti; diperbarui themeChoice saat tema diganti.
+    window.Alpine.data('themePreview', (previewURL, fixed) => ({
+      fixed,
       timer: null,
       refresh() {
         clearTimeout(this.timer);

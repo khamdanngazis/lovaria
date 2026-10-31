@@ -137,9 +137,9 @@ func rsvpSummary(g *view.Guest) string {
 	return ""
 }
 
-// checkinPax: jumlah orang yang tertera di QR kehadiran — jawaban RSVP bila
+// CheckinPax: jumlah orang yang tertera di QR kehadiran — jawaban RSVP bila
 // tamu sudah konfirmasi hadir, selain itu batas undangan.
-func checkinPax(g *view.Guest) string {
+func CheckinPax(g *view.Guest) string {
 	if g.RSVPStatus == "attending" && g.RSVPPax > 0 {
 		return strconv.Itoa(g.RSVPPax)
 	}
@@ -1373,7 +1373,7 @@ func CheckinSection(v view.View) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var59 string
-			templ_7745c5c3_Var59, templ_7745c5c3_Err = templ.JoinStringErrs(checkinPax(v.Guest))
+			templ_7745c5c3_Var59, templ_7745c5c3_Err = templ.JoinStringErrs(CheckinPax(v.Guest))
 			if templ_7745c5c3_Err != nil {
 				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 318, Col: 69}
 			}

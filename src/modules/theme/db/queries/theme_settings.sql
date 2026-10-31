@@ -5,9 +5,9 @@ SELECT * FROM wedding_theme_settings WHERE wedding_id = $1;
 INSERT INTO wedding_theme_settings (
     wedding_id, primary_color, font_heading, font_body, background_value, cover_image_url,
     music_url, music_enabled, quote_text, quote_source, greeting_text, closing_text,
-    hidden_sections, section_order
+    hidden_sections, section_order, color_preset
 )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
 ON CONFLICT (wedding_id) DO UPDATE
 SET primary_color = EXCLUDED.primary_color, font_heading = EXCLUDED.font_heading,
     font_body = EXCLUDED.font_body, background_value = EXCLUDED.background_value,
@@ -15,7 +15,8 @@ SET primary_color = EXCLUDED.primary_color, font_heading = EXCLUDED.font_heading
     music_url = EXCLUDED.music_url, music_enabled = EXCLUDED.music_enabled,
     quote_text = EXCLUDED.quote_text, quote_source = EXCLUDED.quote_source,
     greeting_text = EXCLUDED.greeting_text, closing_text = EXCLUDED.closing_text,
-    hidden_sections = EXCLUDED.hidden_sections, section_order = EXCLUDED.section_order;
+    hidden_sections = EXCLUDED.hidden_sections, section_order = EXCLUDED.section_order,
+    color_preset = EXCLUDED.color_preset;
 
 -- name: SetMusicUpload :exec
 -- Unggahan musik baru: dipilih & diaktifkan sekaligus (baris dibuat bila belum ada).

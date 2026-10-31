@@ -319,4 +319,5 @@ type WeddingThemeSetting struct {
 	ClosingText      *string
 	HiddenSections   []string
 	SectionOrder     []string
+	ColorPreset      *string
 }

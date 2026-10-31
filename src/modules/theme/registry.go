@@ -9,6 +9,7 @@ import (
 	"github.com/a-h/templ"
 
 	"github.com/khamdanngazis/lovaria/src/modules/theme/view"
+	"github.com/khamdanngazis/lovaria/src/templates/shared"
 	"github.com/khamdanngazis/lovaria/src/templates/themes/base"
 	"github.com/khamdanngazis/lovaria/src/templates/themes/elegant"
 	"github.com/khamdanngazis/lovaria/src/templates/themes/minimal"
@@ -26,6 +27,9 @@ type Part func(v view.View) templ.Component
 // Layout membungkus bagian lain (templ children).
 type Parts struct {
 	Layout, Hero, Couple, LoveStory, Events, Gallery, Closing Part
+	// Intro: bagian setelah sampul, tujuan tombol "Buka Undangan" (nil = tidak
+	// ada). Checkin & Gift: nil = bagian bersama.
+	Intro, Checkin, Gift Part
 	// SectionTitle: judul bagian milik tema — dipakai juga oleh bagian bersama
 	// (hitung mundur, RSVP, ucapan, hadiah, kenangan) lewat view.SectionTitle.
 	SectionTitle func(title, subtitle string) templ.Component
@@ -43,6 +47,13 @@ type ThemeDef struct {
 	Region string
 	Tokens view.Tokens
 	Parts  Parts
+	// Presets: preset warna yang bisa dipilih pasangan (T33); yang pertama bawaan.
+	Presets []Preset
+	// Fixed: desain terkunci (T33 §8) — warna, font, latar, dan urutan pilihan
+	// pasangan tidak dipakai; hanya preset & foto sampul.
+	Fixed bool
+	// SectionOrder: urutan bagian tengah milik tema Fixed.
+	SectionOrder []string
 	// Islands: komponen interaktif berat (Svelte) yang dimuat tema ini — kosong di MVP.
 	Islands []string
 	order   int
@@ -69,6 +80,9 @@ func register(d ThemeDef) {
 	fill(&b.Events, base.Events)
 	fill(&b.Gallery, base.Gallery)
 	fill(&b.Closing, base.Closing)
+	fill(&b.Intro, func(view.View) templ.Component { return templ.NopComponent })
+	fill(&b.Checkin, shared.CheckinSection)
+	fill(&b.Gift, shared.GiftSection)
 	if b.SectionTitle == nil {
 		b.SectionTitle = base.SectionTitle
 	}
@@ -82,15 +96,19 @@ func register(d ThemeDef) {
 // Accent (champagne) hanya untuk ornamen/garis, bukan teks isi atau tombol.
 func init() {
 	register(ThemeDef{
-		ID: "signature", Name: "Lunovia Signature", Description: "Editorial, hangat, dan premium — wajah Lunovia.",
-		Pitch: "Lunovia Signature adalah tema andalan kami: sampul foto potret layar penuh, judul serif besar bergaya majalah, dan garis champagne tipis di atas warna plum yang hangat. Cocok untuk pasangan yang ingin undangan terasa premium dan modern tanpa terlihat ramai — foto prewedding menjadi pusat perhatian, sementara detail acara tersaji rapi dan mudah dibaca.",
-		Tokens: view.Tokens{
-			Primary: "#6b4e71", Surface: "#faf7f5", Ink: "#292529", Accent: "#c9a88a", Deep: "#332936", Muted: "#6b666b", Border: "#e8dfd9",
-			FontHeading: "Playfair Display", FontBody: "Inter", Radius: "0.25rem", ButtonRadius: "0.5rem",
-		},
+		ID: "signature", Name: "Lunovia Signature", Description: "Editorial, romantis, dan abadi — satu desain, lima pilihan warna.",
+		Pitch: "Lunovia Signature adalah tema andalan kami: kanvas ivory, nama mempelai dalam serif besar bergaya majalah, dan bunga watercolor yang membingkai setiap halaman. Pilih satu dari lima warna kurasi tanpa mengubah desainnya, dari Signature Lavender sampai Terracotta Bloom. Cocok untuk pasangan yang ingin undangan terasa personal dan premium, dengan RSVP dan kartu tamu QR yang menyatu dalam satu pengalaman.",
+		Tokens: signaturePresets[0].apply(view.Tokens{
+			FontDisplay: "Cormorant Garamond", FontHeading: "Playfair Display", FontBody: "Lato", Radius: "0.25rem", ButtonRadius: "0.25rem",
+		}),
+		Presets: signaturePresets,
+		Fixed:   true,
+		// T33 §5, ditambah buku ucapan sebelum penutup.
+		SectionOrder: []string{"countdown", "quote", "couple", "story", "events", "gallery", "rsvp", "checkin", "gift", "guestbook"},
 		Parts: Parts{
-			Hero: signature.Hero, Couple: signature.Couple, LoveStory: signature.LoveStory, Events: signature.Events,
-			Gallery: signature.Gallery, Closing: signature.Closing, SectionTitle: signature.SectionTitle,
+			Layout: signature.Layout, Hero: signature.Hero, Intro: signature.Intro, Couple: signature.Couple, LoveStory: signature.LoveStory,
+			Events: signature.Events, Gallery: signature.Gallery, Checkin: signature.Checkin, Gift: signature.Gift,
+			Closing: signature.Closing, SectionTitle: signature.SectionTitle,
 		},
 	})
 	register(ThemeDef{

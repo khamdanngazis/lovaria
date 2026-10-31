@@ -99,8 +99,12 @@ func (h *Handler) Invitation(c echo.Context) error {
 	v.OG = h.og(res, v)
 	v.SiteURL = strings.TrimRight(h.BaseURL, "/") + "/"
 	// QR kehadiran (T31): hanya di link pribadi, saat check-in dibuka.
-	if res.Guest != nil && res.Wedding.CheckinOpen() {
-		v.Checkin.QRURL = res.Prefix + "/qr.png"
+	if res.Wedding.CheckinOpen() {
+		if res.Guest != nil {
+			v.Checkin.QRURL = res.Prefix + "/qr.png"
+		} else {
+			v.Checkin.Available = true
+		}
 	}
 	if !res.Preview {
 		h.setGuestbookForm(&v, res)

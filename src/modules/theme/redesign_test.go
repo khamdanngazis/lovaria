@@ -16,8 +16,19 @@ import (
 
 // Kontras teks semua tema bawaan (T21): WCAG AA ≥ 4.5:1.
 func TestThemeContrast(t *testing.T) {
+	type target struct {
+		id string
+		tk view.Tokens
+	}
+	var targets []target
 	for _, d := range All() {
-		tk := d.Tokens
+		targets = append(targets, target{d.ID, d.Tokens})
+		for _, p := range d.Presets {
+			targets = append(targets, target{d.ID + "/" + p.ID, p.apply(d.Tokens)})
+		}
+	}
+	for _, d := range targets {
+		tk := d.tk
 		for _, c := range []struct {
 			name   string
 			fg, bg string
@@ -29,15 +40,15 @@ func TestThemeContrast(t *testing.T) {
 			{"putih di atas Deep", "#ffffff", tk.Deep},
 		} {
 			if got := Contrast(c.fg, c.bg); got < MinContrast {
-				t.Errorf("%s — %s: kontras %.2f < %.1f (%s di atas %s)", d.ID, c.name, got, MinContrast, c.fg, c.bg)
+				t.Errorf("%s — %s: kontras %.2f < %.1f (%s di atas %s)", d.id, c.name, got, MinContrast, c.fg, c.bg)
 			}
 		}
 		if OnColor(tk.Primary) != "#ffffff" {
-			t.Errorf("%s: Primary bawaan harus cukup gelap untuk teks putih", d.ID)
+			t.Errorf("%s: Primary bawaan harus cukup gelap untuk teks putih", d.id)
 		}
 		for name, v := range map[string]string{"Accent": tk.Accent, "Deep": tk.Deep, "Muted": tk.Muted, "Border": tk.Border} {
 			if !hexColor.MatchString(v) {
-				t.Errorf("%s: token %s belum diisi (%q)", d.ID, name, v)
+				t.Errorf("%s: token %s belum diisi (%q)", d.id, name, v)
 			}
 		}
 	}
@@ -59,8 +70,8 @@ func TestContrastAndOnColor(t *testing.T) {
 			t.Errorf("OnColor(%s): kontras %.2f < 4.5", bg, c)
 		}
 	}
-	css := TokensCSS("signature", resolve(registry["signature"].Tokens, view.Settings{PrimaryColor: "#ffe680"}))
-	for _, want := range []string{"--lv-primary:#ffe680;", "--lv-on-primary:" + onDark + ";", "--lv-accent:#c9a88a;", "--lv-deep:#332936;", "--lv-muted:#6b666b;", "--lv-border:#e8dfd9;", "--lv-radius:0.25rem;", "--lv-radius-btn:0.5rem;"} {
+	css := TokensCSS("elegant", resolve(registry["elegant"], view.Settings{PrimaryColor: "#ffe680"}))
+	for _, want := range []string{"--lv-primary:#ffe680;", "--lv-on-primary:" + onDark + ";", "--lv-accent:#c9a88a;", "--lv-deep:#2e2620;", "--lv-muted:#6a6258;", "--lv-border:#e6dccb;", "--lv-radius:0.125rem;", "--lv-radius-btn:0.125rem;"} {
 		if !strings.Contains(css, want) {
 			t.Errorf("TokensCSS tidak memuat %q:\n%s", want, css)
 		}
@@ -82,8 +93,12 @@ func TestRegistrySignatureDefault(t *testing.T) {
 			t.Errorf("%s: bagian belum lengkap", d.ID)
 		}
 	}
-	if got := GoogleFontsURL("Playfair Display", "Inter"); !strings.Contains(got, "family=Playfair+Display:ital,wght@0,400;0,500;1,400") || !strings.Contains(got, "family=Inter:wght@400;500;600") {
-		t.Errorf("font Signature: %s", got)
+	tk := registry["signature"].Tokens
+	got := GoogleFontsURL(tk.FontDisplay, tk.FontHeading, tk.FontBody)
+	for _, want := range []string{"family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400", "family=Playfair+Display:ital,wght@0,400;0,500;1,400", "family=Lato:wght@400;700"} {
+		if !strings.Contains(got, want) {
+			t.Errorf("font Signature tidak memuat %q: %s", want, got)
+		}
 	}
 	// ID tak dikenal → Prepare memakai tema bawaan beserta judul bagiannya.
 	if v := Prepare(view.View{ThemeID: "tidak-ada"}); v.ThemeID != "signature" || v.SectionTitle == nil {
@@ -153,10 +168,14 @@ func TestThemesWithMinimalAndFullData(t *testing.T) {
 					}
 					prev = level
 				}
-				for _, want := range []string{`id="opening"`, `id="closing"`, `data-open="lock"`, `href="#undangan"`, "<aside"} {
+				for _, want := range []string{`id="opening"`, `id="closing"`, `data-open="lock"`, `href="#undangan"`} {
 					if !strings.Contains(html, want) {
 						t.Errorf("tidak ada %q", want)
 					}
+				}
+				// Panel samping desktop milik base.Layout; Signature berkolom lebar.
+				if !d.Fixed && !strings.Contains(html, "<aside") {
+					t.Error("panel samping desktop tidak ada")
 				}
 				// Foto sampul di panel desktop selalu lazy (tidak diunduh di ponsel).
 				if v.MainPhoto != "" && !strings.Contains(html, `loading="lazy"`) {
@@ -195,7 +214,7 @@ func TestSignatureThemeAndSharedTitles(t *testing.T) {
 			t.Errorf("bagian %s belum memakai judul tema Signature", id)
 		}
 	}
-	for _, want := range []string{"bg-deep", "Samuel &amp; Sarah", ">S<", "Save the date", "12", `class="lv-btn`, "lv-card", "lv-input"} {
+	for _, want := range []string{"Samuel &amp; Sarah", ">S<", "THE WEDDING OF", "With love,", "12", `class="lv-btn`, "lv-card", "lv-input", "lv-signature"} {
 		if !strings.Contains(html, want) {
 			t.Errorf("Signature: tidak ada %q", want)
 		}
@@ -204,8 +223,14 @@ func TestSignatureThemeAndSharedTitles(t *testing.T) {
 	if cover := section("opening"); strings.Count(cover, "<span>S</span>") != 2 {
 		t.Errorf("monogram sampul: inisial S & S, dapat %d", strings.Count(cover, "<span>S</span>"))
 	}
-	if !strings.Contains(section("closing"), "bg-deep") || !strings.Contains(section("gallery"), "bg-deep") {
-		t.Error("penutup & galeri Signature memakai latar Deep")
+	// Kanvas ivory: sampul, penutup, dan galeri tidak memakai latar Deep (T33).
+	for _, id := range []string{"opening", "closing", "gallery"} {
+		if strings.Contains(section(id), "bg-deep") {
+			t.Errorf("bagian %s tidak boleh berlatar Deep", id)
+		}
+	}
+	if !strings.Contains(section("closing"), "Sabtu, 12 Desember 2026") {
+		t.Error("penutup harus memuat tanggal")
 	}
 	// Preview dashboard: sampul tidak dikunci; Kenangan: tombol menuju #memories.
 	v.Preview = true

@@ -1,7 +1,13 @@
 package signature
 
+import (
+	"github.com/khamdanngazis/lovaria/src/modules/theme/view"
+	"github.com/khamdanngazis/lovaria/src/templates/themes/base"
+	"github.com/khamdanngazis/lovaria/static"
+)
+
 // Ornamen tema Signature: SVG inline dekoratif (aria-hidden) yang mengikuti
-// warna teks (currentColor) — tanpa berkas gambar tambahan.
+// warna teks (currentColor), dan bunga watercolor per preset warna.
 
 // sparkle: bintang empat sudut (motif brand Lunovia).
 templ sparkle(class string) {
@@ -12,19 +18,82 @@ templ sparkle(class string) {
 
 // divider: garis tipis – bintang – garis tipis.
 templ divider(class string) {
-	<div class={ "flex items-center justify-center gap-3 text-accent", class } aria-hidden="true">
+	<div class={ "flex items-center justify-center gap-3 text-secondary", class } aria-hidden="true">
 		<span class="h-px w-10 bg-current opacity-70"></span>
 		@sparkle("h-2.5 w-2.5")
 		<span class="h-px w-10 bg-current opacity-70"></span>
 	</div>
 }
 
-// frame: bingkai garis tipis dengan bintang di keempat sudut (sampul tanpa foto).
-templ frame(class string) {
-	<div class={ "pointer-events-none absolute inset-4 border border-accent/40 text-accent", class } aria-hidden="true">
-		@sparkle("absolute -left-1.5 -top-1.5 h-3 w-3")
-		@sparkle("absolute -right-1.5 -top-1.5 h-3 w-3")
-		@sparkle("absolute -bottom-1.5 -left-1.5 h-3 w-3")
-		@sparkle("absolute -bottom-1.5 -right-1.5 h-3 w-3")
-	</div>
+// monogram: inisial pasangan dalam lingkaran tipis, terbaca di latar terang.
+templ monogram(v view.View, class string) {
+	{{ g, b := base.Initials(v) }}
+	if g != "" || b != "" {
+		<div class={ "lv-display inline-flex items-center justify-center rounded-full border border-secondary text-primary", class } aria-hidden="true">
+			<span>{ g }</span>
+			if g != "" && b != "" {
+				<span class="mx-1 text-[0.6em] text-secondary">&amp;</span>
+			}
+			<span>{ b }</span>
+		</div>
+	}
 }
+
+// Ukuran bunga: besar untuk sampul, sedang untuk penutup, kecil untuk aksen.
+// Padding bagian harus lebih tinggi dari bunganya supaya teks tidak tertutup.
+const (
+	floralLarge  = "w-[58%] max-w-[420px]"
+	floralMedium = "w-[42%] max-w-[300px]"
+	floralSmall  = "w-[36%] max-w-[240px]"
+)
+
+// floralCorner: posisi bunga. Satu gambar (buket kiri atas) dibalik ke tiap
+// sudut lewat properti scale/rotate, supaya tidak bentrok dengan transform
+// animasi reveal.
+func floralCorner(corner string) string {
+	switch corner {
+	case "tr":
+		return "right-0 top-0 -scale-x-100"
+	case "bl":
+		return "bottom-0 left-0 -scale-y-100"
+	case "br":
+		return "bottom-0 right-0 rotate-180"
+	}
+	return "left-0 top-0"
+}
+
+func floralURL(v view.View) string {
+	return static.URL("img/themes/signature/floral/" + v.Tokens.Preset + ".webp")
+}
+
+// floral: bunga pembingkai di sudut bagian (induk harus relative + overflow-hidden).
+templ floral(v view.View, corner, size string, eager bool) {
+	<img
+		src={ floralURL(v) }
+		alt=""
+		aria-hidden="true"
+		width="840"
+		height="840"
+		if eager {
+			fetchpriority="high"
+		} else {
+			loading="lazy"
+		}
+		decoding="async"
+		class={ "pointer-events-none absolute select-none", size, floralCorner(corner) }
+	/>
+}
+
+// icon: ikon garis tipis untuk info acara & hadiah.
+templ icon(path string) {
+	<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="mt-0.5 h-5 w-5 flex-none text-secondary">
+		<path d={ path }></path>
+	</svg>
+}
+
+const (
+	iconCalendar = "M7 3v3m10-3v3M4 9h16M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"
+	iconClock    = "M12 7v5l3 2m6-2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"
+	iconPin      = "M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21zm0-9a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"
+	iconBank     = "M3 10l9-6 9 6M5 10v8m4.7-8v8m4.6-8v8M19 10v8M3 21h18"
+)

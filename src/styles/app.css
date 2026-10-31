@@ -17,6 +17,10 @@
   --color-muted: var(--lv-muted);
   --color-line: var(--lv-border);
   --color-on-primary: var(--lv-on-primary);
+  /* Khusus tema ber-preset (T33): dekorasi, latar kartu, latar bagian lembut. */
+  --color-secondary: var(--lv-secondary);
+  --color-paper: var(--lv-paper);
+  --color-soft: var(--lv-soft);
   --font-heading: var(--lv-font-heading);
   --font-sans: var(--lv-font-body);
 
@@ -70,6 +74,9 @@
   --lv-radius-btn: 9999px;
   --lv-font-heading: "Playfair Display", ui-serif, Georgia, serif;
   --lv-font-body: ui-sans-serif, system-ui, sans-serif;
+  --lv-secondary: #a987a8;
+  --lv-paper: #ffffff;
+  --lv-soft: #f3eeea;
 }
 
 [x-cloak] {
@@ -143,6 +150,35 @@
   border-radius: var(--lv-radius);
 }
 
+/* Lunovia Signature (T33): desain terkunci, warna dari preset. */
+.lv-invitation .lv-display {
+  font-family: var(--lv-font-display, var(--lv-font-heading));
+}
+.lv-signature .lv-card {
+  background: var(--lv-paper);
+}
+.lv-signature .lv-btn,
+.lv-signature .lv-btn-outline {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+}
+/* Bagian bersama tetap selebar kolom baca di layar lebar. */
+.lv-signature :is(#countdown, #quote, #rsvp, #guestbook, #memories) > * {
+  margin-inline: auto;
+  max-width: 36rem;
+}
+/* Status kirim form htmx tanpa mengubah markup bersama. */
+.lv-signature form.htmx-request button[type="submit"] {
+  font-size: 0;
+  opacity: 0.75;
+}
+.lv-signature form.htmx-request button[type="submit"]::after {
+  content: "Mengirim…";
+  font-size: 0.875rem;
+}
+
 /* Sampul terkunci (invitation.js menambah kelas saat muat — tanpa JS halaman
    tetap tampil utuh): isi setelah sampul disembunyikan. Scroll halaman TIDAK
    dimatikan, supaya sampul yang lebih tinggi dari layar (nama panjang, layar
@@ -213,6 +249,14 @@ html.lv-locked #opening ~ * {
   font-size: 2.5rem;
   line-height: 1;
   padding: 0.5rem 1rem;
+}
+.lv-lb-caption {
+  position: absolute;
+  inset-inline: 3rem;
+  bottom: 1rem;
+  color: #fff;
+  font-size: 0.875rem;
+  text-align: center;
 }
 .lv-lb-close { top: 0.5rem; right: 0.5rem; }
 .lv-lb-prev { left: 0; top: 50%; transform: translateY(-50%); }

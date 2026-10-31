@@ -58,6 +58,18 @@ test('alur utama pasangan & tamu', async ({ page, browser }) => {
   const code = (await row.locator('.font-mono').innerText()).trim();
   expect(code).toMatch(/^[A-Z0-9]{7}$/);
 
+  // Tema warna Signature (T33): preset terpilih dipakai undangan; kontrol warna
+  // bebas & font tidak ditawarkan di desain terkunci.
+  await page.goto(dash + '/theme');
+  await expect(page.getByLabel('Font judul')).toBeVisible();
+  await page.getByText('Ganti tema').click();
+  await page.locator('label', { hasText: 'Lunovia Signature' }).click();
+  await expect(page.getByLabel('Font judul')).toBeHidden();
+  await page.locator('label', { hasText: 'Sage Garden' }).click();
+  await page.getByRole('button', { name: 'Simpan tema' }).last().click();
+  await expect(page.getByText('Tema tersimpan.')).toBeVisible();
+  await expect(page.locator('input[name="color_preset"][value="sage-garden"]')).toBeChecked();
+
   // 6. Publikasikan (T23): belum lunas → halaman harga → bayar (gateway
   // simulasi, PAYMENT_GATEWAY=fake) → lunas → publikasikan.
   await page.goto(dash);
@@ -105,6 +117,9 @@ test('alur utama pasangan & tamu', async ({ page, browser }) => {
   await expect(guest.locator('#rsvp')).toBeHidden();
   await guest.getByRole('link', { name: 'Buka Undangan' }).click();
   await expect(guest.locator('#rsvp')).toBeVisible();
+  // Preset warna tersimpan dipakai; tidak ada scroll horizontal di 360px.
+  expect(await guest.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--lv-primary').trim())).toBe('#536b58');
+  expect(await guest.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
 
   await guest.locator('#rsvp label', { hasText: 'Hadir' }).first().click();
   await guest.locator('#rsvp-message').fill('Selamat ya! 🎉');

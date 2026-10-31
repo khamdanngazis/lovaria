@@ -122,6 +122,9 @@ func TestRenderPersonalization(t *testing.T) {
 			// Urutan: galeri → kutipan → (acara: disisipkan setelah kutipan, posisi
 			// bawaannya) → mempelai → hitung mundur.
 			pos := func(id string) int { return strings.Index(html, `id="`+id+`"`) }
+			if d.Fixed {
+				return // urutan tema Fixed: TestSignatureSectionOrder
+			}
 			if !slices.IsSorted([]int{pos("undangan"), pos("gallery"), pos("quote"), pos("events"), pos("couple"), pos("countdown")}) {
 				t.Errorf("urutan salah: undangan=%d gallery=%d quote=%d couple=%d countdown=%d events=%d", pos("undangan"), pos("gallery"), pos("quote"), pos("couple"), pos("countdown"), pos("events"))
 			}

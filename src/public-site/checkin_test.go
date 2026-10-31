@@ -39,8 +39,9 @@ func TestGuestQRSection(t *testing.T) {
 		}
 	}
 	// Link umum: tanpa QR.
-	if b := f.get("/w/"+w.Slug, nil).Body.String(); strings.Contains(b, `id="checkin"`) || strings.Contains(b, "qr.png") {
-		t.Error("link umum tidak boleh memuat QR")
+	// Link umum: tanpa QR, hanya info cara check-in (T33).
+	if b := f.get("/w/"+w.Slug, nil).Body.String(); strings.Contains(b, "qr.png") || !strings.Contains(b, "QR kehadiran pribadi Anda tersedia") {
+		t.Error("link umum tidak boleh memuat QR, dan harus memuat info check-in")
 	}
 	// Gambar: PNG sah, tidak diindeks, tidak di-cache bersama.
 	rec := f.get(qr, nil)

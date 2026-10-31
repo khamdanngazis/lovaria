@@ -50,28 +50,38 @@ templ Head(v view.View) {
 // kolom undangan menggulir di kanan (T21).
 templ Layout(v view.View) {
 	@layouts.Document(layouts.Meta{Title: "The Wedding of " + v.Couple.Names(), Description: v.OG.Description, Theme: v.ThemeID, Cacheable: true}, Head(v), "lv-invitation min-h-dvh antialiased") {
-		if v.Preview {
-			<div class="sticky top-0 z-50 bg-slate-900 px-4 py-2 text-center text-xs text-white">
-				Preview — belum dipublikasikan
-				if v.Sample {
-					· bagian kosong diisi contoh
-				}
-			</div>
-		}
+		@PreviewBanner(v)
 		<div class="lg:grid lg:grid-cols-[minmax(0,1fr)_28rem] xl:grid-cols-[minmax(0,1fr)_30rem]">
 			@SidePanel(v)
 			<main class="mx-auto min-h-dvh w-full max-w-md overflow-hidden bg-surface shadow-2xl shadow-black/10 lg:max-w-none">
-				if v.ShowsMemory() {
-					<p class="bg-primary px-4 py-3 text-center text-sm text-on-primary">
-						Terima kasih telah menjadi bagian dari hari kami ♡
-						if v.Archived {
-							<span class="mt-1 block text-xs opacity-80">Arsip kenangan — ucapan dan konfirmasi sudah ditutup.</span>
-						}
-					</p>
-				}
+				@MemoryBanner(v)
 				{ children... }
 			</main>
 		</div>
+	}
+}
+
+// PreviewBanner: penanda preview dashboard di atas halaman.
+templ PreviewBanner(v view.View) {
+	if v.Preview {
+		<div class="sticky top-0 z-50 bg-slate-900 px-4 py-2 text-center text-xs text-white">
+			Preview — belum dipublikasikan
+			if v.Sample {
+				· bagian kosong diisi contoh
+			}
+		</div>
+	}
+}
+
+// MemoryBanner: ucapan terima kasih di atas undangan setelah hari H.
+templ MemoryBanner(v view.View) {
+	if v.ShowsMemory() {
+		<p class="bg-primary px-4 py-3 text-center text-sm text-on-primary">
+			Terima kasih telah menjadi bagian dari hari kami ♡
+			if v.Archived {
+				<span class="mt-1 block text-xs opacity-80">Arsip kenangan — ucapan dan konfirmasi sudah ditutup.</span>
+			}
+		</p>
 	}
 }
 
