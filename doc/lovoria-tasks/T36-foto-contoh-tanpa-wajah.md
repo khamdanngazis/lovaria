@@ -82,7 +82,7 @@ Unduh, kecilkan ke lebar 1200px (seperti file yang sudah ada), simpan di `cmd/se
 
 ### 3. Mempelai tanpa foto
 
-- `ensureDemoMedia` berhenti mengunggah potret, dan foto mempelai contoh dikosongkan.
+- `ensureDemoMedia` berhenti mengunggah potret, dan foto mempelai contoh dikosongkan. Pengecualian: Signature memakai foto jas dan gaun tanpa orang (`3eyT-xDIwY8`, `B_P6nONZk58`), karena bagian mempelainya ditata di sekitar potret.
 - Tiap tema sudah menampilkan nama tanpa foto (`TestThemesWithMinimalAndFullData`), tetapi tampilannya harus diperiksa di semua tema dengan data contoh yang lengkap.
 - Nama, deskripsi orang tua, dan cerita fiktif tetap dipakai.
 
@@ -137,11 +137,11 @@ Jalankan `make theme-thumbs` untuk semua 10 tema setelah set foto baru siap. Per
 
 1. Merge T33, lalu T36.
 2. Tunggu deploy Railway selesai.
-3. Jalankan seed:
+3. Bersihkan sisa potret lama di R2 pada awalan `weddings/<id demo>/couple/`. **Hanya untuk wedding demo.** Langkah ini harus sebelum seed, karena foto mempelai baru Signature tersimpan di awalan yang sama.
+4. Jalankan seed, lalu bersihkan cache CDN bila ada:
    ```bash
    railway ssh --service lovaria -- lovoria demo seed --refresh
    ```
-4. Bersihkan sisa potret lama di R2 pada awalan `weddings/<id demo>/couple/`. **Hanya untuk wedding demo.** Bersihkan juga cache CDN bila ada.
 5. Buka setiap halaman di Kriteria Selesai, termasuk versi ponsel dan desktop.
 6. Pastikan URL lama sudah 404: catat dulu beberapa URL potret dan foto cerita lama sebelum menjalankan langkah 3.
 

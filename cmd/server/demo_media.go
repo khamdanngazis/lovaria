@@ -36,6 +36,9 @@ type demoSet struct {
 	// Stories: foto tiap bab cerita contoh, sesuai urutan bab (bertemu, memulai
 	// perjalanan, lamaran).
 	Stories []string
+	// Groom, Bride: foto pengganti potret mempelai, tanpa orang di dalamnya.
+	// Kosong = mempelai tanpa foto.
+	Groom, Bride string
 }
 
 // Set foto per karakter tema. Semua foto tanpa wajah yang bisa dikenali (aturan
@@ -48,7 +51,9 @@ var demoMedia = map[string]demoSet{
 		{"XRzUf1SGWEI.jpg", gallery.CategoryPrewedding, ""},
 		{"ZYet8yoepik.jpg", gallery.CategoryWedding, ""},
 		{"qG2yK_iNspE.jpg", gallery.CategoryWedding, ""},
-	}, Stories: []string{"qHjwSGv2p8c.jpg", "IfjHaIoAoqE.jpg", "M2T1j-6Fn8w.jpg"}},
+	}, Stories: []string{"qHjwSGv2p8c.jpg", "IfjHaIoAoqE.jpg", "M2T1j-6Fn8w.jpg"},
+		// Signature menata bagian mempelai di sekitar potret berbingkai.
+		Groom: "3eyT-xDIwY8.jpg", Bride: "B_P6nONZk58.jpg"},
 	"elegant": {Cover: "UQl_-yabQiA.jpg", Gallery: []demoPhoto{
 		{"wki4KKlMGvc.jpg", gallery.CategoryPrewedding, ""},
 		{"qG2yK_iNspE.jpg", gallery.CategoryWedding, "Pelaminan"},
@@ -124,10 +129,11 @@ func demoSettings() view.Settings {
 	return view.Settings{QuoteText: q.Text, QuoteSource: q.Source}
 }
 
-// ensureDemoMedia melengkapi foto undangan contoh: sampul dan galeri. Mempelai
-// contoh tidak berfoto. Dilewati bila galeri sudah berisi (idempoten; demo lama
-// tanpa foto ikut dilengkapi saat seed dijalankan ulang). added = foto baru diunggah.
-func ensureDemoMedia(ctx context.Context, photos *gallery.Service, w wedding.Wedding, themeID string) (added bool, err error) {
+// ensureDemoMedia melengkapi foto undangan contoh: sampul, foto pengganti potret
+// mempelai (bila set memilikinya), dan galeri. Dilewati bila galeri sudah berisi
+// (idempoten; demo lama tanpa foto ikut dilengkapi saat seed dijalankan ulang).
+// added = foto baru diunggah.
+func (a *app) ensureDemoMedia(ctx context.Context, photos *gallery.Service, w wedding.Wedding, themeID string) (added bool, err error) {
 	set := demoMedia[demoMediaSource(themeID)]
 	items, err := photos.ListGallery(ctx, w.ID)
 	if err != nil || len(items) > 0 {
@@ -160,12 +166,40 @@ func ensureDemoMedia(ctx context.Context, photos *gallery.Service, w wedding.Wed
 	if err := photos.SetCover(ctx, w.ID, cover.ID); err != nil {
 		return false, err
 	}
+	if err := a.ensureDemoCouplePhotos(ctx, w.ID, set); err != nil {
+		return false, err
+	}
 	for _, p := range set.Gallery {
 		if _, err := upload(p.File, p.Category, p.Caption); err != nil {
 			return false, err
 		}
 	}
 	return true, nil
+}
+
+// ensureDemoCouplePhotos mengisi foto mempelai dari set. Foto yang sudah ada tidak
+// ditimpa supaya objek lamanya tidak kehilangan URL; --refresh mengosongkannya dulu.
+func (a *app) ensureDemoCouplePhotos(ctx context.Context, weddingID uuid.UUID, set demoSet) error {
+	if set.Groom == "" || set.Bride == "" {
+		return nil
+	}
+	c, err := a.weddings.GetCouple(ctx, weddingID)
+	if err != nil || c.GroomPhotoURL != nil || c.BridePhotoURL != nil {
+		return err
+	}
+	groom, err := a.putDemoPhoto(ctx, weddingID, "couple", set.Groom)
+	if err != nil {
+		return err
+	}
+	bride, err := a.putDemoPhoto(ctx, weddingID, "couple", set.Bride)
+	if err != nil {
+		return err
+	}
+	_, err = a.weddings.UpdateCouple(ctx, weddingID, wedding.CoupleInput{
+		GroomName: c.GroomName, BrideName: c.BrideName, GroomDescription: c.GroomDescription, BrideDescription: c.BrideDescription,
+		GroomPhotoURL: groom, BridePhotoURL: bride,
+	})
+	return err
 }
 
 // clearDemoMedia menghapus semua foto galeri demo (objek storage & kuotanya
@@ -281,7 +315,7 @@ func demoStoryInput(s story.Story, photo string) story.Input {
 	return in
 }
 
-// putDemoPhoto menyimpan foto cerita langsung ke storage (R2 di
+// putDemoPhoto menyimpan foto mempelai / cerita langsung ke storage (R2 di
 // produksi), bukan sebagai item galeri — supaya galeri contoh hanya berisi foto
 // pilihan, tidak mengulang foto yang sama. Demo tidak memakai kuota paket.
 func (a *app) putDemoPhoto(ctx context.Context, weddingID uuid.UUID, folder, file string) (string, error) {

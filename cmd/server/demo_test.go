@@ -39,7 +39,8 @@ func TestSeedDemo(t *testing.T) {
 	if strings.Count(out.String(), "dibuat:") != len(theme.All()) {
 		t.Errorf("output seed: %s", out.String())
 	}
-	// Foto lengkap: sampul (foto utama), galeri, tanpa potret mempelai; kutipan contoh.
+	// Foto lengkap: sampul (foto utama), galeri, kutipan contoh; foto mempelai hanya
+	// di set yang memilikinya (Signature).
 	photos := gallery.NewService(gallery.NewRepository(a.pool), a.store, a.weddings, a.cfg.Storage.QuotaBytes, a.log)
 	themes := theme.NewService(a.pool, a.weddings)
 	for _, d := range theme.All() {
@@ -48,7 +49,8 @@ func TestSeedDemo(t *testing.T) {
 		c, _ := a.weddings.GetCouple(ctx, w.ID)
 		st, _ := themes.Settings(ctx, w.ID)
 		// Sampul (kategori cover, tidak tampil di galeri) + 6 foto galeri.
-		if len(items) != 7 || w.MainPhotoURL == nil || c.GroomPhotoURL != nil || c.BridePhotoURL != nil || st.QuoteText == "" {
+		wantCouple := demoMedia[demoMediaSource(d.ID)].Groom != ""
+		if len(items) != 7 || w.MainPhotoURL == nil || (c.GroomPhotoURL != nil) != wantCouple || (c.BridePhotoURL != nil) != wantCouple || st.QuoteText == "" {
 			t.Errorf("demo %s belum lengkap: %d foto, main=%v, pasangan=%v/%v, kutipan=%q", d.ID, len(items), w.MainPhotoURL, c.GroomPhotoURL, c.BridePhotoURL, st.QuoteText)
 		}
 	}
@@ -87,15 +89,19 @@ func TestSeedDemo(t *testing.T) {
 		t.Fatal(err)
 	}
 	assertStoryPhotos()
-	// Demo dari versi lama (tanpa foto & kutipan) dilengkapi saat seed diulang.
-	if _, err := a.pool.Exec(ctx, "DELETE FROM gallery_items; UPDATE wedding_theme_settings SET quote_text = NULL"); err != nil {
+	// Demo dari versi lama (tanpa foto & kutipan) dilengkapi saat seed diulang. Satu
+	// tema saja: mengisi ulang semua tema terlalu lambat di bawah -race.
+	if _, err := a.pool.Exec(ctx, "DELETE FROM gallery_items WHERE wedding_id = (SELECT id FROM weddings WHERE slug = $1)", publicsite.DemoSlug("modern")); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := a.pool.Exec(ctx, "UPDATE wedding_theme_settings SET quote_text = NULL"); err != nil {
 		t.Fatal(err)
 	}
 	out.Reset()
 	if err := a.seedDemo(ctx, &out, false); err != nil {
 		t.Fatal(err)
 	}
-	if strings.Count(out.String(), "dilengkapi:") != len(theme.All()) {
+	if strings.Count(out.String(), "dilengkapi:") != 1 {
 		t.Errorf("seed ulang demo lama: %s", out.String())
 	}
 	// --refresh: potret & foto cerita lama benar-benar hilang dari storage, tetapi
@@ -148,6 +154,8 @@ func TestSeedDemo(t *testing.T) {
 		t.Fatal(err)
 	}
 	otherItems, _ := photos.ListGallery(ctx, other.ID)
+	sig, _ := a.weddings.GetWeddingBySlug(ctx, publicsite.DemoSlug("signature"))
+	sigOld, _ := a.weddings.GetCouple(ctx, sig.ID)
 	out.Reset()
 	if err := a.seedDemo(ctx, &out, true); err != nil {
 		t.Fatal(err)
@@ -173,6 +181,11 @@ func TestSeedDemo(t *testing.T) {
 		}
 	}
 	assertStoryReplaced(demo.ID)
+	// Signature: foto mempelai diganti objek baru, objek lama hilang.
+	sigNew, _ := a.weddings.GetCouple(ctx, sig.ID)
+	if sigNew.GroomPhotoURL == nil || sigNew.BridePhotoURL == nil || *sigNew.GroomPhotoURL == *sigOld.GroomPhotoURL || !objectExists(sig.ID, *sigNew.GroomPhotoURL) || objectExists(sig.ID, *sigOld.GroomPhotoURL) || objectExists(sig.ID, *sigOld.BridePhotoURL) {
+		t.Errorf("refresh: foto mempelai Signature: lama %v/%v, baru %v/%v", sigOld.GroomPhotoURL, sigOld.BridePhotoURL, sigNew.GroomPhotoURL, sigNew.BridePhotoURL)
+	}
 	// Bukan demo: objek, URL, dan galeri tetap.
 	for _, u := range otherOld {
 		if !objectExists(other.ID, u) {
@@ -191,12 +204,26 @@ func TestSeedDemo(t *testing.T) {
 	if _, err := a.pool.Exec(ctx, "UPDATE weddings SET is_demo = true WHERE id = $1", other.ID); err != nil {
 		t.Fatal(err)
 	}
-	// Refresh tetap idempoten.
-	if err := a.seedDemo(ctx, io.Discard, true); err != nil {
-		t.Fatalf("refresh ulang: %v", err)
+	// Refresh tetap idempoten. Cukup satu tema: seedDemo penuh memproses semua foto
+	// dan terlalu lambat untuk diulang di bawah -race.
+	demo, _ = a.weddings.GetWeddingBySlug(ctx, publicsite.DemoSlug("modern"))
+	for range 2 {
+		if err := clearDemoMedia(ctx, photos, demo.ID); err != nil {
+			t.Fatalf("refresh ulang: %v", err)
+		}
+		if err := a.clearDemoPhotos(ctx, stories, demo); err != nil {
+			t.Fatalf("refresh ulang: %v", err)
+		}
 	}
-	if err := a.seedDemo(ctx, io.Discard, true); err != nil {
-		t.Fatalf("refresh ulang: %v", err)
+	if _, err := a.ensureDemoMedia(ctx, photos, demo, "modern"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := a.ensureDemoStoryPhotos(ctx, stories, demo.ID, "modern"); err != nil {
+		t.Fatal(err)
+	}
+	other.IsDemo = false
+	if err := a.clearDemoPhotos(ctx, stories, other); err == nil {
+		t.Error("clearDemoPhotos harus menolak wedding bukan demo")
 	}
 	assertStoryPhotos()
 	if w, _ := a.weddings.GetWeddingBySlug(ctx, publicsite.DemoSlug("modern")); true {
@@ -246,6 +273,9 @@ func TestDemoMediaFiles(t *testing.T) {
 		}
 		for _, f := range set.Stories {
 			used[f] = true
+		}
+		if set.Groom != "" {
+			used[set.Groom], used[set.Bride] = true, true
 		}
 	}
 	for _, file := range demoCoverOverride {

@@ -5,10 +5,12 @@ Semua foto mengikuti aturan foto contoh di `doc/runbook.md` (tanpa wajah yang bi
 
 | Berkas | Fotografer | Sumber |
 |---|---|---|
+| 3eyT-xDIwY8.jpg | Brittney Weng | https://unsplash.com/photos/3eyT-xDIwY8 |
 | 464ps_nOflw.jpg | Jeremy Wong Weddings | https://unsplash.com/photos/man-and-woman-holding-hands-focus-photo-464ps_nOflw |
 | 4FGhD_iGuqg.jpg | Ridham Supriyanto | https://unsplash.com/photos/floral-arrangement-decorates-an-outdoor-event-setup-4FGhD_iGuqg |
 | 5BB_atDT4oA.jpg | Nathan Dumlao | https://unsplash.com/photos/groom-beside-bride-holding-bouquet-flowers-5BB_atDT4oA |
 | B_R3rmJPeSE.jpg | Jonathan Borba | https://unsplash.com/photos/5-layer-wedding-cake-surrounded-with-assorted-color-flower-arrangement-with-lighted-chandeliers-B_R3rmJPeSE |
+| B_P6nONZk58.jpg | Cate Bligh | https://unsplash.com/photos/B_P6nONZk58 |
 | BeHFdxxL6E8.jpg | Jordan Loritz | https://unsplash.com/photos/a-close-up-of-a-person-wearing-a-wedding-dress-BeHFdxxL6E8 |
 | IfjHaIoAoqE.jpg | Foto Pettine | https://unsplash.com/photos/a-bride-and-groom-walking-on-a-hill-IfjHaIoAoqE |
 | IpORRK_X_gU.jpg | Europeana (National Museum of World Cultures, Public Domain & Unsplash License) | https://unsplash.com/photos/intricate-brown-and-cream-batik-fabric-pattern-IpORRK_X_gU |
