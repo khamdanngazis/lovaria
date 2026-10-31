@@ -567,7 +567,7 @@ func namesStack(groom, bride string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</span> <span class=\"relative z-0 -my-3 block text-[0.86em] font-normal italic leading-none text-secondary opacity-75\" aria-hidden=\"true\">&amp;</span> <span class=\"sr-only\">dan</span> <span class=\"relative block break-words\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</span> <span class=\"relative z-0 -my-[0.15em] block text-[0.6em] font-normal italic leading-none text-secondary opacity-75\" aria-hidden=\"true\">&amp;</span> <span class=\"sr-only\">dan</span> <span class=\"relative block break-words\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

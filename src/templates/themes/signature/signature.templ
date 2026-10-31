@@ -5,6 +5,7 @@ package signature
 
 import (
 	"strings"
+	"unicode/utf8"
 
 	"github.com/khamdanngazis/lovaria/src/modules/theme/view"
 	"github.com/khamdanngazis/lovaria/src/templates/layouts"
@@ -29,27 +30,36 @@ templ Layout(v view.View) {
 	}
 }
 
-// Hero: 01 Opening Cover — kertas bercahaya dalam bingkai tipis; bunga besar,
-// pita, dan kelopak keluar dari tepi halaman, nama mempelai sebagai fokus.
+// nameSize: ukuran nama di sampul dari nama depan terpanjang, sebesar mungkin
+// tanpa memotong kata. Layar pendek satu tingkat lebih kecil agar tombol terjangkau.
+func nameSize(groom, bride string) string {
+	switch n := max(utf8.RuneCountInString(groom), utf8.RuneCountInString(bride)); {
+	case n <= 7:
+		return "text-[clamp(3.25rem,19vw,7rem)] [@media(max-height:700px)]:text-[clamp(2.75rem,15vw,5.5rem)]"
+	case n <= 10:
+		return "text-[clamp(2.75rem,15vw,5.5rem)] [@media(max-height:700px)]:text-[clamp(2.25rem,11vw,4.5rem)]"
+	}
+	return "text-[clamp(2.25rem,11vw,4.5rem)]"
+}
+
+// Hero: 01 Opening Cover — kertas bercahaya dalam bingkai tipis; nama mempelai
+// sebagai fokus dengan ruang lega, bunga & pita hanya di sudut jauh.
 templ Hero(v view.View) {
 	{{ groom, bride := base.FirstNames(v) }}
 	<section id="opening" class="lv-paper relative flex min-h-dvh flex-col overflow-hidden text-ink">
 		@frameLines("inset-3")
-		@art(v, "bouquet", "absolute left-0 top-[-56px] w-[44%] max-w-[380px] md:top-[-90px] [@media(max-height:700px)]:top-[-70px] [@media(max-height:700px)]:w-[38%]", true)
-		@art(v, "cluster", "absolute bottom-[12%] left-[-14%] w-[52%] max-w-[380px] opacity-30 blur-[6px]", false)
-		@art(v, "ribbon-left", "absolute bottom-0 left-0 w-[56%] max-w-[480px]", true)
-		@art(v, "corner", "absolute bottom-0 right-0 w-[50%] max-w-[420px]", true)
-		@art(v, "petal-a", "absolute left-[7%] top-[46%] w-5 rotate-[35deg]", false)
-		@art(v, "petal-b", "absolute right-[8%] top-[44%] w-7 -rotate-[28deg]", false)
-		<div class="lv-cover-body relative my-auto px-8 pb-52 pt-40 text-center md:pb-40 md:pt-24 [@media(max-height:700px)]:pb-36 [@media(max-height:700px)]:pt-28">
-			@monogram(v, "h-14 w-14 text-lg")
-			<div class="mt-5">
+		@art(v, "bouquet", "absolute left-0 top-[-56px] w-[38%] max-w-[320px] md:top-[-90px] [@media(max-height:700px)]:top-[-70px] [@media(max-height:700px)]:w-[32%]", true)
+		@art(v, "ribbon-left", "absolute bottom-0 left-0 w-[46%] max-w-[400px]", true)
+		@art(v, "corner", "absolute bottom-0 right-0 w-[42%] max-w-[340px]", true)
+		<div class="lv-cover-body relative my-auto px-6 pb-40 pt-36 text-center md:pb-36 md:pt-24 [@media(max-height:700px)]:pb-28 [@media(max-height:700px)]:pt-20">
+			@monogram(v, "h-11 w-11 text-sm")
+			<div class="mt-4">
 				@label("The Wedding of")
 			</div>
-			<h1 class="mt-5 text-[clamp(2.75rem,15vw,5.5rem)] font-medium leading-[1.02] text-deep">
+			<h1 class={ "mt-8 font-medium leading-[1.02] text-deep [@media(max-height:700px)]:mt-5", nameSize(groom, bride) }>
 				@namesStack(groom, bride)
 			</h1>
-			<p class="mt-5 text-sm tracking-wide">{ v.DateText }</p>
+			<p class="mt-8 text-sm tracking-wide [@media(max-height:700px)]:mt-5">{ v.DateText }</p>
 			<div class="mt-6">
 				<p class={ "text-muted", eyebrow }>{ base.GreetingText(v, "Kepada Yth.") }</p>
 				<p class="mx-auto mt-2 max-w-xs break-words text-xl text-deep" style="font-family: var(--lv-font-heading)">{ base.GuestName(v) }</p>
