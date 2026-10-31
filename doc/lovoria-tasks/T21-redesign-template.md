@@ -2,6 +2,8 @@
 
 **Estimasi:** 4–5 hari (bisa dipecah jadi 3 PR, lihat *Urutan Pengerjaan*) · **Depends on:** T08, T09, T18, T20 · **Modul:** `modules/theme` (registry, token), `templates/themes/*`, `templates/shared`, `src/styles/app.css`, `static/js/invitation.js`, `public-site` (landing), `cmd/server` (demo)
 
+> **Catatan (T33):** Palet dan font untuk tema `signature` di task ini sudah digantikan oleh `T33-lunovia-signature-color-theme.md` (palet Primary Dark `#49334F`, Background `#FBF6F2`, dll.; font Cormorant Garamond / Playfair Display / Lato; lima preset warna per template). Ikuti T33 untuk tema `signature`.
+
 ## Konteks
 Brand guide (`doc/landing-page-guide.md`) meminta Lunovia terasa seperti **premium wedding brand**: romantic, elegant, modern, timeless. Landing page sudah mengikuti arah itu (Dusty Plum, Champagne, Warm Ivory, Playfair Display + Inter). Template undangannya belum:
 
