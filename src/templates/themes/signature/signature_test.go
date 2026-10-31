@@ -6,6 +6,21 @@ import (
 	"github.com/khamdanngazis/lovaria/src/modules/theme/view"
 )
 
+func TestNameSize(t *testing.T) {
+	large, medium, small := nameSize("Arya", "Kirana"), nameSize("Muhammad", "Sari"), nameSize("Wijayakusuma", "Sari")
+	if large == medium || medium == small {
+		t.Errorf("tingkat ukuran harus berbeda: %q, %q, %q", large, medium, small)
+	}
+	// Dihitung per huruf, bukan byte: tujuh huruf non-ASCII tetap tingkat terbesar.
+	if got := nameSize("Élodièé", "山田花子"); got != large {
+		t.Errorf("nama non-ASCII: %q", got)
+	}
+	// Nama terpanjang yang menentukan, dari sisi mana pun.
+	if got := nameSize("Sari", "Muhammad"); got != medium {
+		t.Errorf("mempelai wanita lebih panjang: %q", got)
+	}
+}
+
 func TestStoryDate(t *testing.T) {
 	for in, want := range map[string][2]string{
 		"2019":          {"2019", ""},
