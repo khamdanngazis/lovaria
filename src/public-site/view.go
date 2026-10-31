@@ -208,6 +208,7 @@ func FillSample(v *view.View) {
 	if v.Guest == nil {
 		v.Guest = &view.Guest{Name: "Nama Tamu", MaxPax: 2}
 	}
+	v.Checkin.Sample = true
 	if v.MainPhoto == "" && v.Settings.CoverImage == "" {
 		v.MainPhoto, v.Sample = img("cover"), true
 	}

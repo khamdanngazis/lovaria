@@ -81,6 +81,7 @@ func ValidateSettings(s view.Settings) (view.Settings, error) {
 			e[key] = "Font tulisan tangan hanya untuk judul"
 		}
 	}
+	s.ColorPreset = strings.TrimSpace(s.ColorPreset)
 	s.Background = strings.TrimSpace(s.Background)
 	if s.Background != "" {
 		if strings.HasPrefix(s.Background, "#") {
@@ -116,9 +117,19 @@ func safeImageURL(raw string) bool {
 	return err == nil && (u.Scheme == "https" || u.Scheme == "http") && u.Host != ""
 }
 
-// resolve menggabungkan token default tema dengan pengaturan wedding.
-func resolve(def view.Tokens, s view.Settings) view.Tokens {
-	t := def
+// resolve menggabungkan token default tema dengan pengaturan wedding. Tema
+// Fixed hanya memakai preset & foto sampul (T33 §8).
+func resolve(d ThemeDef, s view.Settings) view.Tokens {
+	t := d.Tokens
+	if p, ok := d.Preset(s.ColorPreset); ok {
+		t = p.apply(t)
+	}
+	if d.Fixed {
+		if s.CoverImage != "" {
+			t.CoverImage = s.CoverImage
+		}
+		return t
+	}
 	if s.PrimaryColor != "" {
 		t.Primary = s.PrimaryColor
 	}
@@ -163,6 +174,15 @@ func TokensCSS(themeID string, t view.Tokens) string {
 	fmt.Fprintf(&b, "--lv-radius-btn:%s;", lengthOr(t.ButtonRadius, "9999px"))
 	fmt.Fprintf(&b, "--lv-font-heading:%s;", fontStack(t.FontHeading))
 	fmt.Fprintf(&b, "--lv-font-body:%s;", fontStack(t.FontBody))
+	if t.FontDisplay != "" {
+		fmt.Fprintf(&b, "--lv-font-display:%s;", fontStack(t.FontDisplay))
+	}
+	// Urutan tetap (bukan map) supaya CSS deterministik untuk cache.
+	for _, c := range [][2]string{{"secondary", t.Secondary}, {"paper", t.Paper}, {"soft", t.Soft}} {
+		if hexColor.MatchString(c[1]) {
+			fmt.Fprintf(&b, "--lv-%s:%s;", c[0], c[1])
+		}
+	}
 	switch {
 	case hexColor.MatchString(t.Background):
 		fmt.Fprintf(&b, "--lv-background:%s;", t.Background)

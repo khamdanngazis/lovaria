@@ -2,6 +2,7 @@ package publicsite
 
 import (
 	"fmt"
+	"github.com/khamdanngazis/lovaria/src/modules/theme"
 	"time"
 
 	"github.com/khamdanngazis/lovaria/src/modules/payment"
@@ -39,6 +40,8 @@ type landingTheme struct {
 	Region                string // daerah inspirasi (Koleksi Daerah); "" = koleksi utama
 	Accent                string
 	FontHeading, FontBody string
+	Presets               []theme.Preset // preset warna kurasi (T33)
+	Fixed                 bool           // desain terkunci: hanya warna & sampul
 }
 
 // Teks utama landing di satu tempat supaya mudah disunting pemilik produk.

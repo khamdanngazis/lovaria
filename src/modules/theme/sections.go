@@ -79,6 +79,15 @@ func OrderedSections(s view.Settings) []SectionDef {
 	return out
 }
 
+// OrderedSectionsFor: urutan bagian untuk tema d — tema Fixed memakai urutannya
+// sendiri, urutan tersimpan pasangan tidak dipakai (T33 §8).
+func OrderedSectionsFor(d ThemeDef, s view.Settings) []SectionDef {
+	if d.Fixed {
+		s.SectionOrder = d.SectionOrder
+	}
+	return OrderedSections(s)
+}
+
 // SectionHidden: bagian disembunyikan pasangan (hanya bagian Hideable).
 func SectionHidden(s view.Settings, id string) bool {
 	d, ok := SectionByID(id)

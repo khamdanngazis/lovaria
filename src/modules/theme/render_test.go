@@ -59,8 +59,13 @@ func TestRenderAllThemes(t *testing.T) {
 				t.Fatal("URL Google Fonts tidak ada")
 			}
 			fontsURL := html[i : i+strings.Index(html[i:], `"`)]
-			if n := strings.Count(fontsURL, "family="); n > 2 {
-				t.Errorf("memuat %d font, maksimal 2: %s", n, fontsURL)
+			// Maksimal tiga font (T33 §2.3): nama mempelai, judul, isi.
+			limit := 2
+			if d.Tokens.FontDisplay != "" {
+				limit = 3
+			}
+			if n := strings.Count(fontsURL, "family="); n > limit {
+				t.Errorf("memuat %d font, maksimal %d: %s", n, limit, fontsURL)
 			}
 			if strings.Contains(html, `<link rel="stylesheet" href="https://fonts.googleapis.com`) && !strings.Contains(html, "<noscript>") {
 				t.Error("stylesheet font tidak boleh memblokir render")
@@ -71,17 +76,22 @@ func TestRenderAllThemes(t *testing.T) {
 
 func TestRenderSettingsOverrideAndFallback(t *testing.T) {
 	v := sample()
-	v.ThemeID = "tidak-ada"
+	v.ThemeID = "minimal"
 	v.Settings = view.Settings{PrimaryColor: "#123456", FontHeading: "Cinzel", CoverImage: "https://pub-x.r2.dev/cover.jpg"}
 	v.Preview, v.AllowRSVP = true, true
 	html := render(t, v)
-	for _, want := range []string{`data-theme="signature"`, "--lv-primary:#123456;", "family=Cinzel", "cover.jpg", `id="rsvp"`, "Preview"} {
+	for _, want := range []string{`data-theme="minimal"`, "--lv-primary:#123456;", "family=Cinzel", "cover.jpg", `id="rsvp"`, "Preview"} {
 		if !strings.Contains(html, want) {
 			t.Errorf("tidak memuat %q", want)
 		}
 	}
-	if strings.Contains(html, "family=Playfair") {
+	if strings.Contains(html, "family=Josefin") {
 		t.Error("font default tidak boleh dimuat saat diganti")
+	}
+	// ID tema tak dikenal → tema bawaan.
+	v.ThemeID = "tidak-ada"
+	if html := render(t, v); !strings.Contains(html, `data-theme="signature"`) {
+		t.Error("tema tak dikenal harus jatuh ke tema bawaan")
 	}
 }
 

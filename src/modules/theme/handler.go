@@ -37,7 +37,7 @@ func ctxWedding(c echo.Context) wedding.Wedding {
 func settingsFrom(vals url.Values) view.Settings {
 	st := view.Settings{
 		PrimaryColor: vals.Get("primary_color"), FontHeading: vals.Get("font_heading"), FontBody: vals.Get("font_body"),
-		Background: vals.Get("background"), CoverImage: vals.Get("cover_image"),
+		Background: vals.Get("background"), CoverImage: vals.Get("cover_image"), ColorPreset: vals.Get("color_preset"),
 		MusicURL: vals.Get("music_url"), MusicEnabled: vals.Get("music_enabled") == "1",
 		QuoteText: vals.Get("quote_text"), QuoteSource: vals.Get("quote_source"),
 		Greeting: vals.Get("greeting"), Closing: vals.Get("closing"),

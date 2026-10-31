@@ -76,7 +76,7 @@ templ page(s pageState) {
 					method="post"
 					action={ templ.SafeURL(pageURL(s.W)) }
 					class="space-y-6"
-					x-data={ templ.JSFuncCall("themePreview", pageURL(s.W)+"/preview").CallInline }
+					x-data={ templ.JSFuncCall("themePreview", pageURL(s.W)+"/preview", currentTheme(s).Fixed).CallInline }
 					@input="refresh()"
 					@change="refresh()"
 					@image-change="refresh()"
@@ -121,7 +121,7 @@ templ page(s pageState) {
 							<div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
 								for _, d := range s.Themes {
 									<label class="block cursor-pointer">
-										<input type="radio" name="theme_id" value={ d.ID } checked?={ d.ID == s.ThemeID } data-name={ d.Name } data-thumb={ d.Thumb() } @change="pick($event.target)" class="peer sr-only"/>
+										<input type="radio" name="theme_id" value={ d.ID } checked?={ d.ID == s.ThemeID } data-name={ d.Name } data-thumb={ d.Thumb() } data-fixed={ fixedAttr(d) } @change="pick($event.target)" class="peer sr-only"/>
 										<span class="block overflow-hidden rounded-2xl bg-lovoria-surface ring-1 ring-lovoria-border transition peer-checked:ring-4 peer-checked:ring-lovoria-primary peer-focus-visible:ring-4">
 											if d.Thumb() != "" {
 												<img src={ d.Thumb() } alt="" width="600" height="750" loading="lazy" decoding="async" class="aspect-[4/5] w-full object-cover object-top"/>
@@ -140,37 +140,40 @@ templ page(s pageState) {
 							</div>
 						</fieldset>
 					</details>
+					@presetCard(s)
 					@ui.Card() {
 						<h2 class="font-semibold">Sesuaikan</h2>
-						<p class="text-sm text-lovoria-muted">Kosongkan untuk memakai bawaan tema.</p>
+						<p class="text-sm text-lovoria-muted" x-show="!fixed">Kosongkan untuk memakai bawaan tema.</p>
 						<div class="mt-4 space-y-4">
-							<div x-data={ templ.JSFuncCall("colorField", s.Settings.PrimaryColor).CallInline }>
-								<label class="flex items-center gap-2 text-sm font-medium text-lovoria-text">
-									<input type="checkbox" x-model="custom" class="h-4 w-4"/>
-									Warna utama sendiri
-								</label>
-								<div class="mt-2 flex items-center gap-3" x-show="custom">
-									<input type="color" x-model="color" aria-label="Warna utama" class="h-10 w-16 cursor-pointer rounded border border-lovoria-control"/>
-									<span class="font-mono text-sm" x-text="color"></span>
+							<div class="space-y-4" x-show="!fixed">
+								<div x-data={ templ.JSFuncCall("colorField", s.Settings.PrimaryColor).CallInline }>
+									<label class="flex items-center gap-2 text-sm font-medium text-lovoria-text">
+										<input type="checkbox" x-model="custom" class="h-4 w-4"/>
+										Warna utama sendiri
+									</label>
+									<div class="mt-2 flex items-center gap-3" x-show="custom">
+										<input type="color" x-model="color" aria-label="Warna utama" class="h-10 w-16 cursor-pointer rounded border border-lovoria-control"/>
+										<span class="font-mono text-sm" x-text="color"></span>
+									</div>
+									<input type="hidden" name="primary_color" :value="custom ? color : ''" value={ s.Settings.PrimaryColor }/>
+									<p class="mt-1 text-sm text-lovoria-danger">{ s.Errors["primary_color"] }</p>
 								</div>
-								<input type="hidden" name="primary_color" :value="custom ? color : ''" value={ s.Settings.PrimaryColor }/>
-								<p class="mt-1 text-sm text-lovoria-danger">{ s.Errors["primary_color"] }</p>
-							</div>
-							<div class="grid gap-4 sm:grid-cols-2">
-								@ui.Select(ui.Field{ID: "theme-font-heading", Name: "font_heading", Label: "Font judul", Value: s.Settings.FontHeading, Error: s.Errors["font_heading"]}, fontOptions(true))
-								@ui.Select(ui.Field{ID: "theme-font-body", Name: "font_body", Label: "Font isi", Value: s.Settings.FontBody, Error: s.Errors["font_body"]}, fontOptions(false))
-							</div>
-							<div x-data={ templ.JSFuncCall("colorField", bgColor(s.Settings.Background)).CallInline }>
-								<label class="flex items-center gap-2 text-sm font-medium text-lovoria-text">
-									<input type="checkbox" x-model="custom" class="h-4 w-4"/>
-									Warna latar sendiri
-								</label>
-								<div class="mt-2 flex items-center gap-3" x-show="custom">
-									<input type="color" x-model="color" aria-label="Warna latar" class="h-10 w-16 cursor-pointer rounded border border-lovoria-control"/>
-									<span class="font-mono text-sm" x-text="color"></span>
+								<div class="grid gap-4 sm:grid-cols-2">
+									@ui.Select(ui.Field{ID: "theme-font-heading", Name: "font_heading", Label: "Font judul", Value: s.Settings.FontHeading, Error: s.Errors["font_heading"]}, fontOptions(true))
+									@ui.Select(ui.Field{ID: "theme-font-body", Name: "font_body", Label: "Font isi", Value: s.Settings.FontBody, Error: s.Errors["font_body"]}, fontOptions(false))
 								</div>
-								<input type="hidden" name="background" :value="custom ? color : ''" value={ bgColor(s.Settings.Background) }/>
-								<p class="mt-1 text-sm text-lovoria-danger">{ s.Errors["background"] }</p>
+								<div x-data={ templ.JSFuncCall("colorField", bgColor(s.Settings.Background)).CallInline }>
+									<label class="flex items-center gap-2 text-sm font-medium text-lovoria-text">
+										<input type="checkbox" x-model="custom" class="h-4 w-4"/>
+										Warna latar sendiri
+									</label>
+									<div class="mt-2 flex items-center gap-3" x-show="custom">
+										<input type="color" x-model="color" aria-label="Warna latar" class="h-10 w-16 cursor-pointer rounded border border-lovoria-control"/>
+										<span class="font-mono text-sm" x-text="color"></span>
+									</div>
+									<input type="hidden" name="background" :value="custom ? color : ''" value={ bgColor(s.Settings.Background) }/>
+									<p class="mt-1 text-sm text-lovoria-danger">{ s.Errors["background"] }</p>
+								</div>
 							</div>
 							@ui.ImageUpload(ui.Field{ID: "theme-cover", Name: "cover_image", Label: "Foto sampul (pembuka undangan)", Value: s.Settings.CoverImage, Error: s.Errors["cover_image"]}, s.W.DashboardURL("/gallery/items"), "cover")
 						</div>
@@ -197,6 +200,60 @@ templ page(s pageState) {
 					class="mt-2 h-[640px] w-full rounded-2xl bg-lovoria-surface shadow-soft ring-1 ring-lovoria-border"
 				></iframe>
 			</div>
+		</div>
+	}
+}
+
+func fixedAttr(d ThemeDef) string {
+	if d.Fixed {
+		return "1"
+	}
+	return "0"
+}
+
+// presetChoices: preset tema ber-preset dan yang sedang terpilih.
+func presetChoices(s pageState) ([]Preset, string) {
+	for _, d := range s.Themes {
+		if len(d.Presets) > 0 {
+			p, _ := d.Preset(s.Settings.ColorPreset)
+			return d.Presets, p.ID
+		}
+	}
+	return nil, ""
+}
+
+// presetCard: pilihan warna kurasi tema berdesain terkunci (T33 §4).
+templ presetCard(s pageState) {
+	{{ presets, current := presetChoices(s) }}
+	if len(presets) > 0 {
+		<div x-show="fixed">
+			@ui.Card() {
+				<fieldset>
+					<legend class="font-semibold">Tema warna</legend>
+					<p class="text-sm text-lovoria-muted">Desain tetap sama, hanya warnanya yang berganti.</p>
+					if s.Errors["color_preset"] != "" {
+						<p role="alert" class="mt-2 text-sm text-lovoria-danger">{ s.Errors["color_preset"] }</p>
+					}
+					<div class="mt-4 grid gap-2">
+						for _, p := range presets {
+							<label class="block cursor-pointer">
+								<input type="radio" name="color_preset" value={ p.ID } checked?={ p.ID == current } class="peer sr-only"/>
+								<span class="flex items-center gap-3 rounded-xl p-3 ring-1 ring-lovoria-border transition peer-checked:ring-2 peer-checked:ring-lovoria-primary peer-focus-visible:ring-4">
+									<span class="flex flex-none -space-x-1.5" aria-hidden="true">
+										for _, c := range []string{p.Primary, p.Secondary, p.Accent, p.Surface} {
+											<span class="h-6 w-6 rounded-full ring-2 ring-white" style={ "background:" + c }></span>
+										}
+									</span>
+									<span class="min-w-0">
+										<span class="block text-sm font-semibold">{ p.Name }</span>
+										<span class="block text-xs text-lovoria-muted">{ p.Character }</span>
+									</span>
+								</span>
+							</label>
+						}
+					</div>
+				</fieldset>
+			}
 		</div>
 	}
 }
@@ -310,11 +367,12 @@ templ sectionsCard(s pageState) {
 	@ui.Card() {
 		<div id="bagian" x-data="sectionOrder()">
 			<h2 class="font-semibold">Susunan bagian</h2>
-			<p class="text-sm text-lovoria-muted">Atur urutan bagian di antara pembuka dan penutup, dan sembunyikan yang tidak dipakai. Acara, konfirmasi kehadiran, dan mempelai selalu tampil.</p>
+			<p class="text-sm text-lovoria-muted" x-show="!fixed">Atur urutan bagian di antara pembuka dan penutup, dan sembunyikan yang tidak dipakai. Acara, konfirmasi kehadiran, dan mempelai selalu tampil.</p>
+			<p class="text-sm text-lovoria-muted" x-show="fixed">Urutan bagian tema ini sudah ditetapkan. Anda bisa menyembunyikan yang tidak dipakai; acara, konfirmasi kehadiran, dan mempelai selalu tampil.</p>
 			if s.Errors["hidden_sections"] != "" || s.Errors["section_order"] != "" {
 				<p role="alert" class="mt-2 text-sm text-lovoria-danger">{ s.Errors["hidden_sections"] }{ s.Errors["section_order"] }</p>
 			}
-			{{ order := OrderedSections(s.Settings) }}
+			{{ order := OrderedSectionsFor(currentTheme(s), s.Settings) }}
 			<ol class="mt-3 divide-y divide-lovoria-border rounded-xl border border-lovoria-border">
 				for i, d := range order {
 					<li class="flex items-center gap-3 p-3" data-section={ d.ID }>
@@ -325,8 +383,8 @@ templ sectionsCard(s pageState) {
 							<input type="checkbox" id={ "section-" + d.ID } checked disabled class="h-4 w-4 flex-none"/>
 						}
 						<label for={ "section-" + d.ID } class="min-w-0 flex-1 text-sm">{ d.Label }</label>
-						<button type="submit" name="move" value={ d.ID + ":up" } @click.prevent="move($event, -1)" disabled?={ i == 0 } aria-label={ "Naikkan " + d.Label } class="ui-btn ui-btn-secondary px-2.5 py-1 text-sm disabled:opacity-40">↑</button>
-						<button type="submit" name="move" value={ d.ID + ":down" } @click.prevent="move($event, 1)" disabled?={ i == len(order)-1 } aria-label={ "Turunkan " + d.Label } class="ui-btn ui-btn-secondary px-2.5 py-1 text-sm disabled:opacity-40">↓</button>
+						<button type="submit" name="move" value={ d.ID + ":up" } x-show="!fixed" @click.prevent="move($event, -1)" disabled?={ i == 0 } aria-label={ "Naikkan " + d.Label } class="ui-btn ui-btn-secondary px-2.5 py-1 text-sm disabled:opacity-40">↑</button>
+						<button type="submit" name="move" value={ d.ID + ":down" } x-show="!fixed" @click.prevent="move($event, 1)" disabled?={ i == len(order)-1 } aria-label={ "Turunkan " + d.Label } class="ui-btn ui-btn-secondary px-2.5 py-1 text-sm disabled:opacity-40">↓</button>
 					</li>
 				}
 			</ol>

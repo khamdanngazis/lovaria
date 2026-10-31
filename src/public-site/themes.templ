@@ -1,7 +1,9 @@
 package publicsite
 
 import (
+	"fmt"
 	"net/url"
+	"slices"
 	"strings"
 
 	"github.com/khamdanngazis/lovaria/src/modules/payment"
@@ -53,7 +55,23 @@ var themeCommon = []string{
 	"Galeri foto dan musik latar",
 	"RSVP online, buku ucapan & doa, amplop digital",
 	"Hitung mundur dan kutipan pilihan",
-	"Warna utama, huruf, latar, dan foto sampul bisa diganti",
+}
+
+// themeFeatures: fitur umum + apa yang bisa diganti pada tema ini.
+func themeFeatures(t landingTheme) []string {
+	custom := "Warna utama, huruf, latar, dan foto sampul bisa diganti"
+	if t.Fixed {
+		custom = fmt.Sprintf("%d pilihan warna kurasi dan foto sampul yang bisa diganti", len(t.Presets))
+	}
+	return append(slices.Clone(themeCommon), custom)
+}
+
+// themeSetupStep: langkah menyesuaikan tema pada panduan pemakaian.
+func themeSetupStep(t landingTheme) string {
+	if t.Fixed {
+		return "Pilih tema " + t.Name + " di menu Tema, lalu pilih warna dan foto sampul."
+	}
+	return "Pilih tema " + t.Name + " di menu Tema, lalu atur warna, huruf, dan foto sampul."
 }
 
 templ themesHead(d landingData) {
@@ -185,14 +203,34 @@ templ themeDetailPage(d landingData, t landingTheme) {
 								<dt class="text-lovoria-muted">Huruf isi</dt>
 								<dd class="mt-0.5 font-medium text-lovoria-deep">{ t.FontBody }</dd>
 							</div>
-							<div class="col-span-2">
-								<dt class="text-lovoria-muted">Warna bawaan</dt>
-								<dd class="mt-1.5 flex gap-2" aria-hidden="true">
-									for _, c := range []string{t.Primary, t.Accent, t.Surface, t.Ink} {
-										<span class="h-7 w-7 rounded-full border border-lovoria-border" style={ "background:" + c }></span>
-									}
-								</dd>
-							</div>
+							if len(t.Presets) > 0 {
+								<div class="col-span-2">
+									<dt class="text-lovoria-muted">Pilihan warna</dt>
+									<dd class="mt-1.5">
+										<ul class="grid gap-2 sm:grid-cols-2">
+											for _, p := range t.Presets {
+												<li class="flex items-center gap-2">
+													<span class="flex flex-none -space-x-1" aria-hidden="true">
+														for _, c := range []string{p.Primary, p.Secondary, p.Accent} {
+															<span class="h-5 w-5 rounded-full border border-white" style={ "background:" + c }></span>
+														}
+													</span>
+													<span class="font-medium text-lovoria-deep">{ p.Name }</span>
+												</li>
+											}
+										</ul>
+									</dd>
+								</div>
+							} else {
+								<div class="col-span-2">
+									<dt class="text-lovoria-muted">Warna bawaan</dt>
+									<dd class="mt-1.5 flex gap-2" aria-hidden="true">
+										for _, c := range []string{t.Primary, t.Accent, t.Surface, t.Ink} {
+											<span class="h-7 w-7 rounded-full border border-lovoria-border" style={ "background:" + c }></span>
+										}
+									</dd>
+								</div>
+							}
 						</dl>
 						<div class="mt-8 flex flex-wrap gap-3">
 							<a href={ templ.SafeURL(useThemeURL(t)) } class={ btnPrimary }>Pakai tema ini</a>
@@ -206,7 +244,7 @@ templ themeDetailPage(d landingData, t landingTheme) {
 					<div>
 						<h2 class="font-display text-2xl text-lovoria-deep">Yang ada di setiap undangan</h2>
 						<ul class="mt-4 space-y-2.5 text-sm leading-relaxed text-lovoria-text">
-							for _, f := range themeCommon {
+							for _, f := range themeFeatures(t) {
 								<li class="flex gap-2.5">
 									<span class="mt-1.5 h-1.5 w-1.5 flex-none rounded-full bg-lovoria-accent" aria-hidden="true"></span>
 									{ f }
@@ -218,7 +256,7 @@ templ themeDetailPage(d landingData, t landingTheme) {
 						<h2 class="font-display text-2xl text-lovoria-deep">Cara memakai tema { t.Name }</h2>
 						<ol class="mt-4 list-decimal space-y-2.5 pl-5 text-sm leading-relaxed text-lovoria-text">
 							<li>Daftar gratis dan isi nama pasangan serta tanggal acara.</li>
-							<li>Pilih tema { t.Name } di menu Tema, lalu atur warna, huruf, dan foto sampul.</li>
+							<li>{ themeSetupStep(t) }</li>
 							<li>Lengkapi acara, cerita, dan galeri — pratinjau kapan saja tanpa biaya.</li>
 							if d.PriceIDR > 0 {
 								<li>Publikasikan dengan sekali bayar { payment.Rupiah(d.PriceIDR) }, lalu bagikan link pribadi ke tiap tamu lewat WhatsApp.</li>

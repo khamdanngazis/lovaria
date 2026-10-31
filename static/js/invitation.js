@@ -34,7 +34,7 @@ document.querySelectorAll('link[data-font-css]').forEach(function (l) {
     if (reduce) return go();
     // Isi sampul memudar ke atas (≤ 700 ms), lalu halaman menggulir ke isi.
     cover.classList.add('lv-cover-leave');
-    setTimeout(go, 450);
+    setTimeout(go, 500);
     setTimeout(function () { cover.classList.remove('lv-cover-leave'); }, 1800);
   });
 })();
@@ -71,9 +71,11 @@ document.querySelectorAll('link[data-font-css]').forEach(function (l) {
   box.hidden = true;
   box.innerHTML = '<button type="button" class="lv-lb-close" aria-label="Tutup">×</button>' +
     '<button type="button" class="lv-lb-prev" aria-label="Sebelumnya">‹</button>' +
-    '<img alt=""><button type="button" class="lv-lb-next" aria-label="Berikutnya">›</button>';
+    '<img alt=""><button type="button" class="lv-lb-next" aria-label="Berikutnya">›</button>' +
+    '<p class="lv-lb-caption" hidden></p>';
   document.body.appendChild(box);
   var img = box.querySelector('img');
+  var caption = box.querySelector('.lv-lb-caption');
   var idx = 0;
   var startX = null;
 
@@ -81,6 +83,9 @@ document.querySelectorAll('link[data-font-css]').forEach(function (l) {
     idx = (i + links.length) % links.length;
     img.src = links[idx].href;
     img.alt = (links[idx].querySelector('img') || {}).alt || '';
+    // data-caption: tema memilih menampilkan keterangan foto (T33).
+    caption.textContent = links[idx].dataset.caption || '';
+    caption.hidden = !caption.textContent;
     box.hidden = false;
     document.body.style.overflow = 'hidden';
   }

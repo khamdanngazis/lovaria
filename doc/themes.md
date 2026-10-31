@@ -40,31 +40,39 @@ Kode: `src/modules/theme` (registry, token, `Render`, pengaturan per wedding, da
 `Render` menyusun halaman dari registry bagian `theme.Sections` (`sections.go`, T20):
 
 ```
-Layout( Hero → shared.MemorySection (T19) → #undangan
+Layout( Hero → shared.MemorySection (T19) → #undangan → Intro
         → [bagian tengah sesuai urutan & visibilitas pasangan]
         → Closing → shared.MusicButton )
 ```
 
-Bagian tengah bawaan (`SectionIDs`): `couple, countdown, quote, events, story, gallery, rsvp, guestbook, gift`. Pasangan bisa mengurutkan semuanya dan menyembunyikan yang `Hideable` (hitung mundur, kutipan, cerita, galeri, ucapan, hadiah). Mempelai, acara, dan RSVP selalu tampil selama status mengizinkan.
+Bagian tengah bawaan (`SectionIDs`): `couple, countdown, quote, events, story, gallery, rsvp, checkin, guestbook, gift`. Pasangan bisa mengurutkan semuanya dan menyembunyikan yang `Hideable` (hitung mundur, kutipan, cerita, galeri, ucapan, hadiah). Mempelai, acara, dan RSVP selalu tampil selama status mengizinkan.
 - `OrderedSections(settings)`: ID tak dikenal & duplikat dibuang; bagian yang tidak disebut disisipkan setelah tetangga bawaannya.
 - `SectionHidden(settings, id)`: hanya berlaku untuk bagian `Hideable`.
 - `MoveSection(settings, id, up)`: dipakai tombol naik/turun tanpa JS.
 
 Tombol "Buka Undangan" menuju anchor `#undangan` (awal bagian tengah, apa pun urutannya) atau `#memories` setelah hari H. Teks sapaan & penutup tema lewat `base.GreetingText(v, bawaan)` / `base.ClosingText(v, bawaan, bawaanKenangan)`, jadi isian pasangan berlaku di semua tema.
 
-`theme.Parts` berisi `Layout, Hero, Couple, LoveStory, Events, Gallery, Closing, SectionTitle`. Bagian yang **tidak diisi** tema otomatis memakai tema `base` (`src/templates/themes/base`), jadi tema baru cukup meng-override bagian yang berbeda. Bagian dengan data kosong (tanpa acara/cerita/foto) tidak dirender.
+`theme.Parts` berisi `Layout, Hero, Intro, Couple, LoveStory, Events, Gallery, Checkin, Gift, Closing, SectionTitle`. Bagian yang **tidak diisi** tema otomatis memakai tema `base` (`src/templates/themes/base`), jadi tema baru cukup meng-override bagian yang berbeda; `Intro` kosong secara bawaan, sedangkan `Checkin` dan `Gift` memakai bagian bersama. Bagian dengan data kosong (tanpa acara/cerita/foto) tidak dirender.
 
 **Judul bagian per tema**: `Parts.SectionTitle(title, subtitle)` dipasang ke `view.SectionTitle` oleh `theme.Prepare` (dipanggil `Render`). Semua bagian — termasuk bagian bersama (hitung mundur, RSVP, ucapan, hadiah, kenangan) — memanggil `base.Title(v, …)`, jadi mengikuti tema tanpa mengenal ID tema. Public site memanggil `theme.Prepare` juga untuk fragmen htmx RSVP/ucapan supaya judulnya tetap bergaya tema setelah di-swap.
 
 | Tema | Override | Karakter |
 |---|---|---|
-| `signature` (**bawaan**, T21) | Hero, Couple, LoveStory, Events, Gallery, Closing, SectionTitle | Editorial brand Lunovia: Dusty Plum + Champagne + Warm Ivory, Playfair Display + Inter, penutup & galeri Deep Plum, ornamen bintang |
+| `signature` (**bawaan**, T33) | Layout, Hero, Intro, Couple, LoveStory, Events, Gallery, Checkin, Gift, Closing, SectionTitle | Editorial Floral Luxury: kanvas ivory, Cormorant Garamond + Playfair Display + Lato, bunga watercolor, kartu tamu QR; lima preset warna, desain terkunci |
 | `elegant` | semua + SectionTitle | Klasik formal: bingkai ganda dengan ornamen sudut, serba rata tengah, foto & kartu acara berpigura |
 | `minimal` (ditulis ulang T21) | Hero, Couple, LoveStory, Events, Gallery, Closing, SectionTitle | Putih lega, rata kiri, garis rambut, nama & angka tanggal besar, acara tanpa kartu, galeri grid rapat tanpa sudut membulat, penutup gelap. Sampul selalu muat satu layar (foto mengisi sisa tinggi). |
 | `romantic` | semua + SectionTitle | Lembut: foto melengkung (arch), ornamen bunga garis, judul tulisan tangan, cerita berselang-seling |
 | `modern` | semua + SectionTitle | Tegas: pembuka berwarna, blok warna penuh (hijau toska + hijau tua), huruf kapital sangat besar, kartu acara berwarna |
 
 Tema bawaan wedding baru: `signature` (`theme.DefaultID`, `wedding.DefaultThemeID`, default kolom `weddings.theme_id` — migration `00023`). Wedding lama tetap memakai `theme_id`-nya. Kelima tema meng-override semua bagian visual (`TestAllThemesOverrideVisualParts`); `base` tetap ada sebagai cadangan untuk tema baru.
+
+## Preset warna & tema Fixed (T33)
+
+`ThemeDef.Presets` berisi preset warna kurasi (`presets.go`); yang pertama adalah bawaan, dan pilihan pasangan tersimpan di `wedding_theme_settings.color_preset`. `ThemeDef.Fixed` mengunci desain: `resolve` hanya memakai preset & foto sampul, dan `OrderedSectionsFor` memakai `ThemeDef.SectionOrder`. Warna, font, latar, dan urutan yang tersimpan tidak dihapus dan berlaku lagi bila pasangan pindah ke tema tidak Fixed. Menyembunyikan bagian `Hideable` tetap berlaku.
+
+Bunga Signature: `static/img/themes/signature/floral/<preset>.webp` (≤ 80 KB), dibuat `e2e/floral-tints.js` dari satu lukisan di `doc/lovoria-tasks/`. Berkas boleh diganti lukisan per preset tanpa mengubah kode. Padding bagian harus lebih tinggi dari bunganya supaya teks tidak tertutup.
+
+Di luar T33, tiga warna digelapkan agar kontras ≥ 4.5:1: Primary Blush `#92666e`, Primary Terracotta `#a45d46`, Muted Lavender `#7a6777`. Preset baru ikut diperiksa `TestThemeContrast`.
 
 ## Sampul & "Buka Undangan" (T21)
 

@@ -30,7 +30,7 @@ func (q *Queries) ClearMusicUpload(ctx context.Context, arg ClearMusicUploadPara
 }
 
 const getSettings = `-- name: GetSettings :one
-SELECT wedding_id, primary_color, font_heading, font_body, background_value, cover_image_url, created_at, updated_at, music_url, music_enabled, music_upload_key, music_upload_bytes, quote_text, quote_source, greeting_text, closing_text, hidden_sections, section_order FROM wedding_theme_settings WHERE wedding_id = $1
+SELECT wedding_id, primary_color, font_heading, font_body, background_value, cover_image_url, created_at, updated_at, music_url, music_enabled, music_upload_key, music_upload_bytes, quote_text, quote_source, greeting_text, closing_text, hidden_sections, section_order, color_preset FROM wedding_theme_settings WHERE wedding_id = $1
 `
 
 func (q *Queries) GetSettings(ctx context.Context, weddingID uuid.UUID) (WeddingThemeSetting, error) {
@@ -55,6 +55,7 @@ func (q *Queries) GetSettings(ctx context.Context, weddingID uuid.UUID) (Wedding
 		&i.ClosingText,
 		&i.HiddenSections,
 		&i.SectionOrder,
+		&i.ColorPreset,
 	)
 	return i, err
 }
@@ -89,9 +90,9 @@ const upsertSettings = `-- name: UpsertSettings :exec
 INSERT INTO wedding_theme_settings (
     wedding_id, primary_color, font_heading, font_body, background_value, cover_image_url,
     music_url, music_enabled, quote_text, quote_source, greeting_text, closing_text,
-    hidden_sections, section_order
+    hidden_sections, section_order, color_preset
 )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
 ON CONFLICT (wedding_id) DO UPDATE
 SET primary_color = EXCLUDED.primary_color, font_heading = EXCLUDED.font_heading,
     font_body = EXCLUDED.font_body, background_value = EXCLUDED.background_value,
@@ -99,7 +100,8 @@ SET primary_color = EXCLUDED.primary_color, font_heading = EXCLUDED.font_heading
     music_url = EXCLUDED.music_url, music_enabled = EXCLUDED.music_enabled,
     quote_text = EXCLUDED.quote_text, quote_source = EXCLUDED.quote_source,
     greeting_text = EXCLUDED.greeting_text, closing_text = EXCLUDED.closing_text,
-    hidden_sections = EXCLUDED.hidden_sections, section_order = EXCLUDED.section_order
+    hidden_sections = EXCLUDED.hidden_sections, section_order = EXCLUDED.section_order,
+    color_preset = EXCLUDED.color_preset
 `
 
 type UpsertSettingsParams struct {
@@ -117,6 +119,7 @@ type UpsertSettingsParams struct {
 	ClosingText     *string
 	HiddenSections  []string
 	SectionOrder    []string
+	ColorPreset     *string
 }
 
 func (q *Queries) UpsertSettings(ctx context.Context, arg UpsertSettingsParams) error {
@@ -135,6 +138,7 @@ func (q *Queries) UpsertSettings(ctx context.Context, arg UpsertSettingsParams) 
 		arg.ClosingText,
 		arg.HiddenSections,
 		arg.SectionOrder,
+		arg.ColorPreset,
 	)
 	return err
 }

@@ -125,6 +125,11 @@ func first(s string) string {
 type Checkin struct {
 	// QRURL: alamat gambar QR tamu ini ("/i/<KODE>/qr.png").
 	QRURL string
+	// Available: check-in dibuka tetapi halaman dibuka lewat link umum (tanpa QR
+	// pribadi) — tema boleh menampilkan info cara check-in (T33).
+	Available bool
+	// Sample: preview dashboard — tema boleh menampilkan contoh kartu tanpa QR.
+	Sample bool
 }
 
 type Guest struct {
@@ -220,6 +225,7 @@ type Settings struct {
 	FontBody     string
 	Background   string // #rrggbb atau URL gambar https
 	CoverImage   string // URL gambar https
+	ColorPreset  string // ID preset warna tema (T33); kosong = preset pertama
 
 	// Personalisasi (T20).
 	MusicURL     string // lagu bawaan (R2 music/) atau unggahan wedding
@@ -251,6 +257,13 @@ type Tokens struct {
 	// Radius kartu/foto dan tombol (panjang CSS: "0", "0.75rem", "9999px").
 	Radius       string
 	ButtonRadius string
+
+	// Khusus tema ber-preset (T33); kosong di tema lain.
+	Preset      string // ID preset terpilih (mis. untuk memilih aset floral)
+	Secondary   string // ornamen & dekorasi
+	Paper       string // latar kartu
+	Soft        string // latar bagian lembut
+	FontDisplay string // font nama mempelai
 }
 
 // BackgroundIsImage: latar berupa gambar (bukan warna).
