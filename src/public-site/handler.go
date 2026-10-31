@@ -100,9 +100,14 @@ func (h *Handler) Invitation(c echo.Context) error {
 	v.SiteURL = strings.TrimRight(h.BaseURL, "/") + "/"
 	// QR kehadiran (T31): hanya di link pribadi, saat check-in dibuka.
 	if res.Wedding.CheckinOpen() {
-		if res.Guest != nil {
+		switch {
+		case res.Guest != nil:
 			v.Checkin.QRURL = res.Prefix + "/qr.png"
-		} else {
+		case res.Wedding.IsDemo:
+			if err := h.setDemoCheckin(ctx, &v, res); err != nil {
+				return err
+			}
+		default:
 			v.Checkin.Available = true
 		}
 	}
@@ -266,6 +271,24 @@ func slugFile(s string) string {
 		return out
 	}
 	return "acara"
+}
+
+// setDemoCheckin: undangan contoh dibuka lewat link umum, jadi QR memakai tamu
+// contohnya supaya calon pengguna melihat QR yang benar-benar berfungsi. Demo
+// yang belum di-seed ulang (tanpa tamu) hanya menampilkan info check-in.
+func (h *Handler) setDemoCheckin(ctx context.Context, v *view.View, res Resolved) error {
+	page, err := h.Guests.List(ctx, res.Wedding.ID, guest.Filter{Page: 1})
+	if err != nil {
+		return err
+	}
+	if len(page.Guests) == 0 {
+		v.Checkin.Available = true
+		return nil
+	}
+	g := page.Guests[0]
+	v.Checkin.QRURL = "/i/" + g.InvitationCode + "/qr.png"
+	v.Checkin.Guest = &view.Guest{Name: g.Name, Code: g.InvitationCode, MaxPax: g.MaxPax}
+	return nil
 }
 
 // GET /i/:code/qr.png — QR kehadiran tamu (T31). Isinya alamat undangan

@@ -86,12 +86,12 @@ func checkinPage(w wedding.Wedding, notice string, link CheckinLink, att attenda
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div><ol class=\"mt-5 space-y-2.5 text-sm leading-relaxed text-lovoria-text\"><li class=\"flex gap-3\"><span class=\"flex h-6 w-6 flex-none items-center justify-center rounded-full bg-lovoria-primary-soft text-xs font-medium text-lovoria-primary\">1</span><span>Aktifkan fitur ini. Bagian <strong>QR Kehadiran</strong> muncul di undangan pribadi tiap tamu (link <span class=\"font-mono text-xs\">/i/KODE</span>) — bukan di link umum.</span></li><li class=\"flex gap-3\"><span class=\"flex h-6 w-6 flex-none items-center justify-center rounded-full bg-lovoria-primary-soft text-xs font-medium text-lovoria-primary\">2</span><span>Tamu menyimpan atau membuka QR-nya saat datang.</span></li><li class=\"flex gap-3\"><span class=\"flex h-6 w-6 flex-none items-center justify-center rounded-full bg-lovoria-primary-soft text-xs font-medium text-lovoria-primary\">3</span><span>Penerima tamu membuka <strong>link penerima tamu</strong> di ponselnya dan memindai QR tiap tamu yang datang.</span></li></ol>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div><ol class=\"mt-5 space-y-2.5 text-sm leading-relaxed text-lovoria-text\"><li class=\"flex gap-3\"><span class=\"flex h-6 w-6 flex-none items-center justify-center rounded-full bg-lovoria-primary-soft text-xs font-medium text-lovoria-primary\">1</span><span>Biarkan fitur ini aktif. Bagian <strong>QR Kehadiran</strong> muncul di undangan pribadi tiap tamu (link <span class=\"font-mono text-xs\">/i/KODE</span>) — bukan di link umum.</span></li><li class=\"flex gap-3\"><span class=\"flex h-6 w-6 flex-none items-center justify-center rounded-full bg-lovoria-primary-soft text-xs font-medium text-lovoria-primary\">2</span><span>Tamu menyimpan atau membuka QR-nya saat datang.</span></li><li class=\"flex gap-3\"><span class=\"flex h-6 w-6 flex-none items-center justify-center rounded-full bg-lovoria-primary-soft text-xs font-medium text-lovoria-primary\">3</span><span>Penerima tamu membuka <strong>link penerima tamu</strong> di ponselnya dan memindai QR tiap tamu yang datang.</span></li></ol>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				if !w.CheckinEnabled && w.IsDraft() {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<p class=\"mt-4 text-xs text-lovoria-muted\">Bisa diaktifkan sekarang; QR baru tampil ke tamu setelah undangan diterbitkan.</p>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<p class=\"mt-4 text-xs text-lovoria-muted\">QR baru tampil ke tamu setelah undangan diterbitkan.</p>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

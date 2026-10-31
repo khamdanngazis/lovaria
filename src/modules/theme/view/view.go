@@ -130,6 +130,17 @@ type Checkin struct {
 	Available bool
 	// Sample: preview dashboard — tema boleh menampilkan contoh kartu tanpa QR.
 	Sample bool
+	// Guest: pemilik QR bila bukan tamu halaman ini (tamu contoh di undangan
+	// contoh, yang dibuka lewat link umum).
+	Guest *Guest
+}
+
+// CheckinGuest: tamu pemilik QR kehadiran di halaman ini.
+func (v View) CheckinGuest() *Guest {
+	if v.Guest != nil {
+		return v.Guest
+	}
+	return v.Checkin.Guest
 }
 
 type Guest struct {

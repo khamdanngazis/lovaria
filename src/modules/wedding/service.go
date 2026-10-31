@@ -64,6 +64,8 @@ type Wedding struct {
 	ThemeID      string
 	// CheckinEnabled: pasangan menyalakan check-in QR di hari H (T31).
 	CheckinEnabled bool
+	// IsDemo: undangan contoh di etalase tema.
+	IsDemo bool
 	// Timezone zona waktu IANA acara (jam event disimpan sebagai waktu lokal).
 	Timezone string
 	// ArchiveVisibility: public | private — siapa yang bisa melihat undangan

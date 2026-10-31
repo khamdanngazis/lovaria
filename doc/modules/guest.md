@@ -107,10 +107,10 @@ Nomor dari kontak (`+62 857-1111-2222`, `0857…`) dinormalisasi ke `62…` di s
 ## Check-in QR di hari H (T31)
 
 Bagian 1 (QR di undangan):
-- **Sakelar per wedding**: `weddings.checkin_enabled` (bawaan `false`), diubah dari halaman dashboard **Tamu → Check-in** (`guest.CheckinPage` / `SaveCheckin` → `wedding.Service.SetCheckinEnabled`).
+- **Sakelar per wedding**: `weddings.checkin_enabled` (bawaan `true` untuk wedding baru sejak migration `00030`), diubah dari halaman dashboard **Tamu → Check-in** (`guest.CheckinPage` / `SaveCheckin` → `wedding.Service.SetCheckinEnabled`).
 - **Guard** (modul `wedding`): `Wedding.CheckinAvailable()` — gerbang hak pakai fitur (sekarang selalu `true`; tempat menggerbangkan bila kelak jadi fitur berbayar) — dan `Wedding.CheckinOpen()` = tersedia + dinyalakan + status Terbit/Hari H.
 - **QR**: `GET /i/<KODE>/qr.png` (`publicsite.Handler.GuestQR`) → PNG 512 px dari `platform/qr`. Isi QR = alamat undangan pribadi itu sendiri (domain Lunovia atau custom domain). 404 bila bukan link pribadi atau check-in tidak dibuka.
-- **Bagian undangan**: `shared.CheckinSection` (ID bagian `checkin` di registry `theme.Sections`, setelah RSVP). Tampil hanya bila `view.Checkin.QRURL` terisi — diisi public-site untuk link pribadi saat `CheckinOpen()`.
+- **Bagian undangan**: `shared.CheckinSection` (ID bagian `checkin` di registry `theme.Sections`, setelah RSVP). Tampil hanya bila `view.Checkin.QRURL` terisi — diisi public-site untuk link pribadi saat `CheckinOpen()`. Undangan contoh (`Wedding.IsDemo`) yang dibuka lewat link umum memakai tamu contoh hasil `lovoria demo seed`, jadi QR-nya tetap fungsional.
 - Kolom `guests.checked_in_at`, `checked_in_pax`, `checked_in_via` sudah disiapkan migration `00027`; baru diisi oleh pemindai (bagian 2).
 
 Bagian 2 (pemindai penerima tamu):

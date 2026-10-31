@@ -223,7 +223,10 @@ func TestScannerPageFlow(t *testing.T) {
 		t.Fatalf("token palsu: %d", rec.Code)
 	}
 
-	// Pasangan membuat link dari dashboard (hanya setelah fitur aktif).
+	if err := f.weddings.SetCheckinEnabled(ctx, w.ID, false); err != nil {
+		t.Fatal(err)
+	}
+	// Pasangan membuat link dari dashboard (hanya saat fitur aktif).
 	path := w.DashboardURL("/checkin")
 	if rec := send(e, owner, formReq(http.MethodPost, path+"/link", url.Values{"action": {"new"}}), false); rec.Code != http.StatusConflict {
 		t.Errorf("buat link saat fitur mati: %d", rec.Code)
@@ -338,6 +341,9 @@ func TestOwnerAttendanceDashboard(t *testing.T) {
 	cici := f.add(t, other.ID, Input{Name: "Cici"})
 	path := w.DashboardURL("/checkin")
 
+	if err := f.weddings.SetCheckinEnabled(ctx, w.ID, false); err != nil {
+		t.Fatal(err)
+	}
 	// Fitur mati & belum ada catatan: tanpa kartu kehadiran; menandai ditolak.
 	if b := send(e, owner, get(path), false).Body.String(); strings.Contains(b, `id="attendance"`) {
 		t.Error("fitur mati tanpa catatan: kartu kehadiran tidak tampil")
