@@ -135,7 +135,9 @@ func validate(in Input) (parsed, error) {
 
 	if raw := strings.TrimSpace(in.PhotoURL); raw != "" {
 		u, err := url.Parse(raw)
-		if err != nil || (u.Scheme != "https" && u.Scheme != "http") || u.Host == "" || len(raw) > 2048 {
+		// /media/...: driver storage lokal (development), sama seperti foto sampul.
+		local := err == nil && strings.HasPrefix(raw, "/media/") && !strings.Contains(raw, "..")
+		if !local && (err != nil || (u.Scheme != "https" && u.Scheme != "http") || u.Host == "" || len(raw) > 2048) {
 			v["photo_url"] = "URL foto tidak valid (harus diawali https://)"
 		}
 		p.photoURL = &raw

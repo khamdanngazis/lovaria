@@ -70,7 +70,7 @@ Tema bawaan wedding baru: `signature` (`theme.DefaultID`, `wedding.DefaultThemeI
 
 `ThemeDef.Presets` berisi preset warna kurasi (`presets.go`); yang pertama adalah bawaan, dan pilihan pasangan tersimpan di `wedding_theme_settings.color_preset`. `ThemeDef.Fixed` mengunci desain: `resolve` hanya memakai preset & foto sampul, dan `OrderedSectionsFor` memakai `ThemeDef.SectionOrder`. Warna, font, latar, dan urutan yang tersimpan tidak dihapus dan berlaku lagi bila pasangan pindah ke tema tidak Fixed. Menyembunyikan bagian `Hideable` tetap berlaku.
 
-Bunga & pita Signature: `static/img/themes/signature/floral/<preset>/{cluster,corner,ribbon-left,ribbon,petal}.webp` (≤ 80 KB per berkas), dibuat `e2e/floral-tints.js` dari lembar aset di `doc/lovoria-tasks/`. Berkas boleh diganti lukisan per preset tanpa mengubah kode. Padding bagian harus lebih tinggi dari bunganya supaya teks tidak tertutup.
+Bunga & pita Signature: `static/img/themes/signature/floral/<preset>/<bagian>.webp` (≤ 80 KB per berkas), dibuat `e2e/floral-tints.js` (daftar `PARTS`) dari lukisan transparan di `doc/lovoria-tasks/`. Berkas boleh diganti lukisan per preset tanpa mengubah kode. Padding bagian harus lebih tinggi dari bunganya supaya teks tidak tertutup.
 
 Di luar T33, tiga warna digelapkan agar kontras ≥ 4.5:1: Primary Blush `#92666e`, Primary Terracotta `#a45d46`, Muted Lavender `#7a6777`. Preset baru ikut diperiksa `TestThemeContrast`.
 

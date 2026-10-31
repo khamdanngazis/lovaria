@@ -18,7 +18,7 @@ func TestSignaturePresetsAvailable(t *testing.T) {
 	for _, p := range d.Presets {
 		got = append(got, p.ID)
 		// Aset floral per preset di-commit (e2e/floral-tints.js, ≤ 80 KB per berkas).
-		for _, part := range []string{"cluster", "corner", "ribbon-left", "ribbon", "petal"} {
+		for _, part := range []string{"bouquet", "cluster", "corner", "ribbon-left", "ribbon", "ribbon2", "sprig", "rose", "petal-a", "petal-b", "petal-c"} {
 			fi, err := os.Stat(filepath.Join("..", "..", "..", "static", "img", "themes", "signature", "floral", p.ID, part+".webp"))
 			if err != nil {
 				t.Fatal(err)

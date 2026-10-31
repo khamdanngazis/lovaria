@@ -6,6 +6,19 @@ import (
 	"github.com/khamdanngazis/lovaria/src/modules/theme/view"
 )
 
+func TestStoryDate(t *testing.T) {
+	for in, want := range map[string][2]string{
+		"2019":          {"2019", ""},
+		"Maret 2019":    {"2019", "Maret"},
+		"12 Maret 2019": {"2019", "12 Maret"},
+		"":              {"", ""},
+	} {
+		if y, r := storyDate(in); y != want[0] || r != want[1] {
+			t.Errorf("storyDate(%q) = %q, %q", in, y, r)
+		}
+	}
+}
+
 func TestGalleryWide(t *testing.T) {
 	land, port := view.Photo{Width: 1200, Height: 800}, view.Photo{Width: 800, Height: 1200}
 	for name, photos := range map[string][]view.Photo{

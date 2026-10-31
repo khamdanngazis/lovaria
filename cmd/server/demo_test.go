@@ -10,6 +10,7 @@ import (
 	"github.com/khamdanngazis/lovaria/src/modules/guest"
 	"github.com/khamdanngazis/lovaria/src/modules/theme"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding"
+	"github.com/khamdanngazis/lovaria/src/modules/wedding/story"
 	publicsite "github.com/khamdanngazis/lovaria/src/public-site"
 )
 
@@ -56,6 +57,31 @@ func TestSeedDemo(t *testing.T) {
 			t.Errorf("demo %s: check-in %v, demo %v, %d tamu, %v", d.ID, w.CheckinOpen(), w.IsDemo, page.Total, err)
 		}
 	}
+	// Tiap bab cerita contoh punya foto; demo lama ikut dilengkapi saat seed diulang.
+	stories := story.NewService(story.NewRepository(a.pool))
+	assertStoryPhotos := func() {
+		t.Helper()
+		for _, d := range theme.All() {
+			w, _ := a.weddings.GetWeddingBySlug(ctx, publicsite.DemoSlug(d.ID))
+			list, err := stories.ListStories(ctx, w.ID)
+			if err != nil || len(list) != 3 {
+				t.Fatalf("demo %s: %d cerita, %v", d.ID, len(list), err)
+			}
+			for _, s := range list {
+				if s.PhotoURL == "" {
+					t.Errorf("demo %s: cerita %q tanpa foto", d.ID, s.Title)
+				}
+			}
+		}
+	}
+	assertStoryPhotos()
+	if _, err := a.pool.Exec(ctx, "UPDATE love_stories SET photo_url = NULL"); err != nil {
+		t.Fatal(err)
+	}
+	if err := a.seedDemo(ctx, io.Discard, false); err != nil {
+		t.Fatal(err)
+	}
+	assertStoryPhotos()
 	// Demo dari versi lama (tanpa foto & kutipan) dilengkapi saat seed diulang.
 	if _, err := a.pool.Exec(ctx, "DELETE FROM gallery_items; UPDATE wedding_theme_settings SET quote_text = NULL"); err != nil {
 		t.Fatal(err)
