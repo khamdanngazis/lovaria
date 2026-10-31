@@ -97,7 +97,7 @@ func register(d ThemeDef) {
 func init() {
 	register(ThemeDef{
 		ID: "signature", Name: "Lunovia Signature", Description: "Editorial, romantis, dan abadi — satu desain, lima pilihan warna.",
-		Pitch: "Lunovia Signature adalah tema andalan kami: kanvas ivory, nama mempelai dalam serif besar bergaya majalah, dan bunga watercolor yang membingkai setiap halaman. Pilih satu dari lima warna kurasi tanpa mengubah desainnya, dari Signature Lavender sampai Terracotta Bloom. Cocok untuk pasangan yang ingin undangan terasa personal dan premium, dengan RSVP dan kartu tamu QR yang menyatu dalam satu pengalaman.",
+		Pitch: "Lunovia Signature adalah tema andalan kami: kanvas ivory, nama mempelai dalam serif besar bergaya majalah, serta bunga dan pita satin watercolor yang membingkai halaman. Pilih satu dari lima warna kurasi tanpa mengubah desainnya, dari Signature Lavender sampai Terracotta Bloom. Cocok untuk pasangan yang ingin undangan terasa personal dan premium, dengan RSVP dan kartu tamu QR yang menyatu dalam satu pengalaman.",
 		Tokens: signaturePresets[0].apply(view.Tokens{
 			FontDisplay: "Cormorant Garamond", FontHeading: "Playfair Display", FontBody: "Lato", Radius: "0.25rem", ButtonRadius: "0.25rem",
 		}),

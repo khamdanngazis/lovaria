@@ -157,12 +157,29 @@
 .lv-signature .lv-card {
   background: var(--lv-paper);
 }
+/* Layar lebar: undangan menjadi panel di atas latar lembut, jadi pita & bunga
+   yang terpotong di tepi tetap terbaca sebagai tepi halaman. */
+@media (min-width: 1024px) {
+  .lv-signature {
+    background: color-mix(in srgb, var(--lv-soft) 55%, var(--lv-surface));
+  }
+}
+/* Kertas bercahaya: pantulan jendela diagonal yang sangat halus di atas ivory. */
+.lv-paper {
+  background-color: var(--lv-surface);
+  background-image:
+    linear-gradient(112deg, transparent 12%, color-mix(in srgb, var(--lv-soft) 42%, transparent) 26%, transparent 38%),
+    linear-gradient(112deg, transparent 46%, color-mix(in srgb, var(--lv-paper) 70%, transparent) 58%, transparent 66%),
+    linear-gradient(112deg, transparent 68%, color-mix(in srgb, var(--lv-soft) 34%, transparent) 80%, transparent 90%),
+    linear-gradient(180deg, color-mix(in srgb, var(--lv-soft) 22%, transparent), transparent 45%);
+}
 .lv-signature .lv-btn,
 .lv-signature .lv-btn-outline {
   display: inline-flex;
   min-height: 2.75rem;
   align-items: center;
   justify-content: center;
+  letter-spacing: 0.04em;
 }
 /* Bagian bersama tetap selebar kolom baca di layar lebar. */
 .lv-signature :is(#countdown, #quote, #rsvp, #guestbook, #memories) > * {

@@ -17,13 +17,15 @@ func TestSignaturePresetsAvailable(t *testing.T) {
 	var got []string
 	for _, p := range d.Presets {
 		got = append(got, p.ID)
-		// Aset floral per preset di-commit (e2e/floral-tints.js, ≤ 80 KB).
-		fi, err := os.Stat(filepath.Join("..", "..", "..", "static", "img", "themes", "signature", "floral", p.ID+".webp"))
-		if err != nil {
-			t.Fatal(err)
-		}
-		if fi.Size() > 80*1024 {
-			t.Errorf("%s: floral %d byte > 80 KB", p.ID, fi.Size())
+		// Aset floral per preset di-commit (e2e/floral-tints.js, ≤ 80 KB per berkas).
+		for _, part := range []string{"cluster", "corner", "ribbon-left", "ribbon", "petal"} {
+			fi, err := os.Stat(filepath.Join("..", "..", "..", "static", "img", "themes", "signature", "floral", p.ID, part+".webp"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if fi.Size() > 80*1024 {
+				t.Errorf("%s/%s: floral %d byte > 80 KB", p.ID, part, fi.Size())
+			}
 		}
 		// Teks di atas latar Soft (bagian hadiah).
 		for name, fg := range map[string]string{"Ink": p.Ink, "Deep": p.Deep} {
@@ -48,14 +50,14 @@ func TestSignaturePresetsAvailable(t *testing.T) {
 
 var (
 	cssBlock  = regexp.MustCompile(`(?s)<style>.*?</style>`)
-	floralRef = regexp.MustCompile(`floral/[a-z-]+\.webp(\?v=[0-9a-f]+)?`)
+	floralRef = regexp.MustCompile(`floral/[a-z-]+/([a-z-]+)\.webp(\?v=[0-9a-f]+)?`)
 )
 
 // Pergantian warna tidak boleh mengubah identitas layout (T33 §4.6): HTML semua
 // preset identik setelah token CSS & path floral dinormalkan.
 func TestPresetsOnlyChangeColors(t *testing.T) {
 	normalize := func(html string) string {
-		return floralRef.ReplaceAllString(cssBlock.ReplaceAllString(html, ""), "floral")
+		return floralRef.ReplaceAllString(cssBlock.ReplaceAllString(html, ""), "floral/$1")
 	}
 	var first string
 	for i, p := range registry["signature"].Presets {
@@ -66,7 +68,7 @@ func TestPresetsOnlyChangeColors(t *testing.T) {
 		if !strings.Contains(html, "--lv-primary:"+p.Primary) || !strings.Contains(html, "--lv-soft:"+p.Soft) {
 			t.Errorf("%s: token preset tidak dipakai", p.ID)
 		}
-		if !strings.Contains(html, "floral/"+p.ID+".webp") {
+		if !strings.Contains(html, "floral/"+p.ID+"/") {
 			t.Errorf("%s: floral preset tidak dipakai", p.ID)
 		}
 		if i == 0 {
@@ -96,7 +98,7 @@ func TestSignatureIgnoresFreeCustomization(t *testing.T) {
 	// Preset tak dikenal → preset pertama, tidak pernah masuk ke CSS/URL mentah.
 	v.Settings = view.Settings{ColorPreset: `x"><script>`}
 	html = render(t, v)
-	if !strings.Contains(html, "--lv-primary:#6b4e71") || !strings.Contains(html, "floral/signature-lavender.webp") || strings.Contains(html, `x"><script>`) {
+	if !strings.Contains(html, "--lv-primary:#6b4e71") || !strings.Contains(html, "floral/signature-lavender/") || strings.Contains(html, `x"><script>`) {
 		t.Error("preset tak dikenal harus jatuh ke preset pertama")
 	}
 }
