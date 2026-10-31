@@ -4,6 +4,7 @@
 package signature
 
 import (
+	"fmt"
 	"strings"
 	"unicode/utf8"
 
@@ -266,55 +267,162 @@ templ Events(v view.View) {
 	}
 }
 
-// galleryWide: foto mana yang selebar dua kolom. Foto lanskap lebar & potret
-// sempit; bila orientasinya seragam (atau tanpa ukuran) memakai pola bawaan
-// supaya grid tetap asimetris. Potret berjumlah ganjil: foto lanskap di
-// sebelahnya ikut menyempit sebagai pasangan, supaya grid tidak berlubang dan
-// potret tidak terpotong jadi lanskap.
-func galleryWide(photos []view.Photo) []bool {
-	wide := make([]bool, len(photos))
-	last, narrow := -1, 0
-	for i, p := range photos {
-		wide[i] = p.Width > p.Height
-		if !wide[i] {
-			last, narrow = i, narrow+1
-		}
-	}
-	if narrow == 0 || narrow == len(photos) {
-		for i := range photos {
-			wide[i] = base.Wide(i, len(photos))
-		}
-		return wide
-	}
-	if narrow%2 == 1 {
-		if last+1 < len(photos) {
-			wide[last+1] = false
-		} else {
-			wide[last-1] = false
-		}
-	}
-	return wide
+// galleryBlock: satu blok album; tiap sel memegang satu foto. Foto mengisi selnya
+// (absolute), jadi ukuran sel hanya ditentukan kelas blok & sel.
+type galleryBlock struct {
+	Class string
+	Cells []galleryCell
 }
 
-// Gallery: 06 — grid asimetris lanskap & potret dari ukuran foto asli.
+type galleryCell struct {
+	Photo view.Photo
+	Index int // urutan asli, untuk label aksesibilitas
+	Class string
+}
+
+func isPortrait(p view.Photo) bool { return p.Height > p.Width }
+
+// galleryBlocks menyusun album editorial: blok utama (satu foto besar + dua
+// pendamping), lalu kolase berselang dengan rasio berbeda. Foto pertama selalu
+// foto utama; di kolase, foto lanskap ditaruh di slot lebar dan potret di slot
+// tegak supaya wajah tidak terpotong. Sisa 1–2 foto menutup album tanpa lubang.
+func galleryBlocks(photos []view.Photo) []galleryBlock {
+	if len(photos) == 0 {
+		return nil
+	}
+	n := min(3, len(photos))
+	blocks := []galleryBlock{galleryLead(photos[:n])}
+	for i, round := n, 0; i < len(photos); i, round = i+3, round+1 {
+		end := min(i+3, len(photos))
+		blocks = append(blocks, galleryCollage(photos[i:end], i, round))
+	}
+	return blocks
+}
+
+func galleryLead(ps []view.Photo) galleryBlock {
+	portrait := isPortrait(ps[0])
+	switch len(ps) {
+	case 1:
+		if portrait {
+			return galleryBlock{"mx-auto max-w-md", []galleryCell{{ps[0], 0, "aspect-[4/5]"}}}
+		}
+		return galleryBlock{"", []galleryCell{{ps[0], 0, "aspect-[3/2]"}}}
+	case 2:
+		return galleryBlock{"grid aspect-[9/4] grid-cols-[2fr_1fr]", []galleryCell{{ps[0], 0, ""}, {ps[1], 1, ""}}}
+	}
+	if portrait {
+		return galleryBlock{"grid grid-cols-2 md:aspect-[4/3] md:grid-rows-2", []galleryCell{
+			{ps[0], 0, "col-span-2 aspect-[4/5] md:col-span-1 md:row-span-2 md:aspect-auto"},
+			{ps[1], 1, "aspect-square md:aspect-auto"},
+			{ps[2], 2, "aspect-square md:aspect-auto"},
+		}}
+	}
+	return galleryBlock{"grid grid-cols-2 md:aspect-[3/2] md:grid-cols-[2fr_1fr] md:grid-rows-2", []galleryCell{
+		{ps[0], 0, "col-span-2 aspect-[3/2] md:col-span-1 md:row-span-2 md:aspect-auto"},
+		{ps[1], 1, "aspect-square md:aspect-auto"},
+		{ps[2], 2, "aspect-square md:aspect-auto"},
+	}}
+}
+
+// galleryCollage: 1–3 foto mulai dari indeks asli offset. round mengganti posisi
+// slot lebar supaya kolase berikutnya tidak mengulang bentuk yang sama.
+func galleryCollage(ps []view.Photo, offset, round int) galleryBlock {
+	cell := func(i int, class string) galleryCell { return galleryCell{ps[i], offset + i, class} }
+	switch len(ps) {
+	case 1:
+		if isPortrait(ps[0]) {
+			return galleryBlock{"mx-auto max-w-md", []galleryCell{cell(0, "aspect-[4/5]")}}
+		}
+		return galleryBlock{"", []galleryCell{cell(0, "aspect-[3/2] md:aspect-[5/2]")}}
+	case 2:
+		switch {
+		case isPortrait(ps[0]) && isPortrait(ps[1]):
+			return galleryBlock{"grid aspect-[3/2] grid-cols-2", []galleryCell{cell(0, ""), cell(1, "")}}
+		case isPortrait(ps[0]):
+			return galleryBlock{"grid aspect-[9/4] grid-cols-[1fr_2fr]", []galleryCell{cell(0, ""), cell(1, "")}}
+		}
+		return galleryBlock{"grid aspect-[9/4] grid-cols-[2fr_1fr]", []galleryCell{cell(0, ""), cell(1, "")}}
+	}
+	// Foto paling lanskap menempati slot lebar; bila semua potret, tiga kolom sama.
+	wide, ratio := -1, 1.0
+	for i, p := range ps {
+		if p.Height == 0 {
+			if wide < 0 {
+				wide = i
+			}
+			continue
+		}
+		if r := float64(p.Width) / float64(p.Height); r > ratio {
+			wide, ratio = i, r
+		}
+	}
+	const narrow = "aspect-[3/4] md:aspect-auto"
+	if wide < 0 {
+		return galleryBlock{"grid grid-cols-3 aspect-[9/4] md:aspect-[9/4]", []galleryCell{cell(0, ""), cell(1, ""), cell(2, "")}}
+	}
+	var rest []galleryCell
+	for i := range ps {
+		if i != wide {
+			rest = append(rest, cell(i, narrow))
+		}
+	}
+	w := cell(wide, "col-span-2 aspect-[3/2] md:col-span-1 md:aspect-auto")
+	if round%2 == 0 {
+		return galleryBlock{"grid grid-flow-dense grid-cols-2 md:aspect-[3/1] md:grid-cols-[1fr_2fr_1fr]", []galleryCell{rest[0], w, rest[1]}}
+	}
+	return galleryBlock{"grid grid-cols-2 md:aspect-[3/1] md:grid-cols-[2fr_1fr_1fr]", []galleryCell{w, rest[0], rest[1]}}
+}
+
+// gallerySrcset: thumbnail untuk slot kecil, foto penuh untuk slot besar. Tanpa
+// ukuran asli (Width 0) cukup thumbnail, sama seperti sebelumnya.
+func gallerySrcset(p view.Photo) string {
+	if p.Width <= 480 || p.URL == p.ThumbURL {
+		return ""
+	}
+	return fmt.Sprintf("%s 480w, %s %dw", p.ThumbURL, p.URL, p.Width)
+}
+
+// gallerySizes: lebar tampil sel untuk pemilihan srcset.
+func gallerySizes(c galleryCell) string {
+	if c.Index == 0 || strings.Contains(c.Class, "col-span-2") || strings.Contains(c.Class, "aspect-[3/2]") {
+		return "(min-width: 768px) 60vw, 100vw"
+	}
+	return "(min-width: 768px) 33vw, 50vw"
+}
+
+// Gallery: 06 — album editorial: foto utama, pendamping, lalu kolase berselang,
+// dengan sudut & jarak yang sama di semua foto.
 templ Gallery(v view.View) {
 	if len(v.Gallery) > 0 {
-		{{ wide := galleryWide(v.Gallery) }}
 		<section id="gallery" class="px-4 py-20 md:px-12">
 			@base.Title(v, "Galeri", "")
-			<div class="mx-auto grid max-w-4xl grid-flow-dense grid-cols-2 gap-2 md:gap-4">
-				for i, p := range v.Gallery {
-					<a
-						href={ templ.SafeURL(p.URL) }
-						data-lightbox
-						if p.Caption != "" {
-							data-caption={ p.Caption }
+			<div class="mx-auto max-w-5xl space-y-2 md:space-y-3">
+				for _, b := range galleryBlocks(v.Gallery) {
+					<div class={ "gap-2 md:gap-3", b.Class }>
+						for _, c := range b.Cells {
+							<a
+								href={ templ.SafeURL(c.Photo.URL) }
+								data-lightbox
+								if c.Photo.Caption != "" {
+									data-caption={ c.Photo.Caption }
+								}
+								aria-label={ base.PhotoLabel(c.Photo, c.Index) }
+								class={ "lv-photo relative block overflow-hidden", c.Class }
+							>
+								<img
+									src={ c.Photo.ThumbURL }
+									if gallerySrcset(c.Photo) != "" {
+										srcset={ gallerySrcset(c.Photo) }
+										sizes={ gallerySizes(c) }
+									}
+									alt={ c.Photo.Caption }
+									loading="lazy"
+									decoding="async"
+									class="absolute inset-0 h-full w-full object-cover"
+								/>
+							</a>
 						}
-						aria-label={ base.PhotoLabel(p, i) }
-						class={ "lv-photo block overflow-hidden", templ.KV("col-span-2", wide[i]) }
-					>
-						<img src={ p.ThumbURL } alt={ p.Caption } loading="lazy" decoding="async" class={ "w-full object-cover", templ.KV("aspect-[3/2]", wide[i]), templ.KV("aspect-[3/4]", !wide[i]) }/>
-					</a>
+					</div>
 				}
 			</div>
 		</section>
