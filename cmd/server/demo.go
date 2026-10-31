@@ -71,14 +71,23 @@ func (a *app) seedDemo(ctx context.Context, out io.Writer, refresh bool) error {
 		}
 		slug := publicsite.DemoSlug(d.ID)
 		if existing, err := a.weddings.GetWeddingBySlug(ctx, slug); err == nil {
+			// Slug contoh dipakai wedding biasa: jangan sentuh fotonya.
+			if !existing.IsDemo {
+				fmt.Fprintf(out, "lewati: /w/%s bukan undangan contoh\n", slug)
+				continue
+			}
 			// Sudah ada: lengkapi foto & kutipan bila belum (demo dari versi lama).
 			// refresh: buang foto lama dulu supaya diganti set terbaru.
 			if refresh {
-				if err := clearDemoMedia(ctx, photos, existing.ID); err != nil {
+				err := clearDemoMedia(ctx, photos, existing.ID)
+				if err == nil {
+					err = a.clearDemoPhotos(ctx, stories, existing)
+				}
+				if err != nil {
 					return fmt.Errorf("demo %s: %w", d.ID, err)
 				}
 			}
-			added, err := a.ensureDemoMedia(ctx, photos, existing, d.ID)
+			added, err := ensureDemoMedia(ctx, photos, existing, d.ID)
 			if err == nil {
 				err = ensureDemoSettings(ctx, themes, existing.ID, d.ID)
 			}
@@ -120,7 +129,7 @@ func (a *app) seedDemo(ctx context.Context, out io.Writer, refresh bool) error {
 				return err
 			},
 			func() error { _, err := themes.Save(ctx, w.ID, d.ID, demoSettings()); return err },
-			func() error { _, err := a.ensureDemoMedia(ctx, photos, w, d.ID); return err },
+			func() error { _, err := ensureDemoMedia(ctx, photos, w, d.ID); return err },
 			func() error {
 				day := date.Format("2006-01-02")
 				for _, in := range []event.Input{

@@ -67,7 +67,7 @@ Tampilan (tetap lewat `theme.Render` & template tema, tanpa cabang status di han
 | Harga | `admin.Service.LandingPackages` — paket bertanda **Tampil di landing page** (admin → Paket), berurutan; kosong → bagian & menu Harga disembunyikan |
 
 - **Undangan contoh**: `lovoria demo seed` (idempoten) membuat satu wedding per tema (`/w/contoh-elegant`, …) berisi data fiktif, milik akun sistem `demo@<domain>` yang dinonaktifkan, ditandai `weddings.is_demo` (migration `00018`) → tidak dihitung laporan admin & tidak diproses scheduler lifecycle. Jalankan setelah deploy: `railway ssh --service lovaria -- lovoria demo seed`.
-  - **Foto contoh**: foto dari Unsplash (Unsplash License, kredit di `cmd/server/demomedia/CREDITS.md`) ditanam di binary (± 2,5 MB). Seeder mengunggahnya lewat `gallery.Upload`, jadi di produksi tersimpan di R2.
+  - **Foto contoh**: foto dari Unsplash (Unsplash License, kredit di `cmd/server/demomedia/CREDITS.md`) tanpa wajah yang bisa dikenali, ditanam di binary (± 4,3 MB). Seeder mengunggahnya lewat `gallery.Upload`, jadi di produksi tersimpan di R2.
   - Isi per tema: sampul (kategori cover → foto utama & OG), 6 foto galeri (pasangan + detail cincin, bunga, dekorasi), dan potret mempelai hasil potongan foto pasangan yang sama. Potret disimpan langsung ke storage, bukan item galeri, supaya tidak tampil ulang di galeri.
   - Demo juga diberi kutipan contoh (T20).
   - Demo yang sudah ada tetapi galerinya kosong ikut dilengkapi (`ensureDemoMedia`); demo yang galerinya sudah berisi dilewati.

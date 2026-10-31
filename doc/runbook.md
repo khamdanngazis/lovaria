@@ -7,7 +7,15 @@ Panduan untuk menjalankan Lunovia di produksi (Railway + Postgres + Cloudflare R
 - Merge ke `main` → Railway build `Dockerfile` → *pre-deploy* `lovoria migrate up` → start `lovoria serve` → healthcheck `/healthz`. Migrasi gagal = deploy dibatalkan, versi lama tetap jalan.
 - CI wajib hijau sebelum merge: generate-check, test + integrasi (termasuk backup/restore), lint, `govulncheck`, E2E Playwright, build image < 50 MB.
 - Setelah deploy: buka `/healthz`, satu undangan publik, dan dashboard; cek log Railway tidak ada `level=ERROR`.
-- Undangan contoh landing page (idempoten): `railway ssh --service lovaria -- lovoria demo seed`. Tambahkan `--refresh` untuk mengganti foto demo yang sudah ada dengan set terbaru (foto lama dihapus dari R2). Jalankan ulang setelah deploy versi yang menambah isi demo: demo lama tanpa foto akan dilengkapi foto & kutipan ("dilengkapi: …"), sedangkan yang sudah lengkap dilewati.
+- Undangan contoh landing page (idempoten): `railway ssh --service lovaria -- lovoria demo seed`. Tambahkan `--refresh` untuk mengganti foto demo yang sudah ada dengan set terbaru: foto galeri, potret mempelai, dan foto cerita lama dihapus dari R2, lalu URL-nya dikosongkan atau diganti. `--refresh` hanya menyentuh wedding `is_demo`. Potret yang URL-nya sudah tertimpa seed lama tidak terjangkau `--refresh`: bersihkan manual di R2 pada awalan `weddings/<id demo>/couple/`, khusus wedding demo. Jalankan ulang setelah deploy versi yang menambah isi demo: demo lama tanpa foto akan dilengkapi foto & kutipan ("dilengkapi: …"), sedangkan yang sudah lengkap dilewati.
+- Aturan foto contoh dan materi pemasaran (undangan contoh, etalase tema, landing page). Foto boleh dipakai bila **semua** syarat terpenuhi:
+  - Tidak ada wajah yang bisa dikenali, termasuk dari samping, dari pantulan, atau wajah tamu di latar belakang. Sosok jauh atau dari belakang boleh.
+  - Tidak ada ciri yang menunjuk orang tertentu: nama di busana, tato khas, atau plat nomor.
+  - Tidak ada logo, merek, atau karya pihak lain yang menonjol.
+  - Berlisensi Unsplash License biasa, bukan Unsplash+, dan halaman sumbernya sudah dibuka.
+  - Fotografer dan tautannya tercatat di `cmd/server/demomedia/CREDITS.md`.
+
+  Pemeriksaan wajah dilakukan manual pada ukuran penuh karena tes tidak bisa mendeteksinya. Setelah set foto berubah: jalankan `lovoria demo seed --refresh`, lalu `make theme-thumbs`.
 
 ### Pembayaran (Midtrans, T23)
 
