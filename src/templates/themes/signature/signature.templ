@@ -19,15 +19,50 @@ const (
 	tagline = "Together, in every chapter of our forever."
 )
 
-// Layout: satu kolom di ponsel; kolom lebar (≤ 1150px) di desktop, tanpa panel
-// samping, di atas kanvas yang menyatu dengan latar halaman.
+// Layout: satu kolom di ponsel; mulai tablet dua panel — panel kiri menempel
+// (foto sampul, nama, tanggal), kolom undangan menggulir di kanan. Kolom kanan
+// selebar ponsel, jadi semua bagian memakai susunan yang sama di setiap layar;
+// ukuran nama mengikuti lebar kolom (cqw), bukan lebar layar.
 templ Layout(v view.View) {
 	@layouts.Document(layouts.Meta{Title: "The Wedding of " + v.Couple.Names(), Description: v.OG.Description, Theme: v.ThemeID, Cacheable: true}, base.Head(v), "lv-invitation lv-signature min-h-dvh antialiased") {
 		@base.PreviewBanner(v)
-		<main class="mx-auto min-h-dvh w-full max-w-[1150px] overflow-hidden bg-surface lg:shadow-2xl lg:shadow-black/10">
-			@base.MemoryBanner(v)
-			{ children... }
-		</main>
+		<div class="md:grid md:grid-cols-[minmax(0,1fr)_28rem] xl:grid-cols-[minmax(0,1fr)_30rem]">
+			@sidePanel(v)
+			<main class="mx-auto min-h-dvh w-full max-w-md overflow-hidden bg-surface shadow-2xl shadow-black/10 [container-type:inline-size] md:max-w-none">
+				@base.MemoryBanner(v)
+				{ children... }
+			</main>
+		</div>
+	}
+}
+
+// sidePanel: panel kiri tablet & desktop — dekoratif (isi yang sama ada di sampul),
+// jadi aria-hidden. Tersembunyi di ponsel; fotonya lazy supaya tidak diunduh di
+// sana. Tanpa foto: kertas bercahaya dengan bunga.
+templ sidePanel(v view.View) {
+	if cover := base.CoverOf(v); cover != "" {
+		<aside class="sticky top-0 hidden h-dvh overflow-hidden bg-deep text-white md:block" aria-hidden="true">
+			<img src={ cover } alt="" loading="lazy" decoding="async" class="absolute inset-0 h-full w-full object-cover"/>
+			<div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0)_35%,rgba(0,0,0,0.55)_62%,rgba(0,0,0,0.82))]"></div>
+			<div class="relative flex h-full flex-col items-center justify-end px-10 pb-16 text-center">
+				@base.Monogram(v, "h-16 w-16 text-xl")
+				<p class="mt-6 text-xs uppercase tracking-[0.35em] opacity-90">The Wedding of</p>
+				<p class="mt-4 text-5xl leading-tight xl:text-6xl" style="font-family: var(--lv-font-heading)">{ v.Couple.Names() }</p>
+				<div class="mt-6 h-px w-16 bg-accent"></div>
+				<p class="mt-6 text-sm tracking-wide">{ v.DateText }</p>
+			</div>
+		</aside>
+	} else {
+		<aside class="lv-paper sticky top-0 hidden h-dvh overflow-hidden text-deep md:block" aria-hidden="true">
+			@art(v, "bouquet", "absolute left-0 top-[-60px] w-[60%] max-w-[360px]", false)
+			@art(v, "corner", "absolute bottom-0 right-0 w-[50%] max-w-[320px]", false)
+			<div class="relative flex h-full flex-col items-center justify-center px-10 text-center">
+				<p class="text-xs uppercase tracking-[0.35em] text-muted">The Wedding of</p>
+				<p class="mt-4 text-5xl leading-tight xl:text-6xl" style="font-family: var(--lv-font-heading)">{ v.Couple.Names() }</p>
+				@divider("mt-6")
+				<p class="mt-6 text-sm tracking-wide">{ v.DateText }</p>
+			</div>
+		</aside>
 	}
 }
 
@@ -36,11 +71,11 @@ templ Layout(v view.View) {
 func nameSize(groom, bride string) string {
 	switch n := max(utf8.RuneCountInString(groom), utf8.RuneCountInString(bride)); {
 	case n <= 7:
-		return "text-[clamp(3.25rem,19vw,7rem)] [@media(max-height:700px)]:text-[clamp(2.75rem,15vw,5.5rem)]"
+		return "text-[clamp(3.25rem,19cqw,7rem)] [@media(max-height:700px)]:text-[clamp(2.75rem,15cqw,5.5rem)]"
 	case n <= 10:
-		return "text-[clamp(2.75rem,15vw,5.5rem)] [@media(max-height:700px)]:text-[clamp(2.25rem,11vw,4.5rem)]"
+		return "text-[clamp(2.75rem,15cqw,5.5rem)] [@media(max-height:700px)]:text-[clamp(2.25rem,11cqw,4.5rem)]"
 	}
-	return "text-[clamp(2.25rem,11vw,4.5rem)]"
+	return "text-[clamp(2.25rem,11cqw,4.5rem)]"
 }
 
 // Hero: 01 Opening Cover — kertas bercahaya dalam bingkai tipis; nama mempelai
@@ -49,10 +84,10 @@ templ Hero(v view.View) {
 	{{ groom, bride := base.FirstNames(v) }}
 	<section id="opening" class="lv-paper relative flex min-h-dvh flex-col overflow-hidden text-ink">
 		@frameLines("inset-3")
-		@art(v, "bouquet", "absolute left-0 top-[-56px] w-[38%] max-w-[320px] md:top-[-90px] [@media(max-height:700px)]:top-[-70px] [@media(max-height:700px)]:w-[32%]", true)
+		@art(v, "bouquet", "absolute left-0 top-[-56px] w-[38%] max-w-[320px] [@media(max-height:700px)]:top-[-70px] [@media(max-height:700px)]:w-[32%]", true)
 		@art(v, "ribbon-left", "absolute bottom-0 left-0 w-[46%] max-w-[400px]", true)
 		@art(v, "corner", "absolute bottom-0 right-0 w-[42%] max-w-[340px]", true)
-		<div class="lv-cover-body relative my-auto px-6 pb-40 pt-36 text-center md:pb-36 md:pt-24 [@media(max-height:700px)]:pb-28 [@media(max-height:700px)]:pt-20">
+		<div class="lv-cover-body relative my-auto px-6 pb-40 pt-36 text-center [@media(max-height:700px)]:pb-28 [@media(max-height:700px)]:pt-20">
 			@monogram(v, "h-11 w-11 text-sm")
 			<div class="mt-4">
 				@label("The Wedding of")
@@ -75,10 +110,10 @@ templ Intro(v view.View) {
 	<section id="wedding-hero" class="lv-paper relative overflow-hidden text-center">
 		@art(v, "petal-c", "absolute left-[8%] top-8 w-7 rotate-12", false)
 		@art(v, "petal-a", "absolute right-[10%] top-6 w-5 -rotate-[40deg]", false)
-		<div class={ "relative px-6 pt-20 md:px-12", templ.KV("md:grid md:grid-cols-2 md:items-center md:gap-12", base.CoverOf(v) != "") }>
+		<div class="relative px-6 pt-20">
 			<div>
 				@label("The Wedding of")
-				<h2 class="mt-6 break-words text-5xl font-medium leading-[1.1] text-deep md:text-6xl">{ v.Couple.Names() }</h2>
+				<h2 class="mt-6 break-words text-5xl font-medium leading-[1.1] text-deep">{ v.Couple.Names() }</h2>
 				<p class="lv-display mx-auto mt-5 max-w-xs text-2xl italic leading-snug text-primary">{ tagline }</p>
 				@divider("mt-7")
 				<div class="mt-8">
@@ -90,7 +125,7 @@ templ Intro(v view.View) {
 				</div>
 			</div>
 			if base.CoverOf(v) != "" {
-				<div class="mx-auto mt-12 w-full max-w-sm border border-secondary/50 p-2 md:mt-0">
+				<div class="mx-auto mt-12 w-full max-w-sm border border-secondary/50 p-2">
 					<div class="lv-photo aspect-[4/5] overflow-hidden">
 						@base.CoverImage(v, "h-full w-full object-cover")
 					</div>
@@ -121,7 +156,7 @@ templ SectionTitle(title, subtitle string) {
 // Couple: 03 Opening Message — salam dan kalimat undangan, lalu potret mempelai.
 // Potret di sini, bukan di cerita, supaya tetap tampil bila cerita disembunyikan.
 templ Couple(v view.View) {
-	<section id="couple" class="relative overflow-hidden px-6 pb-20 pt-16 md:px-12">
+	<section id="couple" class="relative overflow-hidden px-6 pb-20 pt-16">
 		@art(v, "sprig", "mx-auto mb-6 w-[78%] max-w-[420px]", false)
 		<div class="relative">
 			// Kalimat undangan milik pasangan menggantikan kalimat bawaan.
@@ -131,10 +166,10 @@ templ Couple(v view.View) {
 			} else {
 				@base.Title(v, "Dengan Penuh Syukur", "Dengan memohon rahmat Tuhan, kami bermaksud menyelenggarakan pernikahan")
 			}
-			<div class="md:grid md:grid-cols-2 md:gap-12">
+			<div>
 				@person(v.Couple.GroomName, v.Couple.GroomPhoto, v.Couple.GroomDesc, false)
-				<p class="my-8 text-center text-5xl italic text-secondary md:hidden" style="font-family: var(--lv-font-heading)" aria-hidden="true">&amp;</p>
-				<div class="md:mt-24">
+				<p class="my-8 text-center text-5xl italic text-secondary" style="font-family: var(--lv-font-heading)" aria-hidden="true">&amp;</p>
+				<div>
 					@person(v.Couple.BrideName, v.Couple.BridePhoto, v.Couple.BrideDesc, true)
 				</div>
 			</div>
@@ -145,7 +180,7 @@ templ Couple(v view.View) {
 // person: potret 4:5 berselang kiri/kanan di ponsel; tanpa foto → teks di tengah.
 templ person(name, photo, desc string, right bool) {
 	if photo != "" {
-		<div class={ "w-[80%] md:w-full", templ.KV("ml-auto text-right md:text-left", right) }>
+		<div class={ "w-[80%]", templ.KV("ml-auto text-right", right) }>
 			<div class="border border-secondary/50 p-1.5">
 				<img src={ photo } alt={ name } loading="lazy" decoding="async" class="lv-photo aspect-[4/5] w-full object-cover"/>
 			</div>
@@ -180,12 +215,11 @@ func storyDate(text string) (year, rest string) {
 // tahun besar & garis waktu yang menjadi tulang punggungnya.
 templ LoveStory(v view.View) {
 	if len(v.Stories) > 0 {
-		<section id="story" class="lv-paper relative overflow-hidden pt-40 md:pt-24">
+		<section id="story" class="lv-paper relative overflow-hidden pt-40">
 			@art(v, "cluster", "absolute left-[-14%] top-[-8px] w-[46%] max-w-[300px] -rotate-12", false)
-			<div class="relative px-6 pb-20 md:px-12">
+			<div class="relative px-6 pb-20">
 				@base.Title(v, "Cerita Kami", "Setiap bab membawa kami semakin dekat ke hari ini.")
 				<ol class="relative mx-auto max-w-4xl">
-					<span class="absolute inset-y-0 left-1/2 hidden w-px -translate-x-1/2 bg-secondary/50 md:block" aria-hidden="true"></span>
 					for i, s := range v.Stories {
 						@storyChapter(s, i)
 					}
@@ -200,15 +234,12 @@ templ LoveStory(v view.View) {
 // desktop dua kolom di kiri-kanan garis waktu.
 templ storyChapter(s view.Story, i int) {
 	{{ year, rest := storyDate(s.DateText) }}
-	<li class="relative md:grid md:grid-cols-2 md:items-center md:gap-20 md:py-10">
-		<span class="absolute left-1/2 top-1/2 z-10 hidden -translate-x-1/2 -translate-y-1/2 text-secondary md:block" aria-hidden="true">
-			@sparkle("h-3.5 w-3.5")
-		</span>
+	<li class="relative">
 		if i > 0 {
-			<span class="mx-auto mb-3 block h-12 w-px bg-secondary/50 md:hidden" aria-hidden="true"></span>
+			<span class="mx-auto mb-3 block h-12 w-px bg-secondary/50" aria-hidden="true"></span>
 		}
-		@sparkle("mx-auto mb-3 h-3.5 w-3.5 text-secondary md:hidden")
-		<div class={ "text-center", templ.KV("md:order-2 md:text-left", i%2 == 0), templ.KV("md:text-right", i%2 == 1) }>
+		@sparkle("mx-auto mb-3 h-3.5 w-3.5 text-secondary")
+		<div class="text-center">
 			<p class="lv-display text-6xl italic leading-none text-primary">{ year }</p>
 			if rest != "" {
 				<p class={ "mt-2 text-muted", eyebrow }>{ rest }</p>
@@ -219,7 +250,7 @@ templ storyChapter(s view.Story, i int) {
 			}
 		</div>
 		if s.PhotoURL != "" {
-			<div class={ "mx-auto mt-6 w-[88%] border border-secondary/50 bg-paper p-1.5 shadow-sm md:mt-0 md:w-full", templ.KV("-rotate-[1.5deg] md:order-1", i%2 == 0), templ.KV("rotate-[1.5deg]", i%2 == 1) }>
+			<div class={ "mx-auto mt-6 w-[88%] border border-secondary/50 bg-paper p-1.5 shadow-sm", templ.KV("-rotate-[1.5deg]", i%2 == 0), templ.KV("rotate-[1.5deg]", i%2 == 1) }>
 				<img src={ s.PhotoURL } alt={ s.Title } loading="lazy" decoding="async" class="lv-photo aspect-[4/3] w-full object-cover"/>
 			</div>
 		}
@@ -230,9 +261,9 @@ templ storyChapter(s view.Story, i int) {
 // info tiga kolom seperti undangan fisik.
 templ Events(v view.View) {
 	if len(v.Events) > 0 {
-		<section id="events" class="px-6 py-20 md:px-12">
+		<section id="events" class="px-6 py-20">
 			@base.Title(v, "Acara", base.EventsSubtitle(v))
-			<div class="grid gap-8 md:grid-cols-2">
+			<div class="grid gap-8">
 				for _, e := range v.Events {
 					<article class="relative bg-paper px-5 py-10 text-center">
 						@frameLines("inset-1.5")
@@ -311,16 +342,16 @@ func galleryLead(ps []view.Photo) galleryBlock {
 		return galleryBlock{"grid aspect-[9/4] grid-cols-[2fr_1fr]", []galleryCell{{ps[0], 0, ""}, {ps[1], 1, ""}}}
 	}
 	if portrait {
-		return galleryBlock{"grid grid-cols-2 md:aspect-[4/3] md:grid-rows-2", []galleryCell{
-			{ps[0], 0, "col-span-2 aspect-[4/5] md:col-span-1 md:row-span-2 md:aspect-auto"},
-			{ps[1], 1, "aspect-square md:aspect-auto"},
-			{ps[2], 2, "aspect-square md:aspect-auto"},
+		return galleryBlock{"grid grid-cols-2", []galleryCell{
+			{ps[0], 0, "col-span-2 aspect-[4/5]"},
+			{ps[1], 1, "aspect-square"},
+			{ps[2], 2, "aspect-square"},
 		}}
 	}
-	return galleryBlock{"grid grid-cols-2 md:aspect-[3/2] md:grid-cols-[2fr_1fr] md:grid-rows-2", []galleryCell{
-		{ps[0], 0, "col-span-2 aspect-[3/2] md:col-span-1 md:row-span-2 md:aspect-auto"},
-		{ps[1], 1, "aspect-square md:aspect-auto"},
-		{ps[2], 2, "aspect-square md:aspect-auto"},
+	return galleryBlock{"grid grid-cols-2", []galleryCell{
+		{ps[0], 0, "col-span-2 aspect-[3/2]"},
+		{ps[1], 1, "aspect-square"},
+		{ps[2], 2, "aspect-square"},
 	}}
 }
 
@@ -333,7 +364,7 @@ func galleryCollage(ps []view.Photo, offset, round int) galleryBlock {
 		if isPortrait(ps[0]) {
 			return galleryBlock{"mx-auto max-w-md", []galleryCell{cell(0, "aspect-[4/5]")}}
 		}
-		return galleryBlock{"", []galleryCell{cell(0, "aspect-[3/2] md:aspect-[5/2]")}}
+		return galleryBlock{"", []galleryCell{cell(0, "aspect-[3/2]")}}
 	case 2:
 		switch {
 		case isPortrait(ps[0]) && isPortrait(ps[1]):
@@ -356,9 +387,9 @@ func galleryCollage(ps []view.Photo, offset, round int) galleryBlock {
 			wide, ratio = i, r
 		}
 	}
-	const narrow = "aspect-[3/4] md:aspect-auto"
+	const narrow = "aspect-[3/4]"
 	if wide < 0 {
-		return galleryBlock{"grid grid-cols-3 aspect-[9/4] md:aspect-[9/4]", []galleryCell{cell(0, ""), cell(1, ""), cell(2, "")}}
+		return galleryBlock{"grid grid-cols-3 aspect-[9/4]", []galleryCell{cell(0, ""), cell(1, ""), cell(2, "")}}
 	}
 	var rest []galleryCell
 	for i := range ps {
@@ -366,11 +397,11 @@ func galleryCollage(ps []view.Photo, offset, round int) galleryBlock {
 			rest = append(rest, cell(i, narrow))
 		}
 	}
-	w := cell(wide, "col-span-2 aspect-[3/2] md:col-span-1 md:aspect-auto")
+	w := cell(wide, "col-span-2 aspect-[3/2]")
 	if round%2 == 0 {
-		return galleryBlock{"grid grid-flow-dense grid-cols-2 md:aspect-[3/1] md:grid-cols-[1fr_2fr_1fr]", []galleryCell{rest[0], w, rest[1]}}
+		return galleryBlock{"grid grid-flow-dense grid-cols-2", []galleryCell{rest[0], w, rest[1]}}
 	}
-	return galleryBlock{"grid grid-cols-2 md:aspect-[3/1] md:grid-cols-[2fr_1fr_1fr]", []galleryCell{w, rest[0], rest[1]}}
+	return galleryBlock{"grid grid-cols-2", []galleryCell{w, rest[0], rest[1]}}
 }
 
 // gallerySrcset: thumbnail untuk slot kecil, foto penuh untuk slot besar. Tanpa
@@ -385,20 +416,20 @@ func gallerySrcset(p view.Photo) string {
 // gallerySizes: lebar tampil sel untuk pemilihan srcset.
 func gallerySizes(c galleryCell) string {
 	if c.Index == 0 || strings.Contains(c.Class, "col-span-2") || strings.Contains(c.Class, "aspect-[3/2]") {
-		return "(min-width: 768px) 60vw, 100vw"
+		return "(min-width: 768px) 30rem, 100vw"
 	}
-	return "(min-width: 768px) 33vw, 50vw"
+	return "(min-width: 768px) 15rem, 50vw"
 }
 
 // Gallery: 06 — album editorial: foto utama, pendamping, lalu kolase berselang,
 // dengan sudut & jarak yang sama di semua foto.
 templ Gallery(v view.View) {
 	if len(v.Gallery) > 0 {
-		<section id="gallery" class="px-4 py-20 md:px-12">
+		<section id="gallery" class="px-4 py-20">
 			@base.Title(v, "Galeri", "")
-			<div class="mx-auto max-w-5xl space-y-2 md:space-y-3">
+			<div class="mx-auto max-w-5xl space-y-2">
 				for _, b := range galleryBlocks(v.Gallery) {
-					<div class={ "gap-2 md:gap-3", b.Class }>
+					<div class={ "gap-2", b.Class }>
 						for _, c := range b.Cells {
 							<a
 								href={ templ.SafeURL(c.Photo.URL) }
@@ -533,7 +564,7 @@ templ Gift(v view.View) {
 			@ribbonBand(v, "ribbon2")
 			<div class="px-6 pt-10">
 				@base.Title(v, "Tanda Kasih", "Doa restu Anda sudah lebih dari cukup. Namun bila ingin memberi tanda kasih, dapat melalui:")
-				<div class="mx-auto grid max-w-3xl gap-4 md:grid-cols-2">
+				<div class="mx-auto grid max-w-3xl gap-4">
 					for _, gf := range v.Gifts {
 						<div class="lv-card p-6 text-center">
 							<div class="flex justify-center">
@@ -563,7 +594,7 @@ templ Gift(v view.View) {
 // Closing: 10 — ucapan terima kasih, nama, tanggal di atas pita & bunga; branding
 // Lunovia halus.
 templ Closing(v view.View) {
-	<section id="closing" class="lv-paper relative overflow-hidden px-8 pb-72 pt-24 text-center md:pb-64">
+	<section id="closing" class="lv-paper relative overflow-hidden px-8 pb-72 pt-24 text-center">
 		@frameLines("inset-3")
 		@art(v, "ribbon-left", "absolute bottom-0 left-0 w-[56%] max-w-[480px]", false)
 		@art(v, "corner", "absolute bottom-0 right-0 w-[50%] max-w-[420px]", false)

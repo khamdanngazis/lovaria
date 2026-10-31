@@ -168,14 +168,10 @@ func TestThemesWithMinimalAndFullData(t *testing.T) {
 					}
 					prev = level
 				}
-				for _, want := range []string{`id="opening"`, `id="closing"`, `data-open="lock"`, `href="#undangan"`} {
+				for _, want := range []string{`id="opening"`, `id="closing"`, `data-open="lock"`, `href="#undangan"`, "<aside"} {
 					if !strings.Contains(html, want) {
 						t.Errorf("tidak ada %q", want)
 					}
-				}
-				// Panel samping desktop milik base.Layout; Signature berkolom lebar.
-				if !d.Fixed && !strings.Contains(html, "<aside") {
-					t.Error("panel samping desktop tidak ada")
 				}
 				// Foto sampul di panel desktop selalu lazy (tidak diunduh di ponsel).
 				if v.MainPhoto != "" && !strings.Contains(html, `loading="lazy"`) {

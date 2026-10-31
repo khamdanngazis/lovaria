@@ -7,6 +7,8 @@
 - Undangan contoh di semua tema menampilkan QR yang berfungsi dari satu tamu contoh. Di server yang sudah berjalan, jalankan `lovoria demo seed` sekali setelah deploy.
 
 ### Lunovia Signature: desain baru & lima tema warna
+- Foto utama undangan contoh Signature diganti foto berwarna. Di server yang sudah berjalan, perlu `lovoria demo seed --refresh` sekali setelah deploy.
+- Di tablet & desktop, Signature tampil dua panel: foto & nama menempel di kiri, undangan menggulir di kanan dengan susunan yang sama seperti di ponsel.
 - QR kehadiran di Signature menjadi kartu akses "Wedding Guest Pass" bergaya tiket: nama pasangan, QR, kode undangan, petunjuk penggunaan, dan ornamen kecil.
 - Galeri Signature menjadi album editorial: satu foto utama, dua pendamping, lalu kolase dengan rasio berbeda. Foto pertama galeri menjadi foto utama.
 - "Cerita Kami" di Signature menjadi garis waktu bergaya buku cerita: tahun besar, foto bercetak, dan huruf awal besar. Undangan contoh di semua tema kini punya foto cerita (jalankan `lovoria demo seed` sekali setelah deploy).

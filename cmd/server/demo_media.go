@@ -40,11 +40,11 @@ type demoSet struct {
 // Per tema: pasangan yang sama untuk sampul, potret mempelai
 // (demomedia/<tema>-groom.jpg, -bride.jpg), dan galeri + foto detail.
 var demoMedia = map[string]demoSet{
-	"signature": {Cover: "l4EofTUIANg.jpg", Gallery: []demoPhoto{
+	"signature": {Cover: "VPFnktO9TA8.jpg", Gallery: []demoPhoto{
 		{"bwo_dSnXuvU.jpg", gallery.CategoryPrewedding, ""},
 		{"4LRIIA-24SI.jpg", gallery.CategoryPrewedding, ""},
 		{"l0iyOIhrZVw.jpg", gallery.CategoryPrewedding, "Busana adat Karo"},
-		{"VPFnktO9TA8.jpg", gallery.CategoryPrewedding, ""},
+		{"l4EofTUIANg.jpg", gallery.CategoryPrewedding, ""},
 		{"ZYet8yoepik.jpg", gallery.CategoryWedding, ""},
 		{"UQl_-yabQiA.jpg", gallery.CategoryWedding, ""},
 	}, Stories: []string{"4LRIIA-24SI.jpg", "bwo_dSnXuvU.jpg", "l0iyOIhrZVw.jpg"}},
