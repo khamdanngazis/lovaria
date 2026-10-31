@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Check-in QR aktif secara bawaan
+- Wedding baru kini otomatis memakai check-in QR; pasangan tetap bisa mematikannya di **Tamu → Check-in**. Wedding yang sudah ada tidak diubah.
+- Undangan contoh di semua tema menampilkan QR yang berfungsi dari satu tamu contoh. Di server yang sudah berjalan, jalankan `lovoria demo seed` sekali setelah deploy.
+
 ### Lunovia Signature: desain baru & lima tema warna
 - Tema **Lunovia Signature** didesain ulang (T33): kertas ivory bercahaya dalam bingkai tipis, nama mempelai & judul Playfair Display, aksen miring Cormorant Garamond, isi Lato, serta bunga, pita satin, dan kelopak watercolor.
 - Pasangan memilih satu dari **lima tema warna**: Signature Lavender (bawaan), Sage Garden, Blush Romance, Midnight Elegance, dan Terracotta Bloom. Warna bunga ikut berganti; layout tidak berubah.

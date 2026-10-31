@@ -136,11 +136,10 @@ test('alur utama pasangan & tamu', async ({ page, browser }) => {
   await page.goto(dash + '/rsvp');
   await expect(page.locator('#rsvp-list').getByText('Tamu E2E')).toBeVisible();
 
-  // 10. Check-in QR (T31): aktifkan → QR di undangan tamu → penerima tamu
+  // 10. Check-in QR (T31): aktif secara bawaan → QR di undangan tamu → penerima tamu
   // (tanpa akun) mencari tamu secara manual dan mencatat kedatangannya.
   await page.goto(dash + '/checkin');
-  await page.getByRole('button', { name: 'Aktifkan check-in QR' }).click();
-  await expect(page.getByText('Check-in QR diaktifkan')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Matikan check-in QR' })).toBeVisible();
   await page.getByRole('button', { name: 'Buat link penerima tamu' }).click();
   const usherURL = await page.getByLabel('Link penerima tamu').inputValue();
   expect(new URL(usherURL).pathname).toMatch(/^\/checkin\/[\w.-]+$/);

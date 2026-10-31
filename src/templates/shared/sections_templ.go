@@ -1297,7 +1297,7 @@ func GiftSection(v view.View) templ.Component {
 }
 
 // CheckinSection: QR kehadiran tamu (T31) — ditunjukkan di pintu masuk. Hanya
-// di link pribadi dan bila pasangan menyalakan check-in. QR selalu di atas
+// di link pribadi (atau tamu contoh di undangan contoh) saat check-in aktif. QR selalu di atas
 // latar putih supaya terbaca di tema gelap; gambar biasa, tanpa script.
 func CheckinSection(v view.View) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -1320,7 +1320,7 @@ func CheckinSection(v view.View) templ.Component {
 			templ_7745c5c3_Var55 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		if v.Checkin.QRURL != "" && v.Guest != nil {
+		if g := v.CheckinGuest(); v.Checkin.QRURL != "" && g != nil {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 112, "<section id=\"checkin\" class=\"px-6 py-20\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -1347,9 +1347,9 @@ func CheckinSection(v view.View) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var57 string
-			templ_7745c5c3_Var57, templ_7745c5c3_Err = templ.ResolveAttributeValue("Kode QR kehadiran untuk " + v.Guest.Name)
+			templ_7745c5c3_Var57, templ_7745c5c3_Err = templ.ResolveAttributeValue("Kode QR kehadiran untuk " + g.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 315, Col: 81}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 315, Col: 75}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var57)
 			if templ_7745c5c3_Err != nil {
@@ -1360,9 +1360,9 @@ func CheckinSection(v view.View) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var58 string
-			templ_7745c5c3_Var58, templ_7745c5c3_Err = templ.JoinStringErrs(v.Guest.Name)
+			templ_7745c5c3_Var58, templ_7745c5c3_Err = templ.JoinStringErrs(g.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 317, Col: 68}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 317, Col: 62}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var58))
 			if templ_7745c5c3_Err != nil {
@@ -1373,9 +1373,9 @@ func CheckinSection(v view.View) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var59 string
-			templ_7745c5c3_Var59, templ_7745c5c3_Err = templ.JoinStringErrs(CheckinPax(v.Guest))
+			templ_7745c5c3_Var59, templ_7745c5c3_Err = templ.JoinStringErrs(CheckinPax(g))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 318, Col: 69}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 318, Col: 63}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var59))
 			if templ_7745c5c3_Err != nil {
@@ -1399,9 +1399,9 @@ func CheckinSection(v view.View) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var61 string
-			templ_7745c5c3_Var61, templ_7745c5c3_Err = templ.ResolveAttributeValue("qr-kehadiran-" + v.Guest.Code + ".png")
+			templ_7745c5c3_Var61, templ_7745c5c3_Err = templ.ResolveAttributeValue("qr-kehadiran-" + g.Code + ".png")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 319, Col: 97}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/shared/sections.templ`, Line: 319, Col: 91}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var61)
 			if templ_7745c5c3_Err != nil {

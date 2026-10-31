@@ -429,9 +429,17 @@ func TestCheckinToggleViaHTTP(t *testing.T) {
 	other, _ := f.newWedding(t, "b@example.com")
 	path := w.DashboardURL("/checkin")
 
+	// Bawaan wedding baru: aktif, dengan tombol untuk mematikan.
 	rec := send(e, owner, get(path), false)
-	if b := rec.Body.String(); rec.Code != http.StatusOK || !strings.Contains(b, "Check-in tamu dengan QR") || !strings.Contains(b, "Tidak aktif") || !strings.Contains(b, "Aktifkan check-in QR") {
+	if b := rec.Body.String(); rec.Code != http.StatusOK || !strings.Contains(b, "Check-in tamu dengan QR") || !strings.Contains(b, "Matikan check-in QR") {
 		t.Fatalf("halaman check-in awal: %d", rec.Code)
+	}
+	if err := f.weddings.SetCheckinEnabled(ctx, w.ID, false); err != nil {
+		t.Fatal(err)
+	}
+	rec = send(e, owner, get(path), false)
+	if b := rec.Body.String(); !strings.Contains(b, "Tidak aktif") || !strings.Contains(b, "Aktifkan check-in QR") {
+		t.Fatal("halaman check-in saat mati: status & tombol aktifkan")
 	}
 	rec = send(e, owner, formReq(http.MethodPost, path, url.Values{"enabled": {"1"}}), false)
 	if rec.Code != http.StatusSeeOther || rec.Header().Get("Location") != path+"?ok=on" {

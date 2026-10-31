@@ -16,6 +16,7 @@ import (
 	"github.com/khamdanngazis/lovaria/src/modules/auth"
 	"github.com/khamdanngazis/lovaria/src/modules/gallery"
 	"github.com/khamdanngazis/lovaria/src/modules/gift"
+	"github.com/khamdanngazis/lovaria/src/modules/guest"
 	"github.com/khamdanngazis/lovaria/src/modules/guestbook"
 	"github.com/khamdanngazis/lovaria/src/modules/theme"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding"
@@ -55,6 +56,7 @@ func (a *app) seedDemo(ctx context.Context, out io.Writer, refresh bool) error {
 	themes := theme.NewService(a.pool, a.weddings)
 	guestbooks := guestbook.NewService(a.pool, nil)
 	gifts := gift.NewService(a.pool)
+	guests := guest.NewService(guest.NewRepository(a.pool), a.cfg.BaseURL)
 	photos := gallery.NewService(gallery.NewRepository(a.pool), a.store, a.weddings, a.cfg.Storage.QuotaBytes, a.log)
 
 	owner, err := a.demoOwner(ctx)
@@ -79,6 +81,9 @@ func (a *app) seedDemo(ctx context.Context, out io.Writer, refresh bool) error {
 			added, err := a.ensureDemoMedia(ctx, photos, existing, d.ID)
 			if err == nil {
 				err = ensureDemoSettings(ctx, themes, existing.ID, d.ID)
+			}
+			if err == nil {
+				err = a.ensureDemoCheckin(ctx, guests, existing.ID)
 			}
 			if err != nil {
 				return fmt.Errorf("demo %s: %w", d.ID, err)
@@ -144,6 +149,7 @@ func (a *app) seedDemo(ctx context.Context, out io.Writer, refresh bool) error {
 				_, err := a.weddings.Transition(ctx, w.ID, wedding.StatusPublished, wedding.Actor{Kind: wedding.ActorAdmin})
 				return err
 			},
+			func() error { return a.ensureDemoCheckin(ctx, guests, w.ID) },
 			func() error {
 				for _, m := range [][2]string{
 					{"Keluarga Besar Wijaya", "Selamat menempuh hidup baru! Semoga menjadi keluarga yang sakinah, mawaddah, warahmah. 🤍"},
@@ -165,6 +171,20 @@ func (a *app) seedDemo(ctx context.Context, out io.Writer, refresh bool) error {
 		fmt.Fprintf(out, "dibuat: /w/%s (%s, tema %s)\n", slug, names, d.Name)
 	}
 	return nil
+}
+
+// ensureDemoCheckin: check-in menyala + satu tamu contoh, supaya undangan contoh
+// menampilkan QR yang berfungsi (idempoten; demo lama ikut dilengkapi).
+func (a *app) ensureDemoCheckin(ctx context.Context, guests *guest.Service, id uuid.UUID) error {
+	if err := a.weddings.SetCheckinEnabled(ctx, id, true); err != nil {
+		return err
+	}
+	page, err := guests.List(ctx, id, guest.Filter{Page: 1})
+	if err != nil || len(page.Guests) > 0 {
+		return err
+	}
+	_, err = guests.Create(ctx, id, guest.Input{Name: "Tamu Contoh", MaxPax: "2"})
+	return err
 }
 
 // demoOwner: akun sistem pemilik undangan contoh (dinonaktifkan: tidak bisa login).

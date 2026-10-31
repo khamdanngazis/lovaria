@@ -52,6 +52,7 @@ func toWedding(w weddingdb.Wedding) Wedding {
 		Status:            w.Status,
 		ThemeID:           w.ThemeID,
 		CheckinEnabled:    w.CheckinEnabled,
+		IsDemo:            w.IsDemo,
 		ArchiveVisibility: w.ArchiveVisibility,
 		Timezone:          w.Timezone,
 		StorageUsedBytes:  w.StorageUsedBytes,

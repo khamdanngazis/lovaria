@@ -27,12 +27,12 @@ templ checkinPage(w wedding.Wedding, notice string, link CheckinLink, att attend
 					}
 				</div>
 				<ol class="mt-5 space-y-2.5 text-sm leading-relaxed text-lovoria-text">
-					<li class="flex gap-3"><span class="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-lovoria-primary-soft text-xs font-medium text-lovoria-primary">1</span><span>Aktifkan fitur ini. Bagian <strong>QR Kehadiran</strong> muncul di undangan pribadi tiap tamu (link <span class="font-mono text-xs">/i/KODE</span>) — bukan di link umum.</span></li>
+					<li class="flex gap-3"><span class="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-lovoria-primary-soft text-xs font-medium text-lovoria-primary">1</span><span>Biarkan fitur ini aktif. Bagian <strong>QR Kehadiran</strong> muncul di undangan pribadi tiap tamu (link <span class="font-mono text-xs">/i/KODE</span>) — bukan di link umum.</span></li>
 					<li class="flex gap-3"><span class="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-lovoria-primary-soft text-xs font-medium text-lovoria-primary">2</span><span>Tamu menyimpan atau membuka QR-nya saat datang.</span></li>
 					<li class="flex gap-3"><span class="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-lovoria-primary-soft text-xs font-medium text-lovoria-primary">3</span><span>Penerima tamu membuka <strong>link penerima tamu</strong> di ponselnya dan memindai QR tiap tamu yang datang.</span></li>
 				</ol>
 				if !w.CheckinEnabled && w.IsDraft() {
-					<p class="mt-4 text-xs text-lovoria-muted">Bisa diaktifkan sekarang; QR baru tampil ke tamu setelah undangan diterbitkan.</p>
+					<p class="mt-4 text-xs text-lovoria-muted">QR baru tampil ke tamu setelah undangan diterbitkan.</p>
 				} else if w.CheckinEnabled && !w.CheckinOpen() {
 					<p class={ "mt-4", ui.AlertClass(ui.Warning) }>
 						if w.IsDraft() {

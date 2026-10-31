@@ -20,7 +20,15 @@ func TestGuestQRSection(t *testing.T) {
 	g, _ := f.guests.Create(ctx, w.ID, guest.Input{Name: "Bapak Budi", MaxPax: "3"})
 	personal, qr := "/i/"+g.InvitationCode, "/i/"+g.InvitationCode+"/qr.png"
 
-	// Bawaan (mati): undangan tidak berubah, gambar QR 404.
+	// Bawaan wedding baru: aktif.
+	if !w.CheckinEnabled {
+		t.Error("check-in harus aktif secara bawaan")
+	}
+	if err := f.weddings.SetCheckinEnabled(ctx, w.ID, false); err != nil {
+		t.Fatal(err)
+	}
+	f.views.Invalidate(w.ID)
+	// Dimatikan: undangan tidak berubah, gambar QR 404.
 	if b := f.get(personal, nil).Body.String(); strings.Contains(b, `id="checkin"`) || strings.Contains(b, "qr.png") {
 		t.Error("check-in mati: undangan tidak boleh memuat QR")
 	}
@@ -69,5 +77,35 @@ func TestGuestQRSection(t *testing.T) {
 	}
 	if rec := f.get(qr, nil); rec.Code != http.StatusNotFound {
 		t.Errorf("kenangan: qr.png %d", rec.Code)
+	}
+}
+
+// Undangan contoh: link umum menampilkan QR berfungsi milik tamu contoh, di semua
+// tema; wedding biasa tidak.
+func TestDemoInvitationShowsWorkingQR(t *testing.T) {
+	f := newFixture(t)
+	_, w := f.newWedding(t, "demo@example.com", "Samuel", "Sarah")
+	f.publish(w.ID)
+	g, _ := f.guests.Create(ctx, w.ID, guest.Input{Name: "Tamu Contoh", MaxPax: "2"})
+	qr := "/i/" + g.InvitationCode + "/qr.png"
+	if b := f.get("/w/"+w.Slug, nil).Body.String(); strings.Contains(b, "qr.png") {
+		t.Error("wedding biasa: link umum tidak boleh memuat QR")
+	}
+	if err := f.weddings.MarkDemo(ctx, w.ID); err != nil {
+		t.Fatal(err)
+	}
+	f.views.Invalidate(w.ID)
+	body := f.get("/w/"+w.Slug, nil).Body.String()
+	for _, want := range []string{`id="checkin"`, `src="` + qr + `"`, "Tamu Contoh", "Berlaku untuk 2 orang"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("undangan contoh tidak memuat %q", want)
+		}
+	}
+	if rec := f.get(qr, nil); rec.Code != http.StatusOK || rec.Header().Get("Content-Type") != "image/png" {
+		t.Errorf("qr.png: %d %v", rec.Code, rec.Header())
+	}
+	// Tamu contoh tidak menjadi tamu halaman: form RSVP tetap minta link pribadi.
+	if !strings.Contains(body, "Gunakan link undangan pribadi Anda untuk RSVP.") {
+		t.Error("RSVP link umum berubah")
 	}
 }

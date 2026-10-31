@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/khamdanngazis/lovaria/src/modules/gallery"
+	"github.com/khamdanngazis/lovaria/src/modules/guest"
 	"github.com/khamdanngazis/lovaria/src/modules/theme"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding"
 	publicsite "github.com/khamdanngazis/lovaria/src/public-site"
@@ -43,6 +44,16 @@ func TestSeedDemo(t *testing.T) {
 		// potret mempelai tidak menjadi item galeri.
 		if len(items) != 7 || w.MainPhotoURL == nil || c.GroomPhotoURL == nil || c.BridePhotoURL == nil || st.QuoteText == "" {
 			t.Errorf("demo %s belum lengkap: %d foto, main=%v, pasangan=%v/%v, kutipan=%q", d.ID, len(items), w.MainPhotoURL, c.GroomPhotoURL, c.BridePhotoURL, st.QuoteText)
+		}
+	}
+	// QR kehadiran: check-in menyala dengan tepat satu tamu contoh, juga saat
+	// seed diulang.
+	guests := guest.NewService(guest.NewRepository(a.pool), a.cfg.BaseURL)
+	for _, d := range theme.All() {
+		w, _ := a.weddings.GetWeddingBySlug(ctx, publicsite.DemoSlug(d.ID))
+		page, err := guests.List(ctx, w.ID, guest.Filter{Page: 1})
+		if err != nil || !w.CheckinOpen() || !w.IsDemo || page.Total != 1 {
+			t.Errorf("demo %s: check-in %v, demo %v, %d tamu, %v", d.ID, w.CheckinOpen(), w.IsDemo, page.Total, err)
 		}
 	}
 	// Demo dari versi lama (tanpa foto & kutipan) dilengkapi saat seed diulang.
