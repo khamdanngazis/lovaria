@@ -59,7 +59,7 @@ var themeCommon = []string{
 
 // themeFeatures: fitur umum + apa yang bisa diganti pada tema ini.
 func themeFeatures(t landingTheme) []string {
-	custom := "Warna utama, huruf, latar, dan foto sampul bisa diganti"
+	custom := fmt.Sprintf("%d pilihan warna kurasi, atau warna, huruf, dan latar sendiri; foto sampul bisa diganti", len(t.Presets))
 	if t.Fixed {
 		custom = fmt.Sprintf("%d pilihan warna kurasi dan foto sampul yang bisa diganti", len(t.Presets))
 	}
@@ -71,7 +71,7 @@ func themeSetupStep(t landingTheme) string {
 	if t.Fixed {
 		return "Pilih tema " + t.Name + " di menu Tema, lalu pilih warna dan foto sampul."
 	}
-	return "Pilih tema " + t.Name + " di menu Tema, lalu atur warna, huruf, dan foto sampul."
+	return "Pilih tema " + t.Name + " di menu Tema, lalu pilih tema warna, atur huruf, dan ganti foto sampul."
 }
 
 templ themesHead(d landingData) {

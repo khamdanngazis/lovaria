@@ -95,11 +95,14 @@ func TestSaveColorPreset(t *testing.T) {
 	if !reflect.DeepEqual(got.SectionOrder, order) || got.PrimaryColor != "#aa3355" {
 		t.Errorf("pengaturan milik pasangan berubah: %+v", got)
 	}
-	// Tema tanpa preset: pilihan preset tidak disimpan.
-	if _, err := svc.Save(ctx, w.ID, "elegant", view.Settings{ColorPreset: "sage-garden"}); err != nil {
+	// Preset milik tema lain ditolak (T37); preset tema itu sendiri tersimpan.
+	if _, err := svc.Save(ctx, w.ID, "elegant", view.Settings{ColorPreset: "sage-garden"}); !errors.As(err, &se) || se["color_preset"] == "" {
+		t.Errorf("preset tema lain harus ditolak: %v", err)
+	}
+	if _, err := svc.Save(ctx, w.ID, "elegant", view.Settings{ColorPreset: "navy-gold"}); err != nil {
 		t.Fatal(err)
 	}
-	if got, _ := svc.Settings(ctx, w.ID); got.ColorPreset != "" {
-		t.Errorf("tema tanpa preset menyimpan %q", got.ColorPreset)
+	if got, _ := svc.Settings(ctx, w.ID); got.ColorPreset != "navy-gold" {
+		t.Errorf("preset elegant tersimpan %q", got.ColorPreset)
 	}
 }

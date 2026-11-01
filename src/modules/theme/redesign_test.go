@@ -46,6 +46,16 @@ func TestThemeContrast(t *testing.T) {
 		if OnColor(tk.Primary) != "#ffffff" {
 			t.Errorf("%s: Primary bawaan harus cukup gelap untuk teks putih", d.id)
 		}
+		// Teks besar & ornamen beraksen di atas sampul gelap (WCAG teks besar, T37).
+		if got := Contrast(tk.Accent, tk.Deep); got < 3 {
+			t.Errorf("%s — Accent di atas Deep: kontras %.2f < 3", d.id, got)
+		}
+		// Blok "Kepada Yth." sampul Minang & Bugis: teks kecil Deep di atas Accent.
+		if id, _, _ := strings.Cut(d.id, "/"); id == "minang" || id == "bugis" {
+			if got := Contrast(tk.Deep, tk.Accent); got < MinContrast {
+				t.Errorf("%s — Deep di atas Accent: kontras %.2f < %.1f", d.id, got, MinContrast)
+			}
+		}
 		for name, v := range map[string]string{"Accent": tk.Accent, "Deep": tk.Deep, "Muted": tk.Muted, "Border": tk.Border} {
 			if !hexColor.MatchString(v) {
 				t.Errorf("%s: token %s belum diisi (%q)", d.id, name, v)
