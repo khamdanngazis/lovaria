@@ -128,8 +128,10 @@ type Checkin struct {
 	// Available: check-in dibuka tetapi halaman dibuka lewat link umum (tanpa QR
 	// pribadi) — tema boleh menampilkan info cara check-in (T33).
 	Available bool
-	// Sample: preview dashboard — tema boleh menampilkan contoh kartu tanpa QR.
-	Sample bool
+	// Sample: preview dashboard dengan check-in menyala — tema menampilkan contoh
+	// kartu bergambar SampleQRURL (QR bertanda CONTOH, T38).
+	Sample      bool
+	SampleQRURL string
 	// Guest: pemilik QR bila bukan tamu halaman ini (tamu contoh di undangan
 	// contoh, yang dibuka lewat link umum).
 	Guest *Guest

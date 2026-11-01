@@ -484,7 +484,7 @@ templ Checkin(v view.View) {
 			@base.Title(v, "QR Kehadiran", "Contoh kartu tamu. Tiap tamu mendapat QR pribadi di undangannya.")
 			@guestPass(v) {
 				@qrFrame() {
-					<div class="flex aspect-square w-full items-center justify-center p-6 text-center text-sm text-muted">Contoh — QR pribadi tamu tampil di sini</div>
+					@shared.SampleQR(v)
 				}
 				@passHolder(v.Guest)
 			}
@@ -492,7 +492,7 @@ templ Checkin(v view.View) {
 	} else if v.Checkin.Available {
 		<section id="checkin" class="px-6 py-20">
 			@base.Title(v, "Kehadiran", "")
-			<p class="mx-auto max-w-sm text-center text-sm leading-relaxed">QR kehadiran pribadi Anda tersedia di link undangan yang kami kirimkan. Tunjukkan QR tersebut kepada penerima tamu di pintu masuk.</p>
+			<p class="mx-auto max-w-sm text-center text-sm leading-relaxed">{ shared.CheckinInfo }</p>
 		</section>
 	}
 }
