@@ -11,6 +11,7 @@
 - Kesembilan template selain Signature kini punya **5 tema warna** yang dirancang untuk karakter masing-masing, misalnya Navy Gold untuk Elegan, Midnight Navy untuk Modern, dan Hitam Songket untuk Minang Heritage. Pilihan pertama adalah warna lama, jadi undangan yang sudah ada tidak berubah.
 - Di menu **Tema**, pilihan warna kini mengikuti tema yang dipilih tanpa memuat ulang halaman. Warna utama dan latar sendiri tetap tersedia dan menimpa tema warna.
 - Halaman detail tema di etalase menampilkan kelima pilihan warna untuk setiap template.
+- Undangan contoh Romantis kini memakai Dusty Blue dan Javanese Heritage memakai Hijau Keraton, supaya tema di bagian Collection beranda tidak sewarna. Di server yang sudah berjalan, jalankan `lovoria demo seed` sekali setelah deploy.
 
 ### Foto contoh tanpa wajah
 - Undangan contoh, etalase tema, dan landing page kini hanya memakai foto tanpa wajah yang bisa dikenali: detail busana, tangan, cincin, bunga, dekorasi, kain batik, dan pasangan dari belakang atau siluet. Undangan pelanggan tidak berubah.

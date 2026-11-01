@@ -91,7 +91,7 @@ func TestSeedDemo(t *testing.T) {
 	if _, err := a.pool.Exec(ctx, "DELETE FROM gallery_items WHERE wedding_id = (SELECT id FROM weddings WHERE slug = $1)", publicsite.DemoSlug("modern")); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := a.pool.Exec(ctx, "UPDATE wedding_theme_settings SET quote_text = NULL"); err != nil {
+	if _, err := a.pool.Exec(ctx, "UPDATE wedding_theme_settings SET quote_text = NULL, color_preset = NULL"); err != nil {
 		t.Fatal(err)
 	}
 	out.Reset()
@@ -100,6 +100,14 @@ func TestSeedDemo(t *testing.T) {
 	}
 	if strings.Count(out.String(), "dilengkapi:") != 1 {
 		t.Errorf("seed ulang demo lama: %s", out.String())
+	}
+	// Tema warna undangan contoh (T37): dipasang lagi saat seed diulang.
+	for _, d := range theme.All() {
+		w, _ := a.weddings.GetWeddingBySlug(ctx, publicsite.DemoSlug(d.ID))
+		st, _ := themes.Settings(ctx, w.ID)
+		if st.ColorPreset != demoColorPreset[d.ID] || st.QuoteText == "" {
+			t.Errorf("demo %s: tema warna %q, want %q; kutipan %q", d.ID, st.ColorPreset, demoColorPreset[d.ID], st.QuoteText)
+		}
 	}
 	// Tidak dihitung laporan admin.
 	if p, _ := a.weddings.AdminList(ctx, wedding.AdminFilter{}, 25); p.Total != 0 {
@@ -167,6 +175,12 @@ func TestDemoMediaFiles(t *testing.T) {
 		}
 		if !strings.Contains(string(credits), "| "+file+" |") {
 			t.Errorf("belum tercatat di CREDITS.md: %s", file)
+		}
+	}
+	for id, preset := range demoColorPreset {
+		d, ok := theme.Get(id)
+		if _, found := d.Preset(preset); !ok || !found {
+			t.Errorf("demoColorPreset: %s/%s tidak ada", id, preset)
 		}
 	}
 	for _, d := range theme.All() {
