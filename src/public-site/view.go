@@ -199,8 +199,21 @@ func (b *ViewBuilder) Preview(ctx context.Context, w wedding.Wedding) (view.View
 	// Preview dashboard menampilkan semua bagian supaya tampilan tema terlihat utuh.
 	v.AllowRSVP, v.AllowGuestbook = true, true
 	FillSample(&v)
+	// Contoh kartu QR hanya bila check-in menyala (T38), seperti yang akan dilihat
+	// tamu. Status undangan tidak dipakai: preview draf tetap menampilkannya.
+	if w.CheckinEnabled {
+		v.Checkin.Sample, v.Checkin.SampleQRURL = true, static.URL(SampleQRAsset)
+	}
 	return v, nil
 }
+
+// SampleQRAsset: gambar QR contoh preview (T38), berisi SampleQRContent. Dibuat
+// ulang dengan UPDATE_SAMPLE_QR=1 go test ./src/public-site -run TestSampleQRAsset.
+const SampleQRAsset = "img/sample-qr.png"
+
+// SampleQRContent: isi QR contoh. Teks biasa, bukan URL: dipindai di halaman
+// check-in hasilnya "tidak ditemukan", jadi tidak bisa disalahgunakan.
+const SampleQRContent = "CONTOH-QR-LUNOVIA"
 
 // FillSample mengisi bagian kosong dengan data contoh (menandai v.Sample).
 func FillSample(v *view.View) {
@@ -208,7 +221,6 @@ func FillSample(v *view.View) {
 	if v.Guest == nil {
 		v.Guest = &view.Guest{Name: "Nama Tamu", MaxPax: 2}
 	}
-	v.Checkin.Sample = true
 	if v.MainPhoto == "" && v.Settings.CoverImage == "" {
 		v.MainPhoto, v.Sample = img("cover"), true
 	}

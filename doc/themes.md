@@ -87,6 +87,8 @@ Materi contoh (undangan contoh, thumbnail etalase) hanya memakai foto tanpa waja
 | `bali` | Terakota Kamboja, Hitam Batu Candi, Hijau Subak, Merah Bata, Biru Samudra |
 | `bugis` | Merah Anggur, Hijau Lipa Sabbe, Ungu Senja, Biru Pinisi, Hitam Emas |
 
+QR kehadiran (`Parts.Checkin`, bawaan `shared.CheckinSection`; Signature punya Wedding Guest Pass sendiri) tampil dalam tiga keadaan: QR asli di link pribadi tamu dan undangan contoh, contoh kartu bergambar `static/img/sample-qr.png` bertanda "CONTOH" di preview dashboard, dan info cara check-in (`shared.CheckinInfo`) di link umum. Preview hanya menampilkan contoh kartu bila check-in menyala (`CheckinEnabled`). QR contoh berisi teks `CONTOH-QR-LUNOVIA`, bukan URL; buat ulang dengan `UPDATE_SAMPLE_QR=1 go test ./src/public-site -run TestSampleQRAsset`.
+
 `TestThemeContrast` menguji setiap preset. `Accent` adalah warna dekorasi yang terang, jadi hanya dipakai untuk ornamen, tanda "&", dan teks besar; teks informasi kecil memakai `Primary`, `Ink`, atau `Muted`. Pengecualian yang diuji: blok "Kepada Yth." sampul Minang dan Bugis (teks `Deep` di atas `Accent`).
 
 `ThemeDef.Fixed` mengunci desain: `resolve` hanya memakai preset & foto sampul, dan `OrderedSectionsFor` memakai `ThemeDef.SectionOrder`. Warna, font, latar, dan urutan yang tersimpan tidak dihapus dan berlaku lagi bila pasangan pindah ke tema tidak Fixed. Menyembunyikan bagian `Hideable` tetap berlaku.

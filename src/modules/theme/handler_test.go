@@ -160,6 +160,19 @@ func TestThemePageSaveAndPreview(t *testing.T) {
 			t.Errorf("grup %s: tersembunyi=%v, disabled=%d, bernama color_preset=%d", d.ID, hidden, disabled, named)
 		}
 	}
+	// Preview mengikuti saklar check-in (T38): menyala → contoh kartu QR; mati → tidak ada.
+	if html := a.do(owner, http.MethodGet, base+"/preview", nil).Body.String(); !strings.Contains(html, "sample-qr.png") {
+		t.Error("preview check-in menyala: contoh kartu QR harus tampil")
+	}
+	if err := a.weddings.SetCheckinEnabled(context.Background(), w.ID, false); err != nil {
+		t.Fatal(err)
+	}
+	if html := a.do(owner, http.MethodGet, base+"/preview", nil).Body.String(); strings.Contains(html, `id="checkin"`) {
+		t.Error("preview check-in mati: bagian QR tidak boleh tampil")
+	}
+	if err := a.weddings.SetCheckinEnabled(context.Background(), w.ID, true); err != nil {
+		t.Fatal(err)
+	}
 	// Preview dengan tema warna tema lain yang belum disimpan.
 	q0 := url.Values{"theme_id": {"elegant"}, "color_preset": {"navy-gold"}}
 	if html := a.do(owner, http.MethodGet, base+"/preview?"+q0.Encode(), nil).Body.String(); !strings.Contains(html, `data-theme="elegant"`) || !strings.Contains(html, "--lv-primary:#2c3e5c;") {

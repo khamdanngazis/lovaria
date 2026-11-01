@@ -4,11 +4,14 @@ import (
 	"bytes"
 	"image/png"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/khamdanngazis/lovaria/src/modules/guest"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding"
+	"github.com/khamdanngazis/lovaria/src/platform/qr"
 )
 
 // T31: QR kehadiran hanya tampil di link pribadi tamu, bila pasangan
@@ -107,5 +110,30 @@ func TestDemoInvitationShowsWorkingQR(t *testing.T) {
 	// Tamu contoh tidak menjadi tamu halaman: form RSVP tetap minta link pribadi.
 	if !strings.Contains(body, "Gunakan link undangan pribadi Anda untuk RSVP.") {
 		t.Error("RSVP link umum berubah")
+	}
+}
+
+// QR contoh preview (T38) harus sama persis dengan qr.PNG(SampleQRContent), jadi
+// isinya pasti teks non-URL. UPDATE_SAMPLE_QR=1 menulis ulang asetnya.
+func TestSampleQRAsset(t *testing.T) {
+	want, err := qr.PNG(SampleQRContent, 512)
+	if err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join("..", "..", "static", filepath.FromSlash(SampleQRAsset))
+	if os.Getenv("UPDATE_SAMPLE_QR") != "" {
+		if err := os.WriteFile(path, want, 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	got, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(got, want) {
+		t.Errorf("%s bukan qr.PNG(%q); buat ulang dengan UPDATE_SAMPLE_QR=1", SampleQRAsset, SampleQRContent)
+	}
+	if strings.Contains(SampleQRContent, "://") {
+		t.Error("isi QR contoh tidak boleh berupa URL")
 	}
 }

@@ -256,14 +256,53 @@ func TestSignatureCheckinStates(t *testing.T) {
 	if html := render(t, v); !strings.Contains(html, "QR kehadiran pribadi Anda tersedia") || strings.Contains(html, "qr.png") {
 		t.Error("link umum: info tanpa QR")
 	}
-	// Preview: contoh kartu tanpa gambar QR apa pun.
+	// Preview: contoh kartu bergambar QR contoh bertanda CONTOH (T38), bukan QR tamu.
 	v = base()
-	v.Checkin.Sample = true
-	if html := render(t, v); !strings.Contains(html, "Contoh — QR pribadi tamu") || strings.Contains(html, "qr.png") {
-		t.Error("preview: contoh kartu tanpa QR palsu")
+	v.Checkin.Sample, v.Checkin.SampleQRURL = true, "/static/img/sample-qr.png"
+	if html := render(t, v); !strings.Contains(html, `src="/static/img/sample-qr.png"`) || !strings.Contains(html, ">Contoh<") || strings.Contains(html, "/qr.png") || strings.Contains(html, "Simpan QR") {
+		t.Error("preview: contoh kartu dengan QR contoh, tanpa QR tamu & tombol simpan")
 	}
 	// Check-in mati: tidak tampil.
 	if strings.Contains(render(t, base()), `id="checkin"`) {
 		t.Error("check-in mati: bagian tidak boleh tampil")
+	}
+}
+
+// QR kehadiran dalam tiga keadaan di semua tema (T31, T33, T38).
+func TestCheckinStatesAllThemes(t *testing.T) {
+	for _, d := range All() {
+		base := func() view.View {
+			v := sample()
+			v.ThemeID = d.ID
+			v.Guest = &view.Guest{Name: "Bapak Budi", Code: "ABC1234", MaxPax: 3}
+			return v
+		}
+		// QR asli (link pribadi).
+		v := base()
+		v.Checkin.QRURL = "/i/ABC1234/qr.png"
+		html := render(t, v)
+		for _, want := range []string{`id="checkin"`, `src="/i/ABC1234/qr.png"`, "Bapak Budi", "Berlaku untuk 3 orang", "ABC1234", "Simpan QR"} {
+			if !strings.Contains(html, want) {
+				t.Errorf("%s: QR asli tidak memuat %q", d.ID, want)
+			}
+		}
+		// Contoh (preview dashboard, check-in menyala).
+		v = base()
+		v.Checkin.Sample, v.Checkin.SampleQRURL = true, "/static/img/sample-qr.png"
+		html = render(t, v)
+		if !strings.Contains(html, `id="checkin"`) || !strings.Contains(html, `src="/static/img/sample-qr.png"`) || !strings.Contains(html, ">Contoh<") || strings.Contains(html, "Simpan QR") || strings.Contains(html, "/qr.png") {
+			t.Errorf("%s: contoh kartu QR salah", d.ID)
+		}
+		// Info (link umum).
+		v = base()
+		v.Checkin.Available = true
+		if html := render(t, v); !strings.Contains(html, "QR kehadiran pribadi Anda tersedia") || strings.Contains(html, "qr.png") {
+			t.Errorf("%s: link umum harus info tanpa QR", d.ID)
+		}
+		// Check-in mati: tidak tampil. Bagian ini tidak bisa disembunyikan; tampil
+		// tidaknya diatur saklar check-in.
+		if strings.Contains(render(t, base()), `id="checkin"`) {
+			t.Errorf("%s: check-in mati tidak boleh tampil", d.ID)
+		}
 	}
 }

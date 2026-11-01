@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Preview QR kehadiran di semua template
+- Di preview menu **Tema**, kesepuluh template kini menampilkan contoh kartu QR kehadiran bergambar QR bertanda "CONTOH", supaya pasangan melihat kartu yang akan diterima tamu. QR contoh tidak berisi alamat apa pun.
+- Contoh kartu hanya tampil bila check-in menyala. Sebelumnya preview Signature tetap menampilkannya walaupun check-in dimatikan.
+- Tamu yang membuka link umum kini mendapat penjelasan cara check-in di semua template, dan kartu QR pribadi menampilkan kode undangan untuk pencarian manual.
+
 ### Tema warna untuk semua template
 - Kesembilan template selain Signature kini punya **5 tema warna** yang dirancang untuk karakter masing-masing, misalnya Navy Gold untuk Elegan, Midnight Navy untuk Modern, dan Hitam Songket untuk Minang Heritage. Pilihan pertama adalah warna lama, jadi undangan yang sudah ada tidak berubah.
 - Di menu **Tema**, pilihan warna kini mengikuti tema yang dipilih tanpa memuat ulang halaman. Warna utama dan latar sendiri tetap tersedia dan menimpa tema warna.
