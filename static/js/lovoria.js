@@ -221,14 +221,17 @@ document.querySelectorAll('link[data-font-css]').forEach(function (l) {
         this.name = input.dataset.name || this.name;
         this.thumb = input.dataset.thumb || this.thumb;
         this.fixed = input.dataset.fixed === '1';
+        this.themeId = input.value;
         this.$root.open = false;
       },
     }));
 
     // fixed: tema terpilih berdesain terkunci (T33) — hanya preset warna & foto
-    // sampul yang bisa diganti; diperbarui themeChoice saat tema diganti.
-    window.Alpine.data('themePreview', (previewURL, fixed) => ({
+    // sampul yang bisa diganti. themeId: tema terpilih, menentukan grup tema warna
+    // yang tampil & terkirim (T37). Keduanya diperbarui themeChoice.
+    window.Alpine.data('themePreview', (previewURL, fixed, themeId) => ({
       fixed,
+      themeId,
       timer: null,
       refresh() {
         clearTimeout(this.timer);

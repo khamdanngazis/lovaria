@@ -114,10 +114,10 @@ func init() {
 	register(ThemeDef{
 		ID: "elegant", Name: "Elegan", Description: "Klasik formal: bingkai ganda, ornamen sudut, serba rata tengah.",
 		Pitch: "Tema Elegan membawa nuansa undangan cetak klasik ke layar ponsel: bingkai ganda dengan ornamen sudut, huruf serif Cormorant Garamond, dan tata letak serba rata tengah. Pilihan yang pas untuk akad dan resepsi formal, pernikahan adat, atau pasangan yang menyukai kesan anggun dan tak lekang waktu dengan sentuhan warna emas.",
-		Tokens: view.Tokens{
-			Primary: "#8a6a3c", Surface: "#fbf8f3", Ink: "#2b2b2b", Accent: "#c9a88a", Deep: "#2e2620", Muted: "#6a6258", Border: "#e6dccb",
+		Tokens: elegantPresets[0].apply(view.Tokens{
 			FontHeading: "Cormorant Garamond", FontBody: "Lato", Radius: "0.125rem", ButtonRadius: "0.125rem",
-		},
+		}),
+		Presets: elegantPresets,
 		Parts: Parts{
 			Hero: elegant.Hero, Couple: elegant.Couple, LoveStory: elegant.LoveStory, Events: elegant.Events,
 			Gallery: elegant.Gallery, Closing: elegant.Closing, SectionTitle: elegant.SectionTitle,
@@ -126,10 +126,10 @@ func init() {
 	register(ThemeDef{
 		ID: "minimal", Name: "Minimalis", Description: "Lega dan tenang: rata kiri, garis tipis, angka tanggal besar.",
 		Pitch: "Tema Minimalis mengutamakan ruang kosong dan keterbacaan: teks rata kiri, garis tipis, angka tanggal besar, dan galeri grid tanpa sudut membulat. Cocok untuk pasangan yang menyukai desain bersih ala Skandinavia atau Jepang, dan ingin informasi acara langsung terbaca tanpa ornamen berlebih.",
-		Tokens: view.Tokens{
-			Primary: "#5f5661", Surface: "#ffffff", Ink: "#1f1f1f", Accent: "#b9b2b0", Deep: "#1f1f1f", Muted: "#666666", Border: "#e5e5e5",
+		Tokens: minimalPresets[0].apply(view.Tokens{
 			FontHeading: "Josefin Sans", FontBody: "Inter", Radius: "0", ButtonRadius: "0",
-		},
+		}),
+		Presets: minimalPresets,
 		Parts: Parts{
 			Hero: minimal.Hero, Couple: minimal.Couple, LoveStory: minimal.LoveStory, Events: minimal.Events,
 			Gallery: minimal.Gallery, Closing: minimal.Closing, SectionTitle: minimal.SectionTitle,
@@ -138,10 +138,10 @@ func init() {
 	register(ThemeDef{
 		ID: "romantic", Name: "Romantis", Description: "Lembut dan personal: foto melengkung, ornamen bunga, tulisan tangan.",
 		Pitch: "Tema Romantis terasa lembut dan personal: foto berbentuk lengkung, ornamen ranting bunga, judul tulisan tangan, dan warna merah muda yang hangat. Cocok untuk pernikahan taman, intimate wedding, atau pasangan yang ingin undangan terasa manis dan penuh cerita.",
-		Tokens: view.Tokens{
-			Primary: "#a85a67", Surface: "#fff6f6", Ink: "#4a3b3b", Accent: "#c9a88a", Deep: "#5a3540", Muted: "#735e5e", Border: "#f0dcdc",
+		Tokens: romanticPresets[0].apply(view.Tokens{
 			FontHeading: "Great Vibes", FontBody: "Lora", Radius: "1.5rem",
-		},
+		}),
+		Presets: romanticPresets,
 		Parts: Parts{
 			Hero: romantic.Hero, Couple: romantic.Couple, LoveStory: romantic.LoveStory, Events: romantic.Events,
 			Gallery: romantic.Gallery, Closing: romantic.Closing, SectionTitle: romantic.SectionTitle,
@@ -150,10 +150,10 @@ func init() {
 	register(ThemeDef{
 		ID: "modern", Name: "Modern", Description: "Tegas dan segar: blok warna penuh, huruf sangat besar, kartu acara berwarna.",
 		Pitch: "Tema Modern tampil tegas dan segar: nama pasangan dengan huruf kapital sangat besar, blok warna penuh, dan kartu acara berwarna hijau toska. Cocok untuk pasangan muda yang menyukai tampilan berani dan kontemporer, dengan foto sampul sebagai latar pembuka.",
-		Tokens: view.Tokens{
-			Primary: "#2f7d6d", Surface: "#f4f6f5", Ink: "#16201e", Accent: "#c9a88a", Deep: "#1d4a43", Muted: "#55605d", Border: "#dde3e1",
+		Tokens: modernPresets[0].apply(view.Tokens{
 			FontHeading: "Montserrat", FontBody: "Poppins", Radius: "1.25rem", ButtonRadius: "0.75rem",
-		},
+		}),
+		Presets: modernPresets,
 		Parts: Parts{
 			Hero: modern.Hero, Couple: modern.Couple, LoveStory: modern.LoveStory, Events: modern.Events,
 			Gallery: modern.Gallery, Closing: modern.Closing, SectionTitle: modern.SectionTitle,
@@ -161,36 +161,36 @@ func init() {
 	})
 	// Koleksi Daerah (T28): budaya daerah dengan rasa modern. Motif hanya
 	// sebagai pita/bingkai/detail; tiap tema punya 1–2 penanda budaya.
-	regionalTheme := func(id, name, region, desc, pitch string, tk view.Tokens, hero Part, k regional.Kit) {
+	regionalTheme := func(id, name, region, desc, pitch string, presets []Preset, tk view.Tokens, hero Part, k regional.Kit) {
 		register(ThemeDef{
-			ID: id, Name: name, Region: region, Description: desc, Pitch: pitch, Tokens: tk,
+			ID: id, Name: name, Region: region, Description: desc, Pitch: pitch, Tokens: presets[0].apply(tk), Presets: presets,
 			Parts: Parts{Hero: hero, Couple: k.Couple, LoveStory: k.LoveStory, Events: k.Events, Gallery: k.Gallery, Closing: k.Closing, SectionTitle: k.SectionTitle},
 		})
 	}
 	regionalTheme("jawa", "Javanese Heritage", "Jawa",
 		"Keanggunan Jawa yang tenang: pita batik kawung, warna sogan, dan foto medali lonjong.",
 		"Javanese Heritage membawa nuansa keraton ke undangan digital dengan cara yang tenang dan modern. Motif batik kawung hanya hadir sebagai pita tipis di tepi sampul dan kartu, dipadukan warna sogan, gading, dan emas champagne serta huruf serif yang klasik. Cocok untuk akad, panggih, dan resepsi adat Jawa — atau pasangan yang ingin membawa sentuhan Jawa tanpa terlihat ramai.",
-		view.Tokens{Primary: "#7a4a26", Surface: "#faf5ec", Ink: "#2e2118", Accent: "#c9a063", Deep: "#3a2718", Muted: "#6b5a4a", Border: "#e6d9c4", FontHeading: "Cormorant Garamond", FontBody: "Lora", Radius: "0.25rem", ButtonRadius: "0.25rem"},
+		jawaPresets, view.Tokens{FontHeading: "Cormorant Garamond", FontBody: "Lora", Radius: "0.25rem", ButtonRadius: "0.25rem"},
 		regional.JawaHero, regional.Jawa)
 	regionalTheme("sunda", "Sundanese Romance", "Sunda",
 		"Lembut dan alami: hijau sage, pucuk daun, dan perbukitan Priangan.",
 		"Sundanese Romance terasa ringan dan lapang, seperti pagi di tanah Priangan. Warna hijau sage dan gading, ornamen pucuk daun, siluet perbukitan di sampul, dan nama pasangan bertulisan tangan memberi kesan romantis yang alami. Cocok untuk pernikahan adat Sunda, pesta kebun, atau pasangan yang ingin undangan terasa hangat dan bersahaja.",
-		view.Tokens{Primary: "#5d7256", Surface: "#f8f6ef", Ink: "#2f352c", Accent: "#b9a77c", Deep: "#36452f", Muted: "#5f6659", Border: "#e2e4d6", FontHeading: "Dancing Script", FontBody: "Nunito", Radius: "1.5rem"},
+		sundaPresets, view.Tokens{FontHeading: "Dancing Script", FontBody: "Nunito", Radius: "1.5rem"},
 		regional.SundaHero, regional.Sunda)
 	regionalTheme("minang", "Minang Heritage", "Minangkabau",
 		"Megah dan berkarakter: gonjong Rumah Gadang, pita songket, marun dan emas.",
 		"Minang Heritage adalah ungkapan modern dari kemegahan Minangkabau. Siluet gonjong Rumah Gadang menjadi penanda utama di sampul dan kartu acara, dengan pita songket emas di atas warna marun tua. Huruf kapital yang tegas memberi kesan megah tanpa berlebihan. Cocok untuk baralek, akad, dan resepsi adat Minang.",
-		view.Tokens{Primary: "#7b1e2b", Surface: "#fbf6ee", Ink: "#2a1a1a", Accent: "#c9a24b", Deep: "#4a0f1b", Muted: "#6b5555", Border: "#ead9c8", FontHeading: "Cinzel", FontBody: "Lato", Radius: "0.125rem", ButtonRadius: "0.125rem"},
+		minangPresets, view.Tokens{FontHeading: "Cinzel", FontBody: "Lato", Radius: "0.125rem", ButtonRadius: "0.125rem"},
 		regional.MinangHero, regional.Minang)
 	regionalTheme("bali", "Balinese Elegance", "Bali",
 		"Artistik dan hangat: siluet gapura berundak, bunga kamboja, terakota dan emas redup.",
 		"Balinese Elegance menghadirkan keanggunan Bali yang tak lekang waktu dengan sentuhan modern. Foto pasangan dibingkai siluet gapura berundak, ditemani bunga kamboja dan pita sulur patra dalam warna terakota, cokelat tanah, dan emas redup. Fokusnya tetap pada keanggunan pernikahan — bukan suasana resor tropis. Cocok untuk pawiwahan maupun resepsi di Bali.",
-		view.Tokens{Primary: "#9a4a2f", Surface: "#faf4ea", Ink: "#2f2319", Accent: "#b8975a", Deep: "#3d2a1c", Muted: "#6a5a4b", Border: "#e8dac6", FontHeading: "Playfair Display", FontBody: "Lora", Radius: "0.375rem", ButtonRadius: "0.375rem"},
+		baliPresets, view.Tokens{FontHeading: "Playfair Display", FontBody: "Lora", Radius: "0.375rem", ButtonRadius: "0.375rem"},
 		regional.BaliHero, regional.Bali)
 	regionalTheme("bugis", "Bugis Royal", "Bugis",
 		"Megah dan tegas: pita lipa sabbe, motif sulapa eppa, merah anggur dan emas.",
 		"Bugis Royal merayakan warisan Bugis dengan rasa mewah yang terkendali. Pita kotak-kotak lipa sabbe membingkai sampul, belah ketupat sulapa eppa menjadi ornamen pembatas, dan foto pasangan tampil dalam bingkai segi enam berwarna emas di atas merah anggur tua. Cocok untuk mappacci, akad, dan resepsi adat Bugis-Makassar.",
-		view.Tokens{Primary: "#6e1630", Surface: "#fbf5ee", Ink: "#24161a", Accent: "#d1a94a", Deep: "#3a0d1c", Muted: "#675257", Border: "#ead8cf", FontHeading: "Playfair Display", FontBody: "Montserrat", Radius: "0.125rem", ButtonRadius: "0.125rem"},
+		bugisPresets, view.Tokens{FontHeading: "Playfair Display", FontBody: "Montserrat", Radius: "0.125rem", ButtonRadius: "0.125rem"},
 		regional.BugisHero, regional.Bugis)
 }
 

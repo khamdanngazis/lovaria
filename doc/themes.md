@@ -72,7 +72,24 @@ Signature memakai dua panel mulai `md` (768px): `signature.Layout` + `sidePanel`
 
 Materi contoh (undangan contoh, thumbnail etalase) hanya memakai foto tanpa wajah yang bisa dikenali, dan mempelai contoh tidak berfoto, kecuali undangan contoh Signature yang memakai gambar placeholder berisi inisial dan bunga, bukan foto orang, karena bagian mempelainya ditata di sekitar potret. Aturan lengkapnya ada di [runbook.md](runbook.md).
 
-`ThemeDef.Presets` berisi preset warna kurasi (`presets.go`); yang pertama adalah bawaan, dan pilihan pasangan tersimpan di `wedding_theme_settings.color_preset`. `ThemeDef.Fixed` mengunci desain: `resolve` hanya memakai preset & foto sampul, dan `OrderedSectionsFor` memakai `ThemeDef.SectionOrder`. Warna, font, latar, dan urutan yang tersimpan tidak dihapus dan berlaku lagi bila pasangan pindah ke tema tidak Fixed. Menyembunyikan bagian `Hideable` tetap berlaku.
+`ThemeDef.Presets` berisi tema warna kurasi (`presets.go`): tepat 5 per tema (T33 untuk Signature, T37 untuk tema lain). Yang pertama adalah bawaan, dan untuk tema selain Signature nilainya sama persis dengan warna sebelum T37, supaya undangan tanpa preset tersimpan tidak berubah. Pilihan pasangan tersimpan di `wedding_theme_settings.color_preset` dan selalu milik tema yang dipilih (`Save` menolak ID preset tema lain). Untuk tema tidak Fixed, warna diterapkan berurutan, dan setiap langkah menimpa langkah sebelumnya: token tema → preset → "Warna utama sendiri" → "Warna latar sendiri". Di halaman Tema, setiap tema punya grup radio sendiri; hanya grup tema terpilih yang tampil, aktif, dan bernama `color_preset`.
+
+| Tema | Tema warna (pertama = bawaan) |
+|---|---|
+| `signature` | Signature Lavender, Sage Garden, Blush Romance, Midnight Elegance, Terracotta Bloom |
+| `elegant` | Champagne Gold, Navy Gold, Emerald Classic, Burgundy Royal, Silver Monochrome |
+| `minimal` | Stone Mauve, Charcoal, Sage Linen, Sand Clay, Ocean Mist |
+| `romantic` | Rose Blush, Peach Bloom, Lilac Dream, Sage Romance, Dusty Blue |
+| `modern` | Teal, Midnight Navy, Terracotta Pop, Plum, Graphite |
+| `jawa` | Sogan Gading, Indigo Lurik, Hijau Keraton, Merah Manggis, Ireng Prada |
+| `sunda` | Sage Priangan, Biru Situ, Kembang Kopi, Rose Mojang, Lumut Tua |
+| `minang` | Marun Emas, Hitam Songket, Merah Marawa, Hijau Bukit, Biru Samudra |
+| `bali` | Terakota Kamboja, Hitam Batu Candi, Hijau Subak, Merah Bata, Biru Samudra |
+| `bugis` | Merah Anggur, Hijau Lipa Sabbe, Ungu Senja, Biru Pinisi, Hitam Emas |
+
+`TestThemeContrast` menguji setiap preset. `Accent` adalah warna dekorasi yang terang, jadi hanya dipakai untuk ornamen, tanda "&", dan teks besar; teks informasi kecil memakai `Primary`, `Ink`, atau `Muted`. Pengecualian yang diuji: blok "Kepada Yth." sampul Minang dan Bugis (teks `Deep` di atas `Accent`).
+
+`ThemeDef.Fixed` mengunci desain: `resolve` hanya memakai preset & foto sampul, dan `OrderedSectionsFor` memakai `ThemeDef.SectionOrder`. Warna, font, latar, dan urutan yang tersimpan tidak dihapus dan berlaku lagi bila pasangan pindah ke tema tidak Fixed. Menyembunyikan bagian `Hideable` tetap berlaku.
 
 Bunga & pita Signature: `static/img/themes/signature/floral/<preset>/<bagian>.webp` (≤ 80 KB per berkas), dibuat `e2e/floral-tints.js` (daftar `PARTS`) dari lukisan transparan di `doc/lovoria-tasks/`. Berkas boleh diganti lukisan per preset tanpa mengubah kode. Padding bagian harus lebih tinggi dari bunganya supaya teks tidak tertutup.
 

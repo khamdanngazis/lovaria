@@ -76,7 +76,7 @@ templ page(s pageState) {
 					method="post"
 					action={ templ.SafeURL(pageURL(s.W)) }
 					class="space-y-6"
-					x-data={ templ.JSFuncCall("themePreview", pageURL(s.W)+"/preview", currentTheme(s).Fixed).CallInline }
+					x-data={ templ.JSFuncCall("themePreview", pageURL(s.W)+"/preview", currentTheme(s).Fixed, currentTheme(s).ID).CallInline }
 					@input="refresh()"
 					@change="refresh()"
 					@image-change="refresh()"
@@ -143,7 +143,7 @@ templ page(s pageState) {
 					@presetCard(s)
 					@ui.Card() {
 						<h2 class="font-semibold">Sesuaikan</h2>
-						<p class="text-sm text-lovoria-muted" x-show="!fixed">Kosongkan untuk memakai bawaan tema.</p>
+						<p class="text-sm text-lovoria-muted" x-show="!fixed">Kosongkan untuk memakai tema warna di atas.</p>
 						<div class="mt-4 space-y-4">
 							<div class="space-y-4" x-show="!fixed">
 								<div x-data={ templ.JSFuncCall("colorField", s.Settings.PrimaryColor).CallInline }>
@@ -156,6 +156,7 @@ templ page(s pageState) {
 										<span class="font-mono text-sm" x-text="color"></span>
 									</div>
 									<input type="hidden" name="primary_color" :value="custom ? color : ''" value={ s.Settings.PrimaryColor }/>
+									<p class="mt-1 text-xs text-lovoria-muted" x-show="custom">Warna ini menimpa warna utama dari tema warna.</p>
 									<p class="mt-1 text-sm text-lovoria-danger">{ s.Errors["primary_color"] }</p>
 								</div>
 								<div class="grid gap-4 sm:grid-cols-2">
@@ -172,6 +173,7 @@ templ page(s pageState) {
 										<span class="font-mono text-sm" x-text="color"></span>
 									</div>
 									<input type="hidden" name="background" :value="custom ? color : ''" value={ bgColor(s.Settings.Background) }/>
+									<p class="mt-1 text-xs text-lovoria-muted" x-show="custom">Warna ini menimpa latar dari tema warna.</p>
 									<p class="mt-1 text-sm text-lovoria-danger">{ s.Errors["background"] }</p>
 								</div>
 							</div>
@@ -211,33 +213,59 @@ func fixedAttr(d ThemeDef) string {
 	return "0"
 }
 
-// presetChoices: preset tema ber-preset dan yang sedang terpilih.
-func presetChoices(s pageState) ([]Preset, string) {
-	for _, d := range s.Themes {
-		if len(d.Presets) > 0 {
-			p, _ := d.Preset(s.Settings.ColorPreset)
-			return d.Presets, p.ID
-		}
+// presetFor: preset yang tercentang di grup tema d. Grup tema terpilih memakai
+// preset tersimpan; grup lain mulai dari preset pertamanya.
+func presetFor(s pageState, d ThemeDef) string {
+	if d.ID != s.ThemeID {
+		return d.Presets[0].ID
 	}
-	return nil, ""
+	p, _ := d.Preset(s.Settings.ColorPreset)
+	return p.ID
 }
 
-// presetCard: pilihan warna kurasi tema berdesain terkunci (T33 §4).
+// presetField: nama radio grup tema d. Tiap grup bernama sendiri supaya pilihannya
+// tidak saling menghapus (radio senama = satu grup); hanya grup tema terpilih
+// yang bernama color_preset.
+func presetField(selected bool, id string) string {
+	if selected {
+		return "color_preset"
+	}
+	return "color_preset_" + id
+}
+
+// presetCard: pilihan tema warna (T33, T37). Satu grup per tema; hanya grup tema
+// terpilih yang tampil dan terkirim (radio grup lain disabled), jadi Save tidak
+// menerima preset milik tema lain. Tanpa JS, grup tema tersimpan yang tampil.
 templ presetCard(s pageState) {
-	{{ presets, current := presetChoices(s) }}
-	if len(presets) > 0 {
-		<div x-show="fixed">
-			@ui.Card() {
-				<fieldset>
-					<legend class="font-semibold">Tema warna</legend>
-					<p class="text-sm text-lovoria-muted">Desain tetap sama, hanya warnanya yang berganti.</p>
-					if s.Errors["color_preset"] != "" {
-						<p role="alert" class="mt-2 text-sm text-lovoria-danger">{ s.Errors["color_preset"] }</p>
-					}
-					<div class="mt-4 grid gap-2">
-						for _, p := range presets {
+	@ui.Card() {
+		<fieldset>
+			<legend class="font-semibold">Tema warna</legend>
+			<p class="text-sm text-lovoria-muted">Desain tetap sama, hanya warnanya yang berganti.</p>
+			if s.Errors["color_preset"] != "" {
+				<p role="alert" class="mt-2 text-sm text-lovoria-danger">{ s.Errors["color_preset"] }</p>
+			}
+			for _, d := range s.Themes {
+				if len(d.Presets) > 0 {
+					<div
+						class="mt-4 grid gap-2"
+						data-theme-presets={ d.ID }
+						x-show={ "themeId === '" + d.ID + "'" }
+						if d.ID != s.ThemeID {
+							style="display: none"
+						}
+					>
+						for _, p := range d.Presets {
 							<label class="block cursor-pointer">
-								<input type="radio" name="color_preset" value={ p.ID } checked?={ p.ID == current } class="peer sr-only"/>
+								<input
+									type="radio"
+									name={ presetField(d.ID == s.ThemeID, d.ID) }
+									:name={ "themeId === '" + d.ID + "' ? 'color_preset' : '" + presetField(false, d.ID) + "'" }
+									value={ p.ID }
+									checked?={ p.ID == presetFor(s, d) }
+									disabled?={ d.ID != s.ThemeID }
+									:disabled={ "themeId !== '" + d.ID + "'" }
+									class="peer sr-only"
+								/>
 								<span class="flex items-center gap-3 rounded-xl p-3 ring-1 ring-lovoria-border transition peer-checked:ring-2 peer-checked:ring-lovoria-primary peer-focus-visible:ring-4">
 									<span class="flex flex-none -space-x-1.5" aria-hidden="true">
 										for _, c := range []string{p.Primary, p.Secondary, p.Accent, p.Surface} {
@@ -252,9 +280,9 @@ templ presetCard(s pageState) {
 							</label>
 						}
 					</div>
-				</fieldset>
+				}
 			}
-		</div>
+		</fieldset>
 	}
 }
 

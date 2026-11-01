@@ -137,6 +137,34 @@ func TestThemePageSaveAndPreview(t *testing.T) {
 			t.Errorf("kartu tema %s tidak ada", name)
 		}
 	}
+	// Tema warna (T37): satu grup per tema; hanya grup tema tersimpan yang aktif,
+	// grup lain tersembunyi & disabled supaya tidak ikut terkirim.
+	body := rec.Body.String()
+	for _, d := range theme.All() {
+		i := strings.Index(body, `data-theme-presets="`+d.ID+`"`)
+		if i < 0 {
+			t.Errorf("grup tema warna %s tidak ada", d.ID)
+			continue
+		}
+		group := body[i:]
+		if j := strings.Index(group[1:], "data-theme-presets="); j >= 0 {
+			group = group[:j+1]
+		} else if k := strings.Index(group, "</fieldset>"); k >= 0 {
+			group = group[:k]
+		}
+		hidden := strings.Contains(group[:strings.Index(group, ">")], "display: none")
+		disabled := strings.Count(group, " disabled") // ":disabled" Alpine tidak terhitung
+		named := strings.Count(group, ` name="color_preset"`)
+		// Tiap grup bernama sendiri (radio senama = satu grup yang saling menghapus).
+		if active := d.ID == theme.DefaultID; active == hidden || (active && (disabled != 0 || named != 5)) || (!active && (disabled != 5 || named != 0)) {
+			t.Errorf("grup %s: tersembunyi=%v, disabled=%d, bernama color_preset=%d", d.ID, hidden, disabled, named)
+		}
+	}
+	// Preview dengan tema warna tema lain yang belum disimpan.
+	q0 := url.Values{"theme_id": {"elegant"}, "color_preset": {"navy-gold"}}
+	if html := a.do(owner, http.MethodGet, base+"/preview?"+q0.Encode(), nil).Body.String(); !strings.Contains(html, `data-theme="elegant"`) || !strings.Contains(html, "--lv-primary:#2c3e5c;") {
+		t.Error("preview tema warna elegant")
+	}
 
 	// Invalid: warna bukan hex & font di luar whitelist → 422, tidak tersimpan.
 	rec = a.do(owner, http.MethodPatch, base, url.Values{"theme_id": {"romantic"}, "primary_color": {"merah"}, "font_heading": {"Comic Sans MS"}})
