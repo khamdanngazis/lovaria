@@ -128,7 +128,7 @@ func (a *app) seedDemo(ctx context.Context, out io.Writer, refresh bool) error {
 				_, err := a.weddings.UpdateCouple(ctx, w.ID, wedding.CoupleInput{GroomName: c.Groom, BrideName: c.Bride, GroomDescription: c.GroomDesc, BrideDescription: c.BrideDesc})
 				return err
 			},
-			func() error { _, err := themes.Save(ctx, w.ID, d.ID, demoSettings()); return err },
+			func() error { _, err := themes.Save(ctx, w.ID, d.ID, demoSettings(d.ID)); return err },
 			func() error { _, err := a.ensureDemoMedia(ctx, photos, w, d.ID); return err },
 			func() error {
 				day := date.Format("2006-01-02")

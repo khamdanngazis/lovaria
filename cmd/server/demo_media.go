@@ -123,10 +123,15 @@ func demoMediaSource(themeID string) string {
 	return themeID
 }
 
-// demoSettings: personalisasi undangan contoh (kutipan, T20).
-func demoSettings() view.Settings {
+// demoColorPreset: tema warna undangan contoh yang bukan bawaan (T37), supaya
+// tema di bagian Collection beranda tidak sewarna (ungu, emas, biru, hijau).
+// Thumbnail etalase dibuat dari undangan contoh, jadi ikut warna ini.
+var demoColorPreset = map[string]string{"romantic": "dusty-blue", "jawa": "hijau-keraton"}
+
+// demoSettings: personalisasi undangan contoh (kutipan T20, tema warna T37).
+func demoSettings(themeID string) view.Settings {
 	q := theme.QuoteSamples[0]
-	return view.Settings{QuoteText: q.Text, QuoteSource: q.Source}
+	return view.Settings{QuoteText: q.Text, QuoteSource: q.Source, ColorPreset: demoColorPreset[themeID]}
 }
 
 // ensureDemoMedia melengkapi foto undangan contoh: sampul, placeholder mempelai
@@ -335,14 +340,21 @@ func (a *app) putDemoPhoto(ctx context.Context, weddingID uuid.UUID, folder, fil
 	return a.store.PublicURL(key), nil
 }
 
-// ensureDemoSettings: kutipan contoh untuk demo yang belum punya (demo lama).
+// ensureDemoSettings: kutipan contoh untuk demo yang belum punya (demo lama), dan
+// tema warna sesuai demoColorPreset.
 func ensureDemoSettings(ctx context.Context, themes *theme.Service, id uuid.UUID, themeID string) error {
 	st, err := themes.Settings(ctx, id)
-	if err != nil || st.QuoteText != "" {
+	if err != nil {
 		return err
 	}
-	d := demoSettings()
-	st.QuoteText, st.QuoteSource = d.QuoteText, d.QuoteSource
+	d := demoSettings(themeID)
+	if st.QuoteText != "" && st.ColorPreset == d.ColorPreset {
+		return nil
+	}
+	if st.QuoteText == "" {
+		st.QuoteText, st.QuoteSource = d.QuoteText, d.QuoteSource
+	}
+	st.ColorPreset = d.ColorPreset
 	_, err = themes.Save(ctx, id, themeID, st)
 	return err
 }
