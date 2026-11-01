@@ -37,6 +37,15 @@ Semua foto mengikuti aturan foto contoh di `doc/runbook.md` (tanpa wajah yang bi
 `venue` dari qG2yK_iNspE, `bouquet` dari UQl_-yabQiA, `story` dari 464ps_nOflw, `g1` dari RHfYB_USSEc, `g2` dari M2T1j-6Fn8w, `g3` dari IfjHaIoAoqE, `g4` dari XRzUf1SGWEI.
 `hero-*` dibuat dari `doc/lovoria-tasks/Elegant Lavender Wedding Invitation Flat Lay.png` (materi dari pemilik produk, bukan Unsplash).
 
+## Placeholder mempelai Signature
+
+Bukan foto orang. Dibuat untuk undangan contoh dari aset floral Signature Lavender (di bawah) dan huruf Playfair Display (SIL Open Font License), dirender dengan Chrome headless.
+
+| Berkas | Pembuat | Sumber |
+|---|---|---|
+| placeholder-arya.jpg | Lunovia | inisial "A" + `static/img/themes/signature/floral/signature-lavender/corner.webp` |
+| placeholder-kirana.jpg | Lunovia | inisial "K" + `static/img/themes/signature/floral/signature-lavender/corner.webp` |
+
 ## Aset floral Signature
 
 Aset floral di `static/img/themes/signature/` dibuat dengan AI (Gemini), bukan foto Unsplash.

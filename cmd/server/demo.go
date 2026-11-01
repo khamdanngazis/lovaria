@@ -87,7 +87,7 @@ func (a *app) seedDemo(ctx context.Context, out io.Writer, refresh bool) error {
 					return fmt.Errorf("demo %s: %w", d.ID, err)
 				}
 			}
-			added, err := ensureDemoMedia(ctx, photos, existing, d.ID)
+			added, err := a.ensureDemoMedia(ctx, photos, existing, d.ID)
 			if err == nil {
 				err = ensureDemoSettings(ctx, themes, existing.ID, d.ID)
 			}
@@ -129,7 +129,7 @@ func (a *app) seedDemo(ctx context.Context, out io.Writer, refresh bool) error {
 				return err
 			},
 			func() error { _, err := themes.Save(ctx, w.ID, d.ID, demoSettings()); return err },
-			func() error { _, err := ensureDemoMedia(ctx, photos, w, d.ID); return err },
+			func() error { _, err := a.ensureDemoMedia(ctx, photos, w, d.ID); return err },
 			func() error {
 				day := date.Format("2006-01-02")
 				for _, in := range []event.Input{

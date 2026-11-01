@@ -70,7 +70,7 @@ Tema bawaan wedding baru: `signature` (`theme.DefaultID`, `wedding.DefaultThemeI
 
 Signature memakai dua panel mulai `md` (768px): `signature.Layout` + `sidePanel`. Kolom undangan selebar ponsel, jadi bagian-bagiannya tidak boleh memakai varian `md:`/`lg:` yang mengikuti lebar layar; ukuran yang harus mengikuti kolom memakai `cqw`.
 
-Materi contoh (undangan contoh, thumbnail etalase) hanya memakai foto tanpa wajah yang bisa dikenali, dan mempelai contoh tidak berfoto. Aturan lengkapnya ada di [runbook.md](runbook.md).
+Materi contoh (undangan contoh, thumbnail etalase) hanya memakai foto tanpa wajah yang bisa dikenali, dan mempelai contoh tidak berfoto, kecuali undangan contoh Signature yang memakai gambar placeholder berisi inisial dan bunga, bukan foto orang, karena bagian mempelainya ditata di sekitar potret. Aturan lengkapnya ada di [runbook.md](runbook.md).
 
 `ThemeDef.Presets` berisi preset warna kurasi (`presets.go`); yang pertama adalah bawaan, dan pilihan pasangan tersimpan di `wedding_theme_settings.color_preset`. `ThemeDef.Fixed` mengunci desain: `resolve` hanya memakai preset & foto sampul, dan `OrderedSectionsFor` memakai `ThemeDef.SectionOrder`. Warna, font, latar, dan urutan yang tersimpan tidak dihapus dan berlaku lagi bila pasangan pindah ke tema tidak Fixed. Menyembunyikan bagian `Hideable` tetap berlaku.
 
