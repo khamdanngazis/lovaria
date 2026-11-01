@@ -82,7 +82,7 @@ Unduh, kecilkan ke lebar 1200px (seperti file yang sudah ada), simpan di `cmd/se
 
 ### 3. Mempelai tanpa foto
 
-- `ensureDemoMedia` berhenti mengunggah potret, dan foto mempelai contoh dikosongkan. Pengecualian: Signature memakai foto jas dan gaun tanpa orang (`3eyT-xDIwY8`, `B_P6nONZk58`), karena bagian mempelainya ditata di sekitar potret.
+- `ensureDemoMedia` berhenti mengunggah potret, dan foto mempelai contoh dikosongkan. Pengecualian: undangan contoh Signature memakai gambar placeholder berisi inisial dan bunga (`placeholder-arya.jpg`, `placeholder-kirana.jpg`), karena bagian mempelainya ditata di sekitar potret. Template tidak berubah: undangan pelanggan tanpa foto tetap menampilkan nama saja.
 - Tiap tema sudah menampilkan nama tanpa foto (`TestThemesWithMinimalAndFullData`), tetapi tampilannya harus diperiksa di semua tema dengan data contoh yang lengkap.
 - Nama, deskripsi orang tua, dan cerita fiktif tetap dipakai.
 

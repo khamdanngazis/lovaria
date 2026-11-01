@@ -5,12 +5,10 @@ Semua foto mengikuti aturan foto contoh di `doc/runbook.md` (tanpa wajah yang bi
 
 | Berkas | Fotografer | Sumber |
 |---|---|---|
-| 3eyT-xDIwY8.jpg | Brittney Weng | https://unsplash.com/photos/3eyT-xDIwY8 |
 | 464ps_nOflw.jpg | Jeremy Wong Weddings | https://unsplash.com/photos/man-and-woman-holding-hands-focus-photo-464ps_nOflw |
 | 4FGhD_iGuqg.jpg | Ridham Supriyanto | https://unsplash.com/photos/floral-arrangement-decorates-an-outdoor-event-setup-4FGhD_iGuqg |
 | 5BB_atDT4oA.jpg | Nathan Dumlao | https://unsplash.com/photos/groom-beside-bride-holding-bouquet-flowers-5BB_atDT4oA |
 | B_R3rmJPeSE.jpg | Jonathan Borba | https://unsplash.com/photos/5-layer-wedding-cake-surrounded-with-assorted-color-flower-arrangement-with-lighted-chandeliers-B_R3rmJPeSE |
-| B_P6nONZk58.jpg | Cate Bligh | https://unsplash.com/photos/B_P6nONZk58 |
 | BeHFdxxL6E8.jpg | Jordan Loritz | https://unsplash.com/photos/a-close-up-of-a-person-wearing-a-wedding-dress-BeHFdxxL6E8 |
 | IfjHaIoAoqE.jpg | Foto Pettine | https://unsplash.com/photos/a-bride-and-groom-walking-on-a-hill-IfjHaIoAoqE |
 | IpORRK_X_gU.jpg | Europeana (National Museum of World Cultures, Public Domain & Unsplash License) | https://unsplash.com/photos/intricate-brown-and-cream-batik-fabric-pattern-IpORRK_X_gU |
@@ -38,6 +36,15 @@ Semua foto mengikuti aturan foto contoh di `doc/runbook.md` (tanpa wajah yang bi
 `static/img/landing/` (selain `qr-sample.svg` dan `hero-*`) adalah potongan foto di atas yang warnanya dihangatkan:
 `venue` dari qG2yK_iNspE, `bouquet` dari UQl_-yabQiA, `story` dari 464ps_nOflw, `g1` dari RHfYB_USSEc, `g2` dari M2T1j-6Fn8w, `g3` dari IfjHaIoAoqE, `g4` dari XRzUf1SGWEI.
 `hero-*` dibuat dari `doc/lovoria-tasks/Elegant Lavender Wedding Invitation Flat Lay.png` (materi dari pemilik produk, bukan Unsplash).
+
+## Placeholder mempelai Signature
+
+Bukan foto orang. Dibuat untuk undangan contoh dari aset floral Signature Lavender (di bawah) dan huruf Playfair Display (SIL Open Font License), dirender dengan Chrome headless.
+
+| Berkas | Pembuat | Sumber |
+|---|---|---|
+| placeholder-arya.jpg | Lunovia | inisial "A" + `static/img/themes/signature/floral/signature-lavender/corner.webp` |
+| placeholder-kirana.jpg | Lunovia | inisial "K" + `static/img/themes/signature/floral/signature-lavender/corner.webp` |
 
 ## Aset floral Signature
 

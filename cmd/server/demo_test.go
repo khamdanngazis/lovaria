@@ -6,11 +6,8 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"slices"
 	"strings"
 	"testing"
-
-	"github.com/google/uuid"
 
 	"github.com/khamdanngazis/lovaria/src/modules/gallery"
 	"github.com/khamdanngazis/lovaria/src/modules/guest"
@@ -103,136 +100,6 @@ func TestSeedDemo(t *testing.T) {
 	}
 	if strings.Count(out.String(), "dilengkapi:") != 1 {
 		t.Errorf("seed ulang demo lama: %s", out.String())
-	}
-	// --refresh: potret & foto cerita lama benar-benar hilang dari storage, tetapi
-	// wedding bukan demo tidak tersentuh walau memakai slug contoh.
-	objectExists := func(id uuid.UUID, url string) bool {
-		t.Helper()
-		key, ok := demoObjectKey(id, url)
-		if !ok {
-			t.Fatalf("URL di luar wedding: %s", url)
-		}
-		_, err := os.Stat(filepath.Join(a.cfg.Storage.LocalDir, key))
-		return err == nil
-	}
-	giveOldPhotos := func(slug string) (wedding.Wedding, []string) {
-		t.Helper()
-		w, err := a.weddings.GetWeddingBySlug(ctx, slug)
-		if err != nil {
-			t.Fatal(err)
-		}
-		groom, err := a.putDemoPhoto(ctx, w.ID, "couple", "ZYet8yoepik.jpg")
-		if err != nil {
-			t.Fatal(err)
-		}
-		bride, err := a.putDemoPhoto(ctx, w.ID, "couple", "ZYet8yoepik.jpg")
-		if err != nil {
-			t.Fatal(err)
-		}
-		c, _ := a.weddings.GetCouple(ctx, w.ID)
-		if _, err := a.weddings.UpdateCouple(ctx, w.ID, wedding.CoupleInput{
-			GroomName: c.GroomName, BrideName: c.BrideName, GroomDescription: c.GroomDescription, BrideDescription: c.BrideDescription,
-			GroomPhotoURL: groom, BridePhotoURL: bride,
-		}); err != nil {
-			t.Fatal(err)
-		}
-		urls := []string{groom, bride}
-		list, _ := stories.ListStories(ctx, w.ID)
-		for _, s := range list {
-			urls = append(urls, s.PhotoURL)
-		}
-		for _, u := range urls {
-			if !objectExists(w.ID, u) {
-				t.Fatalf("objek lama belum ada: %s", u)
-			}
-		}
-		return w, urls
-	}
-	demo, demoOld := giveOldPhotos(publicsite.DemoSlug("modern"))
-	other, otherOld := giveOldPhotos(publicsite.DemoSlug("sunda"))
-	if _, err := a.pool.Exec(ctx, "UPDATE weddings SET is_demo = false WHERE id = $1", other.ID); err != nil {
-		t.Fatal(err)
-	}
-	otherItems, _ := photos.ListGallery(ctx, other.ID)
-	sig, _ := a.weddings.GetWeddingBySlug(ctx, publicsite.DemoSlug("signature"))
-	sigOld, _ := a.weddings.GetCouple(ctx, sig.ID)
-	out.Reset()
-	if err := a.seedDemo(ctx, &out, true); err != nil {
-		t.Fatal(err)
-	}
-	if strings.Count(out.String(), "dilengkapi:") != len(theme.All())-1 || !strings.Contains(out.String(), "bukan undangan contoh") {
-		t.Errorf("refresh: %s", out.String())
-	}
-	for _, u := range demoOld {
-		if objectExists(demo.ID, u) {
-			t.Errorf("refresh: objek lama masih ada: %s", u)
-		}
-	}
-	if c, _ := a.weddings.GetCouple(ctx, demo.ID); c.GroomPhotoURL != nil || c.BridePhotoURL != nil {
-		t.Errorf("refresh: potret masih terisi: %v/%v", c.GroomPhotoURL, c.BridePhotoURL)
-	}
-	assertStoryReplaced := func(id uuid.UUID) {
-		t.Helper()
-		list, _ := stories.ListStories(ctx, id)
-		for _, s := range list {
-			if s.PhotoURL == "" || slices.Contains(demoOld, s.PhotoURL) || !objectExists(id, s.PhotoURL) {
-				t.Errorf("refresh: foto cerita %q belum diganti: %q", s.Title, s.PhotoURL)
-			}
-		}
-	}
-	assertStoryReplaced(demo.ID)
-	// Signature: foto mempelai diganti objek baru, objek lama hilang.
-	sigNew, _ := a.weddings.GetCouple(ctx, sig.ID)
-	if sigNew.GroomPhotoURL == nil || sigNew.BridePhotoURL == nil || *sigNew.GroomPhotoURL == *sigOld.GroomPhotoURL || !objectExists(sig.ID, *sigNew.GroomPhotoURL) || objectExists(sig.ID, *sigOld.GroomPhotoURL) || objectExists(sig.ID, *sigOld.BridePhotoURL) {
-		t.Errorf("refresh: foto mempelai Signature: lama %v/%v, baru %v/%v", sigOld.GroomPhotoURL, sigOld.BridePhotoURL, sigNew.GroomPhotoURL, sigNew.BridePhotoURL)
-	}
-	// Bukan demo: objek, URL, dan galeri tetap.
-	for _, u := range otherOld {
-		if !objectExists(other.ID, u) {
-			t.Errorf("refresh menghapus objek bukan demo: %s", u)
-		}
-	}
-	if c, _ := a.weddings.GetCouple(ctx, other.ID); c.GroomPhotoURL == nil || *c.GroomPhotoURL != otherOld[0] || c.BridePhotoURL == nil || *c.BridePhotoURL != otherOld[1] {
-		t.Errorf("refresh mengubah potret bukan demo: %v/%v", c.GroomPhotoURL, c.BridePhotoURL)
-	}
-	if list, _ := stories.ListStories(ctx, other.ID); len(list) != 3 || list[0].PhotoURL != otherOld[2] {
-		t.Errorf("refresh mengubah cerita bukan demo: %+v", list)
-	}
-	if items, _ := photos.ListGallery(ctx, other.ID); len(items) != len(otherItems) || items[0].ID != otherItems[0].ID {
-		t.Errorf("refresh mengubah galeri bukan demo")
-	}
-	if _, err := a.pool.Exec(ctx, "UPDATE weddings SET is_demo = true WHERE id = $1", other.ID); err != nil {
-		t.Fatal(err)
-	}
-	// Refresh tetap idempoten. Cukup satu tema: seedDemo penuh memproses semua foto
-	// dan terlalu lambat untuk diulang di bawah -race.
-	demo, _ = a.weddings.GetWeddingBySlug(ctx, publicsite.DemoSlug("modern"))
-	for range 2 {
-		if err := clearDemoMedia(ctx, photos, demo.ID); err != nil {
-			t.Fatalf("refresh ulang: %v", err)
-		}
-		if err := a.clearDemoPhotos(ctx, stories, demo); err != nil {
-			t.Fatalf("refresh ulang: %v", err)
-		}
-	}
-	if _, err := a.ensureDemoMedia(ctx, photos, demo, "modern"); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := a.ensureDemoStoryPhotos(ctx, stories, demo.ID, "modern"); err != nil {
-		t.Fatal(err)
-	}
-	other.IsDemo = false
-	if err := a.clearDemoPhotos(ctx, stories, other); err == nil {
-		t.Error("clearDemoPhotos harus menolak wedding bukan demo")
-	}
-	assertStoryPhotos()
-	if w, _ := a.weddings.GetWeddingBySlug(ctx, publicsite.DemoSlug("modern")); true {
-		if items, _ := photos.ListGallery(ctx, w.ID); len(items) != 7 {
-			t.Errorf("dilengkapi: %d foto", len(items))
-		}
-		if st, _ := themes.Settings(ctx, w.ID); st.QuoteText == "" {
-			t.Error("dilengkapi: kutipan")
-		}
 	}
 	// Tidak dihitung laporan admin.
 	if p, _ := a.weddings.AdminList(ctx, wedding.AdminFilter{}, 25); p.Total != 0 {

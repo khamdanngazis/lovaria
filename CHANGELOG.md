@@ -4,7 +4,7 @@
 
 ### Foto contoh tanpa wajah
 - Undangan contoh, etalase tema, dan landing page kini hanya memakai foto tanpa wajah yang bisa dikenali: detail busana, tangan, cincin, bunga, dekorasi, kain batik, dan pasangan dari belakang atau siluet. Undangan pelanggan tidak berubah.
-- Mempelai di undangan contoh tidak lagi berfoto, kecuali Signature yang memakai foto jas dan gaun tanpa orang di dalamnya. Nama, keterangan orang tua, dan cerita fiktif tetap ada.
+- Mempelai di undangan contoh tidak lagi berfoto, kecuali Signature yang memakai gambar placeholder berisi inisial dan bunga, bukan foto orang. Undangan pelanggan tanpa foto mempelai tetap menampilkan nama saja. Nama, keterangan orang tua, dan cerita fiktif tetap ada.
 - Tema daerah memakai set foto detail adat sendiri.
 - `lovoria demo seed --refresh` kini juga menghapus potret mempelai dan foto cerita lama dari storage, dan hanya menyentuh wedding demo. Di server yang sudah berjalan, bersihkan dulu sisa potret lama sesuai `doc/runbook.md`, lalu jalankan perintah ini sekali setelah deploy.
 

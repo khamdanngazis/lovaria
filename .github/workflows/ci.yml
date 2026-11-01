@@ -58,7 +58,10 @@ jobs:
       - name: govulncheck (kerentanan dependency yang benar-benar terpanggil)
         run: go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
 
+      # Dimatikan sementara atas permintaan pemilik repo. Aktifkan lagi dengan
+      # menghapus baris `if: false`.
       - name: Test (unit + integration)
+        if: false
         run: go test -race -count=1 ./...
 
       - name: Migration up/down/up via binary

@@ -36,8 +36,8 @@ type demoSet struct {
 	// Stories: foto tiap bab cerita contoh, sesuai urutan bab (bertemu, memulai
 	// perjalanan, lamaran).
 	Stories []string
-	// Groom, Bride: foto pengganti potret mempelai, tanpa orang di dalamnya.
-	// Kosong = mempelai tanpa foto.
+	// Groom, Bride: gambar placeholder mempelai (inisial dan floral, bukan foto
+	// orang). Kosong = mempelai tanpa foto.
 	Groom, Bride string
 }
 
@@ -53,7 +53,7 @@ var demoMedia = map[string]demoSet{
 		{"qG2yK_iNspE.jpg", gallery.CategoryWedding, ""},
 	}, Stories: []string{"qHjwSGv2p8c.jpg", "IfjHaIoAoqE.jpg", "M2T1j-6Fn8w.jpg"},
 		// Signature menata bagian mempelai di sekitar potret berbingkai.
-		Groom: "3eyT-xDIwY8.jpg", Bride: "B_P6nONZk58.jpg"},
+		Groom: "placeholder-arya.jpg", Bride: "placeholder-kirana.jpg"},
 	"elegant": {Cover: "UQl_-yabQiA.jpg", Gallery: []demoPhoto{
 		{"wki4KKlMGvc.jpg", gallery.CategoryPrewedding, ""},
 		{"qG2yK_iNspE.jpg", gallery.CategoryWedding, "Pelaminan"},
@@ -129,8 +129,8 @@ func demoSettings() view.Settings {
 	return view.Settings{QuoteText: q.Text, QuoteSource: q.Source}
 }
 
-// ensureDemoMedia melengkapi foto undangan contoh: sampul, foto pengganti potret
-// mempelai (bila set memilikinya), dan galeri. Dilewati bila galeri sudah berisi
+// ensureDemoMedia melengkapi foto undangan contoh: sampul, placeholder mempelai
+// (bila set memilikinya), dan galeri. Dilewati bila galeri sudah berisi
 // (idempoten; demo lama tanpa foto ikut dilengkapi saat seed dijalankan ulang).
 // added = foto baru diunggah.
 func (a *app) ensureDemoMedia(ctx context.Context, photos *gallery.Service, w wedding.Wedding, themeID string) (added bool, err error) {
