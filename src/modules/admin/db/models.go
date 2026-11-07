@@ -217,6 +217,19 @@ type PaymentOrder struct {
 	PaidAt               *time.Time
 	CreatedAt            time.Time
 	UpdatedAt            time.Time
+	PromoCode            string
+	OriginalAmount       int64
+}
+
+type PromoCode struct {
+	ID            uuid.UUID
+	Code          string
+	DiscountType  string
+	DiscountValue int64
+	Active        bool
+	IsDefault     bool
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
 }
 
 type Session struct {

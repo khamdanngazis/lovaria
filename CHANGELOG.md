@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Harga promo & kode promo
+- Harga dasar publikasi kini diatur dari panel admin di menu **Harga & Promo**, langsung berlaku tanpa deploy. Bila belum diatur, `PUBLISH_PRICE_IDR` tetap dipakai.
+- Admin bisa membuat kode promo dengan potongan persen atau nominal, lalu mengaktifkan, menonaktifkan, atau menghapusnya. Harga akhir minimal Rp10.000.
+- Satu kode bisa dijadikan **default**. Halaman utama lalu menampilkan harga normal yang dicoret di sebelah harga promo, dan kode itu terisi otomatis di halaman publikasi.
+- Di halaman publikasi, pasangan bisa mengetik kode promo lain. Riwayat pembayaran, baik di dashboard maupun di admin, mencatat kode yang dipakai.
+
 ### Preview QR kehadiran di semua template
 - Di preview menu **Tema**, kesepuluh template kini menampilkan contoh kartu QR kehadiran bergambar QR bertanda "CONTOH", supaya pasangan melihat kartu yang akan diterima tamu. QR contoh tidak berisi alamat apa pun.
 - Contoh kartu hanya tampil bila check-in menyala. Sebelumnya preview Signature tetap menampilkannya walaupun check-in dimatikan.

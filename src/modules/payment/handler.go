@@ -48,14 +48,44 @@ func (h *Handler) state(c echo.Context, w wedding.Wedding) (publishState, error)
 	if err != nil {
 		return publishState{}, err
 	}
-	return publishState{W: w, Price: h.svc.Price(), Enabled: h.svc.Enabled(), Summary: sum, Checklist: items, Orders: orders}, nil
+	s := publishState{W: w, Enabled: h.svc.Enabled(), Summary: sum, Checklist: items, Orders: orders}
+	// Harga awal: kode dari order yang masih menunggu dibayar, kalau tidak ada
+	// promo default (T39).
+	if l := sum.Latest; l != nil && l.Status == StatusPending && l.PromoCode != "" {
+		h.applyPromo(c, &s, l.PromoCode)
+	} else {
+		s.Quote = h.svc.DefaultQuote(ctx)
+		s.PromoInput = s.Quote.Code
+	}
+	return s, nil
+}
+
+// applyPromo menghitung harga untuk kode yang diketik pasangan. Kode yang
+// tidak berlaku → harga dasar dan pesan kesalahan di samping isian.
+func (h *Handler) applyPromo(c echo.Context, s *publishState, code string) {
+	s.PromoInput = NormalizeCode(code)
+	q, err := h.svc.Quote(c.Request().Context(), code)
+	switch {
+	case errors.Is(err, ErrPromoInvalid), errors.Is(err, ErrPromoTooLow):
+		s.PromoError = "Kode promo " + s.PromoInput + " tidak berlaku."
+		q = Quote{Base: h.svc.Price(), Final: h.svc.Price()}
+	case err != nil:
+		h.log.ErrorContext(c.Request().Context(), "payment: hitung promo", slog.String("error", err.Error()))
+		s.PromoError = "Kode promo belum bisa diperiksa. Coba lagi beberapa saat lagi."
+		q = Quote{Base: h.svc.Price(), Final: h.svc.Price()}
+	}
+	s.Quote = q
 }
 
 // GET …/publish — konfirmasi publikasi: harga, yang didapat, status pembayaran.
+// ?promo=KODE menerapkan kode promo (tombol "Terapkan"; kosong = tanpa promo).
 func (h *Handler) PublishPage(c echo.Context) error {
 	s, err := h.state(c, ctxWedding(c))
 	if err != nil {
 		return err
+	}
+	if _, ok := c.QueryParams()["promo"]; ok {
+		h.applyPromo(c, &s, c.QueryParam("promo"))
 	}
 	return web.Render(c, http.StatusOK, publishPage(s))
 }
@@ -67,14 +97,25 @@ func (h *Handler) Pay(c echo.Context) error { return h.startPayment(c, h.svc.Cre
 // baru, lalu arahkan ke halaman bayar gateway yang baru.
 func (h *Handler) ChangeMethod(c echo.Context) error { return h.startPayment(c, h.svc.ChangeMethod) }
 
-func (h *Handler) startPayment(c echo.Context, create func(context.Context, wedding.Wedding, uuid.UUID, Customer) (Order, error)) error {
+func (h *Handler) startPayment(c echo.Context, create func(context.Context, wedding.Wedding, uuid.UUID, Customer, string) (Order, error)) error {
 	w := ctxWedding(c)
 	u, ok := web.CurrentUser(c.Request().Context())
 	if !ok {
 		return echo.NewHTTPError(http.StatusUnauthorized)
 	}
-	o, err := create(c.Request().Context(), w, u.ID, Customer{Name: u.Name, Email: u.Email})
+	promo := c.FormValue("promo")
+	o, err := create(c.Request().Context(), w, u.ID, Customer{Name: u.Name, Email: u.Email}, promo)
 	switch {
+	case errors.Is(err, ErrPromoInvalid), errors.Is(err, ErrPromoTooLow):
+		// Kode sudah diperiksa saat "Terapkan", jadi ini jarang (mis. baru
+		// dinonaktifkan admin): tampilkan lagi halaman publikasi dengan pesannya.
+		s, serr := h.state(c, w)
+		if serr != nil {
+			return serr
+		}
+		h.applyPromo(c, &s, promo)
+		s.Error = s.PromoError // isian promo tersembunyi bila ada order pending
+		return web.Render(c, http.StatusUnprocessableEntity, publishPage(s))
 	case errors.Is(err, ErrAlreadyPaid):
 		return c.Redirect(http.StatusSeeOther, w.DashboardURL("/publish"))
 	case err != nil:

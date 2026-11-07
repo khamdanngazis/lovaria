@@ -17,9 +17,12 @@ type landingData struct {
 	// PriceIDR: harga publikasi sekali bayar per wedding (T23); 0 → bagian
 	// harga disembunyikan.
 	PriceIDR int64
-	LoggedIn bool
-	OGImage  string // URL absolut gambar Open Graph
-	URL      string // URL kanonik landing
+	// PriceBaseIDR: harga normal; lebih besar dari PriceIDR bila ada promo
+	// default (T39) → ditampilkan dicoret.
+	PriceBaseIDR int64
+	LoggedIn     bool
+	OGImage      string // URL absolut gambar Open Graph
+	URL          string // URL kanonik landing
 	// Kode verifikasi Search Console / Bing Webmaster (kosong → tanpa meta).
 	GoogleVerification, BingVerification string
 	// NavPrefix: awalan tautan menu (#tema, …): "" di landing, "/" di halaman lain.
@@ -442,8 +445,19 @@ templ landingPricing(d landingData) {
 				<p class="mt-4 leading-relaxed text-lovoria-muted">Buat dan sunting undangan sepuasnya tanpa biaya. Bayar sekali saat undangan siap dipublikasikan.</p>
 			</div>
 			<div class="rounded-2xl border border-lovoria-border bg-white p-6 shadow-soft sm:p-8">
+				if d.discounted() {
+					<p class="mb-3 inline-flex rounded-full bg-lovoria-accent/15 px-3 py-1 text-xs font-medium tracking-wide text-lovoria-accent-ink">Harga promo · hemat { payment.Rupiah(d.PriceBaseIDR - d.PriceIDR) }</p>
+				}
 				<div class="flex flex-wrap items-end gap-x-4 gap-y-2">
-					<p class="font-display text-4xl leading-none text-lovoria-primary sm:text-5xl">{ payment.Rupiah(d.PriceIDR) }</p>
+					if d.discounted() {
+						<p class="pb-1 text-xl text-lovoria-muted line-through decoration-1 sm:text-2xl"><span class="sr-only">Harga normal </span>{ payment.Rupiah(d.PriceBaseIDR) }</p>
+					}
+					<p class="font-display text-4xl leading-none text-lovoria-primary sm:text-5xl">
+						if d.discounted() {
+							<span class="sr-only">Harga promo </span>
+						}
+						{ payment.Rupiah(d.PriceIDR) }
+					</p>
 					<p class="text-sm text-lovoria-muted">sekali bayar per undangan · tanpa langganan</p>
 				</div>
 				<ul class="mt-6 grid gap-3 border-t border-lovoria-border pt-6 text-sm text-lovoria-text sm:grid-cols-2">
@@ -477,12 +491,19 @@ var landingFAQs = [][2]string{
 	{"Apakah data tamu aman?", "Link pribadi tamu tidak diindeks mesin pencari, data tidak dijual, dan cadangan data dibuat setiap hari. Selengkapnya di Kebijakan Privasi."},
 }
 
+// discounted: ada promo default — harga normal tampil dicoret.
+func (d landingData) discounted() bool { return d.PriceBaseIDR > d.PriceIDR && d.PriceIDR > 0 }
+
 // faqs: pertanyaan umum; soal biaya mengikuti harga publikasi yang berlaku.
 func faqs(d landingData) [][2]string {
 	if d.PriceIDR <= 0 {
 		return landingFAQs
 	}
-	price := [2]string{"Berapa biayanya?", "Membuat, menyunting, dan melihat pratinjau undangan gratis. Bayar " + payment.Rupiah(d.PriceIDR) + " satu kali saat undangan dipublikasikan — tanpa langganan, dan semua fitur termasuk custom domain sudah termasuk."}
+	amount := payment.Rupiah(d.PriceIDR)
+	if d.discounted() {
+		amount += " (harga promo, normalnya " + payment.Rupiah(d.PriceBaseIDR) + ")"
+	}
+	price := [2]string{"Berapa biayanya?", "Membuat, menyunting, dan melihat pratinjau undangan gratis. Bayar " + amount + " satu kali saat undangan dipublikasikan — tanpa langganan, dan semua fitur termasuk custom domain sudah termasuk."}
 	return append([][2]string{price}, landingFAQs...)
 }
 

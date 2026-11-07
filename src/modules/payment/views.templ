@@ -12,13 +12,15 @@ import (
 
 // publishState: data halaman publikasi & status pembayaran.
 type publishState struct {
-	W         wedding.Wedding
-	Price     int64
-	Enabled   bool // gateway terpasang
-	Summary   Summary
-	Checklist []wedding.ChecklistItem
-	Orders    []Order
-	Error     string
+	W          wedding.Wedding
+	Quote      Quote  // harga yang akan ditagih (dengan promo bila ada)
+	PromoInput string // isian kode promo
+	PromoError string // kode yang diketik tidak berlaku
+	Enabled    bool   // gateway terpasang
+	Summary    Summary
+	Checklist  []wedding.ChecklistItem
+	Orders     []Order
+	Error      string
 }
 
 func (s publishState) ready() bool {
@@ -109,9 +111,27 @@ templ offerCard(s publishState) {
 		<h2 class="mt-3 font-display text-3xl text-lovoria-deep">Siap dibagikan ke tamu?</h2>
 		<p class="mt-2 text-sm text-lovoria-muted">Membuat, mengubah, dan melihat pratinjau undangan tetap gratis. Pembayaran hanya sekali, saat undangan dipublikasikan.</p>
 		<p class="mt-2 text-sm"><a href={ templ.SafeURL(s.W.DashboardURL("/theme/preview")) } target="_blank" rel="noopener" class="ui-link">Lihat pratinjau sekali lagi ↗</a></p>
-		<div class="mt-6 flex flex-wrap items-end gap-x-3 gap-y-1 border-y border-lovoria-border py-5">
-			<p class="font-display text-5xl leading-none text-lovoria-primary">{ Rupiah(s.Price) }</p>
-			<p class="pb-1 text-sm text-lovoria-muted">sekali bayar per undangan · tanpa langganan</p>
+		<div class="mt-6 border-y border-lovoria-border py-5">
+			<div class="flex flex-wrap items-end gap-x-3 gap-y-1">
+				if s.Quote.Discounted() {
+					<p class="pb-1 text-xl text-lovoria-muted line-through decoration-1"><span class="sr-only">Harga normal </span>{ Rupiah(s.Quote.Base) }</p>
+				}
+				<p class="font-display text-5xl leading-none text-lovoria-primary">
+					if s.Quote.Discounted() {
+						<span class="sr-only">Harga promo </span>
+					}
+					{ Rupiah(s.Quote.Final) }
+				</p>
+				<p class="pb-1 text-sm text-lovoria-muted">sekali bayar per undangan · tanpa langganan</p>
+			</div>
+			if s.Quote.Discounted() {
+				<p class="mt-3">
+					@ui.Badge(ui.Success, "Promo "+s.Quote.Code+" · hemat "+Rupiah(s.Quote.Base-s.Quote.Final))
+				</p>
+			}
+			if s.Enabled && !s.Summary.Payable {
+				@promoForm(s)
+			}
 		</div>
 		<ul class="mt-5 grid gap-2.5 text-sm sm:grid-cols-2">
 			for _, f := range Features {
@@ -143,12 +163,41 @@ templ offerCard(s publishState) {
 				// terbuka, tab ini tetap di sini.
 				<form method="post" action={ templ.SafeURL(s.W.DashboardURL("/payment")) } target="_blank" rel="noopener" data-then={ s.W.DashboardURL("/payment/return") }>
 					@layouts.CSRFField()
+					<input type="hidden" name="promo" value={ s.Quote.Code }/>
 					<button type="submit" class="ui-btn ui-btn-primary w-full px-6 py-3 sm:w-auto">Bayar &amp; Publikasikan</button>
 				</form>
 				<p class="mt-3 text-xs text-lovoria-muted">Halaman pembayaran aman (QRIS, transfer bank/virtual account, e-wallet) dibuka di tab baru. Halaman ini tetap terbuka dan memperbarui status pembayaran secara otomatis.</p>
 			}
 		</div>
 	</div>
+}
+
+// promoForm: isian kode promo. GET ke halaman ini sendiri supaya harga dan
+// kode diperiksa sebelum tombol Bayar (yang membuka tab baru) ditekan.
+templ promoForm(s publishState) {
+	<form method="get" action={ templ.SafeURL(s.W.DashboardURL("/publish")) } class="mt-4">
+		<label for="promo" class="text-sm font-medium">Kode promo</label>
+		<div class="mt-1 flex max-w-sm gap-2">
+			<input
+				id="promo"
+				name="promo"
+				value={ s.PromoInput }
+				autocomplete="off"
+				autocapitalize="characters"
+				spellcheck="false"
+				maxlength="32"
+				class="ui-input min-w-0 flex-1 uppercase"
+				if s.PromoError != "" {
+					aria-invalid="true"
+					aria-describedby="promo-error"
+				}
+			/>
+			<button type="submit" class="ui-btn ui-btn-secondary">Terapkan</button>
+		</div>
+		if s.PromoError != "" {
+			<p id="promo-error" class="mt-1 text-sm text-lovoria-danger" role="alert">{ s.PromoError }</p>
+		}
+	</form>
 }
 
 // paidCard: sudah lunas — publikasikan (atau tautan bila sudah terbit).
@@ -206,7 +255,12 @@ templ orderHistory(s publishState) {
 							<tr>
 								<td class="whitespace-nowrap font-mono text-xs">{ o.Number }</td>
 								<td class="whitespace-nowrap">{ web.FormatDateID(o.CreatedAt) }</td>
-								<td class="whitespace-nowrap">{ Rupiah(o.Amount) }</td>
+								<td class="whitespace-nowrap">
+									{ Rupiah(o.Amount) }
+									if o.PromoCode != "" {
+										<span class="text-xs text-lovoria-muted">· promo { o.PromoCode }</span>
+									}
+								</td>
 								<td>
 									@ui.Badge(statusVariant(o.Status), StatusLabel(o.Status))
 								</td>
@@ -233,6 +287,7 @@ templ changeMethodForm(s publishState, class string) {
 		class={ class }
 	>
 		@layouts.CSRFField()
+		<input type="hidden" name="promo" value={ s.Quote.Code }/>
 		<button type="submit" class="ui-link text-sm">Ganti metode pembayaran</button>
 		<p class="mt-1 text-xs text-lovoria-muted">Sudah memilih metode tapi ingin memakai yang lain? Kami buatkan halaman pembayaran baru — tidak perlu menunggu yang lama kedaluwarsa.</p>
 	</form>

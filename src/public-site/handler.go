@@ -17,6 +17,7 @@ import (
 
 	"github.com/khamdanngazis/lovaria/src/modules/guest"
 	"github.com/khamdanngazis/lovaria/src/modules/guestbook"
+	"github.com/khamdanngazis/lovaria/src/modules/payment"
 	"github.com/khamdanngazis/lovaria/src/modules/theme"
 	"github.com/khamdanngazis/lovaria/src/modules/theme/view"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding/event"
@@ -30,9 +31,9 @@ const openedEvery = 15 * time.Minute
 type Handler struct {
 	// BaseURL: URL utama Lunovia (kanonik & gambar OG landing page).
 	BaseURL string
-	// PublishPrice: harga publikasi sekali bayar (T23) untuk bagian Harga di
-	// landing; 0 → bagian harga disembunyikan.
-	PublishPrice int64
+	// Pricing: harga publikasi sekali bayar (T23) beserta promo default (T39)
+	// untuk bagian Harga di landing; nil → bagian harga disembunyikan.
+	Pricing Pricing
 	// SiteVerification: kode verifikasi Google Search Console / Bing Webmaster
 	// (GOOGLE_SITE_VERIFICATION, BING_SITE_VERIFICATION) — meta tag di landing.
 	GoogleVerification string
@@ -47,6 +48,19 @@ type Handler struct {
 	// Secret kunci HMAC token form RSVP (config APP_SECRET).
 	Secret []byte
 	now    func() time.Time
+}
+
+// Pricing adalah bagian service payment yang dibutuhkan landing.
+type Pricing interface {
+	DefaultQuote(ctx context.Context) payment.Quote
+}
+
+// price: harga yang ditampilkan (promo default bila ada); nol bila tanpa harga.
+func (h *Handler) price(ctx context.Context) payment.Quote {
+	if h.Pricing == nil {
+		return payment.Quote{}
+	}
+	return h.Pricing.DefaultQuote(ctx)
 }
 
 func (h *Handler) clock() time.Time {

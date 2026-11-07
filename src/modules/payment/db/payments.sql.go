@@ -13,7 +13,7 @@ import (
 )
 
 const activePendingOrder = `-- name: ActivePendingOrder :one
-SELECT id, wedding_id, user_id, order_number, amount, currency, status, payment_method, gateway, gateway_transaction_id, checkout_url, expired_at, paid_at, created_at, updated_at FROM payment_orders
+SELECT id, wedding_id, user_id, order_number, amount, currency, status, payment_method, gateway, gateway_transaction_id, checkout_url, expired_at, paid_at, created_at, updated_at, promo_code, original_amount FROM payment_orders
 WHERE wedding_id = $1 AND status = 'pending' AND expired_at > $2 AND checkout_url <> ''
 ORDER BY created_at DESC, id DESC LIMIT 1
 `
@@ -43,6 +43,8 @@ func (q *Queries) ActivePendingOrder(ctx context.Context, arg ActivePendingOrder
 		&i.PaidAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PromoCode,
+		&i.OriginalAmount,
 	)
 	return i, err
 }
@@ -60,7 +62,7 @@ func (q *Queries) AdminCountOrders(ctx context.Context) (int64, error) {
 }
 
 const adminListOrders = `-- name: AdminListOrders :many
-SELECT id, wedding_id, user_id, order_number, amount, currency, status, payment_method, gateway, gateway_transaction_id, checkout_url, expired_at, paid_at, created_at, updated_at FROM payment_orders ORDER BY created_at DESC, id DESC LIMIT $2 OFFSET $1
+SELECT id, wedding_id, user_id, order_number, amount, currency, status, payment_method, gateway, gateway_transaction_id, checkout_url, expired_at, paid_at, created_at, updated_at, promo_code, original_amount FROM payment_orders ORDER BY created_at DESC, id DESC LIMIT $2 OFFSET $1
 `
 
 type AdminListOrdersParams struct {
@@ -94,6 +96,8 @@ func (q *Queries) AdminListOrders(ctx context.Context, arg AdminListOrdersParams
 			&i.PaidAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.PromoCode,
+			&i.OriginalAmount,
 		); err != nil {
 			return nil, err
 		}
@@ -113,7 +117,7 @@ SET status = $1,
     paid_at = $4
 WHERE id = $5 AND wedding_id = $6
   AND (status = 'pending' OR (status IN ('expired', 'cancelled') AND $1 = 'paid'))
-RETURNING id, wedding_id, user_id, order_number, amount, currency, status, payment_method, gateway, gateway_transaction_id, checkout_url, expired_at, paid_at, created_at, updated_at
+RETURNING id, wedding_id, user_id, order_number, amount, currency, status, payment_method, gateway, gateway_transaction_id, checkout_url, expired_at, paid_at, created_at, updated_at, promo_code, original_amount
 `
 
 type ApplyStatusParams struct {
@@ -155,24 +159,38 @@ func (q *Queries) ApplyStatus(ctx context.Context, arg ApplyStatusParams) (Payme
 		&i.PaidAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PromoCode,
+		&i.OriginalAmount,
 	)
 	return i, err
 }
 
+const clearDefaultPromo = `-- name: ClearDefaultPromo :exec
+UPDATE promo_codes SET is_default = false WHERE is_default
+`
+
+// tenant:ignore — kode promo berlaku global, bukan data wedding.
+func (q *Queries) ClearDefaultPromo(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, clearDefaultPromo)
+	return err
+}
+
 const createOrder = `-- name: CreateOrder :one
-INSERT INTO payment_orders (id, wedding_id, user_id, order_number, amount, currency, status, gateway, expired_at)
-VALUES ($1, $2, $3, $4, $5, 'IDR', 'pending', $6, $7)
-RETURNING id, wedding_id, user_id, order_number, amount, currency, status, payment_method, gateway, gateway_transaction_id, checkout_url, expired_at, paid_at, created_at, updated_at
+INSERT INTO payment_orders (id, wedding_id, user_id, order_number, amount, currency, status, gateway, expired_at, promo_code, original_amount)
+VALUES ($1, $2, $3, $4, $5, 'IDR', 'pending', $6, $7, $8, $9)
+RETURNING id, wedding_id, user_id, order_number, amount, currency, status, payment_method, gateway, gateway_transaction_id, checkout_url, expired_at, paid_at, created_at, updated_at, promo_code, original_amount
 `
 
 type CreateOrderParams struct {
-	ID          uuid.UUID
-	WeddingID   uuid.UUID
-	UserID      uuid.UUID
-	OrderNumber string
-	Amount      int64
-	Gateway     string
-	ExpiredAt   time.Time
+	ID             uuid.UUID
+	WeddingID      uuid.UUID
+	UserID         uuid.UUID
+	OrderNumber    string
+	Amount         int64
+	Gateway        string
+	ExpiredAt      time.Time
+	PromoCode      string
+	OriginalAmount int64
 }
 
 func (q *Queries) CreateOrder(ctx context.Context, arg CreateOrderParams) (PaymentOrder, error) {
@@ -184,6 +202,8 @@ func (q *Queries) CreateOrder(ctx context.Context, arg CreateOrderParams) (Payme
 		arg.Amount,
 		arg.Gateway,
 		arg.ExpiredAt,
+		arg.PromoCode,
+		arg.OriginalAmount,
 	)
 	var i PaymentOrder
 	err := row.Scan(
@@ -200,6 +220,29 @@ func (q *Queries) CreateOrder(ctx context.Context, arg CreateOrderParams) (Payme
 		&i.CheckoutUrl,
 		&i.ExpiredAt,
 		&i.PaidAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.PromoCode,
+		&i.OriginalAmount,
+	)
+	return i, err
+}
+
+const deletePromo = `-- name: DeletePromo :one
+DELETE FROM promo_codes WHERE id = $1 RETURNING id, code, discount_type, discount_value, active, is_default, created_at, updated_at
+`
+
+// tenant:ignore — kode promo berlaku global, bukan data wedding.
+func (q *Queries) DeletePromo(ctx context.Context, id uuid.UUID) (PromoCode, error) {
+	row := q.db.QueryRow(ctx, deletePromo, id)
+	var i PromoCode
+	err := row.Scan(
+		&i.ID,
+		&i.Code,
+		&i.DiscountType,
+		&i.DiscountValue,
+		&i.Active,
+		&i.IsDefault,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -219,8 +262,29 @@ func (q *Queries) ExpireStale(ctx context.Context, now time.Time) (int64, error)
 	return result.RowsAffected(), nil
 }
 
+const getDefaultPromo = `-- name: GetDefaultPromo :one
+SELECT id, code, discount_type, discount_value, active, is_default, created_at, updated_at FROM promo_codes WHERE is_default
+`
+
+// tenant:ignore — kode promo berlaku global, bukan data wedding.
+func (q *Queries) GetDefaultPromo(ctx context.Context) (PromoCode, error) {
+	row := q.db.QueryRow(ctx, getDefaultPromo)
+	var i PromoCode
+	err := row.Scan(
+		&i.ID,
+		&i.Code,
+		&i.DiscountType,
+		&i.DiscountValue,
+		&i.Active,
+		&i.IsDefault,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getOrder = `-- name: GetOrder :one
-SELECT id, wedding_id, user_id, order_number, amount, currency, status, payment_method, gateway, gateway_transaction_id, checkout_url, expired_at, paid_at, created_at, updated_at FROM payment_orders WHERE id = $1 AND wedding_id = $2
+SELECT id, wedding_id, user_id, order_number, amount, currency, status, payment_method, gateway, gateway_transaction_id, checkout_url, expired_at, paid_at, created_at, updated_at, promo_code, original_amount FROM payment_orders WHERE id = $1 AND wedding_id = $2
 `
 
 type GetOrderParams struct {
@@ -247,12 +311,14 @@ func (q *Queries) GetOrder(ctx context.Context, arg GetOrderParams) (PaymentOrde
 		&i.PaidAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PromoCode,
+		&i.OriginalAmount,
 	)
 	return i, err
 }
 
 const getOrderByNumber = `-- name: GetOrderByNumber :one
-SELECT id, wedding_id, user_id, order_number, amount, currency, status, payment_method, gateway, gateway_transaction_id, checkout_url, expired_at, paid_at, created_at, updated_at FROM payment_orders WHERE order_number = $1
+SELECT id, wedding_id, user_id, order_number, amount, currency, status, payment_method, gateway, gateway_transaction_id, checkout_url, expired_at, paid_at, created_at, updated_at, promo_code, original_amount FROM payment_orders WHERE order_number = $1
 `
 
 // tenant:ignore — halaman bayar simulasi (dev/test) hanya membawa nomor order.
@@ -275,12 +341,14 @@ func (q *Queries) GetOrderByNumber(ctx context.Context, orderNumber string) (Pay
 		&i.PaidAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PromoCode,
+		&i.OriginalAmount,
 	)
 	return i, err
 }
 
 const getOrderByNumberForUpdate = `-- name: GetOrderByNumberForUpdate :one
-SELECT id, wedding_id, user_id, order_number, amount, currency, status, payment_method, gateway, gateway_transaction_id, checkout_url, expired_at, paid_at, created_at, updated_at FROM payment_orders WHERE order_number = $1 FOR UPDATE
+SELECT id, wedding_id, user_id, order_number, amount, currency, status, payment_method, gateway, gateway_transaction_id, checkout_url, expired_at, paid_at, created_at, updated_at, promo_code, original_amount FROM payment_orders WHERE order_number = $1 FOR UPDATE
 `
 
 // tenant:ignore — webhook gateway hanya membawa nomor order; wedding diambil dari barisnya.
@@ -301,6 +369,31 @@ func (q *Queries) GetOrderByNumberForUpdate(ctx context.Context, orderNumber str
 		&i.CheckoutUrl,
 		&i.ExpiredAt,
 		&i.PaidAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.PromoCode,
+		&i.OriginalAmount,
+	)
+	return i, err
+}
+
+const getPromoByCode = `-- name: GetPromoByCode :one
+
+SELECT id, code, discount_type, discount_value, active, is_default, created_at, updated_at FROM promo_codes WHERE code = $1
+`
+
+// ---------- Kode promo (T39) ----------
+// tenant:ignore — kode promo berlaku global, bukan data wedding.
+func (q *Queries) GetPromoByCode(ctx context.Context, code string) (PromoCode, error) {
+	row := q.db.QueryRow(ctx, getPromoByCode, code)
+	var i PromoCode
+	err := row.Scan(
+		&i.ID,
+		&i.Code,
+		&i.DiscountType,
+		&i.DiscountValue,
+		&i.Active,
+		&i.IsDefault,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -334,8 +427,45 @@ func (q *Queries) InsertEvent(ctx context.Context, arg InsertEventParams) error 
 	return err
 }
 
+const insertPromo = `-- name: InsertPromo :one
+INSERT INTO promo_codes (id, code, discount_type, discount_value, active)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING id, code, discount_type, discount_value, active, is_default, created_at, updated_at
+`
+
+type InsertPromoParams struct {
+	ID            uuid.UUID
+	Code          string
+	DiscountType  string
+	DiscountValue int64
+	Active        bool
+}
+
+// tenant:ignore — kode promo berlaku global, bukan data wedding.
+func (q *Queries) InsertPromo(ctx context.Context, arg InsertPromoParams) (PromoCode, error) {
+	row := q.db.QueryRow(ctx, insertPromo,
+		arg.ID,
+		arg.Code,
+		arg.DiscountType,
+		arg.DiscountValue,
+		arg.Active,
+	)
+	var i PromoCode
+	err := row.Scan(
+		&i.ID,
+		&i.Code,
+		&i.DiscountType,
+		&i.DiscountValue,
+		&i.Active,
+		&i.IsDefault,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const latestOrder = `-- name: LatestOrder :one
-SELECT id, wedding_id, user_id, order_number, amount, currency, status, payment_method, gateway, gateway_transaction_id, checkout_url, expired_at, paid_at, created_at, updated_at FROM payment_orders WHERE wedding_id = $1 ORDER BY created_at DESC, id DESC LIMIT 1
+SELECT id, wedding_id, user_id, order_number, amount, currency, status, payment_method, gateway, gateway_transaction_id, checkout_url, expired_at, paid_at, created_at, updated_at, promo_code, original_amount FROM payment_orders WHERE wedding_id = $1 ORDER BY created_at DESC, id DESC LIMIT 1
 `
 
 func (q *Queries) LatestOrder(ctx context.Context, weddingID uuid.UUID) (PaymentOrder, error) {
@@ -357,6 +487,8 @@ func (q *Queries) LatestOrder(ctx context.Context, weddingID uuid.UUID) (Payment
 		&i.PaidAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PromoCode,
+		&i.OriginalAmount,
 	)
 	return i, err
 }
@@ -395,7 +527,7 @@ func (q *Queries) ListEvents(ctx context.Context, orderNumber string) ([]Payment
 }
 
 const listOrders = `-- name: ListOrders :many
-SELECT id, wedding_id, user_id, order_number, amount, currency, status, payment_method, gateway, gateway_transaction_id, checkout_url, expired_at, paid_at, created_at, updated_at FROM payment_orders WHERE wedding_id = $1 ORDER BY created_at DESC, id DESC
+SELECT id, wedding_id, user_id, order_number, amount, currency, status, payment_method, gateway, gateway_transaction_id, checkout_url, expired_at, paid_at, created_at, updated_at, promo_code, original_amount FROM payment_orders WHERE wedding_id = $1 ORDER BY created_at DESC, id DESC
 `
 
 func (q *Queries) ListOrders(ctx context.Context, weddingID uuid.UUID) ([]PaymentOrder, error) {
@@ -423,6 +555,42 @@ func (q *Queries) ListOrders(ctx context.Context, weddingID uuid.UUID) ([]Paymen
 			&i.PaidAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.PromoCode,
+			&i.OriginalAmount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listPromos = `-- name: ListPromos :many
+SELECT id, code, discount_type, discount_value, active, is_default, created_at, updated_at FROM promo_codes ORDER BY is_default DESC, active DESC, created_at DESC, id
+`
+
+// tenant:ignore — kode promo berlaku global, bukan data wedding.
+func (q *Queries) ListPromos(ctx context.Context) ([]PromoCode, error) {
+	rows, err := q.db.Query(ctx, listPromos)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []PromoCode{}
+	for rows.Next() {
+		var i PromoCode
+		if err := rows.Scan(
+			&i.ID,
+			&i.Code,
+			&i.DiscountType,
+			&i.DiscountValue,
+			&i.Active,
+			&i.IsDefault,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -448,7 +616,7 @@ func (q *Queries) NextOrderSeq(ctx context.Context) (int64, error) {
 const setCheckoutURL = `-- name: SetCheckoutURL :one
 UPDATE payment_orders SET checkout_url = $3
 WHERE id = $1 AND wedding_id = $2
-RETURNING id, wedding_id, user_id, order_number, amount, currency, status, payment_method, gateway, gateway_transaction_id, checkout_url, expired_at, paid_at, created_at, updated_at
+RETURNING id, wedding_id, user_id, order_number, amount, currency, status, payment_method, gateway, gateway_transaction_id, checkout_url, expired_at, paid_at, created_at, updated_at, promo_code, original_amount
 `
 
 type SetCheckoutURLParams struct {
@@ -474,6 +642,29 @@ func (q *Queries) SetCheckoutURL(ctx context.Context, arg SetCheckoutURLParams) 
 		&i.CheckoutUrl,
 		&i.ExpiredAt,
 		&i.PaidAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.PromoCode,
+		&i.OriginalAmount,
+	)
+	return i, err
+}
+
+const setDefaultPromo = `-- name: SetDefaultPromo :one
+UPDATE promo_codes SET is_default = true WHERE id = $1 RETURNING id, code, discount_type, discount_value, active, is_default, created_at, updated_at
+`
+
+// tenant:ignore — kode promo berlaku global, bukan data wedding.
+func (q *Queries) SetDefaultPromo(ctx context.Context, id uuid.UUID) (PromoCode, error) {
+	row := q.db.QueryRow(ctx, setDefaultPromo, id)
+	var i PromoCode
+	err := row.Scan(
+		&i.ID,
+		&i.Code,
+		&i.DiscountType,
+		&i.DiscountValue,
+		&i.Active,
+		&i.IsDefault,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -503,4 +694,30 @@ func (q *Queries) SetPendingDetails(ctx context.Context, arg SetPendingDetailsPa
 		arg.WeddingID,
 	)
 	return err
+}
+
+const setPromoActive = `-- name: SetPromoActive :one
+UPDATE promo_codes SET active = $2 WHERE id = $1 RETURNING id, code, discount_type, discount_value, active, is_default, created_at, updated_at
+`
+
+type SetPromoActiveParams struct {
+	ID     uuid.UUID
+	Active bool
+}
+
+// tenant:ignore — kode promo berlaku global, bukan data wedding.
+func (q *Queries) SetPromoActive(ctx context.Context, arg SetPromoActiveParams) (PromoCode, error) {
+	row := q.db.QueryRow(ctx, setPromoActive, arg.ID, arg.Active)
+	var i PromoCode
+	err := row.Scan(
+		&i.ID,
+		&i.Code,
+		&i.DiscountType,
+		&i.DiscountValue,
+		&i.Active,
+		&i.IsDefault,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }

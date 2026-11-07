@@ -31,12 +31,31 @@ func TestLandingPage(t *testing.T) {
 		t.Error("bagian harga harus tampil")
 	}
 	free := newFixture(t)
-	free.handler.PublishPrice = 0
+	free.handler.Pricing = nil
 	if b := free.get("/", nil).Body.String(); strings.Contains(b, `id="harga"`) || strings.Contains(b, `href="#harga"`) || strings.Contains(b, `href="/#harga"`) {
 		t.Error("tanpa harga: bagian dan menu harga disembunyikan")
 	}
 	if b := free.get("/faq", nil).Body.String(); strings.Contains(b, "Berapa biayanya?") {
 		t.Error("tanpa harga: FAQ harga disembunyikan")
+	}
+	// Tanpa promo hanya satu harga; dengan promo default (T39) harga normal
+	// dicoret di sebelah harga promo, juga di FAQ, JSON-LD, dan llms.txt.
+	if strings.Contains(body, "line-through") || strings.Contains(body, "Harga promo") {
+		t.Error("tanpa promo: harga tidak boleh dicoret")
+	}
+	promo := newFixture(t)
+	promo.handler.Pricing = fixedPrice{Base: 240000, Final: 59000, Code: "LAUNCH"}
+	pb := promo.get("/", nil).Body.String()
+	for _, want := range []string{"line-through", "Harga normal </span>Rp240.000", "Harga promo </span> Rp59.000", "hemat Rp181.000", `"price":59000`} {
+		if !strings.Contains(pb, want) {
+			t.Errorf("landing promo tidak memuat %q", want)
+		}
+	}
+	if b := promo.get("/faq", nil).Body.String(); !strings.Contains(b, "Bayar Rp59.000 (harga promo, normalnya Rp240.000)") {
+		t.Error("FAQ harga promo")
+	}
+	if b := promo.get("/llms.txt", nil).Body.String(); !strings.Contains(b, "Rp59.000 (harga promo, normal Rp240.000)") {
+		t.Error("llms.txt harga promo")
 	}
 	// Testimoni hanya dari data asli: tanpa data, bagiannya tidak tampil.
 	t.Cleanup(func() { web.SetTestimonials(nil) })
