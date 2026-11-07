@@ -82,8 +82,12 @@ func (h *Handler) LLMs(c echo.Context) error {
 	b.WriteString("# Lunovia\n\n> Lunovia adalah layanan berbahasa Indonesia untuk membuat undangan pernikahan digital dan website pernikahan: pasangan menyusun undangan dari ponsel, membagikan link pribadi ke tiap tamu lewat WhatsApp, menerima RSVP dan ucapan, lalu menyimpannya sebagai halaman kenangan setelah hari H.\n\n")
 	b.WriteString("## Ringkasan\n\n")
 	b.WriteString("- Fitur: pilihan tema, cerita cinta, rangkaian acara dengan peta & simpan ke kalender, galeri foto, RSVP online, buku ucapan & doa, amplop digital, link undangan pribadi per tamu, check-in tamu dengan QR, musik latar, hitung mundur, domain kustom, halaman kenangan.\n")
-	if h.PublishPrice > 0 {
-		b.WriteString("- Harga: membuat, menyunting, dan melihat pratinjau undangan gratis; " + payment.Rupiah(h.PublishPrice) + " sekali bayar per undangan saat dipublikasikan, tanpa langganan.\n")
+	if q := h.price(c.Request().Context()); q.Final > 0 {
+		price := payment.Rupiah(q.Final)
+		if q.Discounted() {
+			price += " (harga promo, normal " + payment.Rupiah(q.Base) + ")"
+		}
+		b.WriteString("- Harga: membuat, menyunting, dan melihat pratinjau undangan gratis; " + price + " sekali bayar per undangan saat dipublikasikan, tanpa langganan.\n")
 	}
 	b.WriteString("- Tamu tidak perlu memasang aplikasi; undangan dibuka di browser.\n- Bahasa: Indonesia.\n\n")
 	b.WriteString("## Halaman\n\n")

@@ -78,7 +78,7 @@ func (f *fixture) newWedding(t *testing.T, email string) (uuid.UUID, wedding.Wed
 
 func (f *fixture) order(t *testing.T, w wedding.Wedding, user uuid.UUID) Order {
 	t.Helper()
-	o, err := f.svc.CreateOrder(ctx, w, user, Customer{Name: "Sarah", Email: "s@example.com"})
+	o, err := f.svc.CreateOrder(ctx, w, user, Customer{Name: "Sarah", Email: "s@example.com"}, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -144,12 +144,12 @@ func TestCreateOrderReusesPendingAndRetries(t *testing.T) {
 	if _, err := f.weddings.MarkPaid(ctx, w.ID, wedding.PaidAdmin); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := f.svc.CreateOrder(ctx, f.wedding(t, w.ID), user, Customer{}); !errors.Is(err, ErrAlreadyPaid) {
+	if _, err := f.svc.CreateOrder(ctx, f.wedding(t, w.ID), user, Customer{}, ""); !errors.Is(err, ErrAlreadyPaid) {
 		t.Errorf("sudah lunas: %v", err)
 	}
 	none := NewService(f.pool, f.weddings, Config{Price: price, Expiry: time.Hour}, slog.New(slog.NewTextHandler(io.Discard, nil)))
 	_, w2 := f.newWedding(t, "b@example.com")
-	if _, err := none.CreateOrder(ctx, w2, user, Customer{}); !errors.Is(err, ErrUnavailable) || none.Enabled() {
+	if _, err := none.CreateOrder(ctx, w2, user, Customer{}, ""); !errors.Is(err, ErrUnavailable) || none.Enabled() {
 		t.Errorf("tanpa gateway: %v", err)
 	}
 }
@@ -305,12 +305,12 @@ func TestChangeMethod(t *testing.T) {
 	c := Customer{Name: "Sarah", Email: "s@example.com"}
 
 	// Belum ada order → sama dengan Bayar.
-	o1, err := f.svc.ChangeMethod(ctx, w, user, c)
+	o1, err := f.svc.ChangeMethod(ctx, w, user, c, "")
 	if err != nil || o1.Status != StatusPending {
 		t.Fatalf("tanpa order: %+v %v", o1, err)
 	}
 	// Order pending → ditutup (di gateway & lokal), order baru dibuat.
-	o2, err := f.svc.ChangeMethod(ctx, w, user, c)
+	o2, err := f.svc.ChangeMethod(ctx, w, user, c, "")
 	if err != nil || o2.ID == o1.ID || o2.Number == o1.Number || o2.Status != StatusPending || o2.CheckoutURL == o1.CheckoutURL {
 		t.Fatalf("ganti metode: %+v %v", o2, err)
 	}
@@ -328,7 +328,7 @@ func TestChangeMethod(t *testing.T) {
 	// Gateway tanpa pembatalan (Duitku): kode bayar lama tetap bisa dibayar dan
 	// tetap dihormati (cancelled → paid), walau order baru sudah ada.
 	f.svc.gw = noCancel{f.fake}
-	o3, err := f.svc.ChangeMethod(ctx, w, user, c)
+	o3, err := f.svc.ChangeMethod(ctx, w, user, c, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -342,7 +342,7 @@ func TestChangeMethod(t *testing.T) {
 	if out, err := f.svc.HandleNotification(ctx, f.fake.Notify(o3.Number, StatusPaid, price, f.now)); err != nil || out != OutcomeApplied {
 		t.Fatalf("bayar ganda: %q %v", out, err)
 	}
-	if _, err := f.svc.ChangeMethod(ctx, f.wedding(t, w.ID), user, c); !errors.Is(err, ErrAlreadyPaid) {
+	if _, err := f.svc.ChangeMethod(ctx, f.wedding(t, w.ID), user, c, ""); !errors.Is(err, ErrAlreadyPaid) {
 		t.Errorf("sudah lunas: %v", err)
 	}
 
@@ -351,7 +351,7 @@ func TestChangeMethod(t *testing.T) {
 	_, w2 := f.newWedding(t, "b@example.com")
 	p := f.order(t, w2, user)
 	f.fake.Notify(p.Number, StatusPaid, price, f.now) // status gateway saja, webhook belum
-	if _, err := f.svc.ChangeMethod(ctx, w2, user, c); !errors.Is(err, ErrAlreadyPaid) {
+	if _, err := f.svc.ChangeMethod(ctx, w2, user, c, ""); !errors.Is(err, ErrAlreadyPaid) {
 		t.Fatalf("sudah dibayar di gateway: %v", err)
 	}
 	if got, _ := f.svc.OrderByNumber(ctx, p.Number); got.Status != StatusPaid || !f.wedding(t, w2.ID).IsPaid() {

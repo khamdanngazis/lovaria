@@ -342,6 +342,59 @@ func (h *Handler) SaveSupport(c echo.Context) error {
 	return back(c, "/admin/support", "Kontak & bantuan disimpan.", err)
 }
 
+// ---------- Harga & promo (T39) ----------
+
+func (h *Handler) Pricing(c echo.Context) error {
+	p, err := h.svc.Pricing(c.Request().Context())
+	if err != nil {
+		return err
+	}
+	return web.Render(c, http.StatusOK, pricingPage(p, flashOf(c)))
+}
+
+// POST /admin/pricing/price (price)
+func (h *Handler) SavePrice(c echo.Context) error {
+	err := h.svc.SavePrice(c.Request().Context(), c.FormValue("price"))
+	return back(c, "/admin/pricing", "Harga disimpan dan langsung berlaku.", err)
+}
+
+// POST /admin/pricing/promos (code, type, value, active, default)
+func (h *Handler) CreatePromo(c echo.Context) error {
+	err := h.svc.CreatePromo(c.Request().Context(), payment.PromoInput{
+		Code: c.FormValue("code"), Type: c.FormValue("type"),
+		Active: c.FormValue("active") == "1", IsDefault: c.FormValue("default") == "1",
+	}, c.FormValue("value"))
+	return back(c, "/admin/pricing", "Kode promo ditambahkan.", err)
+}
+
+// POST /admin/pricing/promos/default (promo_id; kosong = tanpa promo default)
+func (h *Handler) SetDefaultPromo(c echo.Context) error {
+	id := c.FormValue("promo_id")
+	err := h.svc.SetDefaultPromo(c.Request().Context(), id)
+	msg := "Promo default diganti."
+	if id == "" {
+		msg = "Promo default dilepas — landing menampilkan harga normal."
+	}
+	return back(c, "/admin/pricing", msg, err)
+}
+
+// POST /admin/pricing/promos/:promoID/active (active=1|0)
+func (h *Handler) SetPromoActive(c echo.Context) error {
+	active := c.FormValue("active") == "1"
+	err := h.svc.SetPromoActive(c.Request().Context(), c.Param("promoID"), active)
+	msg := "Kode promo dinonaktifkan."
+	if active {
+		msg = "Kode promo diaktifkan."
+	}
+	return back(c, "/admin/pricing", msg, err)
+}
+
+// POST /admin/pricing/promos/:promoID/delete
+func (h *Handler) DeletePromo(c echo.Context) error {
+	err := h.svc.DeletePromo(c.Request().Context(), c.Param("promoID"))
+	return back(c, "/admin/pricing", "Kode promo dihapus.", err)
+}
+
 // ---------- Testimoni (landing page) ----------
 
 func (h *Handler) Testimonials(c echo.Context) error {

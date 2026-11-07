@@ -21,6 +21,7 @@ import (
 	"github.com/khamdanngazis/lovaria/src/modules/gift"
 	"github.com/khamdanngazis/lovaria/src/modules/guest"
 	"github.com/khamdanngazis/lovaria/src/modules/guestbook"
+	"github.com/khamdanngazis/lovaria/src/modules/payment"
 	"github.com/khamdanngazis/lovaria/src/modules/theme"
 	"github.com/khamdanngazis/lovaria/src/modules/theme/view"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding"
@@ -33,6 +34,11 @@ import (
 	"github.com/khamdanngazis/lovaria/src/platform/storage"
 	"github.com/khamdanngazis/lovaria/src/platform/web"
 )
+
+// fixedPrice: harga tetap untuk landing (pengganti service payment).
+type fixedPrice payment.Quote
+
+func (p fixedPrice) DefaultQuote(context.Context) payment.Quote { return payment.Quote(p) }
 
 func TestMain(m *testing.M) { os.Exit(dbtest.Main(m)) }
 
@@ -111,7 +117,7 @@ func newFixture(t *testing.T) fixture {
 			return next(c)
 		}
 	})
-	h := &Handler{BaseURL: cfg.BaseURL, PublishPrice: 149000, Views: views, Guests: gs, Guestbook: gb, Events: evs, Log: log, Secret: []byte(testSecret), now: func() time.Time { return testNow }}
+	h := &Handler{BaseURL: cfg.BaseURL, Pricing: fixedPrice{Base: 149000, Final: 149000}, Views: views, Guests: gs, Guestbook: gb, Events: evs, Log: log, Secret: []byte(testSecret), now: func() time.Time { return testNow }}
 	Register(e, Deps{
 		Resolver:       &Resolver{Weddings: ws, Guests: gs, Domains: domains, BaseURL: cfg.BaseURL, ExtraHosts: []string{"lovaria.up.railway.app"}, HostHeader: "X-Forwarded-Host", Log: log},
 		Handler:        h,

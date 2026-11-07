@@ -23,6 +23,7 @@ import (
 	"github.com/khamdanngazis/lovaria/src/modules/domain"
 	"github.com/khamdanngazis/lovaria/src/modules/gallery"
 	"github.com/khamdanngazis/lovaria/src/modules/guest"
+	"github.com/khamdanngazis/lovaria/src/modules/payment"
 	"github.com/khamdanngazis/lovaria/src/modules/theme"
 	"github.com/khamdanngazis/lovaria/src/modules/wedding"
 	"github.com/khamdanngazis/lovaria/src/platform/config"
@@ -45,6 +46,7 @@ type fixture struct {
 	weddings *wedding.Service
 	themes   *theme.Service
 	gallery  *gallery.Service
+	payments *payment.Service
 }
 
 func newFixture(t *testing.T) fixture {
@@ -58,8 +60,10 @@ func newFixture(t *testing.T) fixture {
 	ws := wedding.NewService(wedding.NewRepository(pool))
 	gs := gallery.NewService(gallery.NewRepository(pool), store, ws, 500<<20, log)
 	ts := theme.NewService(pool, ws)
+	ps := payment.NewService(pool, ws, payment.Config{Price: 149000, Expiry: time.Hour}, log)
 	svc := NewService(Deps{
-		Pool: pool, Users: as, Weddings: ws, Guests: guest.NewService(guest.NewRepository(pool), "http://x"),
+		Payments: ps,
+		Pool:     pool, Users: as, Weddings: ws, Guests: guest.NewService(guest.NewRepository(pool), "http://x"),
 		Gallery: gs, Domains: domain.NewService(pool, nil, domain.Config{}, log), Themes: ts,
 		Secret: []byte("rahasia-test-rahasia-test-rahasia-test"), Log: log,
 	})
@@ -74,7 +78,7 @@ func newFixture(t *testing.T) fixture {
 	owned := wedding.Register(dash.Group("/weddings"), wedding.Deps{Service: ws})
 	theme.Register(owned, theme.Deps{Service: ts})
 	Register(e.Group("/admin", mw.RequireAuth, mw.RequireRole(auth.RoleAdmin)), svc)
-	return fixture{e: e, pool: pool, svc: svc, auth: as, weddings: ws, themes: ts, gallery: gs}
+	return fixture{e: e, pool: pool, svc: svc, auth: as, weddings: ws, themes: ts, gallery: gs, payments: ps}
 }
 
 // user membuat akun + sesi; mengembalikan user & token cookie.
@@ -210,6 +214,9 @@ func TestEveryWriteIsAudited(t *testing.T) {
 		{"nonaktifkan tema", http.MethodPost, "/admin/themes/modern", url.Values{"enabled": {"0"}}, "theme.disable"},
 		{"aktifkan tema", http.MethodPost, "/admin/themes/modern", url.Values{"enabled": {"1"}}, "theme.enable"},
 		{"lihat dashboard", http.MethodPost, "/admin/weddings/" + w.ID.String() + "/view", url.Values{}, "wedding.view_as_couple"},
+		{"ubah harga", http.MethodPost, "/admin/pricing/price", url.Values{"price": {"240000"}}, "pricing.update"},
+		{"buat promo", http.MethodPost, "/admin/pricing/promos", url.Values{"code": {"launch"}, "type": {"amount"}, "value": {"181000"}, "active": {"1"}}, "promo.create"},
+		{"lepas promo default", http.MethodPost, "/admin/pricing/promos/default", url.Values{"promo_id": {""}}, "promo.default"},
 	}
 	for _, s := range steps {
 		before := f.auditCount(t)
@@ -690,5 +697,102 @@ func TestTestimonials(t *testing.T) {
 	f.do(http.MethodPost, "/admin/testimonials", admin, reqOpt{form: url.Values{"testimonials": {""}}})
 	if len(web.Testimonials()) != 0 {
 		t.Errorf("dikosongkan: %+v", web.Testimonials())
+	}
+}
+
+// T39: admin mengatur harga dasar & kode promo; perubahan langsung berlaku di
+// service pembayaran (landing & halaman publikasi), tersimpan, dan tercatat.
+func TestPricingAndPromos(t *testing.T) {
+	f := newFixture(t)
+	_, admin := f.user(t, "admin@example.com", true)
+	if rec := f.do(http.MethodGet, "/admin/pricing", admin, reqOpt{}); rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "Rp149.000") || !strings.Contains(rec.Body.String(), "Belum ada kode promo") {
+		t.Fatalf("halaman awal: %d", rec.Code)
+	}
+	post := func(path string, form url.Values) string {
+		t.Helper()
+		rec := f.do(http.MethodPost, path, admin, reqOpt{form: form})
+		if rec.Code != http.StatusSeeOther {
+			t.Fatalf("%s: %d", path, rec.Code)
+		}
+		return rec.Header().Get("Location")
+	}
+
+	// Harga: format rupiah diterima; di luar batas ditolak tanpa mengubah harga.
+	for _, bad := range []string{"abc", "5000", "0"} {
+		if loc := post("/admin/pricing/price", url.Values{"price": {bad}}); !strings.Contains(loc, "err=") {
+			t.Errorf("harga %q harus ditolak", bad)
+		}
+	}
+	if loc := post("/admin/pricing/price", url.Values{"price": {"Rp 240.000"}}); strings.Contains(loc, "err=") || f.payments.Price() != 240000 {
+		t.Fatalf("simpan harga: %s %d", loc, f.payments.Price())
+	}
+	// Tersimpan: setelah restart (harga env) dimuat lagi dari app_settings.
+	f.payments.SetPrice(149000)
+	if err := f.svc.LoadPricing(ctx); err != nil || f.payments.Price() != 240000 {
+		t.Fatalf("LoadPricing: %v %d", err, f.payments.Price())
+	}
+
+	// Promo: validasi, lalu default tampil sebagai harga landing.
+	for name, bad := range map[string]url.Values{
+		"tanpa kode":     {"code": {""}, "type": {"amount"}, "value": {"1000"}},
+		"persen 100":     {"code": {"X"}, "type": {"percent"}, "value": {"100"}},
+		"di bawah batas": {"code": {"X"}, "type": {"amount"}, "value": {"235000"}},
+		"bukan angka":    {"code": {"X"}, "type": {"amount"}, "value": {"banyak"}},
+	} {
+		if loc := post("/admin/pricing/promos", bad); !strings.Contains(loc, "err=") {
+			t.Errorf("promo %s harus ditolak", name)
+		}
+	}
+	post("/admin/pricing/promos", url.Values{"code": {"launch"}, "type": {"amount"}, "value": {"181.000"}, "active": {"1"}, "default": {"1"}})
+	post("/admin/pricing/promos", url.Values{"code": {"HALF"}, "type": {"percent"}, "value": {"50"}, "active": {"1"}})
+	if loc := post("/admin/pricing/promos", url.Values{"code": {"Launch"}, "type": {"percent"}, "value": {"10"}}); !strings.Contains(loc, "err=") {
+		t.Error("kode ganda harus ditolak")
+	}
+	if q := f.payments.DefaultQuote(ctx); q.Code != "LAUNCH" || q.Base != 240000 || q.Final != 59000 {
+		t.Fatalf("promo default = %+v", q)
+	}
+	body := f.do(http.MethodGet, "/admin/pricing", admin, reqOpt{}).Body.String()
+	for _, want := range []string{"LAUNCH", "HALF", "Rp59.000", "Rp120.000", "Default", "50%"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("halaman promo tidak memuat %q", want)
+		}
+	}
+	// Harga dasar yang membuat promo aktif kebablasan ditolak.
+	if loc := post("/admin/pricing/price", url.Values{"price": {"150000"}}); !strings.Contains(loc, "err=") || f.payments.Price() != 240000 {
+		t.Errorf("harga di bawah potongan promo aktif harus ditolak: %s", loc)
+	}
+
+	promos, _ := f.payments.ListPromos(ctx)
+	var half, launch payment.Promo
+	for _, p := range promos {
+		switch p.Code {
+		case "HALF":
+			half = p
+		case "LAUNCH":
+			launch = p
+		}
+	}
+	// Ganti default, nonaktifkan, hapus.
+	post("/admin/pricing/promos/default", url.Values{"promo_id": {half.ID.String()}})
+	if q := f.payments.DefaultQuote(ctx); q.Code != "HALF" {
+		t.Errorf("default setelah ganti = %+v", q)
+	}
+	post("/admin/pricing/promos/"+half.ID.String()+"/active", url.Values{"active": {"0"}})
+	if q := f.payments.DefaultQuote(ctx); q.Discounted() {
+		t.Errorf("default nonaktif harus kembali ke harga normal: %+v", q)
+	}
+	if _, err := f.payments.Quote(ctx, "HALF"); !errors.Is(err, payment.ErrPromoInvalid) {
+		t.Errorf("kode nonaktif: %v", err)
+	}
+	before := f.auditCount(t)
+	post("/admin/pricing/promos/"+launch.ID.String()+"/delete", url.Values{})
+	if _, err := f.payments.Quote(ctx, "LAUNCH"); !errors.Is(err, payment.ErrPromoInvalid) || f.auditCount(t) != before+1 {
+		t.Errorf("hapus promo: %v", err)
+	}
+	if loc := post("/admin/pricing/promos/"+launch.ID.String()+"/delete", url.Values{}); !strings.Contains(loc, "err=") {
+		t.Error("hapus promo yang tidak ada harus memberi pesan")
+	}
+	if loc := post("/admin/pricing/promos/bukan-uuid/active", url.Values{"active": {"1"}}); !strings.Contains(loc, "err=") {
+		t.Error("id tidak valid harus memberi pesan")
 	}
 }

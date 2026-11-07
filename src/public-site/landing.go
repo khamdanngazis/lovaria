@@ -57,7 +57,8 @@ func (h *Handler) landing(c echo.Context) (landingData, error) {
 		}
 		d.Themes = append(d.Themes, lt)
 	}
-	d.PriceIDR = h.PublishPrice
+	q := h.price(ctx)
+	d.PriceIDR, d.PriceBaseIDR = q.Final, q.Base
 	d.Testimonials = web.Testimonials()
 	return d, nil
 }

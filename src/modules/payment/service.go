@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/google/uuid"
@@ -41,20 +42,23 @@ const (
 
 // Order adalah satu percobaan bayar.
 type Order struct {
-	ID            uuid.UUID
-	WeddingID     uuid.UUID
-	UserID        uuid.UUID
-	Number        string
-	Amount        int64
-	Currency      string
-	Status        string
-	Method        string
-	Gateway       string
-	TransactionID string
-	CheckoutURL   string
-	ExpiredAt     time.Time
-	PaidAt        *time.Time
-	CreatedAt     time.Time
+	ID        uuid.UUID
+	WeddingID uuid.UUID
+	UserID    uuid.UUID
+	Number    string
+	Amount    int64
+	// T39: harga sebelum potongan & kode promo yang dipakai ("" = tanpa promo).
+	OriginalAmount int64
+	PromoCode      string
+	Currency       string
+	Status         string
+	Method         string
+	Gateway        string
+	TransactionID  string
+	CheckoutURL    string
+	ExpiredAt      time.Time
+	PaidAt         *time.Time
+	CreatedAt      time.Time
 }
 
 // Payable: masih bisa dibayar (pending dan belum lewat batas waktu).
@@ -65,7 +69,7 @@ func (o Order) Payable(now time.Time) bool {
 func toOrder(r paymentdb.PaymentOrder) Order {
 	o := Order{
 		ID: r.ID, WeddingID: r.WeddingID, UserID: r.UserID, Number: r.OrderNumber,
-		Amount: r.Amount, Currency: r.Currency, Status: r.Status, Method: r.PaymentMethod,
+		Amount: r.Amount, OriginalAmount: r.OriginalAmount, PromoCode: r.PromoCode, Currency: r.Currency, Status: r.Status, Method: r.PaymentMethod,
 		Gateway: r.Gateway, CheckoutURL: r.CheckoutUrl, ExpiredAt: r.ExpiredAt, PaidAt: r.PaidAt, CreatedAt: r.CreatedAt,
 	}
 	if r.GatewayTransactionID != nil {
@@ -85,7 +89,7 @@ type Service struct {
 	q        *paymentdb.Queries
 	gw       Gateway // nil → pembayaran belum tersedia
 	weddings Weddings
-	price    int64
+	price    atomic.Int64 // harga dasar; bisa diganti admin (SetPrice)
 	expiry   time.Duration
 	baseURL  string
 	now      func() time.Time
@@ -130,17 +134,16 @@ type Config struct {
 }
 
 func NewService(pool *pgxpool.Pool, weddings Weddings, cfg Config, log *slog.Logger) *Service {
-	return &Service{
+	s := &Service{
 		pool: pool, q: paymentdb.New(pool), gw: cfg.Gateway, weddings: weddings,
-		price: cfg.Price, expiry: cfg.Expiry, baseURL: strings.TrimSuffix(cfg.BaseURL, "/"), now: time.Now, log: log,
+		expiry: cfg.Expiry, baseURL: strings.TrimSuffix(cfg.BaseURL, "/"), now: time.Now, log: log,
 	}
+	s.price.Store(cfg.Price)
+	return s
 }
 
 // Enabled: gateway terpasang.
 func (s *Service) Enabled() bool { return s.gw != nil }
-
-// Price: harga publikasi per wedding (rupiah).
-func (s *Service) Price() int64 { return s.price }
 
 // GatewayName: nama gateway aktif ("" bila belum ada).
 func (s *Service) GatewayName() string {
@@ -159,22 +162,32 @@ func (s *Service) orderNumber(ctx context.Context) (string, error) {
 	return fmt.Sprintf("LVR-%s-%06d", s.now().In(jakarta).Format("20060102"), n), nil
 }
 
-// CreateOrder menyiapkan pembayaran untuk wedding w. Order pending yang masih
-// berlaku dipakai ulang (tidak ada order ganda); setelah kedaluwarsa/gagal
-// dibuat percobaan baru untuk wedding yang sama.
-func (s *Service) CreateOrder(ctx context.Context, w wedding.Wedding, buyer uuid.UUID, c Customer) (Order, error) {
+// CreateOrder menyiapkan pembayaran untuk wedding w dengan kode promo promo
+// (kosong = harga dasar). Order pending yang masih berlaku dengan harga & kode
+// yang sama dipakai ulang (tidak ada order ganda); bila kode/harganya berubah,
+// order lama ditutup dulu. Setelah kedaluwarsa/gagal dibuat percobaan baru.
+func (s *Service) CreateOrder(ctx context.Context, w wedding.Wedding, buyer uuid.UUID, c Customer, promo string) (Order, error) {
 	if s.gw == nil {
 		return Order{}, ErrUnavailable
 	}
 	if w.IsPaid() {
 		return Order{}, ErrAlreadyPaid
 	}
+	quote, err := s.Quote(ctx, promo)
+	if err != nil {
+		return Order{}, err
+	}
 	now := s.now()
 	if _, err := s.q.ExpireStale(ctx, now); err != nil {
 		return Order{}, err
 	}
 	if cur, err := s.q.ActivePendingOrder(ctx, paymentdb.ActivePendingOrderParams{WeddingID: w.ID, Now: now}); err == nil {
-		return toOrder(cur), nil
+		if cur.Amount == quote.Final && cur.PromoCode == quote.Code {
+			return toOrder(cur), nil
+		}
+		if err := s.cancelPending(ctx, w.ID); err != nil {
+			return Order{}, err
+		}
 	} else if !errors.Is(err, pgx.ErrNoRows) {
 		return Order{}, err
 	}
@@ -185,13 +198,14 @@ func (s *Service) CreateOrder(ctx context.Context, w wedding.Wedding, buyer uuid
 	}
 	row, err := s.q.CreateOrder(ctx, paymentdb.CreateOrderParams{
 		ID: db.NewID(), WeddingID: w.ID, UserID: buyer, OrderNumber: number,
-		Amount: s.price, Gateway: s.gw.Name(), ExpiredAt: now.Add(s.expiry),
+		Amount: quote.Final, Gateway: s.gw.Name(), ExpiredAt: now.Add(s.expiry),
+		PromoCode: quote.Code, OriginalAmount: quote.Base,
 	})
 	if err != nil {
 		return Order{}, fmt.Errorf("payment: buat order: %w", err)
 	}
 	checkout, err := s.gw.CreateCheckout(ctx, CheckoutRequest{
-		OrderNumber: number, Amount: s.price, ItemName: "Publikasi undangan " + w.Title,
+		OrderNumber: number, Amount: quote.Final, ItemName: "Publikasi undangan " + w.Title,
 		Customer: c, ExpiresIn: s.expiry, ReturnURL: s.baseURL + w.DashboardURL("/payment/return"),
 	})
 	if err != nil {
@@ -218,17 +232,20 @@ func (s *Service) CreateOrder(ctx context.Context, w wedding.Wedding, buyer uuid
 //
 // Gateway tanpa API pembatalan (Duitku): kode bayar lama masih bisa dibayar
 // sampai kedaluwarsa; pembayaran itu tetap dihormati (cancelled → paid).
-func (s *Service) ChangeMethod(ctx context.Context, w wedding.Wedding, buyer uuid.UUID, c Customer) (Order, error) {
+func (s *Service) ChangeMethod(ctx context.Context, w wedding.Wedding, buyer uuid.UUID, c Customer, promo string) (Order, error) {
 	if s.gw == nil {
 		return Order{}, ErrUnavailable
 	}
 	if w.IsPaid() {
 		return Order{}, ErrAlreadyPaid
 	}
+	if _, err := s.Quote(ctx, promo); err != nil {
+		return Order{}, err // kode salah: order lama jangan ditutup dulu
+	}
 	if err := s.cancelPending(ctx, w.ID); err != nil {
 		return Order{}, err
 	}
-	return s.CreateOrder(ctx, w, buyer, c)
+	return s.CreateOrder(ctx, w, buyer, c, promo)
 }
 
 // cancelPending menutup order pending terakhir wedding (bila ada).

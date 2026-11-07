@@ -2,8 +2,8 @@
 SELECT nextval('payment_order_seq')::bigint;
 
 -- name: CreateOrder :one
-INSERT INTO payment_orders (id, wedding_id, user_id, order_number, amount, currency, status, gateway, expired_at)
-VALUES ($1, $2, $3, $4, $5, 'IDR', 'pending', $6, $7)
+INSERT INTO payment_orders (id, wedding_id, user_id, order_number, amount, currency, status, gateway, expired_at, promo_code, original_amount)
+VALUES ($1, $2, $3, $4, $5, 'IDR', 'pending', $6, $7, $8, $9)
 RETURNING *;
 
 -- name: SetCheckoutURL :one
@@ -75,3 +75,39 @@ SELECT * FROM payment_orders WHERE order_number = $1;
 -- name: AdminCountOrders :one
 -- tenant:ignore — panel admin: jumlah semua order.
 SELECT count(*) FROM payment_orders;
+
+-- ---------- Kode promo (T39) ----------
+
+-- name: GetPromoByCode :one
+-- tenant:ignore — kode promo berlaku global, bukan data wedding.
+SELECT * FROM promo_codes WHERE code = $1;
+
+-- name: GetDefaultPromo :one
+-- tenant:ignore — kode promo berlaku global, bukan data wedding.
+SELECT * FROM promo_codes WHERE is_default;
+
+-- name: ListPromos :many
+-- tenant:ignore — kode promo berlaku global, bukan data wedding.
+SELECT * FROM promo_codes ORDER BY is_default DESC, active DESC, created_at DESC, id;
+
+-- name: InsertPromo :one
+-- tenant:ignore — kode promo berlaku global, bukan data wedding.
+INSERT INTO promo_codes (id, code, discount_type, discount_value, active)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING *;
+
+-- name: SetPromoActive :one
+-- tenant:ignore — kode promo berlaku global, bukan data wedding.
+UPDATE promo_codes SET active = $2 WHERE id = $1 RETURNING *;
+
+-- name: ClearDefaultPromo :exec
+-- tenant:ignore — kode promo berlaku global, bukan data wedding.
+UPDATE promo_codes SET is_default = false WHERE is_default;
+
+-- name: SetDefaultPromo :one
+-- tenant:ignore — kode promo berlaku global, bukan data wedding.
+UPDATE promo_codes SET is_default = true WHERE id = $1 RETURNING *;
+
+-- name: DeletePromo :one
+-- tenant:ignore — kode promo berlaku global, bukan data wedding.
+DELETE FROM promo_codes WHERE id = $1 RETURNING *;
